@@ -1,0 +1,584 @@
+@import "./theme.css";
+@import "tailwindcss";
+
+/* Base tweaks */
+html, body, #root { height: 100%; }
+body { margin: 0; }
+
+/* Accessible skip link styling */
+.skip-link {
+	position: absolute;
+	left: 0.5rem;
+	top: -40px;
+	z-index: 50;
+	padding: 0.5rem 0.75rem;
+	background: #ffffff;
+	color: #111827; /* gray-900 */
+	border: 1px solid #d1d5db; /* gray-300 */
+	border-radius: 0.375rem; /* rounded-md */
+	box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.skip-link:focus {
+	top: 0.5rem;
+}
+
+/* Hide horizontal scrollbar while preserving scrollability */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Custom scrollbar styles */
+.scrollbar-thin::-webkit-scrollbar {
+	height: 6px;
+	width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+	background: #d1d5db;
+	border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+	background: #9ca3af;
+}
+
+/* Firefox scrollbar */
+.scrollbar-thin {
+	scrollbar-width: thin;
+	scrollbar-color: #d1d5db transparent;
+}
+
+/* Fade-in animation for rotating services */
+@keyframes fadeIn {
+	0% { opacity: 0; transform: translateY(-10px); }
+	100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+	animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Slide-up animation for upload progress */
+@keyframes slideUp {
+	0% { 
+		opacity: 0;
+		transform: translateY(100px);
+	}
+	100% { 
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-slide-up {
+	animation: slideUp 0.3s ease-out;
+}
+
+/* Animated placeholder - Marquee effect that slides horizontally when text overflows */
+@keyframes marquee-slide {
+	0%, 15% { 
+		left: 0.5rem;
+	}
+	50%, 65% { 
+		left: -50%;
+	}
+	100% { 
+		left: 0.5rem;
+	}
+}
+
+/* Wrapper for animated placeholder */
+.animated-placeholder-wrapper {
+	position: relative;
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+}
+
+/* Input styling */
+.animated-placeholder-wrapper input {
+	width: 100%;
+	background: white;
+}
+
+/* Animated placeholder - simple span positioned absolutely */
+.animated-placeholder {
+	position: absolute;
+	top: 50%;
+	left: 0.5rem;
+	transform: translateY(-50%);
+	color: rgb(156 163 175);
+	pointer-events: none;
+	white-space: nowrap;
+	user-select: none;
+	font-size: 0.875rem;
+	line-height: 1.25rem;
+	z-index: 10;
+	opacity: 1;
+	visibility: visible;
+	transition: opacity 0.2s ease;
+}
+
+/* Hide placeholder on focus */
+.animated-placeholder-wrapper input:focus ~ .animated-placeholder {
+	opacity: 0;
+}
+
+/* Animación para placeholder overflow - aplicada globalmente */
+@keyframes marquee-slide {
+	0%, 15% { 
+		transform: translateX(0) translateY(-50%);
+	}
+	50%, 65% { 
+		transform: translateX(-40%) translateY(-50%);
+	}
+	100% { 
+		transform: translateX(0) translateY(-50%);
+	}
+}
+
+/* Aplicar animación cuando hay overflow - cualquier resolución */
+.animated-placeholder.overflow {
+	animation: marquee-slide 6s ease-in-out infinite;
+}
+
+/* Mobile - very small screens */
+@media (max-width: 400px) {
+	.animated-placeholder {
+		font-size: 0.625rem; /* 10px */
+		left: 0.125rem;
+	}
+}
+
+/* Mobile - small screens */
+@media (min-width: 401px) and (max-width: 640px) {
+	.animated-placeholder {
+		font-size: 0.75rem; /* 12px */
+		left: 1rem;
+	}
+}
+
+/* Tablets - medium screens */
+@media (min-width: 641px) and (max-width: 1024px) {
+	.animated-placeholder {
+		font-size: 0.875rem; /* 14px */
+		left: 0.5rem;
+	}
+}
+
+/* Desktop - hide custom placeholder (use native) */
+@media (min-width: 1025px) {
+	.animated-placeholder {
+		display: none;
+	}
+	
+	.animated-placeholder-wrapper input::placeholder {
+		color: rgb(156 163 175);
+	}
+}
+
+/* Mobile and tablets - hide native placeholder (we use custom) */
+@media (max-width: 1024px) {
+	.animated-placeholder-wrapper input::placeholder {
+		color: transparent;
+	}
+}
+
+/* Fullscreen video exit button - hide by default */
+.video-fullscreen-container .fullscreen-exit-btn {
+	opacity: 0 !important;
+	pointer-events: none !important;
+	visibility: hidden !important;
+}
+
+/* Show button when container is in fullscreen - with all vendor prefixes */
+.video-fullscreen-container:fullscreen .fullscreen-exit-btn,
+.video-fullscreen-container:-webkit-full-screen .fullscreen-exit-btn,
+.video-fullscreen-container:-moz-full-screen .fullscreen-exit-btn,
+.video-fullscreen-container:-ms-fullscreen .fullscreen-exit-btn {
+	opacity: 1 !important;
+	pointer-events: auto !important;
+	visibility: visible !important;
+	display: block !important;
+}
+
+/* Additional fallback: show button when ANY element is in fullscreen */
+:fullscreen .fullscreen-exit-btn,
+:-webkit-full-screen .fullscreen-exit-btn,
+:-moz-full-screen .fullscreen-exit-btn,
+:-ms-fullscreen .fullscreen-exit-btn {
+	opacity: 1 !important;
+	pointer-events: auto !important;
+	visibility: visible !important;
+	display: block !important;
+}
+
+/* Hide custom fullscreen button when in fullscreen mode */
+.video-fullscreen-container:fullscreen .video-custom-fullscreen-btn,
+.video-fullscreen-container:-webkit-full-screen .video-custom-fullscreen-btn,
+.video-fullscreen-container:-moz-full-screen .video-custom-fullscreen-btn,
+.video-fullscreen-container:-ms-fullscreen .video-custom-fullscreen-btn {
+	display: none !important;
+}
+
+/* ============================================
+   HOME PAGE ANIMATIONS
+   ============================================ */
+
+/* Blob animation for hero background */
+@keyframes blob {
+	0%, 100% {
+		transform: translate(0, 0) scale(1);
+	}
+	25% {
+		transform: translate(20px, -20px) scale(1.1);
+	}
+	50% {
+		transform: translate(-20px, 20px) scale(0.9);
+	}
+	75% {
+		transform: translate(20px, 20px) scale(1.05);
+	}
+}
+
+.animate-blob {
+	animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+	animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+	animation-delay: 4s;
+}
+
+/* Slide up animation for service names */
+@keyframes slide-up {
+	0% {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	10%, 90% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(-20px);
+	}
+}
+
+.animate-slide-up {
+	animation: slide-up 3s ease-in-out;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+	display: none;
+}
+
+/* ============================================
+   MODAL ANIMATIONS
+   ============================================ */
+
+/* Modal enter animation */
+@keyframes modal-enter {
+	0% {
+		opacity: 0;
+		transform: scale(0.95) translateY(20px);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+.animate-modal-enter {
+	animation: modal-enter 0.3s ease-out forwards;
+}
+
+/* Modal exit animation */
+@keyframes modal-exit {
+	0% {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(0.95) translateY(20px);
+	}
+}
+
+.animate-modal-exit {
+	animation: modal-exit 0.2s ease-in forwards;
+}
+
+/* Card shimmer effect for loading */
+@keyframes shimmer {
+	0% {
+		background-position: -200% 0;
+	}
+	100% {
+		background-position: 200% 0;
+	}
+}
+
+.animate-shimmer {
+	background: linear-gradient(
+		90deg,
+		#f0f0f0 25%,
+		#e0e0e0 50%,
+		#f0f0f0 75%
+	);
+	background-size: 200% 100%;
+	animation: shimmer 1.5s infinite;
+}
+
+/* Provider card hover scale */
+.provider-card-hover {
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.provider-card-hover:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Tab indicator animation */
+@keyframes tab-indicator {
+	0% {
+		width: 0;
+		left: 50%;
+	}
+	100% {
+		width: 100%;
+		left: 0;
+	}
+}
+
+.animate-tab-indicator {
+	animation: tab-indicator 0.2s ease-out forwards;
+}
+
+/* Pulse animation for verified badge */
+@keyframes pulse-ring {
+	0% {
+		transform: scale(0.8);
+		opacity: 0.8;
+	}
+	50% {
+		transform: scale(1.2);
+		opacity: 0.4;
+	}
+	100% {
+		transform: scale(0.8);
+		opacity: 0.8;
+	}
+}
+
+.animate-pulse-ring {
+	animation: pulse-ring 2s ease-in-out infinite;
+}
+
+/* Portfolio image zoom */
+@keyframes zoom-in {
+	0% {
+		transform: scale(0.5);
+		opacity: 0;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+.animate-zoom-in {
+	animation: zoom-in 0.3s ease-out forwards;
+}
+
+/* Star rating fill animation */
+@keyframes star-fill {
+	0% {
+		transform: scale(0);
+	}
+	50% {
+		transform: scale(1.2);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+.animate-star-fill {
+	animation: star-fill 0.3s ease-out forwards;
+}
+
+/* Rating bar animation */
+@keyframes rating-bar-fill {
+	0% {
+		width: 0;
+	}
+}
+
+.animate-rating-bar {
+	animation: rating-bar-fill 0.8s ease-out forwards;
+}
+
+/* Stagger children animation helper */
+.stagger-children > * {
+	opacity: 0;
+	animation: fade-in-up 0.4s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes fade-in-up {
+	0% {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Scroll indicator pulse */
+@keyframes scroll-indicator {
+	0%, 100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(8px);
+	}
+}
+
+.animate-scroll-indicator {
+	animation: scroll-indicator 1.5s ease-in-out infinite;
+}
+
+/* ============================================
+   HEADER ANIMATIONS & STYLES
+   ============================================ */
+
+/* Header glass morphism effect */
+.header-glass {
+	backdrop-filter: blur(20px) saturate(180%);
+	-webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* Slow pulse animation for logo glow */
+@keyframes pulse-slow {
+	0%, 100% {
+		opacity: 0.4;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.8;
+		transform: scale(1.05);
+	}
+}
+
+.animate-pulse-slow {
+	animation: pulse-slow 4s ease-in-out infinite;
+}
+
+/* Subtle bounce animation for notification badges */
+@keyframes bounce-subtle {
+	0%, 100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.1);
+	}
+}
+
+.animate-bounce-subtle {
+	animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* Badge pulse animation */
+@keyframes pulse-badge {
+	0%, 100% {
+		box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+	}
+	50% {
+		box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+	}
+}
+
+.animate-pulse-badge {
+	animation: pulse-badge 2s ease-in-out infinite;
+}
+
+/* Slide down animation for dropdowns */
+@keyframes slide-down {
+	0% {
+		opacity: 0;
+		transform: translateY(-10px) scale(0.98);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.animate-slide-down {
+	animation: slide-down 0.25s ease-out forwards;
+}
+
+/* Navigation link styles */
+.nav-link,
+.nav-link-tooltip {
+	position: relative;
+	overflow: visible;
+}
+
+.nav-link::before,
+.nav-link-tooltip::before {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 2px;
+	background: linear-gradient(90deg, currentColor, transparent);
+	transform: translateX(-100%);
+	transition: transform 0.3s ease;
+	opacity: 0.3;
+}
+
+.nav-link:hover::before,
+.nav-link-tooltip:hover::before {
+	transform: translateX(0);
+}
+
+/* Navigation tooltip styles - usando title nativo */
+.nav-link-tooltip {
+	position: relative;
+	z-index: 1;
+}
+
+.nav-link-tooltip:hover {
+	z-index: 50;
+}
+
+/* Border-l-3 utility for notification indicator */
+.border-l-3 {
+	border-left-width: 3px;
+}
+

@@ -1,0 +1,1297 @@
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketClient.js';
+import { useAuth } from '@/state/AuthContext.jsx';
+import Modal from '@/components/ui/Modal.jsx';
+import Button from '@/components/ui/Button.jsx';
+import { useToast } from '@/components/ui/Toast.jsx';
+import SearchBar from '@/components/ui/SearchBar.jsx';
+import api from '@/state/apiClient.js';
+
+function Header() {
+  const { user, role, roles, viewRole, isAuthenticated, changeViewRole, clearViewRoleLock, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [confirmOut, setConfirmOut] = useState(false);
+  const toast = useToast();
+  const [unreadAdmin, setUnreadAdmin] = useState(0);
+  // In-app notifications (visible for any authenticated user)
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  // Lightweight counters for nav badges
+  const [counters, setCounters] = useState({ notificationsUnread: 0, client: null, provider: null });
+  // Subscription upgrade hints (provider mode)
+  const [upgradeHint, setUpgradeHint] = useState({ show: false, reason: '' });
+  const location = useLocation();
+  const navigate = useNavigate();
+  const navRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+  const mobileToggleRef = useRef(null);
+  const [canScrollNavLeft, setCanScrollNavLeft] = useState(false);
+  const [canScrollNavRight, setCanScrollNavRight] = useState(false);
+  const socketRef = useRef(null);
+  
+  // Estado para SearchBar integrado en Header
+  const [searchBarState, setSearchBarState] = useState({
+    show: false,
+    mode: null, // 'category' | 'search'
+    categoryName: null,
+    onSearch: null,
+    onBack: null
+  });
+
+  // Estado para animación de placeholder del SearchBar
+  const [searchNeedsAnimation, setSearchNeedsAnimation] = useState(false);
+  const [searchInputValue, setSearchInputValue] = useState('');
+  const searchInputRef = useRef(null);
+  const searchPlaceholderRef = useRef(null);
+
+  // Compute responsive-safe display name
+  const firstName = user?.profile?.firstName?.trim?.() || '';
+  const lastName = user?.profile?.lastName?.trim?.() || '';
+  //const fullName = [firstName, lastName].filter(Boolean).join(' ');
+  const email = user?.email || '';
+  const initials = (() => {
+    const a = (firstName || '').charAt(0).toUpperCase();
+    const b = (lastName || '').charAt(0).toUpperCase();
+    if (a || b) return `${a}${b}` || a || b || '';
+    const userPart = (email.split('@')[0] || '').trim();
+    return (userPart.charAt(0) || 'U').toUpperCase();
+  })();
+  // Note: no unused variable; compute inline when needed
+
+  const closeMenu = () => {
+    // If focus is inside the mobile menu, move it back to the toggle button before hiding (a11y)
+    try {
+      const active = document.activeElement;
+      if (active && mobileMenuRef.current?.contains(active)) {
+        mobileToggleRef.current?.focus();
+      }
+    } catch { /* ignore */ }
+    setOpen(false);
+  };
+
+  // Escuchar eventos de búsqueda desde Home.jsx
+  useEffect(() => {
+    const handleSearchBarUpdate = (event) => {
+      setSearchBarState(event.detail);
+    };
+    
+    window.addEventListener('header:searchbar', handleSearchBarUpdate);
+    return () => window.removeEventListener('header:searchbar', handleSearchBarUpdate);
+  }, []);
+
+  // Ocultar SearchBar cuando el usuario es provider o está en páginas de auth
+  useEffect(() => {
+    const authRoutes = ['/login', '/registrarse', '/recuperar-contrasena', '/restablecer-contrasena'];
+    const isAuthRoute = authRoutes.some(route => location.pathname.startsWith(route));
+    
+    if ((isAuthenticated && viewRole === 'provider') || isAuthRoute) {
+      setSearchBarState({
+        show: false,
+        mode: null,
+        categoryName: null,
+        onSearch: null,
+        onBack: null
+      });
+    }
+  }, [isAuthenticated, viewRole, location.pathname]);
+
+  // Close menus with Escape for accessibility
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        // Mirror close behavior: restore focus if it was inside the mobile menu
+        try {
+          const active = document.activeElement;
+          if (active && mobileMenuRef.current?.contains(active)) {
+            mobileToggleRef.current?.focus();
+          }
+        } catch { /* ignore */ }
+        setOpen(false);
+        setAccountOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Update nav scroll buttons visibility
+  const updateNavScrollState = () => {
+    const el = navRef.current;
+    if (!el) { setCanScrollNavLeft(false); setCanScrollNavRight(false); return; }
+    const { scrollLeft, clientWidth, scrollWidth } = el;
+    setCanScrollNavLeft(scrollLeft > 0);
+    setCanScrollNavRight(scrollLeft + clientWidth < scrollWidth - 1);
+  };
+
+  useEffect(() => {
+    updateNavScrollState();
+    const onResize = () => updateNavScrollState();
+    window.addEventListener('resize', onResize);
+    const el = navRef.current;
+    if (el) el.addEventListener('scroll', updateNavScrollState, { passive: true });
+    return () => {
+      window.removeEventListener('resize', onResize);
+      if (el) el.removeEventListener('scroll', updateNavScrollState);
+    };
+  }, []);
+
+  // Resetear input cuando cambia el estado de búsqueda
+  useEffect(() => {
+    if (searchBarState.show) {
+      console.log('Header SearchBar shown, resetting input');
+      setSearchInputValue('');
+      if (searchInputRef.current) {
+        searchInputRef.current.value = '';
+      }
+    }
+  }, [searchBarState.show]);
+
+  // Debug: verificar que el placeholder se renderiza
+  useEffect(() => {
+    if (searchBarState.show && !searchInputValue) {
+      console.log('Placeholder should be visible', {
+        placeholderExists: !!searchPlaceholderRef.current,
+        inputValue: searchInputValue,
+        placeholderText: searchBarState.categoryName ? `Buscar en ${searchBarState.categoryName}...` : 'Buscar servicios profesionales...'
+      });
+    }
+  }, [searchBarState.show, searchInputValue, searchBarState.categoryName]);
+
+  // Detección de overflow para animación de placeholder
+  useEffect(() => {
+    if (!searchBarState.show) return;
+    
+    const checkOverflow = () => {
+      console.log('Header checkOverflow called', { 
+        inputExists: !!searchInputRef.current, 
+        placeholderExists: !!searchPlaceholderRef.current,
+        windowWidth: window.innerWidth,
+        searchInputValue
+      });
+      
+      // Verificar overflow en cualquier resolución donde pueda no caber
+      if (searchInputRef.current && searchPlaceholderRef.current) {
+        // Dar tiempo para que el DOM se renderice
+        setTimeout(() => {
+          if (searchInputRef.current && searchPlaceholderRef.current) {
+            // Obtener padding real del input
+            const inputStyle = window.getComputedStyle(searchInputRef.current);
+            const paddingLeft = parseFloat(inputStyle.paddingLeft) || 0;
+            const paddingRight = parseFloat(inputStyle.paddingRight) || 0;
+            
+            const inputWidth = searchInputRef.current.offsetWidth - paddingLeft - paddingRight - 10; // 10px de margen extra
+            const placeholderWidth = searchPlaceholderRef.current.scrollWidth; // scrollWidth en lugar de offsetWidth
+            
+            const needsAnim = placeholderWidth > inputWidth;
+            console.log('Header overflow check:', { 
+              inputWidth, 
+              placeholderWidth,
+              paddingLeft,
+              paddingRight,
+              needsAnimation: needsAnim,
+              windowWidth: window.innerWidth
+            });
+            setSearchNeedsAnimation(needsAnim);
+          }
+        }, 150);
+      }
+    };
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [searchBarState.show, searchInputValue]);
+
+
+  // Colores de enlaces del menú según modo visual
+  const linkColor = useMemo(() => {
+    // Invitado en negro, proveedor azul, cliente verde, admin índigo
+    if (role === 'guest') {
+      return { active: 'text-black', hover: 'hover:text-black' };
+    }
+    switch (viewRole) {
+      case 'provider':
+        return { active: 'text-brand-700', hover: 'hover:text-brand-800' };
+      case 'client':
+        return { active: 'text-emerald-700', hover: 'hover:text-emerald-800' };
+      case 'admin':
+        return { active: 'text-indigo-700', hover: 'hover:text-indigo-800' };
+      default:
+        return { active: 'text-gray-900', hover: 'hover:text-gray-900' };
+    }
+  }, [viewRole, role]);
+
+  const LinkClass = (isActive) => {
+    // Color neutro (no activo) por rol
+    const neutralByRole = role === 'guest'
+      ? 'text-black'
+      : (viewRole === 'provider'
+          ? 'text-brand-600'
+          : viewRole === 'client'
+            ? 'text-emerald-600'
+            : viewRole === 'admin'
+              ? 'text-indigo-600'
+              : 'text-gray-600');
+    return `px-2 py-1 rounded ${isActive ? `${linkColor.active} font-medium` : `${neutralByRole} ${linkColor.hover}`}`;
+  };
+
+  const RoleLinks = () => (
+    <>
+      {role === 'guest' && (
+        <>
+          <NavLink to="/" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>Explore nuestros Servicios</NavLink>
+          <NavLink to="/unete" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>Únete como profesional</NavLink>
+        </>
+      )}
+
+      {(isAuthenticated && viewRole === 'client') && (
+        <>
+          {roles?.includes('provider') ? (
+            <>
+              <NavLink to="/mis-solicitudes" end onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>
+                <span className="relative inline-flex items-center">Mis solicitudes{Number(counters?.client?.requestsOpen||0) > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white min-w-[18px]">
+                    {counters.client.requestsOpen > 99 ? '99+' : counters.client.requestsOpen}
+                  </span>
+                )}</span>
+              </NavLink>
+              <NavLink to="/reservas" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>
+                <span className="relative inline-flex items-center">Reservas{Number(counters?.client?.bookingsUpcoming||0) > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white min-w-[18px]">
+                    {counters.client.bookingsUpcoming > 99 ? '99+' : counters.client.bookingsUpcoming}
+                  </span>
+                )}</span>
+              </NavLink>  
+              <NavLink to="/empleos" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>
+                <span className="relative inline-flex items-center">Ir a empleos{Number(counters?.provider?.jobs||0) > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-brand-600 text-white min-w-[18px]">
+                    {counters.provider.jobs > 99 ? '99+' : counters.provider.jobs}
+                  </span>
+                )}</span>
+              </NavLink>            
+            </>
+          ) : (
+            <>
+              <NavLink to="/mis-solicitudes" end onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>
+                <span className="relative inline-flex items-center">Mis solicitudes{Number(counters?.client?.requestsOpen||0) > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white min-w-[18px]">
+                    {counters.client.requestsOpen > 99 ? '99+' : counters.client.requestsOpen}
+                  </span>
+                )}</span>
+              </NavLink>
+              <NavLink to="/reservas" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>
+                <span className="relative inline-flex items-center">Reservas{Number(counters?.client?.bookingsUpcoming||0) > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white min-w-[18px]">
+                    {counters.client.bookingsUpcoming > 99 ? '99+' : counters.client.bookingsUpcoming}
+                  </span>
+                )}</span>
+              </NavLink>    
+              <NavLink to="/provider/onboarding" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>Regístrate como profesional</NavLink>          
+            </>
+          )}
+        </>
+      )}
+
+  {(isAuthenticated && viewRole === 'provider') && (
+        <>
+          <NavLink to="/empleos" end onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>
+            <span className="relative inline-flex items-center">Empleos{Number(counters?.provider?.jobs||0) > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-brand-600 text-white min-w-[18px]">
+                {counters.provider.jobs > 99 ? '99+' : counters.provider.jobs}
+              </span>
+            )}</span>
+          </NavLink>
+          <NavLink to="/mensajes" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>
+            <span className="relative inline-flex items-center">Solicitudes{Number(counters?.provider?.proposalsActive||0) > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-brand-600 text-white min-w-[18px]">
+                {counters.provider.proposalsActive > 99 ? '99+' : counters.provider.proposalsActive}
+              </span>
+            )}</span>
+          </NavLink>
+          <NavLink to="/portafolio" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>Portafolio</NavLink>
+          <NavLink to="/plan" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>Plan</NavLink>
+          <NavLink to="/servicios" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>
+            <span className="relative inline-flex items-center">Servicios{Number(counters?.provider?.services||0) > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-brand-600 text-white min-w-[18px]">
+                {counters.provider.services > 99 ? '99+' : counters.provider.services}
+              </span>
+            )}</span>
+          </NavLink>
+          <NavLink to="/calendario" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>Calendario</NavLink>
+          <NavLink to="/referidos" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>Recomendar</NavLink>
+          <NavLink to="/reservas" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>
+            <span className="relative inline-flex items-center">Reservas{Number(counters?.provider?.bookingsUpcoming||0) > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-brand-600 text-white min-w-[18px]">
+                {counters.provider.bookingsUpcoming > 99 ? '99+' : counters.provider.bookingsUpcoming}
+              </span>
+            )}</span>
+          </NavLink>
+        </>
+      )}
+
+  {(isAuthenticated && viewRole === 'admin') && (
+        <>
+          <NavLink to="/admin" end onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>Estado del sistema</NavLink>
+          <NavLink to="/admin/alertas" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>
+            <span className="relative inline-flex items-center">
+              Alertas administrativas
+              {unreadAdmin > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-red-600 text-white min-w-[18px]">
+                  {unreadAdmin > 99 ? '99+' : unreadAdmin}
+                </span>
+              )}
+            </span>
+          </NavLink>
+          <NavLink to="/admin/moderacion" onClick={closeMenu} className={({isActive})=>LinkClass(isActive)}>Moderación</NavLink>
+        </>
+      )}
+    </>
+  );
+
+  // Auto-ajuste del modo visual según la ruta actual (solo para usuarios con el rol correspondiente)
+  const pathRole = useMemo(() => {
+    const p = location.pathname || '';
+    // Mapear rutas fuertes a roles específicos
+    const providerPaths = [
+      '/empleos', '/mensajes', '/servicios', '/calendario', '/referidos', '/plan', '/empleos/'
+    ];
+    // Nota: '/reservas' es compartida entre cliente y proveedor, tratar como neutral (sin auto-switch)
+    const clientPaths = [
+      '/mis-solicitudes', '/mis-solicitudes/nueva', '/mis-solicitudes/'
+    ];
+    if (providerPaths.some(seg => p === seg || p.startsWith(seg))) return 'provider';
+    if (clientPaths.some(seg => p === seg || p.startsWith(seg))) return 'client';
+    if (p.startsWith('/admin')) return 'admin';
+    return '';
+  }, [location.pathname]);
+
+  // Navigate to a sensible landing when user manually switches mode from an area of the other role
+  const navigateForRole = (target) => {
+    if (target === 'provider') {
+      // Al pasar a proveedor desde áreas de cliente u otras, llevar a Empleos
+      if (pathRole === 'client' || pathRole === '' || pathRole === 'admin') navigate('/empleos');
+    } else if (target === 'client') {
+      // Requisito: siempre enviar al Home al volver a cliente
+      navigate('/');
+    }
+  };
+
+  // Saber si el modo actual está fijado manualmente
+  const isViewLocked = useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem('view_role_lock');
+      const lockedRole = raw ? (JSON.parse(raw)?.role || '').toLowerCase() : '';
+      return !!lockedRole && lockedRole === viewRole;
+    } catch {
+      return false;
+    }
+  }, [viewRole]);
+
+  // Color del indicador/etiquetas según rol activo
+  const roleColorClass = useMemo(() => {
+    switch (viewRole) {
+      case 'provider':
+        return 'text-brand-700';
+      case 'client':
+        return 'text-emerald-700';
+      case 'admin':
+        return 'text-indigo-700';
+      default:
+        return 'text-gray-700';
+    }
+  }, [viewRole]);
+
+  // Colores de acento (logo, botones primarios) por rol
+  const accent = useMemo(() => {
+    const r = role === 'guest' ? 'guest' : viewRole;
+    switch (r) {
+      case 'provider':
+        return {
+          text600: 'text-brand-600',
+          hoverText700: 'hover:text-brand-700',
+          bg600: 'bg-brand-600',
+          hoverBg700: 'hover:bg-brand-700',
+          ring500: 'focus:ring-brand-500',
+          hoverRing500: 'hover:ring-brand-500',
+          border200: 'border-brand-200',
+          border300: 'border-brand-300',
+          hoverBg50: 'hover:bg-brand-50'
+        };
+      case 'client':
+        return {
+          text600: 'text-emerald-600',
+          hoverText700: 'hover:text-emerald-700',
+          bg600: 'bg-emerald-600',
+          hoverBg700: 'hover:bg-emerald-700',
+          ring500: 'focus:ring-emerald-500',
+          hoverRing500: 'hover:ring-emerald-500',
+          border200: 'border-emerald-200',
+          border300: 'border-emerald-300',
+          hoverBg50: 'hover:bg-emerald-50'
+        };
+      case 'admin':
+        return {
+          text600: 'text-indigo-600',
+          hoverText700: 'hover:text-indigo-700',
+          bg600: 'bg-indigo-600',
+          hoverBg700: 'hover:bg-indigo-700',
+          ring500: 'focus:ring-indigo-500',
+          hoverRing500: 'hover:ring-indigo-500',
+          border200: 'border-indigo-200',
+          border300: 'border-indigo-300',
+          hoverBg50: 'hover:bg-indigo-50'
+        };
+      default: // guest (negro)
+        return {
+          text600: 'text-black',
+          hoverText700: 'hover:text-black',
+          bg600: 'bg-black',
+          hoverBg700: 'hover:bg-gray-900',
+          ring500: 'focus:ring-gray-800',
+          hoverRing500: 'hover:ring-gray-800',
+          border200: 'border-gray-300',
+          border300: 'border-gray-400',
+          hoverBg50: 'hover:bg-gray-50'
+        };
+    }
+  }, [role, viewRole]);
+
+  // Helpers de estilo para el conmutador según el rol destino
+  const colorMap = useMemo(() => ({
+    provider: {
+      text: 'text-brand-700',
+      border: 'border-brand-300',
+      hoverText: 'hover:text-brand-800',
+      bg50: 'bg-brand-50',
+      border200: 'border-brand-200'
+    },
+    client: {
+      text: 'text-emerald-700',
+      border: 'border-emerald-300',
+      hoverText: 'hover:text-emerald-800',
+      bg50: 'bg-emerald-50',
+      border200: 'border-emerald-200'
+    }
+  }), []);
+
+  const desktopTabClass = (target) => {
+    const selected = viewRole === target;
+    const c = colorMap[target] || { text: 'text-gray-900', border: 'border-gray-300', hoverText: 'hover:text-gray-900' };
+    if (selected) {
+      return `px-2 py-1 rounded bg-white ${c.text} shadow-sm border ${c.border}`;
+    }
+    return `px-2 py-1 rounded text-gray-600 ${c.hoverText}`;
+  };
+
+  const mobileTabClass = (target) => {
+    const selected = viewRole === target;
+    const c = colorMap[target] || { bg50: 'bg-gray-50', border200: 'border-gray-200', text: 'text-gray-700' };
+    if (selected) {
+      return `flex-1 px-3 py-2 text-xs rounded border ${c.bg50} ${c.border200} ${c.text}`;
+    }
+    return 'flex-1 px-3 py-2 text-xs rounded border bg-white border-gray-200 text-gray-700';
+  };
+
+  useEffect(() => {
+    if (!pathRole) return; // rutas neutrales no cambian el modo
+    // Solo cambiar si el usuario realmente tiene ese rol (o es admin)
+    const can = pathRole === 'guest' || roles?.includes(pathRole) || role === pathRole;
+    // Respetar bloqueo de vista por acción manual: solo desbloquear si se sale del área
+    let lockedRole = '';
+    try {
+      const raw = sessionStorage.getItem('view_role_lock');
+      if (raw) lockedRole = (JSON.parse(raw)?.role || '').toLowerCase();
+    } catch { /* ignore */ }
+
+    if (can && pathRole !== viewRole) {
+      if (lockedRole && lockedRole !== pathRole) {
+        // Saliendo del área bloqueada -> liberar bloqueo y aplicar auto
+        try { sessionStorage.removeItem('view_role_lock'); } catch { /* ignore */ }
+        changeViewRole(pathRole);
+      } else if (!lockedRole) {
+        // No hay bloqueo -> auto-ajustar
+        changeViewRole(pathRole);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathRole]);
+
+  // Admin unread badge (admin-only) + global unread for bell (all roles)
+  useEffect(() => {
+    let intervalId;
+    let mounted = true;
+
+    const fetchUnread = async () => {
+      try {
+        const { data } = await api.get('/notifications?limit=1');
+        const count = data?.data?.unreadCount || 0;
+        if (!mounted) return;
+        setUnreadCount(count);
+        // For admin menu badge we keep a separate counter
+        if (role === 'admin') setUnreadAdmin(count); else setUnreadAdmin(0);
+      } catch {/* ignore */}
+    };
+
+    if (isAuthenticated) {
+      fetchUnread();
+      intervalId = setInterval(fetchUnread, 60000); // refresh every 60s
+      const handleUpdated = () => fetchUnread();
+      window.addEventListener('notifications:updated', handleUpdated);
+      return () => {
+        mounted = false;
+        clearInterval(intervalId);
+        window.removeEventListener('notifications:updated', handleUpdated);
+      };
+    }
+  }, [role, isAuthenticated]);
+
+  const loadNotifications = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setNotifLoading(true);
+    try {
+      const { data } = await api.get('/notifications?page=1&limit=5');
+      setNotifications(data?.data?.notifications || []);
+      setUnreadCount(data?.data?.unreadCount || 0);
+    } catch {/* ignore */}
+    finally { setNotifLoading(false); }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (notifOpen) {
+      loadNotifications();
+    }
+  }, [notifOpen, loadNotifications]);
+
+  // Fetch counters periodically and on auth/role changes
+  useEffect(() => {
+    let mounted = true;
+    let intervalId;
+    const fetchCounters = async () => {
+      if (!isAuthenticated) return;
+      try {
+        const { data } = await api.get('/counters');
+        const payload = data?.data || { notificationsUnread: 0 };
+        if (!mounted) return;
+        setCounters(payload);
+      } catch { /* ignore */ }
+    };
+    if (isAuthenticated) {
+      fetchCounters();
+      intervalId = setInterval(fetchCounters, 60000);
+      const onUpdate = () => fetchCounters();
+      window.addEventListener('notifications:updated', onUpdate);
+      return () => {
+        mounted = false;
+        clearInterval(intervalId);
+        window.removeEventListener('notifications:updated', onUpdate);
+      };
+    }
+  }, [isAuthenticated, role, roles, viewRole]);
+
+  const markRead = async (id) => {
+    try {
+      await api.put(`/notifications/${id}/read`);
+      window.dispatchEvent(new CustomEvent('notifications:updated'));
+      // Optimistic update
+      setNotifications((arr) => arr.map(n => (n._id === id || n.id === id) ? { ...n, read: true } : n));
+      setUnreadCount((c) => Math.max(0, c - 1));
+      if (role === 'admin') setUnreadAdmin((c) => Math.max(0, c - 1));
+    } catch {/* ignore */}
+  };
+
+  const markAll = async () => {
+    try {
+      await api.put('/notifications/read-all');
+      window.dispatchEvent(new CustomEvent('notifications:updated'));
+      setNotifications((arr) => arr.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+      if (role === 'admin') setUnreadAdmin(0);
+    } catch {/* ignore */}
+  };
+
+  // Realtime notifications via Socket.IO
+  useEffect(() => {
+    // Use shared socket; subscribe to notifications and counters
+    // Clean previous bindings
+    const s = getSocket();
+    socketRef.current = s;
+    if (!isAuthenticated || !s) return;
+
+    const onConnect = () => {
+      try { socketEmit('subscribe_notifications'); } catch { /* ignore */ }
+    };
+    const onNotification = (payload) => {
+      // payload shape from server: { id, type, title, message, timestamp }
+      setUnreadCount((c) => c + 1);
+      if (role === 'admin') setUnreadAdmin((c) => c + 1);
+      // Optimistically add to dropdown list if it's open
+      setNotifications((prev) => {
+        const item = {
+          _id: payload?.id || payload?._id,
+          id: payload?.id || payload?._id,
+          type: payload?.type,
+          title: payload?.title || 'Notificación',
+          message: payload?.message,
+          createdAt: payload?.timestamp || new Date().toISOString(),
+          read: false
+        };
+        const next = [item, ...prev];
+        // cap to 10 items to avoid overgrowth in dropdown
+        return next.slice(0, 10);
+      });
+      // Broadcast for any other listeners (e.g., admin page badges)
+      try { window.dispatchEvent(new CustomEvent('notifications:updated')); } catch {/* ignore */}
+    };
+    const onCountersUpdate = () => {
+      // When server signals counters changed, refresh immediately
+      try {
+        api.get('/counters').then(({ data }) => {
+          const payload = data?.data || {};
+          setCounters(payload);
+        }).catch(() => {});
+      } catch {/* ignore */}
+    };
+    const offConnect = socketOn('connect', onConnect);
+    const offNotif = socketOn('notification', onNotification);
+    const offCounters = socketOn('counters_update', onCountersUpdate);
+    return () => {
+      try { offConnect(); offNotif(); offCounters(); } catch { /* ignore */ }
+    };
+  }, [isAuthenticated, role]);
+
+  // Provider upgrade banner: check subscription status and local upgrade_hint
+  const subscriptionCacheRef = useRef({ ts: 0, payload: null });
+  const subscriptionFetchInFlightRef = useRef(false);
+  useEffect(() => {
+    let mounted = true;
+    const fetchStatus = async () => {
+      if (!isAuthenticated || viewRole !== 'provider') { setUpgradeHint({ show: false, reason: '' }); return; }
+      // Reutilizar caché por 60s para evitar 429
+      const now = Date.now();
+      const cacheAge = now - subscriptionCacheRef.current.ts;
+      if (cacheAge < 60000 && subscriptionCacheRef.current.payload) {
+        const { sub, plan } = subscriptionCacheRef.current.payload;
+        const localHint = localStorage.getItem('upgrade_hint') === '1';
+        let show = false; let reason = '';
+        if (!sub || sub.status !== 'active') { show = true; reason = 'Tu suscripción está inactiva. Actívala para obtener más leads.'; }
+        if (plan?.features?.leadLimit >= 0 && sub?.leadsUsed >= plan.features.leadLimit) { show = true; reason = 'Has alcanzado tu límite mensual de leads. Mejora tu plan para continuar.'; }
+        if (localHint) { show = true; reason = reason || 'Mejora tu plan para continuar.'; }
+        if (mounted) setUpgradeHint({ show, reason });
+        return;
+      }
+      if (subscriptionFetchInFlightRef.current) return; // evitar solapamientos
+      subscriptionFetchInFlightRef.current = true;
+      try {
+        const { data } = await api.get('/provider/subscription/status');
+        const sub = data?.data?.subscription;
+        const plan = data?.data?.plan;
+        subscriptionCacheRef.current = { ts: Date.now(), payload: { sub, plan } };
+        const localHint = localStorage.getItem('upgrade_hint') === '1';
+        let show = false; let reason = '';
+        if (!sub || sub.status !== 'active') { show = true; reason = 'Tu suscripción está inactiva. Actívala para obtener más leads.'; }
+        if (plan?.features?.leadLimit >= 0 && sub?.leadsUsed >= plan.features.leadLimit) { show = true; reason = 'Has alcanzado tu límite mensual de leads. Mejora tu plan para continuar.'; }
+        if (localHint) { show = true; reason = reason || 'Mejora tu plan para continuar.'; }
+        if (mounted) setUpgradeHint({ show, reason });
+      } catch {
+        // Si el servidor rate-limitea (429) mantener último estado sin spamear
+        if (mounted) setUpgradeHint(h => ({ ...h }));
+      } finally {
+        subscriptionFetchInFlightRef.current = false;
+      }
+    };
+    fetchStatus();
+    // Permitir invalidación manual externa
+    const onInvalidate = () => { subscriptionCacheRef.current.ts = 0; fetchStatus(); };
+    window.addEventListener('subscription:invalidate', onInvalidate);
+    return () => { mounted = false; window.removeEventListener('subscription:invalidate', onInvalidate); };
+  }, [isAuthenticated, viewRole]);
+
+  return (
+    <>
+    <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40 transition-all duration-300" role="banner">
+      {/* Primera fila: Logo + Navegación/SearchBar + Usuario */}
+      <div className="container mx-auto px-2 sm:px-4 lg:px-6 min-h-14 sm:min-h-16 py-2 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <Link 
+            to="/" 
+            state={{ resetHome: true }}
+            className={`flex items-center gap-2 sm:gap-3 group transition-all duration-300 ${role === 'guest' ? 'text-brand-600 hover:text-brand-700' : `${accent.text600} ${accent.hoverText700}`}`}
+          >
+            {/* Logo icon mejorado */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-brand-500/20 rounded-full blur-lg group-hover:blur-xl transition-all duration-300 group-hover:scale-110"></div>
+              <svg className="w-8 h-8 sm:w-10 sm:h-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 relative" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style={{stopColor: '#0ea5e9'}} />
+                    <stop offset="100%" style={{stopColor: '#0284c7'}} />
+                  </linearGradient>
+                </defs>
+                <circle cx="50" cy="50" r="48" fill="url(#logoGradient)" />
+                <path d="M35 30 L45 30 L50 35 L50 45 L45 50 L35 50 Q32 50 30 48 Q28 46 28 43 L28 37 Q28 34 30 32 Q32 30 35 30 Z" 
+                      fill="#fbbf24" stroke="#fff" strokeWidth="2" strokeLinejoin="round"/>
+                <path d="M60 25 L55 45 L65 42 L52 65 L60 45 L50 48 Z" 
+                      fill="#fef3c7" stroke="#fbbf24" strokeWidth="1.5" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            {/* Brand name con efecto hover */}
+            <span className={`text-xl sm:text-2xl font-bold tracking-tight ${searchBarState.show ? 'hidden sm:inline' : ''}`}>
+              <span className="bg-linear-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent">Novo</span>
+              <span className="text-gray-800">Fix</span>
+            </span>
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-0.5 sm:gap-2 min-w-0 flex-1 overflow-visible">
+          {/* SearchBar integrado cuando hay búsqueda activa */}
+          {searchBarState.show && (
+            <div className="flex-1 min-w-0 max-w-md">
+              {/* SearchBar compacto unificado para categorías y búsquedas */}
+              <form onSubmit={(e) => { e.preventDefault(); if (searchBarState.onSearch) searchBarState.onSearch({ type: 'text', query: e.target.elements.search.value }); }} className="flex gap-0 sm:gap-2 items-center">
+                <div className="animated-placeholder-wrapper flex-1 min-w-0 border rounded sm:rounded-lg">
+                  <input
+                    ref={searchInputRef}
+                    name="search"
+                    type="text"
+                    placeholder=" "
+                    onInput={(e) => setSearchInputValue(e.target.value)}
+                    className="w-full min-w-0 px-0.5 sm:px-3 py-0.5 sm:py-2 text-[10px] sm:text-sm focus:ring-1 sm:focus:ring-2 focus:ring-brand-500 focus:border-brand-500 border-0 focus:outline-none"
+                    title={searchBarState.categoryName ? `Buscar en ${searchBarState.categoryName}` : 'Buscar servicios'}
+                  />
+                  <span 
+                    ref={searchPlaceholderRef} 
+                    className={`animated-placeholder ${searchNeedsAnimation ? 'overflow' : ''}`}
+                    style={{ display: searchInputValue ? 'none' : 'block' }}
+                  >
+                    {searchBarState.categoryName ? `Buscar en ${searchBarState.categoryName}...` : 'Buscar servicios profesionales...'}
+                  </span>
+                </div>
+                <button
+                  type="submit"
+                  className="bg-brand-600 text-white w-5 h-5 sm:w-9 sm:h-9 rounded sm:rounded-lg hover:bg-brand-700 transition-colors flex items-center justify-center shrink-0"
+                  aria-label="Buscar"
+                >
+                  <svg className="w-2.5 h-2.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              </form>
+            </div>
+          )}
+          
+          {/* Navegación siempre visible */}
+          {(role === 'guest' || (isAuthenticated && (viewRole === 'provider' || viewRole === 'admin' || viewRole === 'client'))) && (
+            <div className={`relative hidden md:block ${searchBarState.show ? 'shrink min-w-0 max-w-xs lg:max-w-sm' : 'flex-1 min-w-0'}`}>
+              <nav
+                ref={navRef}
+                className={`flex items-center text-sm overflow-x-auto whitespace-nowrap no-scrollbar scroll-smooth pr-6 pl-6 w-full ${searchBarState.show ? 'gap-2' : 'gap-3'}`}
+                role="navigation"
+                aria-label="Menú principal"
+              >
+                <RoleLinks />
+              </nav>
+              <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-8 hidden md:block" style={{ background: 'linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0))' }} />
+              <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 hidden md:block" style={{ background: 'linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0))' }} />
+              {canScrollNavLeft && (
+                <button
+                  type="button"
+                  className="hidden md:flex items-center justify-center absolute left-0 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-white border border-gray-200 shadow text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400"
+                  aria-label="Desplazar menú a la izquierda"
+                  onClick={() => navRef.current?.scrollBy({ left: -220, behavior: 'smooth' })}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4"><path fillRule="evenodd" d="M12.78 4.22a.75.75 0 010 1.06L8.56 9.5l4.22 4.22a.75.75 0 11-1.06 1.06l-4.75-4.75a.75.75 0 010-1.06l4.75-4.75a.75.75 0 011.06 0z" clipRule="evenodd"/></svg>
+                </button>
+              )}
+              {canScrollNavRight && (
+                <button
+                  type="button"
+                  className="hidden md:flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-white border border-gray-200 shadow text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400"
+                  aria-label="Desplazar menú a la derecha"
+                  onClick={() => navRef.current?.scrollBy({ left: 220, behavior: 'smooth' })}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4"><path fillRule="evenodd" d="M7.22 15.78a.75.75 0 010-1.06L11.44 10.5 7.22 6.28a.75.75 0 111.06-1.06l4.75 4.75a.75.75 0 010 1.06l-4.75 4.75a.75.75 0 01-1.06 0z" clipRule="evenodd"/></svg>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Mobile bell (always visible for authenticated users on small screens) */}
+          {isAuthenticated && (
+            <div className="relative md:hidden shrink-0 ml-auto">
+              <button
+                type="button"
+                aria-label="Notificaciones"
+                className={`inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-md border bg-white hover:bg-gray-50 ${accent.text600} ${accent.hoverText700} focus:outline-none focus:ring-2 ${accent.ring500} ${accent.border200}`}
+                onClick={() => setNotifOpen(v => !v)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 sm:h-5 sm:w-5">
+                  <path d="M12 2a6 6 0 00-6 6v2.586l-.707.707A1 1 0 005 13h14a1 1 0 00.707-1.707L19 10.586V8a6 6 0 00-6-6zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-red-600 text-white min-w-[18px]">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              {notifOpen && (
+                <div className={`absolute right-0 mt-2 w-80 max-w-[95vw] rounded-md border bg-white shadow-lg py-1 z-50 ${accent.border300}`} role="menu" aria-label="Notificaciones">
+                  <div className="px-3 py-2 flex items-center justify-between">
+                    <div className="font-medium text-sm">Notificaciones</div>
+                    <div className="flex items-center gap-3">
+                      <button className="text-xs text-gray-600 hover:underline" onClick={markAll}>Marcar todas</button>
+                      <Link to="/notificaciones" className="text-xs text-brand-700 hover:text-brand-800 underline" onClick={()=> setNotifOpen(false)}>Ver todas</Link>
+                    </div>
+                  </div>
+                  <div className="max-h-80 overflow-auto divide-y">
+                    {notifLoading && (
+                      <div className="px-3 py-2 text-sm text-gray-600">Cargando…</div>
+                    )}
+                    {!notifLoading && notifications.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-gray-600">Sin notificaciones</div>
+                    )}
+                    {notifications.map(n => {
+                      const id = n._id || n.id;
+                      return (
+                        <div key={id} className={`px-3 py-2 text-sm ${n.read ? 'bg-white' : 'bg-brand-50/40'}`}>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="font-medium truncate">{n.title || 'Notificación'}</div>
+                              <div className="text-gray-700 wrap-break-word line-clamp-3">{n.message || n.body || '—'}</div>
+                              <div className="text-xs text-gray-500 mt-1">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</div>
+                            </div>
+                            {!n.read && (
+                              <button
+                                className="text-xs text-gray-600 hover:underline shrink-0"
+                                onClick={() => markRead(id)}
+                              >
+                                Marcar leída
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Mobile menu button */}
+          <button
+            type="button"
+            className={`md:hidden inline-flex items-center justify-center rounded-md p-1.5 sm:p-2 border transition-colors duration-200 focus:outline-none focus:ring-2 ${accent.ring500} ${accent.text600} ${accent.hoverText700} ${open ? `bg-gray-100 ${accent.border300}` : `bg-white ${accent.border200}`} ${!isAuthenticated ? 'ml-auto' : ''} shrink-0`}
+            aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            ref={mobileToggleRef}
+            onClick={() => setOpen((v) => !v)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`h-5 w-5 sm:h-5 sm:w-5 transition-transform duration-200 ease-out ${open ? 'rotate-90' : 'rotate-0'}`}>
+              {open ? (
+                <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 11-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
+              ) : (
+                <path fillRule="evenodd" d="M3.75 6.75A.75.75 0 014.5 6h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75zm0 5.25a.75.75 0 01.75-.75h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75zm0 5.25a.75.75 0 01.75-.75h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75z" clipRule="evenodd" />
+              )}
+            </svg>
+          </button>
+
+          {/* Desktop auth actions */
+          }
+          <div className="hidden md:flex items-center gap-3 shrink-0">
+            {role === 'guest' ? (
+              <>
+                <Link 
+                  to="/login" 
+                  className="inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-xl text-white bg-linear-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30 transition-all duration-300 hover:scale-105"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                  Inicia Sesión
+                </Link>
+                <Link 
+                  to="/registrarse" 
+                  className="inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-brand-300 hover:text-brand-600 hover:bg-brand-50 transition-all duration-300 hover:scale-105"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                  Regístrate
+                </Link>
+              </>
+            ) : (
+              <>
+                {/* Role switch (md+), placed before bell and account */}
+                {roles?.includes('client') && roles?.includes('provider') && (
+                  <div className="hidden md:flex items-center bg-gray-100 rounded-md p-0.5 text-xs whitespace-nowrap" role="tablist" aria-label="Cambiar modo">
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={viewRole === 'client'}
+                      className={desktopTabClass('client')}
+                      onClick={() => { changeViewRole('client'); navigateForRole('client'); }}
+                    >Cliente</button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={viewRole === 'provider'}
+                      className={desktopTabClass('provider')}
+                      onClick={() => { changeViewRole('provider'); navigateForRole('provider'); }}
+                    >Proveedor</button>
+                    {isViewLocked && (
+                      <span className={`ml-2 inline-flex items-center gap-1 text-[10px] ${roleColorClass}`} title="Modo fijado manualmente" aria-label="Modo fijado manualmente">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3">
+                          <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4z" clipRule="evenodd" />
+                        </svg>
+                        Fijado
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Bell notifications (all roles) */}
+                <div className="relative ml-2">
+                  <button
+                    type="button"
+                    aria-label="Notificaciones"
+                    className={`inline-flex items-center justify-center w-9 h-9 rounded-md border bg-white hover:bg-gray-50 ${accent.text600} ${accent.hoverText700} focus:outline-none focus:ring-2 ${accent.ring500} ${accent.border200}`}
+                    onClick={() => setNotifOpen(v => !v)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                      <path d="M12 2a6 6 0 00-6 6v2.586l-.707.707A1 1 0 005 13h14a1 1 0 00.707-1.707L19 10.586V8a6 6 0 00-6-6zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                    </svg>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 inline-flex items-center justify-center text-[10px] leading-none font-semibold px-1.5 py-0.5 rounded-full bg-red-600 text-white min-w-[18px]">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {notifOpen && (
+                    <div className={`absolute right-0 mt-2 w-80 max-w-[90vw] sm:max-w-[70vw] md:max-w-[60vw] rounded-md border bg-white shadow-lg py-1 z-50 ${accent.border300}`} role="menu" aria-label="Notificaciones">
+                      <div className="px-3 py-2 flex items-center justify-between">
+                        <div className="font-medium text-sm">Notificaciones</div>
+                        <div className="flex items-center gap-3">
+                          <button className="text-xs text-gray-600 hover:underline" onClick={markAll}>Marcar todas</button>
+                          <Link to="/notificaciones" className="text-xs text-brand-700 hover:text-brand-800 underline" onClick={()=> setNotifOpen(false)}>Ver todas</Link>
+                        </div>
+                      </div>
+                      <div className="max-h-80 overflow-auto divide-y">
+                        {notifLoading && (
+                          <div className="px-3 py-2 text-sm text-gray-600">Cargando…</div>
+                        )}
+                        {!notifLoading && notifications.length === 0 && (
+                          <div className="px-3 py-2 text-sm text-gray-600">Sin notificaciones</div>
+                        )}
+                        {notifications.map(n => {
+                          const id = n._id || n.id;
+                          return (
+                            <div key={id} className={`px-3 py-2 text-sm ${n.read ? 'bg-white' : 'bg-brand-50/40'}`}>
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 max-w-full">
+                                  <div className="font-medium truncate max-w-full">{n.title || 'Notificación'}</div>
+                                  <div className="text-gray-700 wrap-break-word line-clamp-3">{n.message || n.body || '—'}</div>
+                                  <div className="text-xs text-gray-500 mt-1">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</div>
+                                </div>
+                                {!n.read && (
+                                  <button
+                                    className="text-xs text-gray-600 hover:underline shrink-0"
+                                    onClick={() => markRead(id)}
+                                  >
+                                    Marcar leída
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+
+                <div className="relative shrink-0">
+                <button
+                  type="button"
+                  onClick={()=>setAccountOpen((v)=>!v)}
+                  className={`inline-flex items-center gap-2 px-3 py-2 text-sm rounded-xl border-2 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md ${accent.text600} ${accent.hoverText700} focus:outline-none focus:ring-2 ${accent.ring500} ${accountOpen ? accent.border300 : 'border-gray-200'} min-w-0 max-w-[40vw] md:max-w-[28vw] lg:max-w-[22vw] 2xl:max-w-[20vw] transition-all duration-300`}
+                  aria-haspopup="menu"
+                  aria-expanded={accountOpen}
+                  aria-label={`Menú de cuenta: ${firstName || email || 'Cuenta'}`}
+                >
+                  {/* Avatar o iniciales con ring */}
+                  <div className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-offset-1 ${viewRole === 'provider' ? 'ring-brand-400 bg-brand-100' : viewRole === 'client' ? 'ring-emerald-400 bg-emerald-100' : viewRole === 'admin' ? 'ring-indigo-400 bg-indigo-100' : 'ring-gray-300 bg-gray-100'}`}>
+                    {user?.profile?.avatar ? (
+                      <img src={user.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className={`text-sm font-semibold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-emerald-700' : viewRole === 'admin' ? 'text-indigo-700' : 'text-gray-600'}`}>{initials}</span>
+                    )}
+                  </div>
+                  {/* Nombre completo truncado en pantallas grandes; iniciales en md para ahorrar espacio */}
+                  <span
+                    className="hidden lg:inline truncate max-w-[28vw] md:max-w-[20vw] lg:max-w-[24ch] xl:max-w-[32ch]"
+                    title={firstName || email || 'Cuenta'}
+                  >
+                    {firstName || email || 'Cuenta'}
+                  </span>
+                  {/* Chip de modo actual */}
+                  {role !== 'guest' && (
+                    (() => {
+                      // Tooltip de estado del modo (auto vs fijado)
+                      let lockedRole = '';
+                      try {
+                        const raw = sessionStorage.getItem('view_role_lock');
+                        if (raw) lockedRole = (JSON.parse(raw)?.role || '').toLowerCase();
+                      } catch { /* ignore */ }
+                      const isLocked = lockedRole && lockedRole === viewRole;
+                      const chipLabel = viewRole==='provider' ? 'Proveedor' : viewRole==='client' ? 'Cliente' : viewRole==='admin' ? 'Admin' : 'Modo';
+                      const title = `${chipLabel} — ${isLocked ? 'fijado manualmente' : 'automático'}`;
+                      const lockedClasses = isLocked ? 'ring-1 ring-offset-1 ring-yellow-300' : '';
+                      return (
+                        <span
+                          title={title}
+                          aria-label={title}
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] rounded-full border ${viewRole==='provider' ? 'border-brand-300 text-brand-700 bg-brand-50' : viewRole==='client' ? 'border-emerald-300 text-emerald-700 bg-emerald-50' : viewRole==='admin' ? 'border-indigo-300 text-indigo-700 bg-indigo-50' : 'border-gray-200 text-gray-600 bg-gray-50'} ${lockedClasses}`}
+                        >
+                          {isLocked && (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3 text-yellow-600">
+                              <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          {chipLabel}
+                        </span>
+                      );
+                    })()
+                  )}
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`h-4 w-4 transition-transform ${accountOpen ? 'rotate-180' : ''}`}><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" /></svg>
+                </button>
+                {accountOpen && (
+                  <div
+                    role="menu"
+                    className={`absolute right-0 mt-3 w-64 rounded-2xl border bg-white shadow-xl py-2 z-50 ${accent.border200} ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-200`}
+                  >
+                    {/* Header del menú con info del usuario */}
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{firstName || 'Mi cuenta'}</p>
+                      <p className="text-xs text-gray-500 truncate">{email}</p>
+                    </div>
+                    <div className="py-1">
+                      <Link to="/perfil" className={`flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors`} onClick={()=>setAccountOpen(false)}>
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        Perfil
+                      </Link>
+                    {(viewRole === 'provider') && (
+                      <>
+                        <Link to="/portafolio" className={`flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors`} onClick={()=>setAccountOpen(false)}>
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Mi Portafolio
+                        </Link>
+                        <Link to="/plan" className={`flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors`} onClick={()=>setAccountOpen(false)}>
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          </svg>
+                          Métodos de Pago/Plan
+                        </Link>
+                      </>
+                    )}
+                    {/* Switch de modo si multi-rol */}
+                    {roles?.includes('client') && roles?.includes('provider') && (
+                      <button className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors`} onClick={()=>{ const next = viewRole === 'client' ? 'provider' : 'client'; changeViewRole(next); navigateForRole(next); setAccountOpen(false); }}>
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                        Cambiar a modo {viewRole === 'client' ? 'Proveedor' : 'Cliente'}
+                      </button>
+                    )}
+                    {/* Restablecer modo automático */}
+                    {roles?.includes('client') && roles?.includes('provider') && (
+                      <button className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors`} onClick={()=>{ clearViewRoleLock(); toast.info('Modo automático restablecido'); setAccountOpen(false); }}>
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Restablecer modo automático
+                      </button>
+                    )}
+                    </div>
+                    <div className="border-t border-gray-100 pt-1 mt-1">
+                      <button className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors`} onClick={()=>{ setAccountOpen(false); setConfirmOut(true); }}>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Cerrar sesión
+                      </button>
+                    </div>
+                  </div>
+                )}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Rectificado: Se elimina la navegación después de la cuenta para Cliente; ahora siempre va antes de la cuenta */}
+        </div>
+      </div>
+
+      {/* Mobile dropdown panel with animation */}
+      <div
+        id="mobile-menu"
+        aria-hidden={!open}
+        ref={mobileMenuRef}
+        inert={!open}
+        className={
+          `md:hidden border-t bg-white overflow-y-auto transition-[max-height,opacity,transform] duration-200 ease-out ${accent.border200} hover:ring-1 ${accent.hoverRing500} ` +
+          (open ? 'max-h-[calc(100vh-4rem)] opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2')
+        }
+      >
+  <div className={`container mx-auto ${role === 'guest' ? 'pl-4 pr-0' : 'px-4'} py-4 flex flex-col gap-3 text-sm min-w-0`}>
+          <nav role="navigation" aria-label="Menú principal móvil" className="contents">
+          
+          {/* User info section for mobile - NUEVO */}
+          {isAuthenticated && role !== 'guest' && (
+            <div className="pb-3 border-b mb-2">
+              <div className="flex items-center gap-3">
+                {/* Avatar */}
+                <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-offset-2 ring-gray-200">
+                  {user?.profile?.avatar ? (
+                    <img src={user.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-base font-semibold text-gray-600">{initials}</span>
+                  )}
+                </div>
+                
+                {/* User info */}
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-gray-900 truncate">
+                    {firstName && lastName ? `${firstName} ${lastName}` : firstName || email || 'Usuario'}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">{email}</div>
+                  
+                  {/* Role badge */}
+                  <div className="flex items-center gap-2 mt-1">
+                    {(() => {
+                      let lockedRole = '';
+                      try {
+                        const raw = sessionStorage.getItem('view_role_lock');
+                        if (raw) lockedRole = (JSON.parse(raw)?.role || '').toLowerCase();
+                      } catch { /* ignore */ }
+                      const isLocked = lockedRole && lockedRole === viewRole;
+                      const chipLabel = viewRole==='provider' ? 'Proveedor' : viewRole==='client' ? 'Cliente' : viewRole==='admin' ? 'Admin' : 'Usuario';
+                      const title = `${chipLabel} — ${isLocked ? 'fijado manualmente' : 'automático'}`;
+                      const lockedClasses = isLocked ? 'ring-1 ring-offset-1 ring-yellow-300' : '';
+                      return (
+                        <span
+                          title={title}
+                          className={`inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-full border ${viewRole==='provider' ? 'border-brand-300 text-brand-700 bg-brand-50' : viewRole==='client' ? 'border-emerald-300 text-emerald-700 bg-emerald-50' : viewRole==='admin' ? 'border-indigo-300 text-indigo-700 bg-indigo-50' : 'border-gray-200 text-gray-600 bg-gray-50'} ${lockedClasses}`}
+                        >
+                          {isLocked && (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3 text-yellow-600">
+                              <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          {chipLabel}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Visible role switch for multi-role users (mobile) */}
+          {roles?.includes('client') && roles?.includes('provider') && (
+            <div className="flex items-center gap-2 mb-1" aria-label="Cambiar modo">
+              <button
+                type="button"
+                className={mobileTabClass('client')}
+                onClick={() => { changeViewRole('client'); navigateForRole('client'); }}
+              >Modo Cliente</button>
+              <button
+                type="button"
+                className={mobileTabClass('provider')}
+                onClick={() => { changeViewRole('provider'); navigateForRole('provider'); }}
+              >Modo Proveedor</button>
+              {isViewLocked && (
+                <span className={`ml-1 inline-flex items-center gap-1 text-[10px] ${roleColorClass}`} title="Modo fijado manualmente" aria-label="Modo fijado manualmente">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3">
+                    <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4z" clipRule="evenodd" />
+                  </svg>
+                  Fijado
+                </span>
+              )}
+            </div>
+          )}
+          <div className="flex flex-col gap-2">
+            <RoleLinks />
+          </div>
+          <div className="pt-3 border-t mt-3">
+            {role === 'guest' ? (
+              <div className="flex gap-2">
+                <Link to="/login" onClick={closeMenu} className="inline-flex flex-1 items-center justify-center px-3 py-2 text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700">Inicia Sesión</Link>
+                <Link to="/registrarse" onClick={closeMenu} className={`inline-flex flex-1 items-center justify-center px-3 py-2 text-sm font-medium rounded-md border bg-white ${accent.text600} ${accent.hoverText700} ${accent.border200} hover:bg-gray-50`}>Regístrate</Link>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <Link to="/perfil" onClick={closeMenu} className={`block w-full px-3 py-2 text-sm text-gray-700 ${accent.hoverBg50} rounded`}>Perfil</Link>
+                {viewRole === 'provider' && (
+                  <>
+                    <Link to="/portafolio" onClick={closeMenu} className={`block w-full px-3 py-2 text-sm text-gray-700 ${accent.hoverBg50} rounded`}>Mi Portafolio</Link>
+                    <Link to="/plan" onClick={closeMenu} className={`block w-full px-3 py-2 text-sm text-gray-700 ${accent.hoverBg50} rounded`}>Métodos de Pago/Plan</Link>
+                  </>
+                )}
+                {roles?.includes('client') && roles?.includes('provider') && (
+                  <>
+                    <button onClick={()=>{ const next = viewRole === 'client' ? 'provider' : 'client'; changeViewRole(next); navigateForRole(next); closeMenu(); }} className={`block w-full text-left px-3 py-2 text-sm text-gray-700 ${accent.hoverBg50} rounded`}>Cambiar a modo {viewRole === 'client' ? 'Proveedor' : 'Cliente'}</button>
+                    <button onClick={()=>{ clearViewRoleLock(); toast.info('Modo automático restablecido'); closeMenu(); }} className={`block w-full text-left px-3 py-2 text-sm text-gray-700 ${accent.hoverBg50} rounded`}>Restablecer modo automático</button>
+                  </>
+                )}
+                <button onClick={()=>{ setConfirmOut(true); }} className={`block w-full text-left px-3 py-2 text-sm text-gray-600 ${accent.hoverBg50} rounded`}>Finalizar sesión</button>
+              </div>
+            )}
+          </div>
+          </nav>
+        </div>
+      </div>
+      {/* Confirm logout modal */}
+      <Modal
+        open={confirmOut}
+        title="Confirmar cierre de sesión"
+        onClose={()=>setConfirmOut(false)}
+        actions={
+          <>
+            <Button variant="secondary" onClick={()=>setConfirmOut(false)}>Cancelar</Button>
+            <Button onClick={()=>{ logout(); setConfirmOut(false); setOpen(false); toast.info('Sesión finalizada'); navigate('/'); }}>Cerrar sesión</Button>
+          </>
+        }
+      >
+        ¿Seguro que deseas finalizar la sesión?
+      </Modal>
+    </header>
+    {isAuthenticated && viewRole==='provider' && upgradeHint.show && (
+      <div className="bg-amber-50 border-b border-amber-200 text-amber-800 text-sm">
+        <div className="container mx-auto px-4 py-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.6A1.75 1.75 0 0116.768 17H3.232a1.75 1.75 0 01-1.492-2.302l6.517-11.6zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a.75.75 0 01-.75-.75v-3.5a.75.75 0 011.5 0v3.5A.75.75 0 0110 12z" clipRule="evenodd"/></svg>
+            <span>{upgradeHint.reason || 'Aumenta tu visibilidad y leads mejorando tu plan.'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link to="/plan" className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700">Ver planes</Link>
+            <button className="text-xs underline" onClick={()=>{ try { localStorage.removeItem('upgrade_hint'); } catch {/* ignore storage errors */}; setUpgradeHint({ show: false, reason: '' }); }}>Ocultar</button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
+  );
+}
+
+export default Header;
+

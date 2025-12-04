@@ -1,0 +1,4 @@
+<!-- Este es un placeholder. Para producción, deberías generar un PNG real -->
+<!-- El logo actual es novofix-logo.svg que se usa como favicon -->
+<!-- También existe logo-novofix.jpeg para el header -->
+<!-- Si necesitas PNG, usa una herramienta como https://www.svgviewer.dev/ para convertir el SVG -->

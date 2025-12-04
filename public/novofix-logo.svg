@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <!-- Gradiente principal del fondo -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9"/>
+      <stop offset="50%" style="stop-color:#0284c7"/>
+      <stop offset="100%" style="stop-color:#0369a1"/>
+    </linearGradient>
+    
+    <!-- Gradiente para elementos de acento -->
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24"/>
+      <stop offset="100%" style="stop-color:#f59e0b"/>
+    </linearGradient>
+    
+    <!-- Gradiente para la N -->
+    <linearGradient id="letterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#e0f2fe"/>
+    </linearGradient>
+    
+    <!-- Sombra suave -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0c4a6e" flood-opacity="0.3"/>
+    </filter>
+    
+    <!-- Brillo interno -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Círculo de fondo principal -->
+  <circle cx="50" cy="50" r="48" fill="url(#bgGradient)" filter="url(#shadow)"/>
+  
+  <!-- Anillo decorativo sutil -->
+  <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  
+  <!-- Letra N estilizada - representa "Novo" (Nuevo) -->
+  <g filter="url(#glow)">
+    <!-- Barra izquierda de la N -->
+    <path d="M28 30 L28 70 L35 70 L35 30 Z" fill="url(#letterGradient)"/>
+    
+    <!-- Diagonal de la N -->
+    <path d="M35 30 L65 70 L72 70 L72 62 L42 30 Z" fill="url(#letterGradient)"/>
+    
+    <!-- Barra derecha de la N -->
+    <path d="M65 30 L65 70 L72 70 L72 30 Z" fill="url(#letterGradient)"/>
+  </g>
+  
+  <!-- Llave/herramienta pequeña - representa "Fix" -->
+  <g transform="translate(58, 22) rotate(45)">
+    <rect x="0" y="0" width="6" height="18" rx="2" fill="url(#accentGradient)"/>
+    <circle cx="3" cy="3" r="5" fill="none" stroke="url(#accentGradient)" stroke-width="2"/>
+  </g>
+  
+  <!-- Destello de velocidad/eficiencia -->
+  <path d="M75 45 L72 52 L76 51 L73 58" 
+        fill="none" 
+        stroke="#fbbf24" 
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+  
+  <!-- Checkmark pequeño (trabajo completado) -->
+  <path d="M18 52 L22 56 L28 48" 
+        fill="none" 
+        stroke="#10b981" 
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+  
+  <!-- Punto decorativo -->
+  <circle cx="50" cy="78" r="3" fill="url(#accentGradient)"/>
+</svg>

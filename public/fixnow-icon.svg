@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Fondo con gradiente moderno -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="toolGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Círculo de fondo -->
+  <circle cx="50" cy="50" r="48" fill="url(#bgGradient)" />
+  
+  <!-- Llave inglesa estilizada (símbolo de "Fix") -->
+  <path d="M35 30 L45 30 L50 35 L50 45 L45 50 L35 50 Q32 50 30 48 Q28 46 28 43 L28 37 Q28 34 30 32 Q32 30 35 30 Z" 
+        fill="url(#toolGradient)" 
+        stroke="#fff" 
+        stroke-width="2"
+        stroke-linejoin="round"/>
+  
+  <!-- Destello/rayo para representar "Now" (velocidad) -->
+  <path d="M60 25 L55 45 L65 42 L52 65 L60 45 L50 48 Z" 
+        fill="#fef3c7" 
+        stroke="#fbbf24" 
+        stroke-width="1.5"
+        stroke-linejoin="round"/>
+  
+  <!-- Checkmark pequeño (trabajo completado) -->
+  <path d="M70 60 L73 63 L79 55" 
+        fill="none" 
+        stroke="#10b981" 
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>

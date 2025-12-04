@@ -1,0 +1,732 @@
+import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import Button from './Button.jsx';
+import MapPicker from './MapPicker.jsx';
+import api from '@/state/apiClient';
+import { useToast } from './Toast.jsx';
+import { useNavigate } from 'react-router-dom';
+
+const STEPS = [
+  { id: 'media', title: 'Multimedia', description: 'Adjunta fotos o videos' },
+  { id: 'description', title: 'Descripción', description: 'Describe lo que necesitas' },
+  { id: 'location', title: 'Ubicación', description: 'Dónde se realizará el servicio' },
+  { id: 'date', title: 'Fecha', description: 'Cuándo lo necesitas' },
+  { id: 'budget', title: 'Presupuesto', description: 'Tu presupuesto estimado' }
+];
+
+function RequestWizardModal({ provider, isOpen, onClose }) {
+  const navigate = useNavigate();
+  const toast = useToast();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: '',
+    subcategory: '',
+    urgency: 'scheduled',
+    address: '',
+    coordinates: null,
+    preferredDate: '',
+    budgetAmount: '',
+    currency: 'USD',
+    photos: [],
+    videos: []
+  });
+
+  const [formErrors, setFormErrors] = useState({});
+
+  // Inicializar categoría con la del proveedor
+  useEffect(() => {
+    if (provider && isOpen) {
+      const providerCategories = provider.providerProfile?.services || [];
+      const firstCategory = providerCategories[0]?.category || '';
+      setFormData(prev => ({
+        ...prev,
+        category: firstCategory,
+        title: `Solicitud de servicio de ${firstCategory || 'servicio'}`
+      }));
+    }
+  }, [provider, isOpen]);
+
+  // Reset al cerrar
+  useEffect(() => {
+    if (!isOpen) {
+      setCurrentStep(0);
+      setFormData({
+        title: '',
+        description: '',
+        category: '',
+        subcategory: '',
+        urgency: 'scheduled',
+        address: '',
+        coordinates: null,
+        preferredDate: '',
+        budgetAmount: '',
+        currency: 'USD',
+        photos: [],
+        videos: []
+      });
+      setFormErrors({});
+    }
+  }, [isOpen]);
+
+  const updateField = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Limpiar error del campo cuando el usuario empieza a escribir
+    if (formErrors[field]) {
+      setFormErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const validateStep = (step) => {
+    const errors = {};
+    
+    switch (step) {
+      case 0: // Media (opcional, no hay errores)
+        break;
+      case 1: // Description
+        if (!formData.title || formData.title.trim().length < 4) {
+          errors.title = 'El título debe tener al menos 4 caracteres';
+        }
+        if (!formData.description || formData.description.trim().length < 10) {
+          errors.description = 'La descripción debe tener al menos 10 caracteres';
+        }
+        break;
+      case 2: // Location
+        if (!formData.address || formData.address.trim().length < 3) {
+          errors.address = 'La dirección es requerida';
+        }
+        if (!formData.coordinates || !Number.isFinite(formData.coordinates.lat) || !Number.isFinite(formData.coordinates.lng)) {
+          errors.coordinates = 'Debes seleccionar una ubicación en el mapa';
+        }
+        break;
+      case 3: // Date (opcional)
+        break;
+      case 4: // Budget
+        if (!formData.budgetAmount || Number(formData.budgetAmount) <= 0) {
+          errors.budgetAmount = 'El presupuesto debe ser mayor a 0';
+        }
+        break;
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      // Marcar el paso como completado
+      if (!completedSteps.includes(currentStep)) {
+        setCompletedSteps(prev => [...prev, currentStep]);
+      }
+      
+      if (currentStep < STEPS.length - 1) {
+        setCurrentStep(prev => prev + 1);
+      }
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  const handleStepClick = (targetIndex) => {
+    // No hacer nada si es el paso actual
+    if (targetIndex === currentStep) return;
+
+    // Solo permitir navegar a pasos completados o al siguiente disponible
+    const canAccess = targetIndex === 0 || completedSteps.includes(targetIndex - 1);
+
+    if (canAccess) {
+      setCurrentStep(targetIndex);
+    } else {
+      toast.warning(`Debes completar el paso ${targetIndex} antes de continuar`);
+    }
+  };
+
+  const handleCloseAttempt = () => {
+    // Si hay datos ingresados, mostrar confirmación
+    const hasData = 
+      formData.title || 
+      formData.description || 
+      formData.address ||
+      formData.photos.length > 0 || 
+      formData.videos.length > 0 ||
+      formData.budgetAmount;
+
+    if (hasData) {
+      setShowConfirmClose(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleConfirmClose = () => {
+    setShowConfirmClose(false);
+    onClose();
+  };
+
+  const handleCancelClose = () => {
+    setShowConfirmClose(false);
+  };
+
+  const handleMediaUpload = async (files, type) => {
+    if (!files || files.length === 0) return;
+    
+    // Validar tamaño para videos
+    if (type === 'videos') {
+      const maxSize = 100 * 1024 * 1024; // 100MB
+      const oversized = Array.from(files).filter(f => f.size > maxSize);
+      if (oversized.length > 0) {
+        toast.error(`Algunos archivos exceden 100MB: ${oversized.map(f => f.name).join(', ')}`);
+        return;
+      }
+    }
+
+    setUploadingMedia(true);
+    try {
+      const fd = new FormData();
+      Array.from(files).forEach((f) => fd.append('files', f));
+      fd.append('type', type);
+
+      const res = await api.post('/uploads/service-request/media', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: type === 'videos' ? 300000 : 60000 // 5 min para videos, 1 min para fotos
+      });
+
+      const uploaded = Array.isArray(res?.data?.data?.[type]) ? res.data.data[type] : [];
+      if (uploaded.length) {
+        updateField(type, [...formData[type], ...uploaded]);
+        toast.success(`${uploaded.length} ${type === 'photos' ? 'foto(s)' : 'video(s)'} subido(s)`);
+      }
+    } catch (e) {
+      console.error('Upload error:', e);
+      let errorMsg = `No se pudieron subir los ${type === 'photos' ? 'fotos' : 'videos'}`;
+      if (e.code === 'ECONNABORTED' || e.message?.includes('timeout')) {
+        errorMsg = 'El archivo es demasiado grande o la conexión es lenta. Intenta con un archivo más pequeño.';
+      } else if (e?.response?.data?.message) {
+        errorMsg = e.response.data.message;
+      }
+      toast.error(errorMsg);
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
+  const removeMedia = (type, index) => {
+    updateField(type, formData[type].filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async () => {
+    // Validar último paso
+    if (!validateStep(currentStep)) return;
+
+    // Validación final
+    if (!formData.category) {
+      toast.error('No se pudo determinar la categoría del servicio');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        category: formData.category,
+        subcategory: formData.subcategory || undefined,
+        urgency: formData.urgency,
+        address: formData.address.trim(),
+        coordinates: formData.coordinates,
+        preferredDate: formData.preferredDate || undefined,
+        budget: {
+          amount: Number(formData.budgetAmount),
+          currency: formData.currency
+        },
+        photos: formData.photos,
+        videos: formData.videos,
+        visibility: 'auto',
+        targetProviders: provider ? [provider._id] : undefined // Enviar a este proveedor específico
+      };
+
+      const { data } = await api.post('/client/requests', payload);
+      
+      if (data?.success) {
+        const providerName = provider?.providerProfile?.businessName || provider?.profile?.firstName || 'el proveedor';
+        toast.success(`¡Solicitud enviada exitosamente a ${providerName}!`);
+        onClose();
+        // Navegar a la página de solicitudes
+        navigate('/mis-solicitudes');
+      } else {
+        toast.warning(data?.message || 'No se pudo crear la solicitud');
+      }
+    } catch (err) {
+      console.error('Error creating request:', err);
+      const msg = err?.response?.data?.message || 'Error al crear la solicitud';
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!provider) return null;
+
+  const providerName = provider.providerProfile?.businessName || provider.profile?.firstName || 'este profesional';
+  const step = STEPS[currentStep];
+  const completionPercentage = Math.round(((completedSteps.length) / STEPS.length) * 100);
+
+  return (
+    <>
+      {/* Modal de confirmación de cierre */}
+      {showConfirmClose && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={handleCancelClose} />
+          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                ¿Cancelar solicitud?
+              </h3>
+              <p className="text-gray-600">
+                Se perderá toda la información que has ingresado hasta ahora.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={handleCancelClose}
+                className="flex-1"
+              >
+                Continuar editando
+              </Button>
+              <Button
+                onClick={handleConfirmClose}
+                className="flex-1 bg-red-600 hover:bg-red-700"
+              >
+                Sí, cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal principal */}
+      <div className="fixed inset-0 z-50 overflow-y-auto">
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 bg-black/30"
+          onClick={handleCloseAttempt}
+        />
+        
+        {/* Modal content */}
+        <div className="flex min-h-full items-center justify-center p-4">
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            {/* Header con botón cerrar */}
+            <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 bg-white rounded-t-lg z-10">
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Solicitud de servicio a {providerName}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Paso {currentStep + 1} de {STEPS.length} • {completionPercentage}% completado
+                </p>
+              </div>
+              <button
+                onClick={handleCloseAttempt}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+                title="Cerrar"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Progress bar */}
+            <div className="px-6 py-4 border-b bg-gray-50">
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                <div 
+                  className="bg-brand-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${completionPercentage}%` }}
+                />
+              </div>
+              
+              {/* Steps indicator */}
+              <div className="flex items-center justify-between">
+                {STEPS.map((s, idx) => {
+                  const isCompleted = completedSteps.includes(idx);
+                  const isCurrent = idx === currentStep;
+                  const canNavigate = idx === 0 || completedSteps.includes(idx - 1);
+                  const isClickable = !isCurrent && (isCompleted || canNavigate);
+                  
+                  return (
+                    <div key={s.id} className="flex-1 flex flex-col items-center">
+                      <button
+                        type="button"
+                        onClick={() => handleStepClick(idx)}
+                        disabled={!isClickable && !isCurrent}
+                        className={`
+                          w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold mb-2
+                          transition-all duration-200
+                          ${isCompleted ? 'bg-green-500 text-white' : 
+                            isCurrent ? 'bg-brand-600 text-white' : 
+                            canNavigate ? 'bg-gray-300 text-gray-600' : 
+                            'bg-gray-200 text-gray-400'}
+                          ${isClickable ? 'hover:scale-110 hover:shadow-md cursor-pointer' : ''}
+                          ${isCurrent ? 'cursor-default' : ''}
+                          ${!isClickable && !isCurrent ? 'cursor-not-allowed opacity-60' : ''}
+                        `}
+                        title={
+                          isCurrent ? `Paso actual: ${s.title}` :
+                          isCompleted ? `Completado: ${s.title}` :
+                          canNavigate ? `Ir a: ${s.title}` :
+                          `Completa el paso anterior`
+                        }
+                      >
+                        {isCompleted ? '✓' : idx + 1}
+                      </button>
+                      <span className={`text-xs text-center hidden sm:block ${
+                        isCurrent ? 'text-gray-900 font-medium' : 'text-gray-500'
+                      }`}>
+                        {s.title}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Step content - Scrollable */}
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{step.title}</h3>
+                <p className="text-sm text-gray-600">{step.description}</p>
+              </div>
+
+          {/* Step 0: Media */}
+          {currentStep === 0 && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Puedes adjuntar fotos o videos para describir mejor lo que necesitas (opcional)
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Fotos */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Fotos
+                  </label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => handleMediaUpload(e.target.files, 'photos')}
+                    className="block w-full border rounded-md px-3 py-2 text-sm"
+                    disabled={uploadingMedia}
+                  />
+                  {formData.photos.length > 0 && (
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      {formData.photos.map((photo, idx) => (
+                        <div key={idx} className="relative group">
+                          <img
+                            src={photo.url}
+                            alt={`Foto ${idx + 1}`}
+                            className="w-full h-20 object-cover rounded border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeMedia('photos', idx)}
+                            className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Videos */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Videos (máx. 100MB)
+                  </label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="video/*"
+                    onChange={(e) => handleMediaUpload(e.target.files, 'videos')}
+                    className="block w-full border rounded-md px-3 py-2 text-sm"
+                    disabled={uploadingMedia}
+                  />
+                  {formData.videos.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {formData.videos.map((video, idx) => (
+                        <div key={idx} className="flex items-center justify-between bg-gray-50 p-2 rounded border">
+                          <span className="text-sm text-gray-700">Video {idx + 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeMedia('videos', idx)}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {uploadingMedia && (
+                <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-md">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Subiendo archivos...</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 1: Description */}
+          {currentStep === 1 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Título de la solicitud *
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => updateField('title', e.target.value)}
+                  className="w-full border rounded-md px-3 py-2"
+                  placeholder="Ej: Reparación de fuga en baño"
+                />
+                {formErrors.title && (
+                  <p className="text-xs text-red-600 mt-1">{formErrors.title}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Descripción detallada *
+                </label>
+                <textarea
+                  rows={6}
+                  value={formData.description}
+                  onChange={(e) => updateField('description', e.target.value)}
+                  className="w-full border rounded-md px-3 py-2"
+                  placeholder="Describe con detalle lo que necesitas..."
+                />
+                {formErrors.description && (
+                  <p className="text-xs text-red-600 mt-1">{formErrors.description}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Urgencia
+                </label>
+                <select
+                  value={formData.urgency}
+                  onChange={(e) => updateField('urgency', e.target.value)}
+                  className="w-full border rounded-md px-3 py-2"
+                >
+                  <option value="scheduled">Programado</option>
+                  <option value="immediate">Inmediato</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Location */}
+          {currentStep === 2 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Selecciona la ubicación en el mapa *
+                </label>
+                <MapPicker
+                  value={formData.coordinates}
+                  onChange={(coords) => updateField('coordinates', coords)}
+                />
+                {formErrors.coordinates && (
+                  <p className="text-xs text-red-600 mt-1">{formErrors.coordinates}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Dirección *
+                </label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => updateField('address', e.target.value)}
+                  className="w-full border rounded-md px-3 py-2"
+                  placeholder="Calle, número, ciudad..."
+                />
+                {formErrors.address && (
+                  <p className="text-xs text-red-600 mt-1">{formErrors.address}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  La dirección se completará automáticamente al seleccionar en el mapa
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Date */}
+          {currentStep === 3 && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Indica cuándo necesitas el servicio (opcional)
+              </p>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha preferida
+                </label>
+                <input
+                  type="date"
+                  value={formData.preferredDate}
+                  onChange={(e) => updateField('preferredDate', e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full border rounded-md px-3 py-2"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Budget */}
+          {currentStep === 4 && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Indica tu presupuesto estimado para este servicio
+              </p>
+              
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Moneda
+                  </label>
+                  <select
+                    value={formData.currency}
+                    onChange={(e) => updateField('currency', e.target.value)}
+                    className="w-full border rounded-md px-3 py-2"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="MXN">MXN</option>
+                    <option value="ARS">ARS</option>
+                  </select>
+                </div>
+                
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Presupuesto *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="0.01"
+                    value={formData.budgetAmount}
+                    onChange={(e) => updateField('budgetAmount', e.target.value)}
+                    className="w-full border rounded-md px-3 py-2"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              
+              {formErrors.budgetAmount && (
+                <p className="text-xs text-red-600">{formErrors.budgetAmount}</p>
+              )}
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <h4 className="font-semibold text-gray-900 mb-2">Resumen de tu solicitud</h4>
+                <dl className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600">Título:</dt>
+                    <dd className="font-medium text-gray-900">{formData.title || 'Sin título'}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600">Dirección:</dt>
+                    <dd className="font-medium text-gray-900 truncate max-w-[200px]">{formData.address || 'Sin dirección'}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600">Fecha preferida:</dt>
+                    <dd className="font-medium text-gray-900">{formData.preferredDate || 'No especificada'}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600">Multimedia:</dt>
+                    <dd className="font-medium text-gray-900">
+                      {formData.photos.length} foto(s), {formData.videos.length} video(s)
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          )}
+        </div>
+
+            </div>
+
+            {/* Navigation buttons - Footer sticky */}
+            <div className="flex items-center justify-between px-6 py-4 border-t bg-white rounded-b-lg sticky bottom-0">
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                disabled={currentStep === 0 || loading}
+              >
+                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Anterior
+              </Button>
+
+              <div className="text-sm font-medium text-gray-700">
+                {currentStep + 1} / {STEPS.length}
+              </div>
+
+              {currentStep < STEPS.length - 1 ? (
+                <Button onClick={handleNext} disabled={uploadingMedia}>
+                  Continuar
+                  <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Button>
+              ) : (
+                <Button onClick={handleSubmit} loading={loading} disabled={uploadingMedia}>
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Publicar Solicitud
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+RequestWizardModal.propTypes = {
+  provider: PropTypes.object,
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired
+};
+
+export default RequestWizardModal;

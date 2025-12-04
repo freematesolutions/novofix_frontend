@@ -1,0 +1,1303 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '@/state/apiClient';
+import Alert from '@/components/ui/Alert.jsx';
+import Button from '@/components/ui/Button.jsx';
+import Spinner from '@/components/ui/Spinner.jsx';
+import { useToast } from '@/components/ui/Toast.jsx';
+import { useAuth } from '@/state/AuthContext.jsx';
+import Modal from '@/components/ui/Modal.jsx';
+
+const PROVIDER_STATUSES = [
+  { value: 'provider_en_route', label: 'En camino' },
+  { value: 'in_progress', label: 'En progreso' },
+  { value: 'completed', label: 'Completado' },
+  { value: 'cancelled', label: 'Cancelado' }
+];
+
+export default function Bookings() {
+  const { role, viewRole, clearError, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [bookings, setBookings] = useState([]);
+  const [updating, setUpdating] = useState(''); // bookingId
+  // Filtros
+  const [statusFilter, setStatusFilter] = useState(''); // '' = todos
+  const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState(''); // yyyy-mm-dd
+  const [dateTo, setDateTo] = useState('');
+  // Evidencia modal
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const [evidenceBooking, setEvidenceBooking] = useState(null);
+  const [evidenceType, setEvidenceType] = useState('before'); // before|during|after
+  const [evidenceFiles, setEvidenceFiles] = useState([]); // FileList-like
+  const [evidenceDescs, setEvidenceDescs] = useState(''); // line-separated descriptions
+  const [evidenceLoading, setEvidenceLoading] = useState(false);
+  // Lightbox para evidencias (imágenes)
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxItems, setLightboxItems] = useState([]); // array de { url, kind: 'image'|'video' }
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  // Reseñas
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewBooking, setReviewBooking] = useState(null);
+  const [reviewOverall, setReviewOverall] = useState(5);
+  const [reviewCats, setReviewCats] = useState({ professionalism: 5, quality: 5, punctuality: 5, communication: 5, value: 5 });
+  const [reviewTitle, setReviewTitle] = useState('');
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewFiles, setReviewFiles] = useState([]);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewedIds, setReviewedIds] = useState(new Set());
+  const [reviewsByBooking, setReviewsByBooking] = useState({}); // bookingId -> review
+  const [reviewLoadingMap, setReviewLoadingMap] = useState({}); // bookingId -> bool
+  // Responder reseña (proveedor)
+  const [responseOpen, setResponseOpen] = useState(false);
+  const [responseReview, setResponseReview] = useState(null);
+  const [responseComment, setResponseComment] = useState('');
+  const [responseLoading, setResponseLoading] = useState(false);
+  const [responseMode, setResponseMode] = useState('create'); // 'create' | 'edit'
+
+  // Paginación básica
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [limit] = useState(10);
+
+  useEffect(()=>{ clearError?.(); }, [clearError]);
+
+  // Usar viewRole para usuarios multirol (determina qué vista está activa)
+  const isProvider = viewRole === 'provider';
+  const isClient = viewRole === 'client';
+
+  // Endpoint compartido según rol (server valida ownership)
+  const listEndpoint = (isProvider || isClient) ? '/bookings' : null;
+
+  const load = async () => {
+    if (!listEndpoint) return;
+    setLoading(true); setError('');
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter) params.set('status', statusFilter);
+      params.set('page', page);
+      params.set('limit', limit);
+      const url = `${listEndpoint}?${params.toString()}`;
+      const { data } = await api.get(url);
+      const list = data?.data?.bookings || data?.bookings || [];
+      const pg = data?.data?.pagination || data?.pagination;
+      if (pg?.pages) setPages(pg.pages);
+      setBookings(list);
+      // No prefetch; lazy-load por tarjeta
+      setReviewsByBooking({});
+    } catch (err) {
+      setError(err?.response?.data?.message || 'No se pudieron cargar las reservas');
+    } finally { setLoading(false); }
+  };
+
+  const loadSingleReview = async (bookingId) => {
+    setReviewLoadingMap((m)=> ({ ...m, [bookingId]: true }));
+    try {
+      const r = await api.get(`/reviews/booking/${bookingId}`);
+      const review = r?.data?.data?.review || null;
+      if (review) {
+        setReviewsByBooking((prev)=> ({ ...prev, [bookingId]: review }));
+      } else {
+        // Marcar como cargado sin reseña para no reintentar
+        setReviewsByBooking((prev)=> ({ ...prev, [bookingId]: null }));
+      }
+    } catch {
+      // noop
+    } finally {
+      setReviewLoadingMap((m)=> ({ ...m, [bookingId]: false }));
+    }
+  };
+  const openResponse = (review) => {
+    setResponseReview(review);
+    setResponseComment('');
+    setResponseMode('create');
+    setResponseOpen(true);
+  };
+
+  const openEditResponse = (review) => {
+    setResponseReview(review);
+    setResponseComment(review?.providerResponse?.comment || '');
+    setResponseMode('edit');
+    setResponseOpen(true);
+  };
+
+  const handleSubmitResponse = async () => {
+    if (!responseReview || !responseComment.trim()) {
+      toast.warning('Escribe una respuesta');
+      return;
+    }
+    setResponseLoading(true);
+    try {
+      if (responseMode === 'edit') {
+        await api.patch(`/reviews/${responseReview._id}/response`, { comment: responseComment });
+        toast.success('Respuesta actualizada');
+      } else {
+        await api.put(`/reviews/${responseReview._id}/response`, { comment: responseComment });
+        toast.success('Respuesta publicada');
+      }
+      // Actualizar en memoria
+      const bookingId = responseReview.booking;
+      setReviewsByBooking((prev) => ({
+        ...prev,
+        [bookingId]: {
+          ...prev[bookingId],
+          providerResponse: { comment: responseComment, respondedAt: new Date().toISOString() }
+        }
+      }));
+      // Refrescar desde servidor para sincronizar estado/moderación
+  try { await loadSingleReview(bookingId); } catch { /* noop */ }
+      setResponseOpen(false);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'No se pudo publicar la respuesta');
+    } finally {
+      setResponseLoading(false);
+    }
+  };
+
+  const handleDeleteResponse = async (review) => {
+    if (!review) return;
+    if (!window.confirm('¿Eliminar tu respuesta?')) return;
+    try {
+      await api.delete(`/reviews/${review._id}/response`);
+      const bookingId = review.booking;
+      setReviewsByBooking((prev) => ({
+        ...prev,
+        [bookingId]: {
+          ...prev[bookingId],
+          providerResponse: undefined
+        }
+      }));
+      toast.success('Respuesta eliminada');
+      // Refrescar estado de la review
+  try { await loadSingleReview(bookingId); } catch { /* noop */ }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'No se pudo eliminar');
+    }
+  };
+
+  useEffect(()=>{ if (isAuthenticated && (isProvider || isClient)) load(); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [isAuthenticated, isProvider, isClient, statusFilter, page]);
+
+  // Filtrado local por fecha y texto
+  const filtered = useMemo(() => {
+    let list = bookings;
+    // Fecha
+    if (dateFrom || dateTo) {
+      const from = dateFrom ? new Date(dateFrom) : null;
+      const to = dateTo ? new Date(dateTo) : null;
+      if (to) {
+        // incluir el día completo de 'to'
+        to.setHours(23, 59, 59, 999);
+      }
+      list = list.filter((b) => {
+        const d = b?.schedule?.scheduledDate ? new Date(b.schedule.scheduledDate) : null;
+        if (!d) return false; // si hay filtro de fecha, ignorar los que no tienen fecha
+        if (from && d < from) return false;
+        if (to && d > to) return false;
+        return true;
+      });
+    }
+    // Búsqueda
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((b)=>{
+        const title = b?.serviceRequest?.basicInfo?.title?.toLowerCase() || '';
+        const provider = b?.provider?.providerProfile?.businessName?.toLowerCase() || '';
+        const client = (b?.client?.profile?.firstName + ' ' + (b?.client?.profile?.lastName || '')).toLowerCase();
+        const clientEmail = b?.client?.email?.toLowerCase() || '';
+        return title.includes(q) || provider.includes(q) || client.includes(q) || clientEmail.includes(q);
+      });
+    }
+    return list;
+  }, [bookings, dateFrom, dateTo, search]);
+
+  const isMediaImage = (url) => /\.(jpg|jpeg|png|gif|webp)$/i.test(url || '');
+  const isMediaVideo = (url) => /\.(mp4|webm|ogg)$/i.test(url || '');
+
+  const openLightbox = (items, startIndex = 0) => {
+    if (!items || items.length === 0) return;
+    setLightboxItems(items);
+    setLightboxIndex(Math.max(0, Math.min(startIndex, items.length - 1)));
+    setLightboxOpen(true);
+  };
+  const prevLightbox = () => setLightboxIndex((i) => (i - 1 + lightboxItems.length) % lightboxItems.length);
+  const nextLightbox = () => setLightboxIndex((i) => (i + 1) % lightboxItems.length);
+
+  const openEvidence = (booking) => {
+    setEvidenceBooking(booking);
+    setEvidenceType('before');
+    setEvidenceFiles([]);
+    setEvidenceDescs('');
+    setEvidenceOpen(true);
+  };
+
+  const handleUploadEvidence = async () => {
+    if (!evidenceBooking) return;
+    if (!evidenceFiles || evidenceFiles.length === 0) {
+      toast.warning('Selecciona al menos un archivo');
+      return;
+    }
+    setEvidenceLoading(true);
+    try {
+      // 1) Subir archivos a Cloudinary a través del endpoint de uploads
+      const form = new FormData();
+      Array.from(evidenceFiles).forEach((f) => form.append('files', f));
+      form.append('context', 'booking_evidence');
+      const upRes = await api.post('/uploads/booking-evidence', form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const uploaded = upRes?.data?.data?.files || upRes?.data?.files || [];
+      const urls = uploaded.map((u) => u.secureUrl || u.url).filter(Boolean);
+      if (urls.length === 0) throw new Error('No se obtuvieron URLs de evidencia');
+
+      // 2) Registrar evidencia en el booking
+      const descriptions = evidenceDescs
+        ? evidenceDescs.split('\n').map((s) => s.trim()).filter(Boolean)
+        : [];
+      const payload = { type: evidenceType, urls, descriptions };
+      await api.post(`/bookings/${evidenceBooking._id}/evidence`, payload);
+      toast.success('Evidencia subida correctamente');
+      setEvidenceOpen(false);
+      load();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || 'Error al subir evidencia');
+    } finally {
+      setEvidenceLoading(false);
+    }
+  };
+
+  const openReview = (booking) => {
+    setReviewBooking(booking);
+    setReviewOverall(5);
+    setReviewCats({ professionalism: 5, quality: 5, punctuality: 5, communication: 5, value: 5 });
+    setReviewTitle('');
+    setReviewComment('');
+    setReviewFiles([]);
+    setReviewOpen(true);
+  };
+
+  const handleSubmitReview = async () => {
+    if (!reviewBooking) return;
+    if (!reviewComment.trim()) {
+      toast.warning('El comentario es obligatorio');
+      return;
+    }
+    setReviewLoading(true);
+    try {
+      // Subir fotos si hay
+      let photos = [];
+      if (reviewFiles && reviewFiles.length > 0) {
+        const form = new FormData();
+        Array.from(reviewFiles).forEach((f)=> form.append('files', f));
+        const upRes = await api.post('/uploads/files', form, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        const uploaded = upRes?.data?.data?.files || upRes?.data?.files || [];
+        photos = uploaded.map((u)=> ({ url: u.secureUrl || u.url, cloudinaryId: u.cloudinaryId || u.public_id })).filter(p=> p.url);
+      }
+
+      const payload = {
+        overall: Number(reviewOverall),
+        categories: {
+          professionalism: Number(reviewCats.professionalism),
+          quality: Number(reviewCats.quality),
+          punctuality: Number(reviewCats.punctuality),
+          communication: Number(reviewCats.communication),
+          value: Number(reviewCats.value)
+        },
+        title: reviewTitle,
+        comment: reviewComment,
+        photos
+      };
+      await api.post(`/bookings/${reviewBooking._id}/reviews`, payload);
+      toast.success('¡Gracias por tu reseña!');
+      setReviewOpen(false);
+      // Ocultar CTA para este booking en esta sesión
+      setReviewedIds((prev)=> new Set(prev).add(reviewBooking._id));
+      // Refrescar resumen de reseña en la tarjeta
+      try {
+        const r = await api.get(`/reviews/booking/${reviewBooking._id}`);
+        const review = r?.data?.data?.review || null;
+        if (review) {
+          setReviewsByBooking((prev)=> ({ ...prev, [reviewBooking._id]: review }));
+        }
+  } catch { /* noop */ }
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'No se pudo crear la reseña';
+      toast.error(msg);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  // Redirigir al inicio si no está autenticado
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (!isProvider && !isClient) {
+    return <Alert type="warning">Esta sección es para clientes y proveedores.</Alert>;
+  }
+
+  const updateStatus = async (bookingId, status) => {
+    if (!isProvider) return;
+    setUpdating(bookingId);
+    try {
+      const { data } = await api.put(`/provider/proposals/bookings/${bookingId}/status`, { status });
+      if (data?.success) {
+        toast.success('Estado actualizado');
+        load();
+      } else {
+        toast.warning(data?.message || 'No se pudo actualizar');
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Error al actualizar estado');
+    } finally { setUpdating(''); }
+  };
+
+  const confirmCompletion = async (bookingId) => {
+    if (!isClient) return;
+    setUpdating(bookingId);
+    try {
+      const { data } = await api.post(`/client/bookings/${bookingId}/confirm-completion`);
+      if (data?.success) {
+        toast.success('Servicio confirmado. ¡Gracias!');
+        load();
+      } else {
+        toast.warning(data?.message || 'No se pudo confirmar');
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Error al confirmar');
+    } finally { setUpdating(''); }
+  };
+
+  return (
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-emerald-50/30">
+      {/* Background decorativo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-teal-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-emerald-200/20 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Encabezado Premium con esquinas redondeadas - diferenciado por rol */}
+        <div
+          className={`overflow-hidden rounded-2xl ${isProvider ? 'bg-linear-to-br from-brand-500 via-brand-600 to-cyan-600' : isClient ? 'bg-linear-to-br from-emerald-500 via-emerald-600 to-teal-600' : 'bg-linear-to-br from-gray-600 via-gray-700 to-gray-800'} p-6 sm:p-8 text-white relative`}
+        >
+          {/* Decoración del header */}
+          <div className={`absolute top-0 right-0 w-64 h-64 ${isProvider ? 'bg-cyan-400/20' : 'bg-teal-400/20'} rounded-full blur-2xl -translate-y-1/2 translate-x-1/4 pointer-events-none`}></div>
+          
+          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                {isProvider ? (
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l2 2 4-4" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold">
+                  {isProvider ? 'Mis Reservas' : 'Servicios Reservados'}
+                </h1>
+                <p className={`text-sm mt-0.5 ${isProvider ? 'text-brand-100' : 'text-emerald-100'}`}>
+                  {isProvider 
+                    ? 'Gestiona el estado de tus trabajos programados' 
+                    : 'Revisa el progreso y confirma la finalización de tus servicios contratados'}
+                </p>
+              </div>
+            </div>
+            
+            {/* Stats mini - diferenciados por rol */}
+            <div className="hidden sm:flex items-center gap-4 sm:gap-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">{filtered.length}</div>
+                <div className="text-xs text-white/80 font-medium">Total</div>
+              </div>
+              <div className="w-px h-8 bg-white/30"></div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">
+                  {isProvider 
+                    ? filtered.filter(b => ['confirmed', 'in_progress', 'provider_en_route'].includes(b.status)).length
+                    : filtered.filter(b => b.status === 'completed').length
+                  }
+                </div>
+                <div className="text-xs text-white/80 font-medium">
+                  {isProvider ? 'Pendientes' : 'Completadas'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filtros Premium */}
+        <div className="relative overflow-hidden bg-white/70 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-lg shadow-gray-900/5 p-4 sm:p-6">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end">
+            {/* Estado */}
+            <div className="flex flex-col w-full sm:w-auto">
+              <label className="text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Estado
+              </label>
+              <select 
+                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300 min-w-[180px]" 
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">Todos los estados</option>
+                <option value="confirmed">✓ Confirmado</option>
+                <option value="provider_en_route">🚗 En camino</option>
+                <option value="in_progress">⚡ En progreso</option>
+                <option value="completed">✅ Completado</option>
+                <option value="cancelled">❌ Cancelado</option>
+              </select>
+            </div>
+            
+            {/* Fechas */}
+            <div className="flex gap-3 w-full sm:w-auto">
+              <div className="flex flex-col flex-1 sm:flex-initial">
+                <label className="text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Desde
+                </label>
+                <input 
+                  type="date" 
+                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300" 
+                  value={dateFrom} 
+                  onChange={(e) => setDateFrom(e.target.value)} 
+                />
+              </div>
+              <div className="flex flex-col flex-1 sm:flex-initial">
+                <label className="text-xs font-medium text-gray-600 mb-1.5">Hasta</label>
+                <input 
+                  type="date" 
+                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300" 
+                  value={dateTo} 
+                  onChange={(e) => setDateTo(e.target.value)} 
+                />
+              </div>
+            </div>
+            
+            {/* Búsqueda */}
+            <div className="flex-1 flex flex-col w-full lg:w-auto">
+              <label className="text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Buscar
+              </label>
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Servicio, cliente o proveedor..." 
+                  className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300" 
+                  value={search} 
+                  onChange={(e) => setSearch(e.target.value)} 
+                />
+                <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+            
+            {/* Botón limpiar */}
+            {(dateFrom || dateTo || statusFilter || search) && (
+              <button
+                onClick={() => { setStatusFilter(''); setSearch(''); setDateFrom(''); setDateTo(''); }}
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-300"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Limpiar
+              </button>
+            )}
+          </div>
+        </div>
+
+        {error && <Alert type="error">{error}</Alert>}
+        
+        {/* Loading state premium */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-16 bg-white/60 backdrop-blur-xl rounded-3xl border border-teal-100/40 shadow-lg">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full border-4 border-teal-100 border-t-teal-500 animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-teal-500/20"></div>
+              </div>
+            </div>
+            <p className="mt-4 text-gray-600 font-medium">Cargando reservas...</p>
+          </div>
+        )}
+
+        {/* Empty state premium */}
+        {!loading && (!filtered || filtered.length === 0) && (
+          <div className="relative overflow-hidden bg-white/80 backdrop-blur-xl rounded-3xl border border-dashed border-teal-200 shadow-lg p-8 sm:p-12 text-center">
+            <div className="absolute inset-0 bg-linear-to-br from-teal-50/50 via-transparent to-emerald-50/50"></div>
+            <div className="relative">
+              <div className="w-20 h-20 mx-auto rounded-3xl bg-linear-to-br from-teal-100 to-emerald-100 flex items-center justify-center mb-6">
+                <svg className="w-10 h-10 text-teal-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Sin reservas</h3>
+              <p className="text-gray-500 max-w-md mx-auto">
+                No hay reservas que coincidan con los filtros seleccionados. Prueba ajustando los criterios de búsqueda.
+              </p>
+            </div>
+          </div>
+        )}
+        {filtered.map((b) => {
+          // Status configuration for premium badges
+          const statusConfig = {
+            pending: { color: 'from-amber-500 to-orange-500', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: '⏳', label: 'Pendiente' },
+            confirmed: { color: 'from-blue-500 to-cyan-500', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: '✓', label: 'Confirmada' },
+            in_progress: { color: 'from-indigo-500 to-purple-500', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', icon: '🔄', label: 'En progreso' },
+            completed: { color: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: '✅', label: 'Completada' },
+            cancelled: { color: 'from-red-500 to-rose-500', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: '✗', label: 'Cancelada' },
+          };
+          const currentStatus = statusConfig[b.status] || statusConfig.pending;
+          
+          return (
+            <div key={b._id} className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 overflow-hidden">
+              {/* Status color bar */}
+              <div className={`absolute top-0 left-0 w-1.5 h-full bg-linear-to-b ${currentStatus.color} rounded-l-2xl`} />
+              
+              {/* Premium corner accent */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-linear-to-br from-emerald-500/5 via-teal-500/3 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="p-5 pl-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Column 1: Service Info */}
+                <div className="lg:col-span-5 space-y-4">
+                  {/* Header with title and status */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 text-lg leading-tight truncate group-hover:text-emerald-700 transition-colors">
+                        {b.serviceRequest?.basicInfo?.title || 'Servicio'}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${currentStatus.bg} ${currentStatus.text} ${currentStatus.border} border`}>
+                          <span>{currentStatus.icon}</span>
+                          {currentStatus.label}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Schedule & Location */}
+                  <div className="space-y-2">
+                    {b.schedule?.scheduledDate && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-linear-to-br from-teal-50 to-emerald-50 text-teal-600">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <span>{new Date(b.schedule.scheduledDate).toLocaleString()}</span>
+                      </div>
+                    )}
+                    {b.serviceRequest?.location?.address && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-linear-to-br from-emerald-50 to-cyan-50 text-emerald-600">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        <span className="truncate">{b.serviceRequest.location.address}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Evidence Section */}
+                  {(b?.serviceEvidence && (b.serviceEvidence.before?.length || b.serviceEvidence.during?.length || b.serviceEvidence.after?.length)) && (
+                    <div className="pt-3 border-t border-gray-100 space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                        <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Evidencias del servicio
+                      </div>
+                      {['before','during','after'].map((section)=>{
+                        const items = b.serviceEvidence?.[section] || [];
+                        if (!items.length) return null;
+                        const label = section === 'before' ? 'Antes' : section === 'during' ? 'Durante' : 'Después';
+                        const sectionColor = section === 'before' ? 'amber' : section === 'during' ? 'blue' : 'emerald';
+                        return (
+                          <div key={section}>
+                            <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-${sectionColor}-50 text-${sectionColor}-700 mb-2`}>
+                              {label} · {items.length}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {items.slice(0,6).map((ev, idx)=>{
+                                const url = ev.url;
+                                if (isMediaImage(url)) {
+                                  const imageItems = items.filter(it=> isMediaImage(it.url)).map(it=> ({ url: it.url, kind: 'image' }));
+                                  const imageIndex = imageItems.findIndex(it=> it.url === url);
+                                  return (
+                                    <button type="button" key={idx} onClick={()=> openLightbox(imageItems, imageIndex)} className="group/thumb w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-emerald-300 bg-gray-50 transition-all hover:scale-105 hover:shadow-lg">
+                                      <img src={url} alt={ev.description || 'evidencia'} className="w-full h-full object-cover"/>
+                                    </button>
+                                  );
+                                }
+                                if (isMediaVideo(url)) {
+                                  const videoItems = items.filter(it=> isMediaVideo(it.url)).map(it=> ({ url: it.url, kind: 'video' }));
+                                  const videoIndex = videoItems.findIndex(it=> it.url === url);
+                                  return (
+                                    <button type="button" key={idx} onClick={()=> openLightbox(videoItems, videoIndex)} className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-200 hover:border-indigo-300 bg-linear-to-br from-gray-800 to-gray-900 text-white text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
+                                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    </button>
+                                  );
+                                }
+                                return (
+                                  <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-teal-300 bg-gray-50 text-gray-500 text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                  </a>
+                                );
+                              })}
+                              {items.length > 6 && (
+                                <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-gray-100 text-gray-500 text-xs font-medium">+{items.length - 6}</div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Column 2: Pricing & Participants */}
+                <div className="lg:col-span-4 space-y-4">
+                  {/* Pricing card */}
+                  <div className="p-4 rounded-xl bg-linear-to-br from-emerald-50/80 via-teal-50/50 to-cyan-50/30 border border-emerald-100/50">
+                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Monto total</div>
+                    <div className="text-2xl font-bold bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                      {b.proposal?.pricing?.amount ? Intl.NumberFormat('es-AR',{style:'currency', currency: b.proposal?.pricing?.currency || 'USD'}).format(b.proposal.pricing.amount) : '—'}
+                    </div>
+                  </div>
+                  
+                  {/* Participants */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 border border-gray-100">
+                      <div className="flex items-center justify-center w-9 h-9 rounded-full bg-linear-to-br from-cyan-500 to-teal-500 text-white text-sm font-medium shadow-lg shadow-teal-500/20">
+                        {(b.provider?.providerProfile?.businessName || '?')[0].toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-gray-500">Proveedor</div>
+                        <div className="text-sm font-medium text-gray-900 truncate">{b.provider?.providerProfile?.businessName || '—'}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 border border-gray-100">
+                      <div className="flex items-center justify-center w-9 h-9 rounded-full bg-linear-to-br from-emerald-500 to-green-500 text-white text-sm font-medium shadow-lg shadow-emerald-500/20">
+                        {(b.client?.profile?.firstName || b.client?.email || '?')[0].toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-gray-500">Cliente</div>
+                        <div className="text-sm font-medium text-gray-900 truncate">{b.client?.profile?.firstName || b.client?.email || '—'}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Review Summary */}
+                  {reviewsByBooking[b._id] !== undefined && reviewsByBooking[b._id] !== null && (
+                    <div className="p-4 rounded-xl bg-linear-to-br from-amber-50/80 to-yellow-50/50 border border-amber-100/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                          <span className="text-sm font-medium text-gray-700">Reseña del servicio</span>
+                        </div>
+                        {reviewsByBooking[b._id].status === 'flagged' && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">En moderación</span>
+                        )}
+                      </div>
+                      {reviewsByBooking[b._id].status === 'flagged' && (
+                        <div className="text-[11px] text-amber-600 mb-2 p-2 rounded-lg bg-amber-100/50">Esta reseña está en moderación.</div>
+                      )}
+                      <div className="flex items-center gap-1 text-lg font-bold text-amber-600 mb-1">
+                        {reviewsByBooking[b._id].rating?.overall || '—'}
+                        <svg className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                      </div>
+                      {reviewsByBooking[b._id].review?.comment && (
+                        <p className="text-xs text-gray-600 line-clamp-2 italic">"{reviewsByBooking[b._id].review.comment}"</p>
+                      )}
+                      {reviewsByBooking[b._id].providerResponse?.comment ? (
+                        <div className="mt-3 p-3 rounded-lg bg-white/80 border border-gray-100">
+                          <div className="text-xs font-medium text-gray-500 mb-1">Respuesta del proveedor</div>
+                          <p className="text-xs text-gray-700">{reviewsByBooking[b._id].providerResponse.comment}</p>
+                          <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-400">
+                            {reviewsByBooking[b._id].providerResponse.respondedAt && (
+                              <span>{new Date(reviewsByBooking[b._id].providerResponse.respondedAt).toLocaleDateString()}</span>
+                            )}
+                            {reviewsByBooking[b._id].providerResponse.editedAt && (
+                              <span className="italic">(editado)</span>
+                            )}
+                          </div>
+                          {isProvider && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <button onClick={()=> openEditResponse(reviewsByBooking[b._id])} className="text-xs text-teal-600 hover:text-teal-700 font-medium hover:underline">Editar</button>
+                              <button onClick={()=> handleDeleteResponse(reviewsByBooking[b._id])} className="text-xs text-red-500 hover:text-red-600 font-medium hover:underline">Eliminar</button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        isProvider && (
+                          <button onClick={()=> openResponse(reviewsByBooking[b._id])} className="mt-2 text-xs text-teal-600 hover:text-teal-700 font-medium hover:underline flex items-center gap-1">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                            Responder reseña
+                          </button>
+                        )
+                      )}
+                    </div>
+                  )}
+                  {reviewsByBooking[b._id] === undefined && (
+                    <button onClick={()=> loadSingleReview(b._id)} disabled={!!reviewLoadingMap[b._id]} className="w-full px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm text-gray-600 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                      {reviewLoadingMap[b._id] ? (
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                      )}
+                      Mostrar reseña
+                    </button>
+                  )}
+                </div>
+                
+                {/* Column 3: Actions */}
+                <div className="lg:col-span-3 flex flex-col gap-3">
+                  {isProvider && (
+                    <>
+                      {/* Status dropdown */}
+                      <div className="relative">
+                        <select 
+                          className="w-full appearance-none px-4 py-2.5 pr-10 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm font-medium text-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 cursor-pointer" 
+                          value="" 
+                          onChange={(e)=> updateStatus(b._id, e.target.value)} 
+                          disabled={updating === b._id}
+                        >
+                          <option value="" disabled>Cambiar estado…</option>
+                          {PROVIDER_STATUSES.map((s)=> (
+                            <option key={s.value} value={s.value}>{s.label}</option>
+                          ))}
+                        </select>
+                        <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </div>
+                      
+                      {/* Complete button */}
+                      <button 
+                        onClick={()=>updateStatus(b._id, 'completed')} 
+                        disabled={updating === b._id}
+                        className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {updating === b._id ? (
+                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        )}
+                        Marcar completado
+                      </button>
+                      
+                      {/* Upload evidence button */}
+                      <button 
+                        onClick={()=> openEvidence(b)} 
+                        className="w-full px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm font-medium text-gray-700 transition-all flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        Subir evidencia
+                      </button>
+                    </>
+                  )}
+                  {isClient && b.status === 'completed' && (
+                    <>
+                      {b?.payment?.status !== 'completed' && (
+                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
+                          <div className="flex items-center gap-2 text-amber-700 text-sm font-medium mb-2">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Pago pendiente
+                          </div>
+                          {b?.payment?.stripePaymentIntentId && (
+                            <button 
+                              onClick={()=> navigate(`/payment/${b.payment.stripePaymentIntentId}`)} 
+                              className="w-full px-4 py-2 rounded-lg bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all"
+                            >
+                              Pagar ahora
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      <button 
+                        onClick={()=>confirmCompletion(b._id)} 
+                        disabled={updating === b._id}
+                        className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {updating === b._id ? (
+                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        )}
+                        Confirmar finalización
+                      </button>
+                      {b?.payment?.status === 'completed' && !reviewedIds.has(b._id) && (
+                        <button 
+                          onClick={()=> openReview(b)} 
+                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                          Dejar reseña
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Paginación premium */}
+      {pages > 1 && (
+        <div className="flex items-center justify-center gap-3 mt-8 mb-4">
+          <button 
+            disabled={page <= 1} 
+            onClick={()=> setPage((p)=> Math.max(1, p - 1))}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-teal-300 hover:bg-teal-50/30 text-sm font-medium text-gray-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            Anterior
+          </button>
+          
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-100">
+            <span className="text-sm text-gray-600">Página</span>
+            <span className="text-sm font-bold bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{page}</span>
+            <span className="text-sm text-gray-600">de</span>
+            <span className="text-sm font-medium text-gray-700">{pages}</span>
+          </div>
+          
+          <button 
+            disabled={page >= pages} 
+            onClick={()=> setPage((p)=> Math.min(pages, p + 1))}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-teal-300 hover:bg-teal-50/30 text-sm font-medium text-gray-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200"
+          >
+            Siguiente
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
+      )}
+
+      {/* Modal evidencia */}
+      <Modal isOpen={evidenceOpen} onClose={()=> setEvidenceOpen(false)} title="Subir evidencia del servicio">
+        <div className="space-y-5">
+          {/* Header decorativo */}
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-teal-50 via-emerald-50 to-cyan-50 border border-teal-100/50">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-teal-500 to-emerald-500 text-white shadow-lg shadow-teal-500/25">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-900">Documenta tu trabajo</h4>
+              <p className="text-sm text-gray-500">Sube fotos o videos como evidencia del servicio</p>
+            </div>
+          </div>
+          
+          {/* Tipo de evidencia */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              Etapa del servicio
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { value: 'before', label: 'Antes', icon: '🏠', color: 'amber' },
+                { value: 'during', label: 'Durante', icon: '🔧', color: 'blue' },
+                { value: 'after', label: 'Después', icon: '✨', color: 'emerald' }
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setEvidenceType(opt.value)}
+                  className={`p-3 rounded-xl border-2 text-center transition-all ${
+                    evidenceType === opt.value
+                      ? `border-${opt.color}-400 bg-${opt.color}-50 shadow-lg shadow-${opt.color}-500/10`
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{opt.icon}</div>
+                  <div className={`text-sm font-medium ${evidenceType === opt.value ? `text-${opt.color}-700` : 'text-gray-700'}`}>{opt.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Upload de archivos */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              Archivos (imágenes o videos)
+            </label>
+            <div className="relative">
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*,video/*" 
+                onChange={(e)=> setEvidenceFiles(e.target.files)} 
+                className="w-full px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 hover:border-teal-400 bg-gray-50 hover:bg-teal-50/30 text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-500 file:text-white hover:file:bg-teal-600 transition-all cursor-pointer"
+              />
+            </div>
+            <p className="flex items-center gap-1.5 text-xs text-gray-500">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Hasta 10 archivos por subida
+            </p>
+          </div>
+          
+          {/* Descripciones */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+              Descripciones (opcional)
+            </label>
+            <textarea 
+              rows={3} 
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 resize-none transition-all" 
+              value={evidenceDescs} 
+              onChange={(e)=> setEvidenceDescs(e.target.value)} 
+              placeholder="Una descripción por línea para cada archivo..."
+            />
+          </div>
+          
+          {/* Acciones */}
+          <div className="flex items-center gap-3 pt-2">
+            <button 
+              onClick={()=> setEvidenceOpen(false)} 
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all"
+            >
+              Cancelar
+            </button>
+            <button 
+              onClick={handleUploadEvidence} 
+              disabled={evidenceLoading}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white text-sm font-medium shadow-lg shadow-teal-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {evidenceLoading ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+              )}
+              Subir evidencia
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal reseña */}
+      <Modal isOpen={reviewOpen} onClose={()=> setReviewOpen(false)} title="Dejar una reseña">
+        <div className="space-y-5">
+          {/* Header decorativo */}
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-amber-50 via-yellow-50 to-orange-50 border border-amber-100/50">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-amber-400 to-yellow-500 text-white shadow-lg shadow-amber-500/25">
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+              </svg>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-900">Comparte tu experiencia</h4>
+              <p className="text-sm text-gray-500">Tu opinión ayuda a otros clientes</p>
+            </div>
+          </div>
+          
+          {/* Calificaciones */}
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              Calificaciones
+            </label>
+            
+            {/* Calificación general destacada */}
+            <div className="p-4 rounded-xl bg-linear-to-br from-amber-50 to-yellow-50 border border-amber-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Calificación general</span>
+                <div className="flex items-center gap-1">
+                  {[5,4,3,2,1].map(n => (
+                    <button 
+                      key={n} 
+                      type="button"
+                      onClick={() => setReviewOverall(n.toString())}
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                        parseInt(reviewOverall) >= n 
+                          ? 'text-amber-400 scale-110' 
+                          : 'text-gray-300 hover:text-amber-200'
+                      }`}
+                    >
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    </button>
+                  )).reverse()}
+                </div>
+              </div>
+            </div>
+            
+            {/* Categorías específicas */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {[
+                { key: 'professionalism', label: 'Profesionalismo', icon: '💼' },
+                { key: 'quality', label: 'Calidad', icon: '⭐' },
+                { key: 'punctuality', label: 'Puntualidad', icon: '⏰' },
+                { key: 'communication', label: 'Comunicación', icon: '💬' },
+                { key: 'value', label: 'Precio/Valor', icon: '💰' }
+              ].map((cat)=> (
+                <div key={cat.key} className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="text-sm">{cat.icon}</span>
+                    <span className="text-xs font-medium text-gray-600">{cat.label}</span>
+                  </div>
+                  <select 
+                    className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-300 transition-all" 
+                    value={reviewCats[cat.key]} 
+                    onChange={(e)=> setReviewCats({...reviewCats, [cat.key]: e.target.value})}
+                  >
+                    {[5,4,3,2,1].map(n=> <option key={n} value={n}>{n} ⭐</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Título */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+              Título (opcional)
+            </label>
+            <input 
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-300 transition-all" 
+              value={reviewTitle} 
+              onChange={(e)=> setReviewTitle(e.target.value)} 
+              placeholder="Ej: Excelente servicio profesional"
+            />
+          </div>
+          
+          {/* Comentario */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+              Comentario
+            </label>
+            <textarea 
+              rows={4} 
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-300 resize-none transition-all" 
+              value={reviewComment} 
+              onChange={(e)=> setReviewComment(e.target.value)} 
+              placeholder="Cuéntanos tu experiencia con este servicio..." 
+            />
+          </div>
+          
+          {/* Fotos */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Fotos (opcional)
+            </label>
+            <input 
+              type="file" 
+              multiple 
+              accept="image/*" 
+              onChange={(e)=> setReviewFiles(e.target.files)} 
+              className="w-full px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 hover:border-amber-400 bg-gray-50 hover:bg-amber-50/30 text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-amber-500 file:text-white hover:file:bg-amber-600 transition-all cursor-pointer"
+            />
+          </div>
+          
+          {/* Acciones */}
+          <div className="flex items-center gap-3 pt-2">
+            <button 
+              onClick={()=> setReviewOpen(false)} 
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all"
+            >
+              Cancelar
+            </button>
+            <button 
+              onClick={handleSubmitReview} 
+              disabled={reviewLoading}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {reviewLoading ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+              ) : (
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              )}
+              Enviar reseña
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Lightbox imágenes evidencia */}
+      <Modal isOpen={lightboxOpen} onClose={()=> setLightboxOpen(false)} title={`Evidencia (${lightboxIndex+1}/${lightboxItems.length})`}>
+        <div className="flex flex-col items-center gap-4">
+          {/* Media viewer */}
+          <div className="relative w-full flex items-center justify-center bg-gray-900/5 rounded-2xl overflow-hidden min-h-[300px]">
+            {lightboxItems[lightboxIndex] && (
+              lightboxItems[lightboxIndex].kind === 'image' ? (
+                <img src={lightboxItems[lightboxIndex].url} alt="evidencia" className="max-h-[70vh] w-auto rounded-xl shadow-2xl" />
+              ) : (
+                <video src={lightboxItems[lightboxIndex].url} controls className="max-h-[70vh] w-auto rounded-xl shadow-2xl" />
+              )
+            )}
+          </div>
+          
+          {/* Navigation */}
+          {lightboxItems.length > 1 && (
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={prevLightbox} 
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                Anterior
+              </button>
+              
+              {/* Dots indicator */}
+              <div className="flex items-center gap-1.5">
+                {lightboxItems.map((_, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      idx === lightboxIndex 
+                        ? 'bg-teal-500 scale-125' 
+                        : 'bg-gray-300'
+                    }`} 
+                  />
+                ))}
+              </div>
+              
+              <button 
+                onClick={nextLightbox} 
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-all"
+              >
+                Siguiente
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* Modal responder reseña (proveedor) */}
+      <Modal isOpen={responseOpen} onClose={()=> setResponseOpen(false)} title={responseMode === 'edit' ? 'Editar respuesta' : 'Responder reseña'}>
+        <div className="space-y-5">
+          {/* Header decorativo */}
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-teal-50 via-cyan-50 to-emerald-50 border border-teal-100/50">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/25">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-900">{responseMode === 'edit' ? 'Editar respuesta' : 'Responder al cliente'}</h4>
+              <p className="text-sm text-gray-500">Tu respuesta será visible públicamente</p>
+            </div>
+          </div>
+          
+          {/* Reseña del cliente */}
+          {responseReview?.review?.comment && (
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                Comentario del cliente
+              </label>
+              <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-100 text-sm text-gray-700 italic">
+                "{responseReview.review.comment}"
+              </div>
+            </div>
+          )}
+          
+          {/* Alerta de moderación */}
+          {responseReview?.status === 'flagged' && (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
+              <svg className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-amber-800">Reseña en moderación</p>
+                <p className="text-xs text-amber-700 mt-1">La visibilidad pública de tu respuesta puede demorar hasta que el equipo revise esta reseña.</p>
+              </div>
+            </div>
+          )}
+          
+          {/* Tu respuesta */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+              Tu respuesta
+            </label>
+            <textarea 
+              rows={4} 
+              maxLength={800} 
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 resize-none transition-all" 
+              value={responseComment} 
+              onChange={(e)=> setResponseComment(e.target.value)} 
+              placeholder="Escribe una respuesta profesional y cordial..."
+            />
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Evita lenguaje ofensivo o datos personales
+              </p>
+              <span className={`text-xs font-medium ${responseComment.length > 700 ? 'text-amber-600' : 'text-gray-400'}`}>{responseComment.length}/800</span>
+            </div>
+          </div>
+          
+          {/* Acciones */}
+          <div className="flex items-center gap-3 pt-2">
+            <button 
+              onClick={()=> setResponseOpen(false)} 
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all"
+            >
+              Cancelar
+            </button>
+            <button 
+              onClick={handleSubmitResponse} 
+              disabled={responseLoading}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white text-sm font-medium shadow-lg shadow-teal-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {responseLoading ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+              )}
+              {responseMode === 'edit' ? 'Actualizar' : 'Publicar respuesta'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
