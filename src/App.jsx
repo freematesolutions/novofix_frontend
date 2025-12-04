@@ -25,6 +25,7 @@ const RequestDetail = lazy(() => import('./pages/provider/RequestDetail.jsx'));
 const ClientRequests = lazy(() => import('./pages/client/Requests.jsx'));
 const ClientRequestProposals = lazy(() => import('./pages/client/RequestProposals.jsx'));
 const CreateRequest = lazy(() => import('./pages/client/CreateRequest.jsx'));
+const ClientMessages = lazy(() => import('./pages/client/Messages.jsx'));
 const Bookings = lazy(() => import('./pages/shared/Bookings.jsx'));
 const Payment = lazy(() => import('./pages/payment/Payment.jsx'));
 const Notifications = lazy(() => import('./pages/shared/Notifications.jsx'));
@@ -66,6 +67,7 @@ function App() {
           <Route path="/mis-solicitudes" element={<ClientRequests />} />
           <Route path="/mis-solicitudes/nueva" element={<CreateRequest />} />
           <Route path="/mis-solicitudes/:id/propuestas" element={<ClientRequestProposals />} />
+          <Route path="/mis-mensajes" element={<ClientMessages />} />
           <Route path="/reservas" element={<Bookings />} />
           <Route path="/notificaciones" element={<Notifications />} />
           <Route path="/payment/:intentId" element={<Payment />} />

@@ -7,6 +7,8 @@ import Spinner from '@/components/ui/Spinner.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import Modal from '@/components/ui/Modal.jsx';
+import { compressImages, validateFiles } from '@/utils/fileCompression.js';
+import UploadProgress from '@/components/ui/UploadProgress.jsx';
 
 const PROVIDER_STATUSES = [
   { value: 'provider_en_route', label: 'En camino' },
@@ -14,6 +16,15 @@ const PROVIDER_STATUSES = [
   { value: 'completed', label: 'Completado' },
   { value: 'cancelled', label: 'Cancelado' }
 ];
+
+// Mapa de transiciones válidas y botón principal según estado actual
+const STATUS_FLOW = {
+  confirmed: { next: 'provider_en_route', label: 'Estoy en camino', icon: '🚗' },
+  provider_en_route: { next: 'in_progress', label: 'Iniciar servicio', icon: '🔧' },
+  in_progress: { next: 'completed', label: 'Marcar completado', icon: '✅' },
+  completed: null,
+  cancelled: null
+};
 
 export default function Bookings() {
   const { role, viewRole, clearError, isAuthenticated } = useAuth();
@@ -32,9 +43,19 @@ export default function Bookings() {
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [evidenceBooking, setEvidenceBooking] = useState(null);
   const [evidenceType, setEvidenceType] = useState('before'); // before|during|after
-  const [evidenceFiles, setEvidenceFiles] = useState([]); // FileList-like
-  const [evidenceDescs, setEvidenceDescs] = useState(''); // line-separated descriptions
+  const [evidenceFiles, setEvidenceFiles] = useState([]); // Array of File objects
+  const [evidencePreviews, setEvidencePreviews] = useState([]); // Array of preview objects
+  const [evidenceCaptions, setEvidenceCaptions] = useState([]); // Array of captions
   const [evidenceLoading, setEvidenceLoading] = useState(false);
+  const [evidenceProgress, setEvidenceProgress] = useState({
+    show: false,
+    progress: 0,
+    fileName: '',
+    message: 'Procesando archivos...',
+    totalFiles: 0,
+    currentFile: 0,
+    status: 'uploading'
+  });
   // Lightbox para evidencias (imágenes)
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxItems, setLightboxItems] = useState([]); // array de { url, kind: 'image'|'video' }
@@ -72,27 +93,7 @@ export default function Bookings() {
   // Endpoint compartido según rol (server valida ownership)
   const listEndpoint = (isProvider || isClient) ? '/bookings' : null;
 
-  const load = async () => {
-    if (!listEndpoint) return;
-    setLoading(true); setError('');
-    try {
-      const params = new URLSearchParams();
-      if (statusFilter) params.set('status', statusFilter);
-      params.set('page', page);
-      params.set('limit', limit);
-      const url = `${listEndpoint}?${params.toString()}`;
-      const { data } = await api.get(url);
-      const list = data?.data?.bookings || data?.bookings || [];
-      const pg = data?.data?.pagination || data?.pagination;
-      if (pg?.pages) setPages(pg.pages);
-      setBookings(list);
-      // No prefetch; lazy-load por tarjeta
-      setReviewsByBooking({});
-    } catch (err) {
-      setError(err?.response?.data?.message || 'No se pudieron cargar las reservas');
-    } finally { setLoading(false); }
-  };
-
+  // Función para cargar una reseña individual (definida primero para poder usarla en load)
   const loadSingleReview = async (bookingId) => {
     setReviewLoadingMap((m)=> ({ ...m, [bookingId]: true }));
     try {
@@ -105,10 +106,42 @@ export default function Bookings() {
         setReviewsByBooking((prev)=> ({ ...prev, [bookingId]: null }));
       }
     } catch {
-      // noop
+      // Si hay error (ej: 404), marcar como null para que se pueda crear
+      setReviewsByBooking((prev)=> ({ ...prev, [bookingId]: null }));
     } finally {
       setReviewLoadingMap((m)=> ({ ...m, [bookingId]: false }));
     }
+  };
+
+  const load = async () => {
+    if (!listEndpoint) return;
+    setLoading(true); setError('');
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter) params.set('status', statusFilter);
+      params.set('page', page);
+      params.set('limit', limit);
+      // Enviar el viewRole activo para usuarios multirol
+      if (viewRole) params.set('viewRole', viewRole);
+      const url = `${listEndpoint}?${params.toString()}`;
+      const { data } = await api.get(url);
+      const list = data?.data?.bookings || data?.bookings || [];
+      const pg = data?.data?.pagination || data?.pagination;
+      if (pg?.pages) setPages(pg.pages);
+      setBookings(list);
+      // Resetear el cache de reseñas
+      setReviewsByBooking({});
+      
+      // Pre-cargar reseñas para bookings completados (solo para clientes)
+      if (isClient) {
+        const completedBookings = list.filter(b => b.status === 'completed');
+        completedBookings.forEach(b => {
+          loadSingleReview(b._id);
+        });
+      }
+    } catch (err) {
+      setError(err?.response?.data?.message || 'No se pudieron cargar las reservas');
+    } finally { setLoading(false); }
   };
   const openResponse = (review) => {
     setResponseReview(review);
@@ -229,8 +262,72 @@ export default function Bookings() {
     setEvidenceBooking(booking);
     setEvidenceType('before');
     setEvidenceFiles([]);
-    setEvidenceDescs('');
+    setEvidencePreviews([]);
+    setEvidenceCaptions([]);
+    setEvidenceProgress({ show: false, progress: 0, fileName: '', message: '', totalFiles: 0, currentFile: 0, status: 'uploading' });
     setEvidenceOpen(true);
+  };
+
+  // Manejar selección de archivos para evidencia
+  const handleEvidenceFileSelect = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    
+    // Validar archivos
+    const validation = validateFiles(files, {
+      maxFiles: 10,
+      maxSizeMB: 200,
+      allowedTypes: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+        'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/mpeg', 'video/webm'
+      ]
+    });
+
+    if (!validation.valid) {
+      validation.errors.forEach(err => toast.error(err));
+      return;
+    }
+
+    setEvidenceFiles(validation.validFiles);
+    setEvidenceCaptions(new Array(validation.validFiles.length).fill(''));
+
+    // Generar previews
+    const newPreviews = validation.validFiles.map(file => {
+      const isVideo = file.type.startsWith('video/');
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      return {
+        url: URL.createObjectURL(file),
+        type: isVideo ? 'video' : 'image',
+        name: file.name,
+        size: `${sizeMB}MB`
+      };
+    });
+    setEvidencePreviews(newPreviews);
+  };
+
+  // Eliminar un archivo de la selección
+  const removeEvidenceFile = (index) => {
+    const newFiles = [...evidenceFiles];
+    const newPreviews = [...evidencePreviews];
+    const newCaptions = [...evidenceCaptions];
+    
+    // Revocar URL del preview
+    URL.revokeObjectURL(newPreviews[index].url);
+    
+    newFiles.splice(index, 1);
+    newPreviews.splice(index, 1);
+    newCaptions.splice(index, 1);
+    
+    setEvidenceFiles(newFiles);
+    setEvidencePreviews(newPreviews);
+    setEvidenceCaptions(newCaptions);
+  };
+
+  // Actualizar caption de un archivo
+  const updateEvidenceCaption = (index, value) => {
+    const newCaptions = [...evidenceCaptions];
+    newCaptions[index] = value;
+    setEvidenceCaptions(newCaptions);
   };
 
   const handleUploadEvidence = async () => {
@@ -239,30 +336,145 @@ export default function Bookings() {
       toast.warning('Selecciona al menos un archivo');
       return;
     }
+    
     setEvidenceLoading(true);
+    const totalFiles = evidenceFiles.length;
+    
     try {
-      // 1) Subir archivos a Cloudinary a través del endpoint de uploads
+      let processedFiles = [...evidenceFiles];
+      const hasVideos = evidenceFiles.some(f => f.type.startsWith('video/'));
+      const imageFiles = evidenceFiles.filter(f => f.type.startsWith('image/'));
+
+      // 1. Comprimir imágenes
+      if (imageFiles.length > 0) {
+        setEvidenceProgress({
+          show: true,
+          progress: 0,
+          fileName: '',
+          message: 'Comprimiendo imágenes...',
+          totalFiles,
+          currentFile: 0,
+          status: 'compressing'
+        });
+
+        try {
+          const compressedImages = await compressImages(imageFiles, {
+            maxSizeMB: 2,
+            maxWidthOrHeight: 1920,
+            initialQuality: 0.85
+          }, (progress) => {
+            setEvidenceProgress(prev => ({
+              ...prev,
+              progress: (progress.percentage * 0.2),
+              currentFile: progress.current
+            }));
+          });
+
+          // Reemplazar imágenes originales con comprimidas
+          processedFiles = evidenceFiles.map(file => {
+            if (file.type.startsWith('image/')) {
+              const compressedIndex = imageFiles.indexOf(file);
+              return compressedImages[compressedIndex];
+            }
+            return file;
+          });
+        } catch (compressError) {
+          console.warn('Compression failed, using original files:', compressError);
+        }
+      } else if (hasVideos) {
+        setEvidenceProgress({
+          show: true,
+          progress: 0,
+          fileName: processedFiles[0]?.name || '',
+          message: 'Preparando subida de videos...',
+          totalFiles,
+          currentFile: 0,
+          status: 'uploading'
+        });
+      }
+
+      // 2. Subir archivos a Cloudinary
+      setEvidenceProgress(prev => ({
+        ...prev,
+        progress: 20,
+        message: hasVideos ? 'Subiendo archivos (videos pueden tardar más)...' : 'Subiendo archivos...',
+        status: 'uploading',
+        fileName: processedFiles[0]?.name || ''
+      }));
+
       const form = new FormData();
-      Array.from(evidenceFiles).forEach((f) => form.append('files', f));
+      processedFiles.forEach((f) => form.append('files', f));
       form.append('context', 'booking_evidence');
+      form.append('captions', JSON.stringify(evidenceCaptions));
+
       const upRes = await api.post('/uploads/booking-evidence', form, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 600000, // 10 minutos
+        onUploadProgress: (progressEvent) => {
+          if (!progressEvent.total) return;
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          const baseProgress = imageFiles.length > 0 ? 20 : 0;
+          const progressRange = imageFiles.length > 0 ? 70 : 90;
+          const adjustedProgress = baseProgress + Math.round((percentCompleted * progressRange) / 100);
+          
+          setEvidenceProgress(prev => ({
+            ...prev,
+            progress: Math.min(adjustedProgress, 90),
+            message: hasVideos ? 'Subiendo archivos...' : 'Subiendo imágenes...'
+          }));
+        }
       });
+
       const uploaded = upRes?.data?.data?.files || upRes?.data?.files || [];
       const urls = uploaded.map((u) => u.secureUrl || u.url).filter(Boolean);
       if (urls.length === 0) throw new Error('No se obtuvieron URLs de evidencia');
 
-      // 2) Registrar evidencia en el booking
-      const descriptions = evidenceDescs
-        ? evidenceDescs.split('\n').map((s) => s.trim()).filter(Boolean)
-        : [];
-      const payload = { type: evidenceType, urls, descriptions };
+      // 3. Registrar evidencia en el booking
+      setEvidenceProgress(prev => ({
+        ...prev,
+        progress: 95,
+        message: 'Guardando evidencia...',
+        status: 'processing'
+      }));
+
+      const payload = { 
+        type: evidenceType, 
+        urls, 
+        descriptions: evidenceCaptions.filter(c => c.trim()) 
+      };
       await api.post(`/bookings/${evidenceBooking._id}/evidence`, payload);
-      toast.success('Evidencia subida correctamente');
-      setEvidenceOpen(false);
-      load();
+      
+      setEvidenceProgress({
+        show: true,
+        progress: 100,
+        fileName: '',
+        message: '¡Evidencia subida correctamente!',
+        totalFiles,
+        currentFile: totalFiles,
+        status: 'success'
+      });
+
+      setTimeout(() => {
+        setEvidenceProgress(prev => ({ ...prev, show: false }));
+        setEvidenceOpen(false);
+        toast.success(`${urls.length} archivo(s) de evidencia subido(s)`);
+        load();
+      }, 1500);
+      
     } catch (err) {
+      setEvidenceProgress({
+        show: true,
+        progress: 0,
+        fileName: '',
+        message: 'Error al subir evidencia',
+        totalFiles,
+        currentFile: 0,
+        status: 'error'
+      });
       toast.error(err?.response?.data?.message || err?.message || 'Error al subir evidencia');
+      setTimeout(() => {
+        setEvidenceProgress(prev => ({ ...prev, show: false }));
+      }, 3000);
     } finally {
       setEvidenceLoading(false);
     }
@@ -558,8 +770,10 @@ export default function Bookings() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Sin reservas</h3>
-              <p className="text-gray-500 max-w-md mx-auto">
-                No hay reservas que coincidan con los filtros seleccionados. Prueba ajustando los criterios de búsqueda.
+              <p className="text-gray-500 max-w-md mx-auto mb-4">
+                {bookings.length === 0 
+                  ? 'No tienes reservas aún.'
+                  : 'No hay reservas que coincidan con los filtros seleccionados. Prueba ajustando los criterios de búsqueda.'}
               </p>
             </div>
           </div>
@@ -766,7 +980,10 @@ export default function Bookings() {
                       )}
                     </div>
                   )}
-                  {reviewsByBooking[b._id] === undefined && (
+                  
+                  {/* Botones de reseña según estado */}
+                  {/* Para PROVEEDORES: Mostrar botón para cargar reseña existente o mensaje si no hay */}
+                  {isProvider && reviewsByBooking[b._id] === undefined && (
                     <button onClick={()=> loadSingleReview(b._id)} disabled={!!reviewLoadingMap[b._id]} className="w-full px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm text-gray-600 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                       {reviewLoadingMap[b._id] ? (
                         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
@@ -776,41 +993,123 @@ export default function Bookings() {
                       Mostrar reseña
                     </button>
                   )}
+                  
+                  {/* Para PROVEEDORES: Mostrar mensaje cuando no hay reseña */}
+                  {isProvider && reviewsByBooking[b._id] === null && (
+                    <div className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-center">
+                      <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <span>El cliente aún no ha dejado una reseña</span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">Las reseñas aparecerán aquí cuando el cliente las publique</p>
+                    </div>
+                  )}
+                  
+                  {/* Para CLIENTES: Mostrar botón según si ya existe reseña o no */}
+                  {isClient && b.status === 'completed' && (
+                    <>
+                      {/* Cargando estado de reseña */}
+                      {reviewsByBooking[b._id] === undefined && reviewLoadingMap[b._id] && (
+                        <div className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-500 font-medium flex items-center justify-center gap-2">
+                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                          Verificando...
+                        </div>
+                      )}
+                      
+                      {/* No hay reseña (null) - mostrar botón para crear */}
+                      {reviewsByBooking[b._id] === null && !reviewedIds.has(b._id) && (
+                        <button 
+                          onClick={()=> openReview(b)} 
+                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                          ⭐ Dejar reseña
+                        </button>
+                      )}
+                      
+                      {/* Aún no se ha cargado (undefined) y no está cargando - mostrar botón para crear */}
+                      {reviewsByBooking[b._id] === undefined && !reviewLoadingMap[b._id] && !reviewedIds.has(b._id) && (
+                        <button 
+                          onClick={()=> openReview(b)} 
+                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                          ⭐ Dejar reseña
+                        </button>
+                      )}
+                      
+                      {/* Ya se envió reseña en esta sesión */}
+                      {reviewedIds.has(b._id) && (
+                        <div className="w-full px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium flex items-center justify-center gap-2">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                          ✓ Reseña enviada
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
                 
                 {/* Column 3: Actions */}
                 <div className="lg:col-span-3 flex flex-col gap-3">
                   {isProvider && (
                     <>
-                      {/* Status dropdown */}
-                      <div className="relative">
-                        <select 
-                          className="w-full appearance-none px-4 py-2.5 pr-10 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm font-medium text-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 cursor-pointer" 
-                          value="" 
-                          onChange={(e)=> updateStatus(b._id, e.target.value)} 
+                      {/* Botón principal de avance de estado - solo si hay siguiente estado válido */}
+                      {STATUS_FLOW[b.status] && (
+                        <button 
+                          onClick={()=>updateStatus(b._id, STATUS_FLOW[b.status].next)} 
                           disabled={updating === b._id}
+                          className={`w-full px-4 py-2.5 rounded-xl text-white text-sm font-medium shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${
+                            b.status === 'confirmed' 
+                              ? 'bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-blue-500/25 hover:shadow-blue-500/40'
+                              : b.status === 'provider_en_route'
+                              ? 'bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/25 hover:shadow-amber-500/40'
+                              : 'bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-emerald-500/25 hover:shadow-emerald-500/40'
+                          }`}
                         >
-                          <option value="" disabled>Cambiar estado…</option>
-                          {PROVIDER_STATUSES.map((s)=> (
-                            <option key={s.value} value={s.value}>{s.label}</option>
-                          ))}
-                        </select>
-                        <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      </div>
+                          {updating === b._id ? (
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                          ) : (
+                            <span className="text-base">{STATUS_FLOW[b.status].icon}</span>
+                          )}
+                          {STATUS_FLOW[b.status].label}
+                        </button>
+                      )}
                       
-                      {/* Complete button */}
-                      <button 
-                        onClick={()=>updateStatus(b._id, 'completed')} 
-                        disabled={updating === b._id}
-                        className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                      >
-                        {updating === b._id ? (
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                        )}
-                        Marcar completado
-                      </button>
+                      {/* Estado completado - badge de éxito */}
+                      {b.status === 'completed' && (
+                        <div className="w-full px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium flex items-center justify-center gap-2">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          Servicio completado
+                        </div>
+                      )}
+                      
+                      {/* Status dropdown para cambios manuales (solo estados válidos desde el actual) */}
+                      {b.status !== 'completed' && b.status !== 'cancelled' && (
+                        <div className="relative">
+                          <select 
+                            className="w-full appearance-none px-4 py-2.5 pr-10 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm font-medium text-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 cursor-pointer" 
+                            value="" 
+                            onChange={(e)=> updateStatus(b._id, e.target.value)} 
+                            disabled={updating === b._id}
+                          >
+                            <option value="" disabled>Cambiar estado…</option>
+                            {PROVIDER_STATUSES.filter(s => {
+                              // Filtrar solo transiciones válidas desde el estado actual
+                              const validTransitions = {
+                                'confirmed': ['provider_en_route', 'cancelled'],
+                                'provider_en_route': ['in_progress', 'cancelled'],
+                                'in_progress': ['completed', 'cancelled']
+                              };
+                              return validTransitions[b.status]?.includes(s.value);
+                            }).map((s)=> (
+                              <option key={s.value} value={s.value}>{s.label}</option>
+                            ))}
+                          </select>
+                          <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                      )}
                       
                       {/* Upload evidence button */}
                       <button 
@@ -822,8 +1121,9 @@ export default function Bookings() {
                       </button>
                     </>
                   )}
-                  {isClient && b.status === 'completed' && (
+                  {isClient && (
                     <>
+                      {/* Pago pendiente - mostrar en cualquier estado si el pago no está completado */}
                       {b?.payment?.status !== 'completed' && (
                         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
                           <div className="flex items-center gap-2 text-amber-700 text-sm font-medium mb-2">
@@ -840,25 +1140,20 @@ export default function Bookings() {
                           )}
                         </div>
                       )}
-                      <button 
-                        onClick={()=>confirmCompletion(b._id)} 
-                        disabled={updating === b._id}
-                        className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                      >
-                        {updating === b._id ? (
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        )}
-                        Confirmar finalización
-                      </button>
-                      {b?.payment?.status === 'completed' && !reviewedIds.has(b._id) && (
+                      
+                      {/* Botón confirmar finalización - solo para status que permiten completarse */}
+                      {['confirmed', 'provider_en_route', 'in_progress'].includes(b.status) && (
                         <button 
-                          onClick={()=> openReview(b)} 
-                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+                          onClick={()=>confirmCompletion(b._id)} 
+                          disabled={updating === b._id}
+                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                         >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                          Dejar reseña
+                          {updating === b._id ? (
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          )}
+                          Confirmar finalización
                         </button>
                       )}
                     </>
@@ -900,9 +1195,12 @@ export default function Bookings() {
         </div>
       )}
 
-      {/* Modal evidencia */}
-      <Modal isOpen={evidenceOpen} onClose={()=> setEvidenceOpen(false)} title="Subir evidencia del servicio">
+      {/* Modal evidencia - Versión mejorada con previews y progreso */}
+      <Modal open={evidenceOpen} onClose={()=> !evidenceLoading && setEvidenceOpen(false)} title="Subir evidencia del servicio" size="lg">
         <div className="space-y-5">
+          {/* Indicador de progreso */}
+          <UploadProgress {...evidenceProgress} />
+          
           {/* Header decorativo */}
           <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-teal-50 via-emerald-50 to-cyan-50 border border-teal-100/50">
             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-teal-500 to-emerald-500 text-white shadow-lg shadow-teal-500/25">
@@ -912,7 +1210,7 @@ export default function Bookings() {
             </div>
             <div>
               <h4 className="font-semibold text-gray-900">Documenta tu trabajo</h4>
-              <p className="text-sm text-gray-500">Sube fotos o videos como evidencia del servicio</p>
+              <p className="text-sm text-gray-500">Sube fotos o videos como evidencia del servicio (máx. 10 archivos, hasta 200MB c/u)</p>
             </div>
           </div>
           
@@ -926,93 +1224,185 @@ export default function Bookings() {
             </label>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { value: 'before', label: 'Antes', icon: '🏠', color: 'amber' },
-                { value: 'during', label: 'Durante', icon: '🔧', color: 'blue' },
-                { value: 'after', label: 'Después', icon: '✨', color: 'emerald' }
+                { value: 'before', label: 'Antes', icon: '🏠', bgActive: 'bg-amber-50', borderActive: 'border-amber-400', textActive: 'text-amber-700', shadow: 'shadow-amber-500/10' },
+                { value: 'during', label: 'Durante', icon: '🔧', bgActive: 'bg-blue-50', borderActive: 'border-blue-400', textActive: 'text-blue-700', shadow: 'shadow-blue-500/10' },
+                { value: 'after', label: 'Después', icon: '✨', bgActive: 'bg-emerald-50', borderActive: 'border-emerald-400', textActive: 'text-emerald-700', shadow: 'shadow-emerald-500/10' }
               ].map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   onClick={() => setEvidenceType(opt.value)}
+                  disabled={evidenceLoading}
                   className={`p-3 rounded-xl border-2 text-center transition-all ${
                     evidenceType === opt.value
-                      ? `border-${opt.color}-400 bg-${opt.color}-50 shadow-lg shadow-${opt.color}-500/10`
+                      ? `${opt.borderActive} ${opt.bgActive} shadow-lg ${opt.shadow}`
                       : 'border-gray-200 hover:border-gray-300 bg-white'
-                  }`}
+                  } disabled:opacity-50`}
                 >
                   <div className="text-2xl mb-1">{opt.icon}</div>
-                  <div className={`text-sm font-medium ${evidenceType === opt.value ? `text-${opt.color}-700` : 'text-gray-700'}`}>{opt.label}</div>
+                  <div className={`text-sm font-medium ${evidenceType === opt.value ? opt.textActive : 'text-gray-700'}`}>{opt.label}</div>
                 </button>
               ))}
             </div>
           </div>
           
-          {/* Upload de archivos */}
-          <div className="space-y-2">
+          {/* Zona de upload drag & drop */}
+          <div className="space-y-3">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
               <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
               Archivos (imágenes o videos)
             </label>
+            
+            {/* Área de drop con estilo mejorado */}
             <div className="relative">
               <input 
+                id="evidence-file-input"
                 type="file" 
                 multiple 
                 accept="image/*,video/*" 
-                onChange={(e)=> setEvidenceFiles(e.target.files)} 
-                className="w-full px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 hover:border-teal-400 bg-gray-50 hover:bg-teal-50/30 text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-500 file:text-white hover:file:bg-teal-600 transition-all cursor-pointer"
+                onChange={handleEvidenceFileSelect}
+                disabled={evidenceLoading}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
               />
+              <div className={`flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed transition-all ${
+                evidencePreviews.length > 0 
+                  ? 'border-teal-300 bg-teal-50/30' 
+                  : 'border-gray-300 bg-gray-50 hover:border-teal-400 hover:bg-teal-50/30'
+              }`}>
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-teal-400 to-emerald-500 text-white mb-4 shadow-lg shadow-teal-500/25">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  {evidencePreviews.length > 0 
+                    ? `${evidencePreviews.length} archivo(s) seleccionado(s)` 
+                    : 'Arrastra archivos aquí o haz clic para seleccionar'}
+                </p>
+                <p className="text-xs text-gray-500">Imágenes: JPG, PNG, WebP • Videos: MP4, WebM</p>
+              </div>
             </div>
-            <p className="flex items-center gap-1.5 text-xs text-gray-500">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              Hasta 10 archivos por subida
-            </p>
           </div>
           
-          {/* Descripciones */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-              </svg>
-              Descripciones (opcional)
-            </label>
-            <textarea 
-              rows={3} 
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 resize-none transition-all" 
-              value={evidenceDescs} 
-              onChange={(e)=> setEvidenceDescs(e.target.value)} 
-              placeholder="Una descripción por línea para cada archivo..."
-            />
-          </div>
+          {/* Previews de archivos seleccionados */}
+          {evidencePreviews.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">Vista previa</label>
+                <button 
+                  onClick={() => {
+                    evidencePreviews.forEach(p => URL.revokeObjectURL(p.url));
+                    setEvidenceFiles([]);
+                    setEvidencePreviews([]);
+                    setEvidenceCaptions([]);
+                    const input = document.getElementById('evidence-file-input');
+                    if (input) input.value = '';
+                  }}
+                  disabled={evidenceLoading}
+                  className="text-xs text-red-500 hover:text-red-600 font-medium disabled:opacity-50"
+                >
+                  Limpiar todo
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-80 overflow-y-auto p-1">
+                {evidencePreviews.map((preview, idx) => (
+                  <div key={idx} className="group relative">
+                    {/* Preview container */}
+                    <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 group-hover:border-teal-300 transition-all shadow-sm">
+                      {preview.type === 'video' ? (
+                        <video
+                          src={preview.url}
+                          className="w-full h-full object-cover"
+                          muted
+                          playsInline
+                        />
+                      ) : (
+                        <img
+                          src={preview.url}
+                          alt={`Preview ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                      
+                      {/* Overlay con info */}
+                      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <p className="text-white text-xs font-medium truncate">{preview.name}</p>
+                          <p className="text-white/70 text-xs">{preview.size}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Badge de tipo */}
+                      <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-medium ${
+                        preview.type === 'video' 
+                          ? 'bg-purple-500 text-white' 
+                          : 'bg-teal-500 text-white'
+                      }`}>
+                        {preview.type === 'video' ? '🎬 Video' : '📷 Imagen'}
+                      </div>
+                      
+                      {/* Botón eliminar */}
+                      <button
+                        onClick={() => removeEvidenceFile(idx)}
+                        disabled={evidenceLoading}
+                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* Input de descripción */}
+                    <input
+                      type="text"
+                      placeholder="Descripción (opcional)"
+                      value={evidenceCaptions[idx] || ''}
+                      onChange={(e) => updateEvidenceCaption(idx, e.target.value)}
+                      disabled={evidenceLoading}
+                      className="mt-2 w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 disabled:opacity-50 disabled:bg-gray-50"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
           {/* Acciones */}
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
             <button 
               onClick={()=> setEvidenceOpen(false)} 
-              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all"
+              disabled={evidenceLoading}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all disabled:opacity-50"
             >
               Cancelar
             </button>
             <button 
               onClick={handleUploadEvidence} 
-              disabled={evidenceLoading}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white text-sm font-medium shadow-lg shadow-teal-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              disabled={evidenceLoading || evidenceFiles.length === 0}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white text-sm font-medium shadow-lg shadow-teal-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {evidenceLoading ? (
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                  Subiendo...
+                </>
               ) : (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                  Subir {evidenceFiles.length > 0 ? `${evidenceFiles.length} archivo(s)` : 'evidencia'}
+                </>
               )}
-              Subir evidencia
             </button>
           </div>
         </div>
       </Modal>
 
       {/* Modal reseña */}
-      <Modal isOpen={reviewOpen} onClose={()=> setReviewOpen(false)} title="Dejar una reseña">
+      <Modal open={reviewOpen} onClose={()=> setReviewOpen(false)} title="Dejar una reseña">
         <div className="space-y-5">
           {/* Header decorativo */}
           <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-amber-50 via-yellow-50 to-orange-50 border border-amber-100/50">
@@ -1158,7 +1548,7 @@ export default function Bookings() {
       </Modal>
 
       {/* Lightbox imágenes evidencia */}
-      <Modal isOpen={lightboxOpen} onClose={()=> setLightboxOpen(false)} title={`Evidencia (${lightboxIndex+1}/${lightboxItems.length})`}>
+      <Modal open={lightboxOpen} onClose={()=> setLightboxOpen(false)} title={`Evidencia (${lightboxIndex+1}/${lightboxItems.length})`}>
         <div className="flex flex-col items-center gap-4">
           {/* Media viewer */}
           <div className="relative w-full flex items-center justify-center bg-gray-900/5 rounded-2xl overflow-hidden min-h-[300px]">
@@ -1209,7 +1599,7 @@ export default function Bookings() {
       </Modal>
 
       {/* Modal responder reseña (proveedor) */}
-      <Modal isOpen={responseOpen} onClose={()=> setResponseOpen(false)} title={responseMode === 'edit' ? 'Editar respuesta' : 'Responder reseña'}>
+      <Modal open={responseOpen} onClose={()=> setResponseOpen(false)} title={responseMode === 'edit' ? 'Editar respuesta' : 'Responder reseña'}>
         <div className="space-y-5">
           {/* Header decorativo */}
           <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-teal-50 via-cyan-50 to-emerald-50 border border-teal-100/50">

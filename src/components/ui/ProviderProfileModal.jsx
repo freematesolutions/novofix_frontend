@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import RequestWizardModal from './RequestWizardModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
+import StarRating from './StarRating.jsx';
 
 // Iconos SVG inline para mejor rendimiento
 const Icons = {
@@ -225,22 +226,6 @@ function ProviderProfileModal({ isOpen, onClose, provider }) {
   if (!isOpen || !provider) return null;
 
   const planInfo = planConfig[plan] || planConfig.free;
-
-  // Star rating component
-  const StarRating = ({ value, size = 'md' }) => {
-    const sizes = { sm: 'w-4 h-4', md: 'w-5 h-5', lg: 'w-6 h-6' };
-    return (
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Icons.Star
-            key={star}
-            filled={star <= Math.round(value)}
-            className={`${sizes[size]} ${star <= Math.round(value) ? 'text-yellow-400' : 'text-gray-300'}`}
-          />
-        ))}
-      </div>
-    );
-  };
 
   // Rating bar component
   const RatingBar = ({ label, value, icon }) => (
