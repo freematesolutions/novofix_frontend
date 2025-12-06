@@ -68,7 +68,7 @@ export default function ClientRequestProposals() {
       const { data } = await api.post(`/client/proposals/${proposalId}/accept`);
       if (data?.success) {
         toast.success('Propuesta aceptada. Hemos creado tu reserva.');
-        navigate('/perfil'); // o a /bookings si está implementado
+        navigate('/reservas'); // Redirigir a la sección de reservas del cliente
       } else {
         toast.warning(data?.message || 'No se pudo aceptar la propuesta');
       }

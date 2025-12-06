@@ -318,7 +318,69 @@ export default function ClientRequests() {
                             {statusInfo.icon}
                             {statusInfo.label}
                           </span>
+                          {/* Badge de tipo de solicitud */}
+                          {r.visibility === 'directed' && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              Dirigida
+                            </span>
+                          )}
                         </div>
+                        
+                        {/* Información de proveedores - Para solicitudes DIRIGIDAS muestra selectedProviders */}
+                        {r.visibility === 'directed' && Array.isArray(r.selectedProviders) && r.selectedProviders.length > 0 && (
+                          <div className="flex items-center gap-2 mb-2 text-sm">
+                            <div className="flex -space-x-2">
+                              {r.selectedProviders.slice(0, 3).map((prov, idx) => (
+                                <div key={prov._id || idx} className="w-7 h-7 rounded-full bg-linear-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-sm">
+                                  {(prov.providerProfile?.businessName || prov.providerProfile?.firstName || 'P').charAt(0).toUpperCase()}
+                                </div>
+                              ))}
+                              {r.selectedProviders.length > 3 && (
+                                <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium border-2 border-white">
+                                  +{r.selectedProviders.length - 3}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-gray-600">
+                              Enviada a{' '}
+                              <span className="font-medium text-gray-800">
+                                {r.selectedProviders.map(p => p.providerProfile?.businessName || `${p.providerProfile?.firstName || ''} ${p.providerProfile?.lastName || ''}`.trim() || 'Profesional').slice(0, 2).join(', ')}
+                                {r.selectedProviders.length > 2 && ` y ${r.selectedProviders.length - 2} más`}
+                              </span>
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Para solicitudes AUTO muestra eligibleProviders notificados */}
+                        {r.visibility !== 'directed' && Array.isArray(r.eligibleProviders) && r.eligibleProviders.filter(ep => ep.notified && ep.provider).length > 0 && (
+                          <div className="flex items-center gap-2 mb-2 text-sm">
+                            <div className="flex -space-x-2">
+                              {r.eligibleProviders.filter(ep => ep.notified && ep.provider).slice(0, 3).map((ep, idx) => {
+                                const prov = ep.provider;
+                                return (
+                                  <div key={prov._id || idx} className="w-7 h-7 rounded-full bg-linear-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-sm">
+                                    {(prov.providerProfile?.businessName || prov.providerProfile?.firstName || 'P').charAt(0).toUpperCase()}
+                                  </div>
+                                );
+                              })}
+                              {r.eligibleProviders.filter(ep => ep.notified && ep.provider).length > 3 && (
+                                <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium border-2 border-white">
+                                  +{r.eligibleProviders.filter(ep => ep.notified && ep.provider).length - 3}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-gray-600">
+                              Visible para{' '}
+                              <span className="font-medium text-gray-800">
+                                {r.eligibleProviders.filter(ep => ep.notified && ep.provider).map(ep => ep.provider.providerProfile?.businessName || `${ep.provider.providerProfile?.firstName || ''} ${ep.provider.providerProfile?.lastName || ''}`.trim() || 'Profesional').slice(0, 2).join(', ')}
+                                {r.eligibleProviders.filter(ep => ep.notified && ep.provider).length > 2 && ` y ${r.eligibleProviders.filter(ep => ep.notified && ep.provider).length - 2} más`}
+                              </span>
+                            </span>
+                          </div>
+                        )}
                         
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
                           {r.basicInfo?.category && (
@@ -367,7 +429,7 @@ export default function ClientRequests() {
                           )}
                         </button>
 
-                        {/* Botón Ver elegibles */}
+                        {/* Botón Ver elegibles - Muestra cuántos profesionales cumplen los criterios para responder */}
                         <button
                           onClick={async () => {
                             setBusyId(r._id);
@@ -377,8 +439,8 @@ export default function ClientRequests() {
                               setRequests(prev => prev.map(req => 
                                 req._id === r._id ? { ...req, _eligibleCount: c } : req
                               ));
-                              if (c === 0) toast.warning('Sin proveedores elegibles actualmente');
-                              else toast.info(`${c} proveedor(es) elegibles`);
+                              if (c === 0) toast.warning('Sin proveedores elegibles actualmente. Prueba invitar manualmente.');
+                              else toast.info(`${c} profesional(es) pueden ver y responder tu solicitud`);
                             } catch {
                               toast.error('No se pudo obtener elegibilidad');
                             } finally {
@@ -386,6 +448,7 @@ export default function ClientRequests() {
                             }
                           }}
                           disabled={busyId === r._id}
+                          title="Ver cuántos profesionales cumplen los criterios de tu solicitud (categoría, ubicación) y pueden enviar propuestas"
                           className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-gray-50 hover:border-gray-300 hover:shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -404,6 +467,7 @@ export default function ClientRequests() {
                           <button
                             onClick={() => doAction(r._id, 'publish')}
                             disabled={busyId === r._id}
+                            title="Publicar solicitud para que los profesionales la vean y envíen propuestas"
                             className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-linear-to-r from-blue-500 to-cyan-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/35 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {busyId === r._id ? (
@@ -422,6 +486,7 @@ export default function ClientRequests() {
                             <button
                               onClick={() => doAction(r._id, 'archive')}
                               disabled={busyId === r._id}
+                              title="Archivar la solicitud temporalmente. Dejará de recibir propuestas pero podrás republicarla después"
                               className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 hover:border-amber-300 transition-all duration-300 disabled:opacity-50"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -431,6 +496,7 @@ export default function ClientRequests() {
                             </button>
                             <button
                               onClick={() => openInvite(r)}
+                              title="Buscar y enviar invitaciones directas a profesionales específicos para que vean tu solicitud"
                               className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all duration-300"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

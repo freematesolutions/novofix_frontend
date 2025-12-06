@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useCallback } from 'react';
 import { HiX } from 'react-icons/hi';
 
 // Accessible modal dialog with focus management
@@ -8,7 +8,14 @@ import { HiX } from 'react-icons/hi';
 function Modal({ open, title, children, onClose, actions, size = 'md', icon: IconComponent }) {
   const dialogRef = useRef(null);
   const lastFocusedRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const hasInitialFocusRef = useRef(false);
   const titleId = useId();
+  
+  // Mantener onClose actualizado sin causar re-renders del effect
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
   
   // Map size to max-width classes
   const sizeClasses = {
@@ -21,25 +28,33 @@ function Modal({ open, title, children, onClose, actions, size = 'md', icon: Ico
   
   const maxWidthClass = sizeClasses[size] || sizeClasses.md;
 
+  // Effect para focus inicial y manejo de teclado - solo se ejecuta cuando open cambia
   useEffect(() => {
-    if (!open) return;
-    // Save the previously focused element to restore on close
-    lastFocusedRef.current = document.activeElement;
+    if (!open) {
+      hasInitialFocusRef.current = false;
+      return;
+    }
+    
+    // Solo hacer focus inicial una vez cuando se abre
+    if (!hasInitialFocusRef.current) {
+      lastFocusedRef.current = document.activeElement;
+      hasInitialFocusRef.current = true;
+      
+      const el = dialogRef.current;
+      if (el) {
+        // Focus en el contenedor del dialog, no en el primer input
+        // Esto permite que el usuario navegue manualmente
+        el.focus({ preventScroll: true });
+      }
+    }
 
     const el = dialogRef.current;
     if (!el) return;
 
-    // Focus the first focusable element or the dialog container
-    const focusables = el.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const first = focusables[0];
-    (first || el).focus({ preventScroll: true });
-
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         e.stopPropagation();
-        onClose?.();
+        onCloseRef.current?.();
       } else if (e.key === 'Tab') {
         // Trap focus inside the dialog
         const nodes = Array.from(
@@ -69,7 +84,7 @@ function Modal({ open, title, children, onClose, actions, size = 'md', icon: Ico
     return () => {
       el.removeEventListener('keydown', handleKeyDown);
     };
-  }, [open, onClose]);
+  }, [open]); // Solo depende de open, no de onClose
 
   useEffect(() => {
     if (open) return;

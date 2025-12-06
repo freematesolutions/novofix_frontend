@@ -120,6 +120,18 @@ export default function Jobs() {
               
               <div className="p-5 pl-6 flex flex-col sm:flex-row items-start justify-between gap-4">
                 <div className="flex-1 space-y-3">
+                  {/* Cliente que solicita */}
+                  {r.client?.profile?.firstName && (
+                    <div className="flex items-center gap-2 mb-2 text-sm">
+                      <div className="w-7 h-7 rounded-full bg-linear-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                        {r.client.profile.firstName.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-gray-600">
+                        <span className="font-medium text-gray-800">{r.client.profile.firstName} {r.client.profile.lastName || ''}</span> solicita tu servicio
+                      </span>
+                    </div>
+                  )}
+                  
                   {/* Title and badges */}
                   <div className="flex flex-wrap items-start gap-2">
                     <h3 className="font-semibold text-gray-900 text-lg leading-tight group-hover:text-brand-700 transition-colors">

@@ -5,7 +5,9 @@ import api from '@/state/apiClient.js';
 import SearchBar from '@/components/ui/SearchBar.jsx';
 import ServiceCategoryCard from '@/components/ui/ServiceCategoryCard.jsx';
 import ProviderCard from '@/components/ui/ProviderCard.jsx';
+import CategoryIconCarousel from '@/components/ui/CategoryIconCarousel.jsx';
 import { CATEGORY_IMAGES } from '@/utils/categoryImages.js';
+
 
 function Home() {
   const navigate = useNavigate();
@@ -200,8 +202,12 @@ function Home() {
       {/* Hero Section - Solo mostrar cuando no hay resultados de búsqueda */}
       {!searchResults && !selectedCategory && (
         <>
-          {/* Hero Section Espectacular con Imágenes Rotativas */}
-          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-[580px] h-[calc(100vh-120px)] max-h-[750px] sm:min-h-[600px] md:min-h-[650px] lg:min-h-[700px]">
+          {/* Hero Section - Altura adaptable usando min-height y max-height */}
+          {/* En pantallas cortas (<=800px altura) se ajusta automáticamente */}
+          {/* svh = small viewport height, considera la barra de navegación móvil */}
+          <div 
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-80 h-[calc(100svh-180px)] max-h-[600px] sm:min-h-[340px] sm:max-h-[580px] md:min-h-[360px] md:max-h-[620px] lg:min-h-[400px] lg:h-[calc(100svh-140px)] lg:max-h-[calc(100svh-140px)] xl:min-h-[420px] xl:h-[calc(100svh-120px)] xl:max-h-[750px]"
+          >
             {/* Contenedor de imágenes de fondo con transiciones suaves */}
             <div className="absolute inset-0">
               {activeServices.length > 0 && firstImageLoaded ? (
@@ -253,17 +259,18 @@ function Home() {
               <div className="absolute bottom-0 left-1/3 w-72 md:w-96 h-72 md:h-96 bg-purple-400/20 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-4000"></div>
             </div>
 
-            {/* Contenido principal - Layout mejorado para todas las resoluciones */}
-            <div className="relative h-full flex flex-col justify-between px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 lg:px-12 lg:py-10" style={{ zIndex: 3 }}>
+            {/* Contenido principal - Layout con distribución óptima usando justify-evenly */}
+            <div className="relative h-full flex flex-col justify-evenly items-center px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4 lg:px-5 lg:py-2 xl:px-8 xl:py-3" style={{ zIndex: 3 }}>
               
-              {/* Sección superior - Badge de categoría */}
-              <div className="shrink-0 w-full flex justify-center">
+              {/* Sección superior: Badge + Título */}
+              <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-1.5 sm:gap-2 lg:gap-1.5">
+                {/* Badge de categoría */}
                 {activeServices.length > 0 && firstImageLoaded && (
-                  <div className="relative h-8 sm:h-9 w-full max-w-xs sm:max-w-sm md:max-w-md">
+                  <div className="relative h-5 sm:h-6 md:h-7 lg:h-5 xl:h-6 w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto">
                     {activeServices.map((service, index) => (
                       <span
                         key={service.category}
-                        className={`absolute inset-0 flex items-center justify-center px-3 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold tracking-wider uppercase transition-all duration-500 ${
+                        className={`absolute inset-0 flex items-center justify-center px-3 sm:px-4 py-1 rounded-full text-[9px] sm:text-[11px] lg:text-[9px] xl:text-xs font-semibold tracking-wider uppercase transition-all duration-500 ${
                           index === currentServiceIndex
                             ? 'opacity-100 scale-100'
                             : 'opacity-0 scale-95'
@@ -282,62 +289,38 @@ function Home() {
                     ))}
                   </div>
                 )}
-              </div>
-
-              {/* Sección central - Título y buscador */}
-              <div className="flex-1 flex flex-col justify-center items-center w-full max-w-5xl mx-auto space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-8 py-2 sm:py-3 md:py-4">
+                
                 {/* Título principal */}
-                <div className="text-center space-y-3 sm:space-y-4 md:space-y-5 w-full">
-                  <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight drop-shadow-2xl">
+                <div className="text-center w-full pb-2 sm:pb-3 lg:pb-2">
+                  <h1 className="text-lg sm:text-xl md:text-2xl lg:text-xl xl:text-4xl 2xl:text-5xl font-extrabold text-white leading-tight drop-shadow-2xl">
                     Encuentra el profesional
                     <br />
-                    <span className="inline-block mt-1 sm:mt-2 md:mt-3 bg-linear-to-r from-yellow-400 via-yellow-300 to-yellow-200 bg-clip-text text-transparent animate-pulse-slow">
+                    <span className="inline-block bg-linear-to-r from-yellow-400 via-yellow-300 to-yellow-200 bg-clip-text text-transparent animate-pulse-slow">
                       que necesitas
                     </span>
                   </h1>
-
-                  {/* Subtítulo dinámico - Ancho adaptativo */}
-                  <div className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-white/90 font-medium drop-shadow-lg px-2">
-                    {activeServices.length > 0 && firstImageLoaded ? (
-                      <p className="flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2">
-                        <span>Expertos en</span>
-                        <span className="relative inline-flex items-center justify-center">
-                          {/* Contenedor con altura fija y ancho dinámico */}
-                          <span className="relative h-6 sm:h-7 md:h-8 lg:h-9 flex items-center">
-                            {activeServices.map((service, index) => (
-                              <span
-                                key={service.category}
-                                className={`absolute left-1/2 -translate-x-1/2 font-bold bg-linear-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent transition-all duration-500 whitespace-nowrap ${
-                                  index === currentServiceIndex
-                                    ? 'opacity-100 translate-y-0 scale-100'
-                                    : 'opacity-0 translate-y-4 scale-95'
-                                }`}
-                                aria-hidden={index !== currentServiceIndex}
-                              >
-                                {service.category}
-                              </span>
-                            ))}
-                            {/* Spacer dinámico - usa la categoría más larga visible actualmente */}
-                            <span 
-                              className="invisible font-bold whitespace-nowrap"
-                              aria-hidden="true"
-                            >
-                              {activeServices[currentServiceIndex]?.category || 'Servicios'}
-                            </span>
-                          </span>
-                        </span>
-                        <span>y más</span>
-                      </p>
-                    ) : (
-                      <p>Conectamos profesionales calificados con clientes en tiempo real</p>
-                    )}
-                  </div>
                 </div>
+              </div>
 
-                {/* Buscador hero con efecto glassmorphism */}
-                <div className="w-full max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl px-2 sm:px-0">
+              {/* Sección central: Carrusel y Buscador */}
+              <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-4 sm:gap-5 md:gap-6 lg:gap-4 xl:gap-5">
+                {/* Carrusel de iconos de categorías */}
+                {activeServices.length > 0 && firstImageLoaded && (
+                  <div className="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-lg xl:max-w-3xl mx-auto px-1 sm:px-0 pt-2 sm:pt-3 lg:pt-2">
+                    <CategoryIconCarousel
+                      categories={activeServices}
+                      currentIndex={currentServiceIndex}
+                      onIndexChange={setCurrentServiceIndex}
+                      onCategoryClick={handleCategoryClick}
+                      autoRotate={false}
+                    />
+                  </div>
+                )}
+
+                {/* Buscador hero */}
+                <div className="w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-sm xl:max-w-2xl px-2 sm:px-0">
                   <div 
-                    className="p-0.5 sm:p-1 rounded-xl sm:rounded-2xl"
+                    className="p-0.5 rounded-lg sm:rounded-xl lg:rounded-lg xl:rounded-xl"
                     style={{
                       background: 'rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(10px)',
@@ -350,62 +333,51 @@ function Home() {
                 </div>
               </div>
 
-              {/* Sección inferior - Stats y navegación */}
-              <div className="shrink-0 w-full space-y-3 sm:space-y-4 md:space-y-5 pb-2">
-                {/* Stats con diseño moderno y responsive */}
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6 max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto">
+              {/* Sección inferior: Stats y Navegación en UNA sola fila */}
+              <div className="w-full max-w-5xl shrink-0 flex items-center justify-center gap-2 sm:gap-3 lg:gap-2 flex-wrap">
+                {/* Stats compactos inline */}
+                <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-1.5">
                   <div 
-                    className="text-center p-2 sm:p-3 md:p-4 rounded-lg sm:rounded-xl transition-transform hover:scale-105"
+                    className="text-center px-1.5 py-0.5 sm:px-2 lg:px-1.5 rounded-md"
                     style={{
                       background: 'rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(10px)',
-                      WebkitBackdropFilter: 'blur(10px)',
                       border: '1px solid rgba(255, 255, 255, 0.2)'
                     }}
                   >
-                    <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white drop-shadow-lg">
-                      {activeServices.length}+
-                    </div>
-                    <div className="text-white/90 text-[10px] sm:text-xs md:text-sm font-semibold mt-1 uppercase tracking-wide">
-                      Servicios
-                    </div>
+                    <span className="text-[9px] sm:text-[10px] lg:text-[9px] xl:text-xs font-bold text-white">{activeServices.length}+ </span>
+                    <span className="text-[7px] sm:text-[8px] lg:text-[7px] xl:text-[9px] text-white/80">servicios</span>
                   </div>
                   <div 
-                    className="text-center p-2 sm:p-3 md:p-4 rounded-lg sm:rounded-xl transition-transform hover:scale-105"
+                    className="text-center px-1.5 py-0.5 sm:px-2 lg:px-1.5 rounded-md"
                     style={{
                       background: 'rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(10px)',
-                      WebkitBackdropFilter: 'blur(10px)',
                       border: '1px solid rgba(255, 255, 255, 0.2)'
                     }}
                   >
-                    <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white drop-shadow-lg">
-                      {activeServices.reduce((sum, service) => sum + (service.providerCount || 0), 0)}+
-                    </div>
-                    <div className="text-white/90 text-[10px] sm:text-xs md:text-sm font-semibold mt-1 uppercase tracking-wide">
-                      Profesionales
-                    </div>
+                    <span className="text-[9px] sm:text-[10px] lg:text-[9px] xl:text-xs font-bold text-white">{activeServices.reduce((sum, service) => sum + (service.providerCount || 0), 0)}+ </span>
+                    <span className="text-[7px] sm:text-[8px] lg:text-[7px] xl:text-[9px] text-white/80">profesionales</span>
                   </div>
                   <div 
-                    className="text-center p-2 sm:p-3 md:p-4 rounded-lg sm:rounded-xl transition-transform hover:scale-105"
+                    className="text-center px-1.5 py-0.5 sm:px-2 lg:px-1.5 rounded-md"
                     style={{
                       background: 'rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(10px)',
-                      WebkitBackdropFilter: 'blur(10px)',
                       border: '1px solid rgba(255, 255, 255, 0.2)'
                     }}
                   >
-                    <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white drop-shadow-lg">24/7</div>
-                    <div className="text-white/90 text-[10px] sm:text-xs md:text-sm font-semibold mt-1 uppercase tracking-wide">
-                      Disponible
-                    </div>
+                    <span className="text-[9px] sm:text-[10px] lg:text-[9px] xl:text-xs font-bold text-white">24/7</span>
                   </div>
                 </div>
 
-                {/* Indicador de progreso de categorías - Siempre visible */}
+                {/* Separador */}
+                <div className="w-px h-4 sm:h-5 lg:h-4 bg-white/30" />
+
+                {/* Indicadores de categorías */}
                 {activeServices.length > 0 && firstImageLoaded && (
                   <div 
-                    className="flex items-center justify-center gap-1.5 sm:gap-2 min-h-6"
+                    className="flex items-center gap-0.5"
                     role="tablist"
                     aria-label="Navegación de categorías"
                   >
@@ -413,10 +385,10 @@ function Home() {
                       <button
                         key={index}
                         onClick={() => setCurrentServiceIndex(index)}
-                        className={`transition-all duration-300 rounded-full focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent ${
+                        className={`transition-all duration-300 rounded-full focus:outline-none ${
                           index === currentServiceIndex
-                            ? 'w-8 sm:w-10 md:w-12 h-1.5 sm:h-2 bg-white shadow-lg'
-                            : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/40 hover:bg-white/60'
+                            ? 'w-3 sm:w-4 lg:w-3 h-1 bg-white shadow-lg'
+                            : 'w-1 h-1 bg-white/40 hover:bg-white/60'
                         }`}
                         role="tab"
                         aria-selected={index === currentServiceIndex}
@@ -426,6 +398,37 @@ function Home() {
                     ))}
                   </div>
                 )}
+
+                {/* Separador */}
+                <div className="w-px h-4 sm:h-5 lg:h-4 bg-white/30" />
+
+                {/* Botón Ver más */}
+                <button
+                  onClick={() => {
+                    const servicesSection = document.getElementById('services-section');
+                    if (servicesSection) {
+                      servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }}
+                  className="group flex items-center gap-0.5 cursor-pointer focus:outline-none rounded-full px-1.5 py-0.5 transition-all duration-300 hover:bg-white/10"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)'
+                  }}
+                  aria-label="Ver más contenido"
+                >
+                  <span className="text-[8px] sm:text-[9px] lg:text-[8px] text-white font-medium group-hover:text-yellow-300 transition-colors">
+                    Ver más
+                  </span>
+                  <svg 
+                    className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-2 lg:h-2 text-white animate-bounce-slow group-hover:text-yellow-300 transition-colors" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -482,7 +485,7 @@ function Home() {
 
       {/* Tarjetas de categorías (mostrar solo si no hay búsqueda activa ni categoría seleccionada) */}
       {searchResults === null && !selectedCategory && allCategories.length > 0 && (
-        <div className="py-8">
+        <div id="services-section" className="py-8 scroll-mt-20">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">

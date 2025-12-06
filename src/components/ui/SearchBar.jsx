@@ -53,7 +53,7 @@ function SearchBar({ onSearch, variant = 'default' }) {
   return (
     <div className={`
       ${isHeroVariant 
-        ? 'bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/20 p-2 sm:p-3' 
+        ? 'bg-white/95 backdrop-blur-xl rounded-xl sm:rounded-2xl lg:rounded-xl shadow-2xl shadow-black/20 p-1.5 sm:p-2 lg:p-1.5 xl:p-2' 
         : 'bg-white rounded-xl border shadow-sm p-4 sm:p-6'
       }
       transition-all duration-300
@@ -62,15 +62,15 @@ function SearchBar({ onSearch, variant = 'default' }) {
       <form onSubmit={handleSearch}>
         {/* Barra de búsqueda principal */}
         <div className={`
-          flex items-center gap-2 sm:gap-3
-          ${isHeroVariant ? 'bg-gray-50/80 rounded-xl p-1.5 sm:p-2' : ''}
+          flex items-center gap-1.5 sm:gap-2 lg:gap-1.5
+          ${isHeroVariant ? 'bg-gray-50/80 rounded-lg sm:rounded-xl lg:rounded-lg p-1 sm:p-1.5 lg:p-1' : ''}
         `}>
           {/* Icono de búsqueda */}
           <div className={`
-            ${isHeroVariant ? 'pl-2 sm:pl-3' : 'hidden'}
+            ${isHeroVariant ? 'pl-1.5 sm:pl-2 lg:pl-1.5' : 'hidden'}
           `}>
             <svg 
-              className={`w-5 h-5 sm:w-6 sm:h-6 transition-colors duration-300 ${
+              className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 transition-colors duration-300 ${
                 isFocused ? 'text-brand-600' : 'text-gray-400'
               }`} 
               fill="none" 
@@ -94,7 +94,7 @@ function SearchBar({ onSearch, variant = 'default' }) {
               className={`
                 w-full bg-transparent border-0 focus:ring-0 focus:outline-none
                 ${isHeroVariant 
-                  ? 'px-2 sm:px-3 py-3 sm:py-4 text-base sm:text-lg placeholder:text-gray-400' 
+                  ? 'px-1.5 sm:px-2 lg:px-1.5 py-2 sm:py-3 lg:py-2 xl:py-2.5 text-sm sm:text-base lg:text-sm xl:text-base placeholder:text-gray-400' 
                   : 'px-4 py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-brand-500'
                 }
                 text-gray-900 font-medium
@@ -112,7 +112,7 @@ function SearchBar({ onSearch, variant = 'default' }) {
 
           {/* Separador vertical */}
           {isHeroVariant && (
-            <div className="hidden sm:block w-px h-8 bg-gray-300"></div>
+            <div className="hidden sm:block w-px h-6 lg:h-5 bg-gray-300"></div>
           )}
 
           {/* Botón de filtros */}
@@ -120,9 +120,9 @@ function SearchBar({ onSearch, variant = 'default' }) {
             type="button"
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             className={`
-              flex items-center gap-2 font-medium transition-all duration-300 shrink-0
+              flex items-center gap-1.5 font-medium transition-all duration-300 shrink-0
               ${isHeroVariant 
-                ? `px-3 sm:px-4 py-3 sm:py-4 rounded-xl ${
+                ? `px-2 sm:px-3 lg:px-2 py-2 sm:py-3 lg:py-2 rounded-lg sm:rounded-xl lg:rounded-lg ${
                     showAdvancedFilters || hasActiveFilters
                       ? 'bg-brand-100 text-brand-700'
                       : 'text-gray-600 hover:text-brand-600 hover:bg-brand-50'
@@ -136,10 +136,10 @@ function SearchBar({ onSearch, variant = 'default' }) {
             `}
             title={showAdvancedFilters ? 'Ocultar filtros' : 'Mostrar filtros avanzados'}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
             </svg>
-            <span className="hidden sm:inline text-sm">Filtros</span>
+            <span className="hidden sm:inline lg:hidden xl:inline text-xs sm:text-sm">Filtros</span>
             {hasActiveFilters && (
               <span className={`
                 rounded-full w-2 h-2 
@@ -150,21 +150,21 @@ function SearchBar({ onSearch, variant = 'default' }) {
 
           {/* Separador vertical */}
           {isHeroVariant && (
-            <div className="hidden sm:block w-px h-8 bg-gray-300"></div>
+            <div className="hidden sm:block w-px h-6 lg:h-5 bg-gray-300"></div>
           )}
 
           {/* Botón de búsqueda */}
           <button
             type="submit"
             className={`
-              flex items-center justify-center gap-2 font-semibold transition-all duration-300 shrink-0
+              flex items-center justify-center gap-1.5 font-semibold transition-all duration-300 shrink-0
               ${isHeroVariant 
-                ? 'bg-brand-600 hover:bg-brand-700 text-white px-4 sm:px-8 py-3 sm:py-4 rounded-xl shadow-lg shadow-brand-600/30 hover:shadow-xl hover:shadow-brand-600/40 hover:scale-105 active:scale-95'
+                ? 'bg-brand-600 hover:bg-brand-700 text-white px-3 sm:px-6 lg:px-3 xl:px-5 py-2 sm:py-3 lg:py-2 rounded-lg sm:rounded-xl lg:rounded-lg shadow-lg shadow-brand-600/30 hover:shadow-xl hover:shadow-brand-600/40 hover:scale-105 active:scale-95'
                 : 'bg-brand-600 text-white px-4 sm:px-6 py-2.5 rounded-lg hover:bg-brand-700'
               }
             `}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <span className={isHeroVariant ? 'hidden sm:inline' : 'hidden sm:inline'}>Buscar</span>

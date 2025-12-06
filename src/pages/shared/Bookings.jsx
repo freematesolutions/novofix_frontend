@@ -498,13 +498,42 @@ export default function Bookings() {
     }
     setReviewLoading(true);
     try {
-      // Subir fotos si hay
+      // Subir fotos si hay - con compresión optimizada
       let photos = [];
       if (reviewFiles && reviewFiles.length > 0) {
+        const files = Array.from(reviewFiles);
+        
+        // Validar archivos
+        const validation = validateFiles(files, {
+          maxFiles: 5,
+          maxSizeMB: 50,
+          allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+        });
+        
+        if (!validation.valid) {
+          validation.errors.forEach(err => toast.error(err));
+          setReviewLoading(false);
+          return;
+        }
+        
+        // Comprimir imágenes antes de subir
+        let processedFiles = validation.validFiles;
+        try {
+          const compressedImages = await compressImages(validation.validFiles, {
+            maxSizeMB: 2,
+            maxWidthOrHeight: 1920,
+            initialQuality: 0.85
+          });
+          processedFiles = compressedImages;
+        } catch (compressError) {
+          console.warn('Compression failed, using original files:', compressError);
+        }
+        
         const form = new FormData();
-        Array.from(reviewFiles).forEach((f)=> form.append('files', f));
+        processedFiles.forEach((f)=> form.append('files', f));
         const upRes = await api.post('/uploads/files', form, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 120000 // 2 minutos
         });
         const uploaded = upRes?.data?.data?.files || upRes?.data?.files || [];
         photos = uploaded.map((u)=> ({ url: u.secureUrl || u.url, cloudinaryId: u.cloudinaryId || u.public_id })).filter(p=> p.url);
