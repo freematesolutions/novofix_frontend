@@ -23,6 +23,7 @@ function Home() {
   const [loadingProviders, setLoadingProviders] = useState(false);
   const [firstImageLoaded, setFirstImageLoaded] = useState(false);
   const [allImagesLoaded, setAllImagesLoaded] = useState(false);
+  const [isCarouselHovered, setIsCarouselHovered] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && viewRole === 'provider') {
@@ -98,14 +99,15 @@ function Home() {
     loadImages();
   }, [activeServices]);
 
-  // Rotar servicios cada 5 segundos (solo cuando primera imagen está lista)
+  // Rotar servicios cada 8 segundos (más lento para mejor UX)
+  // Se pausa cuando el mouse está sobre el carrusel
   useEffect(() => {
-    if (activeServices.length === 0 || !firstImageLoaded) return;
+    if (activeServices.length === 0 || !firstImageLoaded || isCarouselHovered) return;
     const interval = setInterval(() => {
       setCurrentServiceIndex((prev) => (prev + 1) % activeServices.length);
-    }, 5000);
+    }, 8000);
     return () => clearInterval(interval);
-  }, [activeServices.length, firstImageLoaded]);
+  }, [activeServices.length, firstImageLoaded, isCarouselHovered]);
 
   // Manejar búsqueda
   const handleSearch = useCallback(async (searchData) => {
@@ -312,6 +314,7 @@ function Home() {
                       currentIndex={currentServiceIndex}
                       onIndexChange={setCurrentServiceIndex}
                       onCategoryClick={handleCategoryClick}
+                      onHoverChange={setIsCarouselHovered}
                       autoRotate={false}
                     />
                   </div>
@@ -574,12 +577,38 @@ function Home() {
               <span>Desliza para ver más</span>
             </div>
           </div>
+
+          {/* Botón Ver más - Enlace a sección de beneficios */}
+          <div className="flex justify-center mt-10">
+            <button
+              onClick={() => {
+                const benefitsSection = document.getElementById('benefits-section');
+                if (benefitsSection) {
+                  benefitsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-linear-to-r from-brand-500 to-brand-600 text-white shadow-lg"
+              aria-label="Ver por qué elegir NovoFix"
+            >
+              <span className="text-sm font-semibold group-hover:text-white transition-colors">
+                ¿Por qué elegirnos?
+              </span>
+              <svg 
+                className="w-5 h-5 text-white animate-bounce transition-colors" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
         </div>
       )}
 
       {/* Sección de Beneficios - Después de las tarjetas de servicios */}
       {searchResults === null && !selectedCategory && allCategories.length > 0 && (
-        <div className="py-8">
+        <div id="benefits-section" className="py-8 scroll-mt-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
               ¿Por qué elegir NovoFix?

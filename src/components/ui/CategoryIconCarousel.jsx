@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { CATEGORY_ICONS, CATEGORY_COLORS } from '@/utils/categoryIcons.jsx';
+import { CATEGORY_ICONS } from '@/utils/categoryIcons.jsx';
 
 /**
  * CategoryIconCarousel - Carrusel de iconos en espiral/ruleta horizontal
@@ -17,6 +17,7 @@ function CategoryIconCarousel({
   currentIndex, 
   onIndexChange, 
   onCategoryClick,
+  onHoverChange,
   autoRotate = true,
   rotationInterval = 5000 
 }) {
@@ -37,7 +38,7 @@ function CategoryIconCarousel({
     return 3;
   }, []);
 
-  // Calcular posiciones de iconos con efecto perspectiva
+  // Calcular posiciones de iconos con efecto perspectiva mejorado
   const getIconStyle = useCallback((index) => {
     const totalItems = categories.length;
     if (totalItems === 0) return {};
@@ -61,31 +62,34 @@ function CategoryIconCarousel({
       return { opacity: 0, pointerEvents: 'none' };
     }
 
-    // Escala: máximo en centro (1.0), mínimo en bordes (0.4)
-    const scale = Math.max(0.4, 1 - absDistance * 0.15);
+    // Escala mejorada: centro más prominente (1.0), bordes más pequeños (0.5)
+    const scale = Math.max(0.5, 1 - absDistance * 0.12);
     
-    // Opacidad: máximo en centro (1.0), mínimo en bordes (0.3)
-    const opacity = Math.max(0.3, 1 - absDistance * 0.2);
+    // Opacidad mejorada: centro brillante (1.0), bordes más tenues (0.4)
+    const opacity = Math.max(0.4, 1 - absDistance * 0.18);
 
-    // Posición X: espaciado proporcional
-    const spacing = 80; // px base entre iconos
-    const translateX = adjustedDiff * spacing * (1 - absDistance * 0.05);
+    // Posición X: espaciado proporcional con mejor distribución
+    const spacing = 85; // px base entre iconos
+    const translateX = adjustedDiff * spacing * (1 - absDistance * 0.04);
 
-    // Profundidad Z (efecto 3D)
-    const translateZ = -absDistance * 50;
+    // Profundidad Z mejorada (efecto 3D más pronunciado)
+    const translateZ = -absDistance * 60;
+    
+    // Rotación Y sutil para efecto carrusel 3D
+    const rotateY = adjustedDiff * -8;
 
-    // Blur sutil para iconos alejados
-    const blur = Math.min(absDistance * 0.5, 2);
+    // Blur más pronunciado para iconos alejados
+    const blur = Math.min(absDistance * 0.8, 2.5);
 
     // Z-index basado en distancia (centro tiene mayor z-index)
     const zIndex = 100 - Math.round(absDistance * 10);
 
     return {
-      transform: `translateX(${translateX}px) translateZ(${translateZ}px) scale(${scale})`,
+      transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
       opacity,
       filter: blur > 0 ? `blur(${blur}px)` : 'none',
       zIndex,
-      transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
+      transition: isDragging ? 'none' : 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
     };
   }, [categories.length, currentIndex, dragOffset, visibleCount, isDragging]);
 
@@ -141,7 +145,7 @@ function CategoryIconCarousel({
     e.preventDefault();
     const direction = e.deltaX > 0 || e.deltaY > 0 ? 1 : -1;
     
-    // Debounce para evitar scroll muy rápido
+    // Debounce para evitar scroll muy rápido (300ms para movimiento más controlado)
     if (!containerRef.current?.dataset.scrolling) {
       containerRef.current.dataset.scrolling = 'true';
       onIndexChange((currentIndex + direction + categories.length) % categories.length);
@@ -150,7 +154,7 @@ function CategoryIconCarousel({
         if (containerRef.current) {
           containerRef.current.dataset.scrolling = '';
         }
-      }, 200);
+      }, 300);
     }
   }, [currentIndex, categories.length, onIndexChange]);
 
@@ -168,6 +172,11 @@ function CategoryIconCarousel({
       }
     };
   }, [autoRotate, isHovering, isDragging, categories.length, rotationInterval, onIndexChange]);
+
+  // Notificar al componente padre cuando cambia el estado de hover
+  useEffect(() => {
+    onHoverChange?.(isHovering);
+  }, [isHovering, onHoverChange]);
 
   // Event listeners
   useEffect(() => {
@@ -222,7 +231,6 @@ function CategoryIconCarousel({
       >
         {categories.map((service, index) => {
           const iconStyle = getIconStyle(index);
-          const gradientClass = CATEGORY_COLORS[service.category] || CATEGORY_COLORS['Otro'];
           const isCenter = index === currentIndex;
           
           return (
@@ -244,88 +252,143 @@ function CategoryIconCarousel({
               aria-label={`${service.category}${isCenter ? ' - Click para ver proveedores' : ''}`}
               tabIndex={isCenter ? 0 : -1}
             >
-              {/* Contenedor del icono con gradiente */}
+              {/* Contenedor del icono con efectos 3D realistas */}
               <div 
                 className={`
-                  relative p-2 sm:p-2.5 md:p-3 lg:p-2.5 xl:p-4 rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-xl
-                  bg-linear-to-br ${gradientClass}
-                  shadow-lg hover:shadow-xl
-                  transition-all duration-300
-                  ${isCenter ? 'ring-2 ring-white/40 ring-offset-2 ring-offset-transparent scale-100' : 'scale-90'}
+                  relative rounded-2xl sm:rounded-2xl md:rounded-3xl lg:rounded-2xl
+                  transition-all duration-400 ease-out
+                  ${isCenter 
+                    ? 'p-3 sm:p-3.5 md:p-4 lg:p-3.5 xl:p-5 scale-100 hover:scale-108' 
+                    : 'p-2 sm:p-2.5 md:p-3 lg:p-2.5 xl:p-3 scale-80 hover:scale-85 opacity-70 hover:opacity-85'}
                   group
                 `}
                 style={{
+                  // Fondo con múltiples capas para efecto cristal realista
                   background: isCenter 
-                    ? 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%)'
-                    : 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  border: isCenter ? '2px solid rgba(255,255,255,0.4)' : '1px solid rgba(255,255,255,0.2)'
+                    ? `
+                      linear-gradient(145deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.12) 40%, rgba(255,255,255,0.05) 100%)
+                    `
+                    : 'linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.06) 100%)',
+                  backdropFilter: 'blur(16px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+                  border: isCenter 
+                    ? '1.5px solid rgba(255,255,255,0.6)' 
+                    : '1px solid rgba(255,255,255,0.2)',
+                  // Sombras realistas con múltiples capas
+                  boxShadow: isCenter 
+                    ? `
+                      0 10px 40px -10px rgba(0,0,0,0.5),
+                      0 6px 20px -5px rgba(0,0,0,0.3),
+                      inset 0 1px 1px rgba(255,255,255,0.6),
+                      inset 0 -1px 1px rgba(0,0,0,0.1),
+                      0 0 60px -10px rgba(255,255,255,0.2)
+                    `
+                    : `
+                      0 4px 20px -5px rgba(0,0,0,0.3),
+                      inset 0 1px 1px rgba(255,255,255,0.3)
+                    `
                 }}
               >
-                {/* Icono SVG */}
+                {/* Efecto de luz superior realista */}
+                <div 
+                  className="absolute inset-0 rounded-2xl sm:rounded-2xl md:rounded-3xl lg:rounded-2xl pointer-events-none overflow-hidden"
+                  style={{
+                    background: `
+                      linear-gradient(180deg, 
+                        rgba(255,255,255,0.4) 0%, 
+                        rgba(255,255,255,0.1) 20%, 
+                        transparent 50%
+                      )
+                    `,
+                    opacity: isCenter ? 1 : 0.5
+                  }}
+                />
+
+                {/* Borde luminoso interno sutil */}
+                <div 
+                  className={`absolute inset-px rounded-2xl sm:rounded-2xl md:rounded-3xl lg:rounded-2xl pointer-events-none ${isCenter ? 'opacity-100' : 'opacity-40'}`}
+                  style={{
+                    background: 'transparent',
+                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.15)'
+                  }}
+                />
+
+                {/* Icono SVG con efectos de profundidad realistas */}
                 <div 
                   className={`
-                    text-white drop-shadow-md
-                    transition-transform duration-300
+                    relative text-white
+                    transition-all duration-400 ease-out
                     flex items-center justify-center
-                    ${isCenter ? 'group-hover:scale-110 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-7 lg:h-7 xl:w-9 xl:h-9' : 'w-5 h-5 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-5 lg:h-5 xl:w-6 xl:h-6'}
+                    ${isCenter 
+                      ? 'w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-10 lg:h-10 xl:w-12 xl:h-12 group-hover:scale-110' 
+                      : 'w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-6 lg:h-6 xl:w-7 xl:h-7'}
                     [&>svg]:w-full [&>svg]:h-full
                   `}
+                  style={{
+                    // Sombras múltiples para efecto de profundidad y glow
+                    filter: isCenter 
+                      ? `
+                        drop-shadow(0 2px 3px rgba(0,0,0,0.4))
+                        drop-shadow(0 4px 8px rgba(0,0,0,0.2))
+                        drop-shadow(0 0 12px rgba(255,255,255,0.3))
+                      `
+                      : 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))'
+                  }}
                 >
                   {CATEGORY_ICONS[service.category] || CATEGORY_ICONS['Otro']}
                 </div>
 
-                {/* Efecto de brillo en hover (solo centro) */}
+                {/* Efectos hover premium (solo centro) */}
                 {isCenter && (
-                  <div 
-                    className="absolute inset-0 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%)'
-                    }}
-                  />
+                  <>
+                    {/* Glow exterior suave */}
+                    <div 
+                      className="absolute -inset-2 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-600 pointer-events-none -z-10"
+                      style={{
+                        background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.15) 0%, transparent 60%)',
+                        filter: 'blur(12px)'
+                      }}
+                    />
+                    {/* Destello de luz animado */}
+                    <div 
+                      className="absolute inset-0 rounded-2xl sm:rounded-2xl md:rounded-3xl lg:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden"
+                    >
+                      <div 
+                        className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-800 ease-out"
+                        style={{
+                          background: 'linear-gradient(100deg, transparent 20%, rgba(255,255,255,0.4) 50%, transparent 80%)'
+                        }}
+                      />
+                    </div>
+                  </>
                 )}
               </div>
 
-              {/* Nombre de categoría (solo en centro) */}
+              {/* Nombre de categoría limpio (solo en centro) */}
               {isCenter && (
-                <div className="flex flex-col items-center gap-0 sm:gap-0.5 animate-fade-in">
-                  <span 
-                    className="text-[10px] sm:text-xs md:text-sm lg:text-[11px] xl:text-base font-bold text-white whitespace-nowrap max-w-[100px] sm:max-w-[130px] md:max-w-40 lg:max-w-[140px] xl:max-w-[200px] truncate text-center"
-                    style={{
-                      textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.2)'
-                    }}
-                  >
-                    {service.category}
-                  </span>
-                  
-                  {/* Badge indicador de click - visible en todas las resoluciones excepto móvil */}
-                  <span 
-                    className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2 lg:px-1.5 rounded-full text-[7px] sm:text-[8px] md:text-[9px] lg:text-[7px] xl:text-[9px] font-medium bg-white/20 backdrop-blur-sm border border-white/30 text-white/90 hover:bg-white/30 transition-all duration-300 cursor-pointer group"
-                  >
-                    <svg className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 lg:w-2 lg:h-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    <span className="lg:hidden xl:inline">Ver profesionales</span>
-                    <span className="hidden lg:inline xl:hidden">Ver</span>
-                  </span>
-                </div>
+                <span 
+                  className="text-xs sm:text-sm md:text-base lg:text-sm xl:text-lg font-semibold text-white whitespace-nowrap max-w-30 sm:max-w-36 md:max-w-48 lg:max-w-40 xl:max-w-60 truncate text-center animate-fade-in mt-1"
+                  style={{
+                    textShadow: '0 2px 8px rgba(0,0,0,0.7), 0 0 20px rgba(255,255,255,0.2)'
+                  }}
+                >
+                  {service.category}
+                </span>
               )}
             </button>
           );
         })}
       </div>
 
-      {/* Indicadores de navegación lateral */}
+      {/* Indicadores de navegación lateral mejorados */}
       <div className="absolute left-0.5 sm:left-1 md:left-2 lg:left-1 top-1/2 -translate-y-1/2 z-20">
         <button
           onClick={() => onIndexChange((currentIndex - 1 + categories.length) % categories.length)}
-          className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 lg:w-7 lg:h-7 xl:w-8 xl:h-8 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="w-6 h-6 sm:w-7 sm:h-7 md:w-9 md:h-9 lg:w-8 lg:h-8 xl:w-9 xl:h-9 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/30 hover:border-white/50 hover:scale-110 hover:shadow-lg hover:shadow-white/20 transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-white/60"
           aria-label="Categoría anterior"
         >
-          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
       </div>
@@ -333,22 +396,23 @@ function CategoryIconCarousel({
       <div className="absolute right-0.5 sm:right-1 md:right-2 lg:right-1 top-1/2 -translate-y-1/2 z-20">
         <button
           onClick={() => onIndexChange((currentIndex + 1) % categories.length)}
-          className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 lg:w-7 lg:h-7 xl:w-8 xl:h-8 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="w-6 h-6 sm:w-7 sm:h-7 md:w-9 md:h-9 lg:w-8 lg:h-8 xl:w-9 xl:h-9 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/30 hover:border-white/50 hover:scale-110 hover:shadow-lg hover:shadow-white/20 transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-white/60"
           aria-label="Categoría siguiente"
         >
-          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
         </button>
       </div>
 
-      {/* Instrucción de interacción - visible solo en hover, oculta en móvil */}
+      {/* Instrucción de interacción - visible solo en hover, oculta en móvil - z-index alto para estar por encima */}
       <div 
         className={`
-          absolute -top-5 sm:-top-6 left-1/2 -translate-x-1/2 
-          text-[7px] sm:text-[8px] lg:text-[7px] text-white/40 font-medium
+          absolute -top-7 sm:-top-8 left-1/2 -translate-x-1/2 z-150
+          text-[8px] sm:text-[9px] lg:text-[8px] text-white/50 font-medium
           transition-opacity duration-300 whitespace-nowrap
           pointer-events-none hidden sm:block
+          px-2 py-0.5 rounded-full bg-black/20 backdrop-blur-sm
           ${isHovering ? 'opacity-100' : 'opacity-0'}
         `}
       >
@@ -366,6 +430,7 @@ CategoryIconCarousel.propTypes = {
   currentIndex: PropTypes.number.isRequired,
   onIndexChange: PropTypes.func.isRequired,
   onCategoryClick: PropTypes.func,
+  onHoverChange: PropTypes.func,
   autoRotate: PropTypes.bool,
   rotationInterval: PropTypes.number
 };
