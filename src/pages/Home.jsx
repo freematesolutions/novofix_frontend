@@ -295,7 +295,7 @@ function Home() {
                   <h1 className="text-lg sm:text-xl md:text-2xl lg:text-xl xl:text-4xl 2xl:text-5xl font-extrabold text-white leading-tight drop-shadow-2xl">
                     Encuentra el profesional
                     <br />
-                    <span className="inline-block bg-linear-to-r from-yellow-400 via-yellow-300 to-yellow-200 bg-clip-text text-transparent animate-pulse-slow">
+                    <span className="inline-block bg-linear-to-r from-amber-400 via-orange-400 to-amber-300 bg-clip-text text-transparent animate-pulse-slow drop-shadow-lg">
                       que necesitas
                     </span>
                   </h1>
@@ -333,51 +333,56 @@ function Home() {
                 </div>
               </div>
 
-              {/* Sección inferior: Stats y Navegación en UNA sola fila */}
-              <div className="w-full max-w-5xl shrink-0 flex items-center justify-center gap-2 sm:gap-3 lg:gap-2 flex-wrap">
-                {/* Stats compactos inline */}
-                <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-1.5">
+              {/* Sección inferior: Stats, Navegación y Botón - Distribuidos verticalmente */}
+              <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-3 sm:gap-4 lg:gap-3">
+                
+                {/* Stats destacados con efecto glassmorphism mejorado */}
+                <div className="flex items-center justify-center gap-3 sm:gap-4 lg:gap-3">
                   <div 
-                    className="text-center px-1.5 py-0.5 sm:px-2 lg:px-1.5 rounded-md"
+                    className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
                     style={{
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      border: '1px solid rgba(255, 255, 255, 0.25)',
+                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                     }}
                   >
-                    <span className="text-[9px] sm:text-[10px] lg:text-[9px] xl:text-xs font-bold text-white">{activeServices.length}+ </span>
-                    <span className="text-[7px] sm:text-[8px] lg:text-[7px] xl:text-[9px] text-white/80">servicios</span>
+                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">{activeServices.length}+</span>
+                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">Servicios</span>
                   </div>
                   <div 
-                    className="text-center px-1.5 py-0.5 sm:px-2 lg:px-1.5 rounded-md"
+                    className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
                     style={{
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      border: '1px solid rgba(255, 255, 255, 0.25)',
+                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                     }}
                   >
-                    <span className="text-[9px] sm:text-[10px] lg:text-[9px] xl:text-xs font-bold text-white">{activeServices.reduce((sum, service) => sum + (service.providerCount || 0), 0)}+ </span>
-                    <span className="text-[7px] sm:text-[8px] lg:text-[7px] xl:text-[9px] text-white/80">profesionales</span>
+                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">{activeServices.reduce((sum, service) => sum + (service.providerCount || 0), 0)}+</span>
+                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">Profesionales</span>
                   </div>
                   <div 
-                    className="text-center px-1.5 py-0.5 sm:px-2 lg:px-1.5 rounded-md"
+                    className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
                     style={{
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      border: '1px solid rgba(255, 255, 255, 0.25)',
+                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                     }}
                   >
-                    <span className="text-[9px] sm:text-[10px] lg:text-[9px] xl:text-xs font-bold text-white">24/7</span>
+                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-purple-300 transition-colors">24/7</span>
+                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">Disponible</span>
                   </div>
                 </div>
 
-                {/* Separador */}
-                <div className="w-px h-4 sm:h-5 lg:h-4 bg-white/30" />
-
-                {/* Indicadores de categorías */}
+                {/* Indicadores de navegación de categorías - Línea independiente */}
                 {activeServices.length > 0 && firstImageLoaded && (
                   <div 
-                    className="flex items-center gap-0.5"
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 py-2"
                     role="tablist"
                     aria-label="Navegación de categorías"
                   >
@@ -385,10 +390,10 @@ function Home() {
                       <button
                         key={index}
                         onClick={() => setCurrentServiceIndex(index)}
-                        className={`transition-all duration-300 rounded-full focus:outline-none ${
+                        className={`transition-all duration-300 rounded-full focus:outline-none focus:ring-2 focus:ring-white/50 ${
                           index === currentServiceIndex
-                            ? 'w-3 sm:w-4 lg:w-3 h-1 bg-white shadow-lg'
-                            : 'w-1 h-1 bg-white/40 hover:bg-white/60'
+                            ? 'w-6 sm:w-8 lg:w-6 xl:w-8 h-2 sm:h-2.5 lg:h-2 bg-white shadow-lg shadow-white/30'
+                            : 'w-2 sm:w-2.5 lg:w-2 h-2 sm:h-2.5 lg:h-2 bg-white/30 hover:bg-white/50'
                         }`}
                         role="tab"
                         aria-selected={index === currentServiceIndex}
@@ -399,10 +404,7 @@ function Home() {
                   </div>
                 )}
 
-                {/* Separador */}
-                <div className="w-px h-4 sm:h-5 lg:h-4 bg-white/30" />
-
-                {/* Botón Ver más */}
+                {/* Botón Ver más - Destacado en línea independiente */}
                 <button
                   onClick={() => {
                     const servicesSection = document.getElementById('services-section');
@@ -410,23 +412,26 @@ function Home() {
                       servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                   }}
-                  className="group flex items-center gap-0.5 cursor-pointer focus:outline-none rounded-full px-1.5 py-0.5 transition-all duration-300 hover:bg-white/10"
+                  className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full px-5 py-2 sm:px-6 sm:py-2.5 lg:px-5 lg:py-2 transition-all duration-300 hover:scale-105 hover:shadow-xl"
                   style={{
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)'
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08))',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
                   }}
                   aria-label="Ver más contenido"
                 >
-                  <span className="text-[8px] sm:text-[9px] lg:text-[8px] text-white font-medium group-hover:text-yellow-300 transition-colors">
-                    Ver más
+                  <span className="text-xs sm:text-sm lg:text-xs text-white font-semibold group-hover:text-yellow-300 transition-colors">
+                    Explorar servicios
                   </span>
                   <svg 
-                    className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-2 lg:h-2 text-white animate-bounce-slow group-hover:text-yellow-300 transition-colors" 
+                    className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 text-white animate-bounce group-hover:text-yellow-300 transition-colors" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
               </div>

@@ -248,26 +248,6 @@ function SearchBar({ onSearch, variant = 'default' }) {
         )}
       </form>
 
-      {/* Sugerencias rápidas - Solo en Hero */}
-      {isHeroVariant && !showAdvancedFilters && (
-        <div className="flex flex-wrap items-center gap-2 mt-4 px-2">
-          <span className="text-xs text-gray-500 font-medium">Popular:</span>
-          {['Plomería', 'Electricidad', 'Limpieza', 'Pintura'].map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => {
-                setTextQuery(tag);
-                onSearch({ type: 'text', query: tag });
-              }}
-              className="px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-brand-100 text-gray-600 hover:text-brand-700 rounded-full transition-all duration-200 hover:scale-105"
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Tip - Solo fuera del Hero */}
       {!isHeroVariant && (
         <p className="text-xs text-gray-500 mt-4">
