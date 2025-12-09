@@ -15,6 +15,7 @@ function Home() {
   const { isAuthenticated, viewRole } = useAuth();
   const [activeServices, setActiveServices] = useState([]);
   const [currentServiceIndex, setCurrentServiceIndex] = useState(0);
+  const [carouselIndex, setCarouselIndex] = useState(0); // Índice independiente del carrusel
   const [searchResults, setSearchResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -99,15 +100,18 @@ function Home() {
     loadImages();
   }, [activeServices]);
 
-  // Rotar servicios cada 8 segundos (más lento para mejor UX)
-  // Se pausa cuando el mouse está sobre el carrusel
+  // Rotar fondo del hero cada 8 segundos (lento para mejor UX visual)
+  // El fondo NO se pausa cuando el mouse está sobre el carrusel - son independientes
   useEffect(() => {
-    if (activeServices.length === 0 || !firstImageLoaded || isCarouselHovered) return;
+    if (activeServices.length === 0 || !firstImageLoaded) return;
     const interval = setInterval(() => {
       setCurrentServiceIndex((prev) => (prev + 1) % activeServices.length);
     }, 8000);
     return () => clearInterval(interval);
-  }, [activeServices.length, firstImageLoaded, isCarouselHovered]);
+  }, [activeServices.length, firstImageLoaded]);
+
+  // NOTA: El carrusel de iconos ahora maneja su propia animación CONTINUA internamente
+  // mediante requestAnimationFrame en CategoryIconCarousel.jsx (estilo Encarta)
 
   // Manejar búsqueda
   const handleSearch = useCallback(async (searchData) => {
@@ -172,6 +176,7 @@ function Home() {
 
   // Manejar clic en categoría
   const handleCategoryClick = async (category) => {
+    console.log('Home: handleCategoryClick llamado con:', category);
     setSelectedCategory(category);
     setSearchResults(null);
     setLoadingProviders(true);
@@ -204,11 +209,10 @@ function Home() {
       {/* Hero Section - Solo mostrar cuando no hay resultados de búsqueda */}
       {!searchResults && !selectedCategory && (
         <>
-          {/* Hero Section - Altura adaptable usando min-height y max-height */}
-          {/* En pantallas cortas (<=800px altura) se ajusta automáticamente */}
-          {/* svh = small viewport height, considera la barra de navegación móvil */}
+          {/* Hero Section - Altura fija que garantiza visibilidad de todo el contenido */}
+          {/* Usa min-height fijo para evitar cortes en resoluciones landscape (1024x600, 1280x720) */}
           <div 
-            className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-80 h-[calc(100svh-180px)] max-h-[600px] sm:min-h-[340px] sm:max-h-[580px] md:min-h-[360px] md:max-h-[620px] lg:min-h-[400px] lg:h-[calc(100svh-140px)] lg:max-h-[calc(100svh-140px)] xl:min-h-[420px] xl:h-[calc(100svh-120px)] xl:max-h-[750px]"
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-[380px] sm:min-h-[400px] md:min-h-[420px] lg:min-h-[380px] xl:min-h-[450px] 2xl:min-h-[500px]"
           >
             {/* Contenedor de imágenes de fondo con transiciones suaves */}
             <div className="absolute inset-0">
@@ -261,8 +265,8 @@ function Home() {
               <div className="absolute bottom-0 left-1/3 w-72 md:w-96 h-72 md:h-96 bg-purple-400/20 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-4000"></div>
             </div>
 
-            {/* Contenido principal - Layout con distribución óptima usando justify-evenly */}
-            <div className="relative h-full flex flex-col justify-evenly items-center px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4 lg:px-5 lg:py-2 xl:px-8 xl:py-3" style={{ zIndex: 3 }}>
+            {/* Contenido principal - Layout con distribución óptima */}
+            <div className="relative h-full flex flex-col justify-between items-center px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6 lg:px-5 lg:py-4 xl:px-8 xl:py-5" style={{ zIndex: 3 }}>
               
               {/* Sección superior: Badge + Título */}
               <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-1.5 sm:gap-2 lg:gap-1.5">
@@ -306,16 +310,17 @@ function Home() {
 
               {/* Sección central: Carrusel y Buscador */}
               <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-4 sm:gap-5 md:gap-6 lg:gap-4 xl:gap-5">
-                {/* Carrusel de iconos de categorías */}
+                {/* Carrusel de iconos de categorías - Rotación CONTINUA independiente del fondo */}
                 {activeServices.length > 0 && firstImageLoaded && (
                   <div className="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-lg xl:max-w-3xl mx-auto px-1 sm:px-0 pt-2 sm:pt-3 lg:pt-2">
                     <CategoryIconCarousel
                       categories={activeServices}
-                      currentIndex={currentServiceIndex}
-                      onIndexChange={setCurrentServiceIndex}
+                      currentIndex={carouselIndex}
+                      onIndexChange={setCarouselIndex}
                       onCategoryClick={handleCategoryClick}
                       onHoverChange={setIsCarouselHovered}
-                      autoRotate={false}
+                      autoRotate={true}
+                      rotationInterval={2800}
                     />
                   </div>
                 )}
