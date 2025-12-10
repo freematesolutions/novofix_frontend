@@ -129,11 +129,9 @@ function CategoryIconCarousel({
     }
   }, [currentIndex, categories, onIndexChange, onCategoryClick]);
 
-  // Mouse/Touch handlers para drag - Solo activa drag después de movimiento significativo
+  // Mouse/Touch handlers para drag - Funciona en todo el carrusel incluyendo tarjetas
   const handleDragStart = useCallback((e) => {
-    // No iniciar drag si el click fue en un botón de tarjeta
-    if (e.target.closest('button')) return;
-    
+    // Permitir drag desde cualquier parte, incluyendo tarjetas
     hasDraggedRef.current = false;
     const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
     setStartX(clientX);
@@ -225,8 +223,8 @@ function CategoryIconCarousel({
     }
     
     // Velocidad de rotación - items por milisegundo
-    // Ajustada para completar una rotación completa en ~18 segundos (más rápido)
-    const speed = 0.00045;
+    // Ajustada para completar una rotación completa en ~30 segundos (más lento y suave)
+    const speed = 0.00028;
     
     const animate = (currentTime) => {
       if (!lastTimeRef.current) {
@@ -340,47 +338,37 @@ function CategoryIconCarousel({
           }
           
           // Estilos base - usando la opacidad calculada para fade suave
-          const baseZIndex = pos.isCenter ? 200 : Math.round(50 + pos.depthFactor * 50);
-          // Escala basada en profundidad para efecto 3D visual - centro más grande
-          const baseScale = pos.isCenter ? 1.15 : (0.7 + pos.depthFactor * 0.3);
+          // Ya no resaltamos automáticamente el centro - solo en hover/touch
+          const baseZIndex = Math.round(50 + pos.depthFactor * 50);
+          // Escala basada en profundidad para efecto 3D visual
+          const baseScale = 0.75 + pos.depthFactor * 0.25;
           
           return (
             <button
               key={service.category}
               id={`category-icon-${index}`}
               onClick={(e) => handleIconClick(e, index, service.category)}
-              onMouseDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-              className={`carousel-card absolute flex flex-col items-center justify-center gap-1.5 sm:gap-2 cursor-pointer focus:outline-none ${pos.isCenter ? 'carousel-card-center' : ''}`}
+              className="carousel-card absolute flex flex-col items-center justify-center gap-1.5 sm:gap-2 cursor-pointer focus:outline-none"
               style={{
-                transform: `translateX(${pos.translateX}px) scale(${baseScale})${pos.isCenter ? ' translateY(-8px)' : ''}`,
-                opacity: pos.isCenter ? 1 : pos.opacity,
+                transform: `translateX(${pos.translateX}px) scale(${baseScale})`,
+                opacity: pos.opacity,
                 zIndex: baseZIndex,
-                transformOrigin: 'center center',
-                transition: 'transform 0.3s ease-out, opacity 0.3s ease-out'
+                transformOrigin: 'center center'
               }}
               role="option"
               aria-selected={pos.isCenter}
               aria-label={`${service.category} - Click para ver proveedores`}
               tabIndex={pos.isCenter ? 0 : -1}
             >
-              {/* TARJETA - usa clase para hover CSS, estilos especiales si está en centro */}
+              {/* TARJETA - usa clase para hover/touch CSS */}
               <div 
                 className="carousel-card-inner relative rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 lg:p-5 xl:p-6"
-                style={pos.isCenter ? {
-                  background: 'linear-gradient(135deg, rgba(251,191,36,0.25) 0%, rgba(255,255,255,0.95) 40%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.95) 60%, rgba(14,165,233,0.2) 100%)',
-                  backdropFilter: 'blur(12px) saturate(160%)',
-                  WebkitBackdropFilter: 'blur(12px) saturate(160%)',
-                  border: '2px solid rgba(251, 191, 36, 0.8)',
-                  boxShadow: '0 20px 40px -15px rgba(0,0,0,0.4), 0 0 0 4px rgba(251,191,36,0.3), 0 0 60px -10px rgba(251,191,36,0.5), inset 0 2px 4px rgba(255,255,255,1)',
-                  transition: 'all 0.3s ease-out'
-                } : {
+                style={{
                   background: 'linear-gradient(145deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 100%)',
                   backdropFilter: 'blur(10px) saturate(140%)',
                   WebkitBackdropFilter: 'blur(10px) saturate(140%)',
                   border: '1.5px solid rgba(255,255,255,0.25)',
-                  boxShadow: '0 8px 20px -8px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.25)',
-                  transition: 'all 0.3s ease-out'
+                  boxShadow: '0 8px 20px -8px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.25)'
                 }}
               >
                 {/* Efecto de luz superior */}
@@ -391,58 +379,36 @@ function CategoryIconCarousel({
                   }}
                 />
 
-                {/* Icono SVG - resaltado si está en centro */}
+                {/* Icono SVG */}
                 <div 
-                  className="carousel-card-icon relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 lg:w-11 lg:h-11 xl:w-13 xl:h-13 [&>svg]:w-full [&>svg]:h-full"
-                  style={pos.isCenter ? {
-                    color: '#0ea5e9',
-                    filter: 'drop-shadow(0 0 10px rgba(14,165,233,0.8)) drop-shadow(0 0 20px rgba(251,191,36,0.5))',
-                    transform: 'scale(1.1)',
-                    transition: 'all 0.3s ease-out'
-                  } : {
-                    color: 'white',
-                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-                    transition: 'all 0.3s ease-out'
+                  className="carousel-card-icon relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 lg:w-11 lg:h-11 xl:w-13 xl:h-13 text-white [&>svg]:w-full [&>svg]:h-full"
+                  style={{
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
                   }}
                 >
                   {CATEGORY_ICONS[service.category] || CATEGORY_ICONS['Otro']}
                 </div>
 
-                {/* Glow - visible si está en centro */}
+                {/* Glow - visible en hover/touch via CSS */}
                 <div 
-                  className="carousel-card-glow absolute -inset-4 rounded-3xl pointer-events-none -z-10"
+                  className="carousel-card-glow absolute -inset-4 rounded-3xl pointer-events-none -z-10 opacity-0"
                   style={{
                     background: 'radial-gradient(ellipse at center, rgba(251,191,36,0.5) 0%, rgba(14,165,233,0.3) 40%, transparent 70%)',
-                    filter: 'blur(15px)',
-                    opacity: pos.isCenter ? 0.8 : 0,
-                    transition: 'opacity 0.3s ease-out'
+                    filter: 'blur(15px)'
                   }}
                 />
               </div>
 
-              {/* Nombre de categoría - resaltado si está en centro */}
+              {/* Nombre de categoría */}
               <span 
-                className="carousel-card-label font-bold whitespace-nowrap text-center mt-2 px-3 py-1 rounded-full text-xs sm:text-sm"
-                style={pos.isCenter ? {
-                  background: 'rgba(0,0,0,0.7)',
-                  color: '#fcd34d',
-                  backdropFilter: 'blur(8px)',
-                  textShadow: '0 1px 3px rgba(0,0,0,0.8)',
-                  maxWidth: '140px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.3), 0 0 20px rgba(251,191,36,0.4)',
-                  transform: 'scale(1.05)',
-                  transition: 'all 0.3s ease-out'
-                } : {
+                className="carousel-card-label font-bold whitespace-nowrap text-center mt-2 px-3 py-1 rounded-full text-xs sm:text-sm text-white"
+                style={{
                   background: 'rgba(0,0,0,0.35)',
-                  color: 'white',
                   backdropFilter: 'blur(8px)',
                   textShadow: '0 1px 3px rgba(0,0,0,0.8)',
                   maxWidth: '140px',
                   overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  transition: 'all 0.3s ease-out'
+                  textOverflow: 'ellipsis'
                 }}
               >
                 {service.category}
@@ -489,19 +455,6 @@ function CategoryIconCarousel({
         </button>
       </div>
 
-      {/* Instrucción de interacción - visible solo en hover */}
-      <div 
-        className={`
-          absolute -top-8 sm:-top-9 left-1/2 -translate-x-1/2 z-50
-          text-[9px] sm:text-[10px] lg:text-[9px] text-white/60 font-medium
-          transition-opacity duration-300 whitespace-nowrap
-          pointer-events-none hidden sm:block
-          px-3 py-1 rounded-full bg-black/25 backdrop-blur-md border border-white/15
-          ${isHovering ? 'opacity-100' : 'opacity-0'}
-        `}
-      >
-        ← Arrastra o usa flechas →
-      </div>
     </div>
   );
 }
