@@ -221,6 +221,8 @@ function ChatRoom({
   const [composer, setComposer] = useState('');
   const [typingUsers, setTypingUsers] = useState({});
   const [isTyping, setIsTyping] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
@@ -425,6 +427,116 @@ function ChatRoom({
     }
   }, [composer, chatId, currentUserId, sending, isTyping]);
 
+  // Handle file selection
+  const handleFileSelect = useCallback((event) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+    
+    // Filter valid files (images, PDFs, docs - max 5MB each)
+    const validFiles = files.filter(file => {
+      const isValidType = file.type.startsWith('image/') || 
+                         file.type === 'application/pdf' ||
+                         file.type.includes('document') ||
+                         file.type.includes('text');
+      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+      return isValidType && isValidSize;
+    });
+    
+    if (validFiles.length > 0) {
+      setSelectedFiles(prev => [...prev, ...validFiles].slice(0, 5)); // Max 5 files
+    }
+    
+    // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, []);
+
+  // Remove selected file
+  const removeSelectedFile = useCallback((index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  // Upload file and send as message
+  const uploadAndSendFile = useCallback(async (file) => {
+    if (!chatId || !file) return null;
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', file.type.startsWith('image/') ? 'image' : 'document');
+      
+      const { data } = await api.post('/uploads/chat', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      return data?.data?.url || data?.url || null;
+    } catch (err) {
+      console.error('Error uploading file:', err);
+      return null;
+    }
+  }, [chatId]);
+
+  // Send message with attachments
+  const sendMessageWithAttachments = useCallback(async () => {
+    if (selectedFiles.length === 0 || !chatId || uploadingFile) return;
+    
+    setUploadingFile(true);
+    
+    try {
+      // Upload all files
+      const uploadPromises = selectedFiles.map(async (file) => {
+        const url = await uploadAndSendFile(file);
+        if (url) {
+          return {
+            type: file.type.startsWith('image/') ? 'image' : 'document',
+            url,
+            name: file.name
+          };
+        }
+        return null;
+      });
+      
+      const attachments = (await Promise.all(uploadPromises)).filter(Boolean);
+      
+      if (attachments.length > 0) {
+        const localId = `local_${Date.now()}`;
+        const text = composer.trim();
+        
+        const optimisticMessage = {
+          _id: localId,
+          localId,
+          chat: chatId,
+          sender: currentUserId,
+          content: { text, attachments },
+          type: attachments[0].type,
+          status: 'sending',
+          createdAt: new Date().toISOString()
+        };
+        
+        setMessages(prev => [...prev, optimisticMessage]);
+        setComposer('');
+        setSelectedFiles([]);
+        
+        // Send via REST (attachments require REST)
+        const { data } = await api.post(`/chats/${chatId}/messages`, { 
+          text, 
+          attachments,
+          type: attachments[0].type 
+        });
+        
+        const serverMsg = data?.data?.message || data?.message;
+        if (serverMsg) {
+          setMessages(prev => prev.map(m => 
+            m.localId === localId ? { ...serverMsg, status: 'sent' } : m
+          ));
+        }
+      }
+    } catch (err) {
+      console.error('Error sending message with attachments:', err);
+    } finally {
+      setUploadingFile(false);
+    }
+  }, [selectedFiles, chatId, uploadingFile, composer, currentUserId, uploadAndSendFile]);
+
   // Handle Enter key
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -532,14 +644,44 @@ function ChatRoom({
 
       {/* Composer */}
       <div className="p-4 border-t border-gray-100 bg-white">
+        {/* Selected files preview */}
+        {selectedFiles.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3 p-2 bg-gray-50 rounded-lg">
+            {selectedFiles.map((file, idx) => (
+              <div key={idx} className="relative group">
+                {file.type.startsWith('image/') ? (
+                  <img 
+                    src={URL.createObjectURL(file)} 
+                    alt={file.name}
+                    className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                  />
+                ) : (
+                  <div className="w-16 h-16 flex flex-col items-center justify-center bg-white rounded-lg border border-gray-200 p-1">
+                    <Icons.Attachment className="w-5 h-5 text-gray-400" />
+                    <span className="text-[9px] text-gray-500 truncate max-w-full mt-0.5">{file.name.slice(0, 10)}</span>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeSelectedFile(idx)}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs shadow-sm hover:bg-red-600 transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        
         <div className="flex items-end gap-3">
           {/* Attachment buttons */}
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-2 text-gray-400 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors"
-              title="Adjuntar archivo"
+              className={`p-2 rounded-lg transition-colors ${selectedFiles.length > 0 ? 'text-brand-500 bg-brand-50' : 'text-gray-400 hover:text-brand-500 hover:bg-brand-50'}`}
+              title="Adjuntar archivo (máx. 5MB)"
+              disabled={uploadingFile}
             >
               <Icons.Attachment />
             </button>
@@ -556,7 +698,9 @@ function ChatRoom({
             ref={fileInputRef}
             type="file"
             className="hidden"
-            onChange={() => {/* TODO: Handle file upload */}}
+            accept="image/*,.pdf,.doc,.docx,.txt"
+            multiple
+            onChange={handleFileSelect}
           />
 
           {/* Input */}
@@ -565,20 +709,21 @@ function ChatRoom({
               value={composer}
               onChange={(e) => handleTyping(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={placeholder}
+              placeholder={selectedFiles.length > 0 ? 'Añade un mensaje (opcional)...' : placeholder}
               rows={1}
               className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 focus:bg-white resize-none transition-all text-sm"
               style={{ minHeight: '44px', maxHeight: '120px' }}
+              disabled={uploadingFile}
             />
           </div>
 
           {/* Send button */}
           <button
-            onClick={sendMessage}
-            disabled={!composer.trim() || sending}
+            onClick={selectedFiles.length > 0 ? sendMessageWithAttachments : sendMessage}
+            disabled={(selectedFiles.length === 0 && !composer.trim()) || sending || uploadingFile}
             className="p-3 bg-linear-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white rounded-xl shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
           >
-            {sending ? (
+            {sending || uploadingFile ? (
               <Spinner size="sm" className="text-white" />
             ) : (
               <Icons.Send />

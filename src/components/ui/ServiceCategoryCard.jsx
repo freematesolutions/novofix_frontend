@@ -2,14 +2,27 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { CATEGORY_IMAGES, FALLBACK_IMAGE } from '@/utils/categoryImages.js';
 
-function ServiceCategoryCard({ category, description, onClick, providerCount }) {
+function ServiceCategoryCard({ category, description, onClick, providerCount, showComingSoon = false, disabled = false }) {
   const [imageError, setImageError] = useState(false);
   const imageUrl = CATEGORY_IMAGES[category] || FALLBACK_IMAGE;
 
+  const handleClick = () => {
+    // No ejecutar click si está deshabilitado (no hay proveedores)
+    if (disabled) return;
+    onClick(category);
+  };
+
   return (
-    <button
-      onClick={() => onClick(category)}
-      className="group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-[420px] flex flex-col"
+    <div
+      onClick={handleClick}
+      className={`group relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-500 h-[420px] flex flex-col ${
+        disabled 
+          ? 'cursor-not-allowed opacity-90' 
+          : 'cursor-pointer hover:shadow-2xl hover:-translate-y-2'
+      }`}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-disabled={disabled}
     >
       {/* Imagen de fondo con overlay */}
       <div className="relative h-56 overflow-hidden">
@@ -24,8 +37,14 @@ function ServiceCategoryCard({ category, description, onClick, providerCount }) 
         {/* Overlay gradient oscuro */}
         <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent"></div>
         
-        {/* Badge de contador flotante */}
-        {providerCount !== undefined && (
+        {/* Badge de contador flotante o Coming Soon */}
+        {showComingSoon ? (
+          <div className="absolute top-4 right-4 bg-amber-500/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
+            <span className="text-xs font-bold text-white uppercase tracking-wide block text-center">
+              Próximamente
+            </span>
+          </div>
+        ) : providerCount !== undefined && (
           <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 text-brand-600" fill="currentColor" viewBox="0 0 24 24">
@@ -55,25 +74,47 @@ function ServiceCategoryCard({ category, description, onClick, providerCount }) 
 
         {/* Botón de acción */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <span className="text-brand-600 font-semibold text-sm group-hover:text-brand-700 transition-colors">
-            Ver profesionales
+          <span className={`font-semibold text-sm transition-colors ${
+            disabled 
+              ? 'text-gray-400' 
+              : showComingSoon 
+                ? 'text-amber-600 group-hover:text-amber-700' 
+                : 'text-brand-600 group-hover:text-brand-700'
+          }`}>
+            {disabled ? 'Próximamente disponible' : showComingSoon ? 'Próximamente' : 'Ver profesionales'}
           </span>
-          <div className="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center group-hover:bg-brand-600 transition-all duration-300">
-            <svg 
-              className="w-4 h-4 text-brand-600 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
+          {(!showComingSoon) && (
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+              disabled
+                ? 'bg-gray-100'
+                : 'bg-brand-50 group-hover:bg-brand-600'
+            }`}>
+              <svg 
+                className={`w-4 h-4 transition-all duration-300 ${
+                  disabled
+                    ? 'text-gray-400'
+                    : 'text-brand-600 group-hover:text-white group-hover:translate-x-1'
+                }`}
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Borde animado en hover */}
-      <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-brand-400 transition-colors duration-300 pointer-events-none"></div>
-    </button>
+      <div className={`absolute inset-0 rounded-2xl border-2 border-transparent transition-colors duration-300 pointer-events-none ${
+        disabled 
+          ? '' 
+          : showComingSoon 
+            ? 'group-hover:border-amber-400' 
+            : 'group-hover:border-brand-400'
+      }`}></div>
+    </div>
   );
 }
 
@@ -81,7 +122,9 @@ ServiceCategoryCard.propTypes = {
   category: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
-  providerCount: PropTypes.number
+  providerCount: PropTypes.number,
+  showComingSoon: PropTypes.bool,
+  disabled: PropTypes.bool
 };
 
 export default ServiceCategoryCard;

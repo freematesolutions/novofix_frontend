@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import StarRating from './StarRating.jsx';
 import Spinner from './Spinner.jsx';
 import api from '@/state/apiClient.js';
+import { useToast } from './Toast.jsx';
+import ReviewResponseModal from './ReviewResponseModal.jsx';
 
 /**
  * ReviewList Component - Lista de reseñas con diseño premium
@@ -43,6 +45,31 @@ const Icons = {
   Reply: ({ className = 'w-4 h-4' }) => (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+    </svg>
+  ),
+  ThumbDown: ({ className = 'w-4 h-4' }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+    </svg>
+  ),
+  Flag: ({ className = 'w-4 h-4' }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+    </svg>
+  ),
+  Calendar: ({ className = 'w-4 h-4' }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  ),
+  Filter: ({ className = 'w-4 h-4' }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+    </svg>
+  ),
+  SortDesc: ({ className = 'w-4 h-4' }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
     </svg>
   ),
   Empty: ({ className = 'w-16 h-16' }) => (
@@ -101,7 +128,17 @@ RatingBar.propTypes = {
 };
 
 // Single Review Card
-const ReviewCard = memo(({ review, onPhotoClick }) => {
+const ReviewCard = memo(({ 
+  review, 
+  onPhotoClick, 
+  onHelpful, 
+  onNotHelpful, 
+  onReport, 
+  onRespond,
+  isProvider = false,
+  helpfulLoading = false,
+  userVote = null // 'helpful' | 'notHelpful' | null
+}) => {
   const clientName = review?.client?.profile?.firstName || 'Cliente';
   const clientInitial = clientName.charAt(0).toUpperCase();
   const overall = review?.rating?.overall || 0;
@@ -166,11 +203,62 @@ const ReviewCard = memo(({ review, onPhotoClick }) => {
           </div>
         )}
 
-        {/* Helpful button */}
-        <button className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-600 transition-colors">
-          <Icons.ThumbUp />
-          <span>Útil</span>
-        </button>
+        {/* Helpful/Not Helpful & Actions */}
+        <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-50">
+          <div className="flex items-center gap-3">
+            {/* Helpful */}
+            <button 
+              onClick={() => onHelpful?.(review._id)}
+              disabled={helpfulLoading}
+              className={`flex items-center gap-1.5 text-sm transition-colors ${
+                userVote === 'helpful'
+                  ? 'text-emerald-600 font-medium'
+                  : 'text-gray-500 hover:text-emerald-600'
+              }`}
+            >
+              <Icons.ThumbUp className={userVote === 'helpful' ? 'fill-current' : ''} />
+              <span>Útil</span>
+              {(review?.helpfulness?.helpful > 0) && (
+                <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded-full">
+                  {review.helpfulness.helpful}
+                </span>
+              )}
+            </button>
+            
+            {/* Not Helpful */}
+            <button 
+              onClick={() => onNotHelpful?.(review._id)}
+              disabled={helpfulLoading}
+              className={`flex items-center gap-1.5 text-sm transition-colors ${
+                userVote === 'notHelpful'
+                  ? 'text-red-500 font-medium'
+                  : 'text-gray-500 hover:text-red-500'
+              }`}
+            >
+              <Icons.ThumbDown className={userVote === 'notHelpful' ? 'fill-current' : ''} />
+            </button>
+
+            {/* Report */}
+            <button 
+              onClick={() => onReport?.(review)}
+              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-500 transition-colors ml-2"
+              title="Reportar como inapropiada"
+            >
+              <Icons.Flag />
+            </button>
+          </div>
+
+          {/* Provider respond button */}
+          {isProvider && !review?.providerResponse?.comment && (
+            <button 
+              onClick={() => onRespond?.(review)}
+              className="flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors"
+            >
+              <Icons.Reply />
+              <span>Responder</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Provider Response */}
@@ -202,7 +290,14 @@ ReviewCard.displayName = 'ReviewCard';
 
 ReviewCard.propTypes = {
   review: PropTypes.object.isRequired,
-  onPhotoClick: PropTypes.func
+  onPhotoClick: PropTypes.func,
+  onHelpful: PropTypes.func,
+  onNotHelpful: PropTypes.func,
+  onReport: PropTypes.func,
+  onRespond: PropTypes.func,
+  isProvider: PropTypes.bool,
+  helpfulLoading: PropTypes.bool,
+  userVote: PropTypes.string
 };
 
 // Photo Lightbox
@@ -281,14 +376,59 @@ PhotoLightbox.propTypes = {
   onNext: PropTypes.func
 };
 
+// Sort options
+const SORT_OPTIONS = [
+  { value: 'recent', label: 'Más recientes' },
+  { value: 'oldest', label: 'Más antiguas' },
+  { value: 'highest', label: 'Mayor calificación' },
+  { value: 'lowest', label: 'Menor calificación' },
+  { value: 'helpful', label: 'Más útiles' }
+];
+
+// Date filter options
+const DATE_FILTER_OPTIONS = [
+  { value: '', label: 'Todas las fechas' },
+  { value: 'week', label: 'Última semana' },
+  { value: 'month', label: 'Último mes' },
+  { value: 'quarter', label: 'Últimos 3 meses' },
+  { value: 'year', label: 'Último año' }
+];
+
 // Main Component
-function ReviewList({ providerId, initialStats, compact = false, className = '' }) {
+function ReviewList({ 
+  providerId, 
+  initialStats, 
+  compact = false, 
+  className = '',
+  isProvider = false,
+  onReviewUpdate
+}) {
+  const toast = useToast();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(initialStats || null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [filterRating, setFilterRating] = useState(null);
+  
+  // Advanced filters
+  const [sortBy, setSortBy] = useState('recent');
+  const [dateFilter, setDateFilter] = useState('');
+  const [onlyVerified, setOnlyVerified] = useState(false);
+  const [onlyWithPhotos, setOnlyWithPhotos] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Helpful/Not Helpful state
+  const [userVotes, setUserVotes] = useState({}); // { reviewId: 'helpful' | 'notHelpful' }
+  const [helpfulLoading, setHelpfulLoading] = useState(null);
+  
+  // Response modal state
+  const [responseModal, setResponseModal] = useState({ open: false, review: null });
+  
+  // Report modal state
+  const [reportModal, setReportModal] = useState({ open: false, review: null });
+  const [reportReason, setReportReason] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
   
   // Lightbox state
   const [lightbox, setLightbox] = useState({ open: false, photos: [], index: 0 });
@@ -302,6 +442,10 @@ function ReviewList({ providerId, initialStats, compact = false, className = '' 
       params.set('page', page);
       params.set('limit', compact ? 3 : 10);
       if (filterRating) params.set('rating', filterRating);
+      if (sortBy) params.set('sort', sortBy);
+      if (dateFilter) params.set('dateFilter', dateFilter);
+      if (onlyVerified) params.set('verified', 'true');
+      if (onlyWithPhotos) params.set('withPhotos', 'true');
 
       const { data } = await api.get(`/reviews/provider/${providerId}?${params.toString()}`);
       
@@ -317,7 +461,7 @@ function ReviewList({ providerId, initialStats, compact = false, className = '' 
     } finally {
       setLoading(false);
     }
-  }, [providerId, page, filterRating, compact]);
+  }, [providerId, page, filterRating, sortBy, dateFilter, onlyVerified, onlyWithPhotos, compact]);
 
   useEffect(() => {
     loadReviews();
@@ -326,6 +470,126 @@ function ReviewList({ providerId, initialStats, compact = false, className = '' 
   const handleRatingFilter = (rating) => {
     setFilterRating(filterRating === rating ? null : rating);
     setPage(1);
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setFilterRating(null);
+    setSortBy('recent');
+    setDateFilter('');
+    setOnlyVerified(false);
+    setOnlyWithPhotos(false);
+    setPage(1);
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = filterRating || sortBy !== 'recent' || dateFilter || onlyVerified || onlyWithPhotos;
+
+  // Helpful/Not Helpful handlers
+  const handleHelpful = async (reviewId) => {
+    if (helpfulLoading) return;
+    setHelpfulLoading(reviewId);
+    
+    try {
+      const currentVote = userVotes[reviewId];
+      const newVote = currentVote === 'helpful' ? null : 'helpful';
+      
+      // Optimistic update
+      setUserVotes(prev => ({ ...prev, [reviewId]: newVote }));
+      
+      await api.post(`/reviews/${reviewId}/helpful`, { action: newVote ? 'helpful' : 'remove' });
+      
+      // Update review helpfulness count locally
+      setReviews(prev => prev.map(r => {
+        if (r._id === reviewId) {
+          const delta = newVote ? 1 : -1;
+          return {
+            ...r,
+            helpfulness: {
+              ...r.helpfulness,
+              helpful: Math.max(0, (r.helpfulness?.helpful || 0) + delta)
+            }
+          };
+        }
+        return r;
+      }));
+    } catch (err) {
+      toast.error('Error al votar');
+      // Revert on error
+      setUserVotes(prev => ({ ...prev, [reviewId]: userVotes[reviewId] }));
+    } finally {
+      setHelpfulLoading(null);
+    }
+  };
+
+  const handleNotHelpful = async (reviewId) => {
+    if (helpfulLoading) return;
+    setHelpfulLoading(reviewId);
+    
+    try {
+      const currentVote = userVotes[reviewId];
+      const newVote = currentVote === 'notHelpful' ? null : 'notHelpful';
+      
+      // Optimistic update
+      setUserVotes(prev => ({ ...prev, [reviewId]: newVote }));
+      
+      await api.post(`/reviews/${reviewId}/helpful`, { action: newVote ? 'notHelpful' : 'remove' });
+      
+      // Update review helpfulness count locally
+      setReviews(prev => prev.map(r => {
+        if (r._id === reviewId) {
+          const delta = newVote ? 1 : -1;
+          return {
+            ...r,
+            helpfulness: {
+              ...r.helpfulness,
+              notHelpful: Math.max(0, (r.helpfulness?.notHelpful || 0) + delta)
+            }
+          };
+        }
+        return r;
+      }));
+    } catch (err) {
+      toast.error('Error al votar');
+      // Revert on error
+      setUserVotes(prev => ({ ...prev, [reviewId]: userVotes[reviewId] }));
+    } finally {
+      setHelpfulLoading(null);
+    }
+  };
+
+  // Report handler
+  const handleReport = (review) => {
+    setReportModal({ open: true, review });
+    setReportReason('');
+  };
+
+  const submitReport = async () => {
+    if (!reportReason.trim()) {
+      toast.error('Por favor indica el motivo del reporte');
+      return;
+    }
+    
+    setReportLoading(true);
+    try {
+      await api.put(`/reviews/${reportModal.review._id}/report`, { reason: reportReason });
+      toast.success('Reporte enviado. Nuestro equipo lo revisará.');
+      setReportModal({ open: false, review: null });
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Error al enviar reporte');
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  // Response handler
+  const handleRespond = (review) => {
+    setResponseModal({ open: true, review });
+  };
+
+  const handleResponseSuccess = () => {
+    loadReviews();
+    onReviewUpdate?.();
   };
 
   const openLightbox = (photos, startIndex) => {
@@ -422,17 +686,166 @@ function ReviewList({ providerId, initialStats, compact = false, className = '' 
         </div>
       )}
 
-      {/* Filter indicator */}
-      {filterRating && (
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-sm text-gray-600">Filtrando por:</span>
+      {/* Advanced Filters Bar */}
+      {!compact && (
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          {/* Filter toggle button */}
           <button
-            onClick={() => handleRatingFilter(null)}
-            className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium hover:bg-amber-200 transition-colors"
+            onClick={() => setShowFilters(!showFilters)}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
+              showFilters || hasActiveFilters
+                ? 'bg-brand-50 border-brand-200 text-brand-700'
+                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
           >
-            {filterRating} estrellas
-            <Icons.Close className="w-3 h-3" />
+            <Icons.Filter />
+            Filtros
+            {hasActiveFilters && (
+              <span className="w-2 h-2 rounded-full bg-brand-500"></span>
+            )}
           </button>
+
+          {/* Sort dropdown */}
+          <select
+            value={sortBy}
+            onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
+            className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          >
+            {SORT_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+
+          {/* Clear filters button */}
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="text-sm text-gray-500 hover:text-gray-700 underline"
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Expanded filters panel */}
+      {!compact && showFilters && (
+        <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100 animate-fade-in">
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Date filter */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Período</label>
+              <select
+                value={dateFilter}
+                onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                {DATE_FILTER_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Rating filter */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Calificación</label>
+              <select
+                value={filterRating || ''}
+                onChange={(e) => { setFilterRating(e.target.value ? parseInt(e.target.value) : null); setPage(1); }}
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="">Todas</option>
+                <option value="5">5 estrellas</option>
+                <option value="4">4 estrellas</option>
+                <option value="3">3 estrellas</option>
+                <option value="2">2 estrellas</option>
+                <option value="1">1 estrella</option>
+              </select>
+            </div>
+
+            {/* Verified only */}
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={onlyVerified}
+                  onChange={(e) => { setOnlyVerified(e.target.checked); setPage(1); }}
+                  className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                />
+                <span className="text-sm text-gray-700">Solo verificadas</span>
+              </label>
+            </div>
+
+            {/* With photos only */}
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={onlyWithPhotos}
+                  onChange={(e) => { setOnlyWithPhotos(e.target.checked); setPage(1); }}
+                  className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                />
+                <span className="text-sm text-gray-700">Con fotos</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active filters chips */}
+      {hasActiveFilters && (
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <span className="text-sm text-gray-500">Filtros activos:</span>
+          
+          {filterRating && (
+            <button
+              onClick={() => setFilterRating(null)}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium hover:bg-amber-200 transition-colors"
+            >
+              {filterRating} estrellas
+              <Icons.Close className="w-3 h-3" />
+            </button>
+          )}
+          
+          {sortBy !== 'recent' && (
+            <button
+              onClick={() => setSortBy('recent')}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition-colors"
+            >
+              {SORT_OPTIONS.find(o => o.value === sortBy)?.label}
+              <Icons.Close className="w-3 h-3" />
+            </button>
+          )}
+          
+          {dateFilter && (
+            <button
+              onClick={() => setDateFilter('')}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium hover:bg-purple-200 transition-colors"
+            >
+              {DATE_FILTER_OPTIONS.find(o => o.value === dateFilter)?.label}
+              <Icons.Close className="w-3 h-3" />
+            </button>
+          )}
+          
+          {onlyVerified && (
+            <button
+              onClick={() => setOnlyVerified(false)}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-200 transition-colors"
+            >
+              Verificadas
+              <Icons.Close className="w-3 h-3" />
+            </button>
+          )}
+          
+          {onlyWithPhotos && (
+            <button
+              onClick={() => setOnlyWithPhotos(false)}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium hover:bg-pink-200 transition-colors"
+            >
+              Con fotos
+              <Icons.Close className="w-3 h-3" />
+            </button>
+          )}
         </div>
       )}
 
@@ -448,10 +861,18 @@ function ReviewList({ providerId, initialStats, compact = false, className = '' 
           </div>
           <h4 className="text-lg font-semibold text-gray-900 mb-1">Sin reseñas aún</h4>
           <p className="text-sm text-gray-500 max-w-xs">
-            {filterRating 
-              ? `No hay reseñas de ${filterRating} estrellas`
+            {hasActiveFilters
+              ? 'No hay reseñas que coincidan con los filtros seleccionados'
               : 'Este profesional aún no ha recibido reseñas'}
           </p>
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="mt-3 text-sm text-brand-600 hover:text-brand-700 font-medium"
+            >
+              Limpiar filtros
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
@@ -460,6 +881,13 @@ function ReviewList({ providerId, initialStats, compact = false, className = '' 
               key={review._id} 
               review={review}
               onPhotoClick={openLightbox}
+              onHelpful={handleHelpful}
+              onNotHelpful={handleNotHelpful}
+              onReport={handleReport}
+              onRespond={handleRespond}
+              isProvider={isProvider}
+              helpfulLoading={helpfulLoading === review._id}
+              userVote={userVotes[review._id]}
             />
           ))}
         </div>
@@ -499,6 +927,83 @@ function ReviewList({ providerId, initialStats, compact = false, className = '' 
         onPrev={prevPhoto}
         onNext={nextPhoto}
       />
+
+      {/* Response Modal (for providers) */}
+      <ReviewResponseModal
+        isOpen={responseModal.open}
+        onClose={() => setResponseModal({ open: false, review: null })}
+        review={responseModal.review}
+        onSuccess={handleResponseSuccess}
+      />
+
+      {/* Report Modal */}
+      {reportModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setReportModal({ open: false, review: null })}
+          />
+          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+                  <Icons.Flag className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Reportar reseña</h3>
+                  <p className="text-sm text-gray-500">Indica el motivo del reporte</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Motivo del reporte
+                </label>
+                <select
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+                >
+                  <option value="">Selecciona un motivo</option>
+                  <option value="spam">Spam o publicidad</option>
+                  <option value="fake">Reseña falsa</option>
+                  <option value="offensive">Contenido ofensivo</option>
+                  <option value="irrelevant">No relacionado con el servicio</option>
+                  <option value="personal">Información personal inapropiada</option>
+                  <option value="other">Otro motivo</option>
+                </select>
+              </div>
+              
+              {reportReason === 'other' && (
+                <textarea
+                  placeholder="Describe el motivo..."
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm resize-none"
+                  rows={3}
+                  onChange={(e) => setReportReason(e.target.value)}
+                />
+              )}
+            </div>
+            
+            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => setReportModal({ open: false, review: null })}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={submitReport}
+                disabled={!reportReason || reportLoading}
+                className="px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {reportLoading ? 'Enviando...' : 'Enviar reporte'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -507,7 +1012,9 @@ ReviewList.propTypes = {
   providerId: PropTypes.string.isRequired,
   initialStats: PropTypes.object,
   compact: PropTypes.bool,
-  className: PropTypes.string
+  className: PropTypes.string,
+  isProvider: PropTypes.bool,
+  onReviewUpdate: PropTypes.func
 };
 
 export default memo(ReviewList);

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
-import Button from '@/components/ui/Button.jsx';
+import ChatRoom from '@/components/ui/ChatRoom.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
 import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketClient.js';
@@ -14,15 +14,11 @@ export default function Inbox() {
   const [error, setError] = useState('');
   const [proposals, setProposals] = useState([]);
 
-  // Chat state
+  // Chat state - simplified, ChatRoom handles internal messaging
   const [chats, setChats] = useState([]);
   const [chatError, setChatError] = useState('');
   const [selectedChat, setSelectedChat] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [msgLoading, setMsgLoading] = useState(false);
-  const [composer, setComposer] = useState('');
   const [typingUsers, setTypingUsers] = useState({});
-  const typingTimeoutRef = useRef(null);
   const socketRef = useRef(null);
 
 
@@ -70,28 +66,14 @@ export default function Inbox() {
     }
   }, []);
 
-  // Load messages for selected chat
-  const loadMessages = useCallback(async (chatId) => {
-    if (!chatId) return;
-    setMsgLoading(true);
-    try {
-      const { data } = await api.get(`/chats/${chatId}/messages?limit=50`);
-      const msgs = getArray(data, [['data','messages'], ['messages']]);
-      setMessages(Array.isArray(msgs) ? msgs : []);
-    } catch (err) {
-      // keep previous
-    } finally {
-      setMsgLoading(false);
-    }
-  }, []);
-
-  // Socket bindings for chat
+  // Socket bindings for chat list updates (ChatRoom handles its own socket events)
   useEffect(() => {
     if (viewRole !== 'provider') return;
     const s = getSocket();
     socketRef.current = s;
     if (!s) return;
 
+    // Update chat list when new messages arrive
     const offNew = socketOn('new_message', (payload) => {
       const cid = payload?.chatId || payload?.chat?._id;
       const msg = payload?.message || payload;
@@ -107,13 +89,8 @@ export default function Inbox() {
         }
         return copy;
       });
-      setMessages((prev) => {
-        if (selectedChat && (selectedChat._id || selectedChat.id) === cid) {
-          return [...prev, msg];
-        }
-        return prev;
-      });
     });
+    
     const offTyping = socketOn('user_typing', ({ userId, chatId }) => {
       if (!chatId) return;
       setTypingUsers((prev) => ({ ...prev, [chatId]: { userId, ts: Date.now() } }));
@@ -129,56 +106,35 @@ export default function Inbox() {
     return () => {
       try { offNew(); offTyping(); offStopped(); } catch { /* ignore */ }
     };
-  }, [viewRole, selectedChat]);
+  }, [viewRole]);
 
-  // Join/leave rooms on selection change
+  // Cleanup on unmount
   useEffect(() => {
-    const s = socketRef.current;
-    if (!s) return;
     return () => {
       // On unmount, leave any joined chat
       try { if (selectedChat?._id) socketEmit('leave_chat', { chatId: selectedChat._id }); } catch { /* ignore */ }
     };
   }, [selectedChat]);
 
-  const selectChat = async (chat) => {
+  const selectChat = (chat) => {
     if (!chat) return;
-    try {
-      if (selectedChat?._id && selectedChat._id !== chat._id) {
-        socketEmit('leave_chat', { chatId: selectedChat._id });
+    setSelectedChat(chat);
+  };
+
+  // Handler for new messages from ChatRoom - update chat list
+  const handleNewMessage = useCallback((msg) => {
+    if (!selectedChat?._id || !msg) return;
+    setChats((prev) => {
+      const copy = Array.from(prev || []);
+      const idx = copy.findIndex(c => (c._id || c.id) === selectedChat._id);
+      if (idx >= 0) {
+        const updated = { ...copy[idx], lastMessage: msg, metadata: { ...(copy[idx]?.metadata || {}), lastActivity: new Date().toISOString() } };
+        copy.splice(idx, 1);
+        copy.unshift(updated);
       }
-      setSelectedChat(chat);
-      socketEmit('join_chat', { chatId: chat._id });
-      await loadMessages(chat._id);
-    } catch { /* ignore */ }
-  };
-
-  const sendMessage = async () => {
-    const text = (composer || '').trim();
-    if (!text || !selectedChat?._id) return;
-    // Send via socket for real-time delivery and ack
-    const payload = { chatId: selectedChat._id, content: { text }, type: 'text' };
-    const ok = socketEmit('send_message', payload);
-    if (!ok) {
-      // fallback to REST
-      try { await api.post(`/chats/${selectedChat._id}/messages`, { text, type: 'text' }); } catch { /* ignore */ }
-    }
-    setComposer('');
-    // stop typing
-    try { socketEmit('typing_stop', { chatId: selectedChat._id }); } catch { /* ignore */ }
-  };
-
-  const handleTyping = (value) => {
-    setComposer(value);
-    if (!selectedChat?._id) return;
-    try {
-      socketEmit('typing_start', { chatId: selectedChat._id });
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => {
-        try { socketEmit('typing_stop', { chatId: selectedChat._id }); } catch { /* ignore */ }
-      }, 1500);
-    } catch { /* ignore */ }
-  };
+      return copy;
+    });
+  }, [selectedChat]);
 
   useEffect(() => { if (viewRole === 'provider') loadChats(); }, [viewRole, loadChats]);
 
@@ -336,10 +292,10 @@ export default function Inbox() {
           </div>
         </div>
         
-        {/* Chat Area */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+        {/* Chat Area - Using ChatRoom component */}
+        <div className="lg:col-span-2">
           {!selectedChat ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-8">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-[500px] flex flex-col items-center justify-center p-8">
               <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-brand-100 to-cyan-100 flex items-center justify-center mb-4">
                 <svg className="w-10 h-10 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
               </div>
@@ -347,78 +303,16 @@ export default function Inbox() {
               <p className="text-sm text-gray-500 text-center max-w-sm">Elige un chat de la lista para comenzar a conversar con el cliente</p>
             </div>
           ) : (
-            <>
-              {/* Chat Header */}
-              <div className="p-4 border-b border-gray-100 bg-linear-to-r from-brand-50/50 to-cyan-50/30">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center text-white font-semibold">
-                    {(selectedChat?.booking?.basicInfo?.title || 'C')[0].toUpperCase()}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{selectedChat?.booking?.basicInfo?.title || 'Chat'}</h4>
-                    <p className="text-xs text-gray-500">Conversación activa</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Messages */}
-              <div className="flex-1 p-4 overflow-auto flex flex-col space-y-3 bg-gray-50/30">
-                {msgLoading && (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="w-8 h-8 rounded-full border-3 border-brand-100 border-t-brand-500 animate-spin" />
-                  </div>
-                )}
-                {!msgLoading && messages.map((m) => {
-                  const id = m._id || m.id;
-                  const isMine = (m?.sender?._id || m?.sender) === (user?._id);
-                  const text = m?.content?.text ?? (typeof m?.content === 'string' ? m.content : '');
-                  return (
-                    <div key={id} className={`max-w-[80%] ${isMine ? 'self-end' : 'self-start'}`}>
-                      <div className={`rounded-2xl px-4 py-2.5 text-sm ${isMine ? 'bg-linear-to-r from-brand-500 to-cyan-500 text-white rounded-br-md' : 'bg-white border border-gray-200 text-gray-900 rounded-bl-md shadow-sm'}`}>
-                        <div className="whitespace-pre-wrap wrap-break-word">{text || '—'}</div>
-                      </div>
-                      {m?.metadata?.timestamp && (
-                        <div className={`text-[10px] mt-1 ${isMine ? 'text-right text-gray-400' : 'text-gray-400'}`}>
-                          {new Date(m.metadata.timestamp).toLocaleTimeString()}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                {typingUsers[selectedChat._id] && (
-                  <div className="self-start flex items-center gap-2 text-xs text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-100">
-                    <div className="flex gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                    Escribiendo…
-                  </div>
-                )}
-              </div>
-              
-              {/* Composer */}
-              <div className="p-4 border-t border-gray-100 bg-white">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="text"
-                    value={composer}
-                    onChange={(e) => handleTyping(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                    placeholder="Escribe un mensaje..."
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 focus:bg-white transition-all"
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={!composer.trim()}
-                    className="px-5 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                    Enviar
-                  </button>
-                </div>
-              </div>
-            </>
+            <ChatRoom
+              chatId={selectedChat._id}
+              chat={selectedChat}
+              currentUserId={user?._id}
+              onNewMessage={handleNewMessage}
+              placeholder="Escribe un mensaje..."
+              className="min-h-[500px]"
+              maxHeight="400px"
+              showHeader={true}
+            />
           )}
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
@@ -7,6 +7,7 @@ import ServiceCategoryCard from '@/components/ui/ServiceCategoryCard.jsx';
 import ProviderCard from '@/components/ui/ProviderCard.jsx';
 import CategoryIconCarousel from '@/components/ui/CategoryIconCarousel.jsx';
 import { CATEGORY_IMAGES } from '@/utils/categoryImages.js';
+import { SERVICE_CATEGORIES_WITH_DESCRIPTION } from '@/utils/categories.js';
 
 
 function Home() {
@@ -25,6 +26,81 @@ function Home() {
   const [firstImageLoaded, setFirstImageLoaded] = useState(false);
   const [allImagesLoaded, setAllImagesLoaded] = useState(false);
   const [isCarouselHovered, setIsCarouselHovered] = useState(false);
+  // Map de providerCount por categoría (de la API)
+  const [providerCountByCategory, setProviderCountByCategory] = useState({});
+  // Flag para saber si ya cargaron los datos de la API
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+
+  // Intercalar y repetir categorías con proveedores para el carrusel
+  // Generar instanceId estable por categoría+índice (sin Date.now())
+  const allCategoriesWithProviders = useMemo(() => {
+    const all = SERVICE_CATEGORIES_WITH_DESCRIPTION.map((cat, idx) => ({
+      category: cat.value,
+      description: cat.description,
+      providerCount: providerCountByCategory[cat.value] || 0,
+      hasProviders: dataLoaded ? (providerCountByCategory[cat.value] || 0) > 0 : true,
+      instanceId: `cat-${cat.value}-${idx}`
+    }));
+
+    const withProviders = all.filter(cat => cat.hasProviders);
+    const withoutProviders = all.filter(cat => !cat.hasProviders);
+
+    if (withProviders.length === 0) {
+      return all;
+    }
+
+    const result = [];
+    let wpIndex = 0;
+    withoutProviders.forEach((cat, i) => {
+      result.push({ ...cat });
+      result.push({ ...withProviders[wpIndex] });
+      wpIndex = (wpIndex + 1) % withProviders.length;
+    });
+
+    for (let j = 0; j < withProviders.length; j++) {
+      if (!result.some(x => x.instanceId === withProviders[j].instanceId)) {
+        result.push({ ...withProviders[j] });
+      }
+    }
+
+    if (result.length < all.length) {
+      all.forEach(cat => {
+        if (!result.some(x => x.instanceId === cat.instanceId)) {
+          result.push({ ...cat });
+        }
+      });
+    }
+
+    return result;
+  }, [providerCountByCategory, dataLoaded]);
+
+  // Total de proveedores reales en el sistema
+  const totalProviders = useMemo(() => {
+    return Object.values(providerCountByCategory).reduce((sum, count) => sum + count, 0);
+  }, [providerCountByCategory]);
+
+  // Cantidad de categorías con proveedores activos
+  const categoriesWithProviders = useMemo(() => {
+    return Object.values(providerCountByCategory).filter(count => count > 0).length;
+  }, [providerCountByCategory]);
+
+  // Categorías ordenadas: primero las que tienen proveedores, luego las que no
+  // Para la sección de tarjetas de servicios, evitar duplicados y mantener el orden original
+  const sortedCategoriesForCards = useMemo(() => {
+    const seen = new Set();
+    return allCategoriesWithProviders.filter(cat => {
+      if (seen.has(cat.category)) return false;
+      seen.add(cat.category);
+      return true;
+    }).sort((a, b) => {
+      // Categorías con proveedores primero
+      if (a.hasProviders && !b.hasProviders) return -1;
+      if (!a.hasProviders && b.hasProviders) return 1;
+      // Dentro del mismo grupo, ordenar por cantidad de proveedores (mayor primero)
+      return b.providerCount - a.providerCount;
+    });
+  }, [allCategoriesWithProviders]);
 
   useEffect(() => {
     if (isAuthenticated && viewRole === 'provider') {
@@ -48,43 +124,46 @@ function Home() {
     const fetchActiveServices = async () => {
       try {
         const { data } = await api.get('/guest/services/active');
+        console.log('API Response - Active Services:', data);
         if (data?.data?.services && data.data.services.length > 0) {
           setActiveServices(data.data.services);
           setAllCategories(data.data.services);
+          // Crear mapa de providerCount por categoría
+          const countMap = {};
+          data.data.services.forEach(service => {
+            countMap[service.category] = service.providerCount || 0;
+          });
+          console.log('Provider Count Map:', countMap);
+          setProviderCountByCategory(countMap);
+        } else {
+          console.log('No services with providers found in API response');
         }
+        // Marcar que los datos ya cargaron
+        setDataLoaded(true);
+        // Siempre precargar primera imagen de categorías
+        const firstCat = SERVICE_CATEGORIES_WITH_DESCRIPTION[0];
+        const firstImageUrl = CATEGORY_IMAGES[firstCat.value] || CATEGORY_IMAGES['Otro'];
+        const img = new Image();
+        img.src = firstImageUrl;
+        img.onload = () => setFirstImageLoaded(true);
+        img.onerror = () => setFirstImageLoaded(true);
       } catch (error) {
         console.error('Error fetching active services:', error);
+        // En caso de error, igual mostrar las categorías y marcar como cargado
+        setDataLoaded(true);
+        setFirstImageLoaded(true);
       }
     };
     fetchActiveServices();
   }, []);
 
-  // Precargar imágenes de categorías - Primera imagen prioritaria
+  // Precargar imágenes de TODAS las categorías en segundo plano
   useEffect(() => {
-    if (activeServices.length === 0) return;
+    if (!firstImageLoaded) return;
     
     const loadImages = async () => {
-      // Cargar PRIMERO la imagen inicial para evitar flash
-      const firstService = activeServices[0];
-      const firstImageUrl = CATEGORY_IMAGES[firstService.category] || CATEGORY_IMAGES['Otro'];
-      
-      const loadFirstImage = new Promise((resolve) => {
-        const img = new Image();
-        img.src = firstImageUrl;
-        img.onload = () => {
-          setFirstImageLoaded(true);
-          resolve(true);
-        };
-        img.onerror = () => {
-          setFirstImageLoaded(true); // Mostrar igual aunque falle
-          resolve(false);
-        };
-      });
-      
-      await loadFirstImage;
-      
-      // Cargar el resto de imágenes en segundo plano
-      const remainingImages = activeServices.slice(1).map((service) => {
+      // Cargar el resto de imágenes en segundo plano (skip la primera que ya cargó)
+      const remainingImages = allCategoriesWithProviders.slice(1).map((service) => {
         return new Promise((resolve) => {
           const img = new Image();
           img.src = CATEGORY_IMAGES[service.category] || CATEGORY_IMAGES['Otro'];
@@ -98,17 +177,17 @@ function Home() {
     };
     
     loadImages();
-  }, [activeServices]);
+  }, [firstImageLoaded, allCategoriesWithProviders]);
 
   // Rotar fondo del hero cada 8 segundos (lento para mejor UX visual)
   // El fondo NO se pausa cuando el mouse está sobre el carrusel - son independientes
   useEffect(() => {
-    if (activeServices.length === 0 || !firstImageLoaded) return;
+    if (allCategoriesWithProviders.length === 0 || !firstImageLoaded) return;
     const interval = setInterval(() => {
-      setCurrentServiceIndex((prev) => (prev + 1) % activeServices.length);
+      setCurrentServiceIndex((prev) => (prev + 1) % allCategoriesWithProviders.length);
     }, 8000);
     return () => clearInterval(interval);
-  }, [activeServices.length, firstImageLoaded]);
+  }, [allCategoriesWithProviders.length, firstImageLoaded]);
 
   // NOTA: El carrusel de iconos ahora maneja su propia animación CONTINUA internamente
   // mediante requestAnimationFrame en CategoryIconCarousel.jsx (estilo Encarta)
@@ -216,10 +295,10 @@ function Home() {
           >
             {/* Contenedor de imágenes de fondo con transiciones suaves */}
             <div className="absolute inset-0">
-              {activeServices.length > 0 && firstImageLoaded ? (
-                activeServices.map((service, index) => (
+              {allCategoriesWithProviders.length > 0 && firstImageLoaded ? (
+                allCategoriesWithProviders.map((service, index) => (
                   <div
-                    key={service.category}
+                    key={service.category + '-' + index}
                     className="absolute inset-0 transition-all duration-1000 ease-in-out"
                     style={{
                       opacity: index === currentServiceIndex ? 1 : 0,
@@ -271,11 +350,11 @@ function Home() {
               {/* Sección superior: Badge + Título */}
               <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-1.5 sm:gap-2 lg:gap-1.5">
                 {/* Badge de categoría */}
-                {activeServices.length > 0 && firstImageLoaded && (
+                {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
                   <div className="relative h-5 sm:h-6 md:h-7 lg:h-5 xl:h-6 w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto">
-                    {activeServices.map((service, index) => (
+                    {allCategoriesWithProviders.map((service, index) => (
                       <span
-                        key={service.category}
+                        key={service.category + '-' + index}
                         className={`absolute inset-0 flex items-center justify-center px-3 sm:px-4 py-1 rounded-full text-[9px] sm:text-[11px] lg:text-[9px] xl:text-xs font-semibold tracking-wider uppercase transition-all duration-500 ${
                           index === currentServiceIndex
                             ? 'opacity-100 scale-100'
@@ -311,10 +390,10 @@ function Home() {
               {/* Sección central: Carrusel y Buscador */}
               <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-4 sm:gap-5 md:gap-6 lg:gap-4 xl:gap-5">
                 {/* Carrusel de iconos de categorías - Rotación CONTINUA independiente del fondo */}
-                {activeServices.length > 0 && firstImageLoaded && (
+                {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
                   <div className="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-lg xl:max-w-3xl mx-auto px-1 sm:px-0 pt-2 sm:pt-3 lg:pt-2">
                     <CategoryIconCarousel
-                      categories={activeServices}
+                      categories={allCategoriesWithProviders}
                       currentIndex={carouselIndex}
                       onIndexChange={setCarouselIndex}
                       onCategoryClick={handleCategoryClick}
@@ -356,7 +435,7 @@ function Home() {
                       boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                     }}
                   >
-                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">{activeServices.length}+</span>
+                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">{allCategoriesWithProviders.length}+</span>
                     <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">Servicios</span>
                   </div>
                   <div 
@@ -369,7 +448,7 @@ function Home() {
                       boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                     }}
                   >
-                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">{activeServices.reduce((sum, service) => sum + (service.providerCount || 0), 0)}+</span>
+                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">{totalProviders > 0 ? totalProviders : '—'}+</span>
                     <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">Profesionales</span>
                   </div>
                   <div 
@@ -388,15 +467,15 @@ function Home() {
                 </div>
 
                 {/* Indicadores de navegación de categorías - Línea independiente */}
-                {activeServices.length > 0 && firstImageLoaded && (
+                {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
                   <div 
                     className="flex items-center justify-center gap-1.5 sm:gap-2 py-2"
                     role="tablist"
                     aria-label="Navegación de categorías"
                   >
-                    {activeServices.map((service, index) => (
+                    {allCategoriesWithProviders.map((service, index) => (
                       <button
-                        key={index}
+                        key={service.category + '-' + index}
                         onClick={() => setCurrentServiceIndex(index)}
                         className={`transition-all duration-300 rounded-full focus:outline-none focus:ring-2 focus:ring-white/50 ${
                           index === currentServiceIndex
@@ -496,8 +575,8 @@ function Home() {
         </div>
       )}
 
-      {/* Tarjetas de categorías (mostrar solo si no hay búsqueda activa ni categoría seleccionada) */}
-      {searchResults === null && !selectedCategory && allCategories.length > 0 && (
+      {/* Tarjetas de categorías (mostrar siempre, usando defaults si no hay proveedores) */}
+      {searchResults === null && !selectedCategory && (
         <div id="services-section" className="py-8 scroll-mt-20">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -505,7 +584,10 @@ function Home() {
                 Explora nuestros servicios
               </h2>
               <p className="text-gray-600">
-                Desliza para ver todos los profesionales disponibles
+                {categoriesWithProviders > 0
+                  ? `${categoriesWithProviders} categorías con profesionales disponibles`
+                  : 'Próximamente tendremos profesionales disponibles'
+                }
               </p>
             </div>
           </div>
@@ -539,9 +621,9 @@ function Home() {
               }}
             >
               <div className="flex gap-6 min-w-max">
-                {allCategories.map((service) => (
+                {sortedCategoriesForCards.map((service) => (
                   <div
-                    key={service.category}
+                    key={service.instanceId}
                     className="w-[320px] sm:w-[360px] shrink-0"
                     style={{ scrollSnapAlign: 'start' }}
                   >
@@ -550,6 +632,8 @@ function Home() {
                       description={service.description}
                       providerCount={service.providerCount}
                       onClick={handleCategoryClick}
+                      showComingSoon={!service.hasProviders}
+                      disabled={!service.hasProviders}
                     />
                   </div>
                 ))}
@@ -742,3 +826,4 @@ function Home() {
 }
 
 export default Home;
+

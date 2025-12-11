@@ -47,70 +47,82 @@ function CategoryIconCarousel({
   }, []);
 
   // Calcular posiciones de iconos - CARRUSEL CIRCULAR CONTINUO
-  // Solo calcula posición base, los efectos hover se aplican en el JSX
+  // Calcula posición 3D con SEPARACIÓN FIJA basada en índice relativo
   const getIconPosition = useCallback((index) => {
     const totalItems = categories.length;
     if (totalItems === 0) return { isVisible: false };
 
-    // Calcular ángulo en el círculo para este icono
-    // Usamos continuousOffset directamente para movimiento fluido
-    const baseAngle = ((index - continuousOffset) / totalItems) * Math.PI * 2;
+    // Calcular posición relativa al centro (qué tan lejos está del ítem actual)
+    let relativeIndex = index - continuousOffset;
     
-    // Agregar offset del drag
-    const dragAngle = (dragOffset / 100) * (Math.PI / 4);
-    const angle = baseAngle - dragAngle;
+    // Normalizar para que esté en rango [-totalItems/2, totalItems/2]
+    while (relativeIndex > totalItems / 2) relativeIndex -= totalItems;
+    while (relativeIndex < -totalItems / 2) relativeIndex += totalItems;
     
-    // Normalizar ángulo para determinar visibilidad
-    let normalizedAngle = angle % (Math.PI * 2);
-    if (normalizedAngle > Math.PI) normalizedAngle -= Math.PI * 2;
-    if (normalizedAngle < -Math.PI) normalizedAngle += Math.PI * 2;
-    
-    // Mostrar menos tarjetas para que se distingan mejor
-    // Reducimos el ángulo visible para mostrar ~3-4 tarjetas
-    const visibilityAngle = Math.PI * 0.38; // Aproximadamente 70 grados a cada lado
-    if (Math.abs(normalizedAngle) > visibilityAngle) {
+    // Agregar offset del drag (en unidades de índice)
+    relativeIndex -= dragOffset / 100;
+
+    // SOLO mostrar 3 tarjetas: la central y una a cada lado
+    // Si está más lejos de 1.5 posiciones, no es visible
+    if (Math.abs(relativeIndex) > 1.5) {
       return { isVisible: false };
     }
 
-    // TRAYECTORIA ELÍPTICA - Radio RESPONSIVO ajustado para no desbordar
-    let radiusX = 90; // Más pequeño en móviles para no desbordar
-    let radiusZ = 40;
+    // SEPARACIÓN FIJA EN PÍXELES según resolución
+    // Cada tarjeta se separa esta cantidad de píxeles del centro
+    let cardSpacing = 120; // Móvil pequeño
     
     if (typeof window !== 'undefined') {
       const width = window.innerWidth;
       if (width >= 1536) {
-        radiusX = 320; radiusZ = 140;
+        cardSpacing = 280; // 2K+
       } else if (width >= 1280) {
-        radiusX = 280; radiusZ = 120;
+        cardSpacing = 240; // Desktop XL
       } else if (width >= 1024) {
-        radiusX = 240; radiusZ = 100;
+        cardSpacing = 200; // Desktop
       } else if (width >= 768) {
-        radiusX = 180; radiusZ = 80;
+        cardSpacing = 170; // Tablet
       } else if (width >= 640) {
-        radiusX = 140; radiusZ = 60;
+        cardSpacing = 150; // Tablet pequeña
       } else if (width >= 480) {
-        radiusX = 110; radiusZ = 50;
+        cardSpacing = 130; // Móvil grande
+      } else {
+        cardSpacing = 110; // Móvil pequeño
       }
     }
+
+    // Posición horizontal: directamente proporcional al índice relativo
+    const translateX = relativeIndex * cardSpacing;
     
-    const translateX = Math.sin(angle) * radiusX;
-    const translateZ = (Math.cos(angle) - 1) * radiusZ;
-    const depthFactor = (Math.cos(angle) + 1) / 2;
+    // Profundidad: tarjeta central al frente, laterales atrás
+    // Usar función cuadrática para efecto más pronunciado
+    const distanceFromCenter = Math.abs(relativeIndex);
+    const translateZ = -distanceFromCenter * 80; // Negativos van hacia atrás
     
-    // Calcular opacidad basada en la posición - fade suave en los bordes
-    const edgeFade = 1 - (Math.abs(normalizedAngle) / visibilityAngle);
-    const baseOpacity = Math.max(0.3, Math.min(1, edgeFade * 1.5)) * (0.6 + depthFactor * 0.4);
+    // Movimiento vertical sutil para efecto de arco/espiral
+    const translateY = distanceFromCenter * distanceFromCenter * 15; // Las laterales bajan un poco
     
-    // Determinar si esta tarjeta está en el centro (ángulo cercano a 0)
-    const isCenter = Math.abs(normalizedAngle) < 0.15;
+    // Rotación Y para efecto 3D de giro
+    const rotateY = relativeIndex * -15; // Gira hacia afuera
+    
+    // Factor de profundidad: 1 en el centro, 0 en los bordes
+    const depthFactor = Math.max(0, 1 - distanceFromCenter * 0.6);
+    
+    // Opacidad: plena en el centro, fade hacia los bordes
+    const opacity = Math.max(0.4, 1 - distanceFromCenter * 0.5);
+    
+    // Determinar si esta tarjeta está en el centro
+    const isCenter = Math.abs(relativeIndex) < 0.3;
 
     return {
       isVisible: true,
       translateX,
+      translateY,
       translateZ,
+      rotateY,
       depthFactor,
-      opacity: baseOpacity,
-      normalizedAngle,
+      opacity,
+      relativeIndex,
       isCenter
     };
   }, [categories.length, dragOffset, continuousOffset]);
@@ -277,8 +289,8 @@ function CategoryIconCarousel({
     };
   }, [handleWheel]);
 
-  // Click en icono específico - SIEMPRE navega a la categoría
-  const handleIconClick = useCallback((e, index, category) => {
+  // Click en icono específico - Solo navega si tiene proveedores
+  const handleIconClick = useCallback((e, index, category, hasProviders) => {
     e.preventDefault(); // Prevenir comportamiento por defecto
     e.stopPropagation(); // Prevenir que el evento suba al contenedor
     
@@ -288,7 +300,13 @@ function CategoryIconCarousel({
       return;
     }
     
-    // Cualquier tarjeta al hacer click va directamente a los proveedores
+    // NO permitir click si no tiene proveedores
+    if (hasProviders === false) {
+      console.log('CategoryIconCarousel: Categoría sin proveedores, click deshabilitado:', category);
+      return;
+    }
+    
+    // Navegar a los proveedores de la categoría
     console.log('CategoryIconCarousel: Click en categoría:', category);
     if (onCategoryClick) {
       onCategoryClick(category);
@@ -325,9 +343,10 @@ function CategoryIconCarousel({
       aria-label="Carrusel de categorías de servicio"
       aria-activedescendant={`category-icon-${currentIndex}`}
     >
-      {/* Contenedor central con padding para las flechas - SIN 3D para que funcione el hover */}
+      {/* Contenedor central con perspectiva 3D para efecto de órbita - Sin márgenes ya que no hay flechas */}
       <div 
-        className="absolute inset-0 flex items-center justify-center mx-12 sm:mx-14 md:mx-16 lg:mx-14 xl:mx-18"
+        className="absolute inset-0 flex items-center justify-center"
+        style={{ perspective: '1200px', perspectiveOrigin: 'center center' }}
       >
         {categories.map((service, index) => {
           const pos = getIconPosition(index);
@@ -337,40 +356,73 @@ function CategoryIconCarousel({
             return null;
           }
           
-          // Estilos base - usando la opacidad calculada para fade suave
-          // Ya no resaltamos automáticamente el centro - solo en hover/touch
+          // Z-index basado en profundidad
           const baseZIndex = Math.round(50 + pos.depthFactor * 50);
-          // Escala basada en profundidad para efecto 3D visual
-          const baseScale = 0.75 + pos.depthFactor * 0.25;
+          // Escala MUY agresiva: tarjeta central GRANDE, laterales MUY PEQUEÑAS
+          // depthFactor va de 0 (atrás) a 1 (frente)
+          const baseScale = 0.45 + pos.depthFactor * 0.55; // Rango: 0.45 a 1.0
+          // Determinar si está deshabilitado (sin proveedores)
+          const isDisabled = service.hasProviders === false;
           
-          return (
-            <button
-              key={service.category}
+            return (
+              <div
+                key={service.instanceId}
               id={`category-icon-${index}`}
-              onClick={(e) => handleIconClick(e, index, service.category)}
-              className="carousel-card absolute flex flex-col items-center justify-center gap-1.5 sm:gap-2 cursor-pointer focus:outline-none"
+              onClick={(e) => {
+                if (isDisabled) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  return;
+                }
+                handleIconClick(e, index, service.category, service.hasProviders);
+              }}
+              className={`carousel-card absolute flex flex-col items-center justify-center gap-1.5 sm:gap-2 focus:outline-none ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               style={{
-                transform: `translateX(${pos.translateX}px) scale(${baseScale})`,
+                transform: `translateX(${pos.translateX}px) translateY(${pos.translateY}px) translateZ(${pos.translateZ}px) rotateY(${pos.rotateY}deg) scale(${baseScale})`,
                 opacity: pos.opacity,
                 zIndex: baseZIndex,
-                transformOrigin: 'center center'
+                transformOrigin: 'center center',
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                pointerEvents: 'auto',
+                transition: 'transform 0.2s ease-out'
+              }}
+              onMouseEnter={(e) => {
+                // Animación hover para TODAS las tarjetas (con y sin proveedores)
+                e.currentTarget.style.transform = `translateX(${pos.translateX}px) translateY(${pos.translateY}px) translateZ(${pos.translateZ}px) rotateY(${pos.rotateY}deg) scale(${baseScale * 1.15})`;
+                e.currentTarget.style.zIndex = '999';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = `translateX(${pos.translateX}px) translateY(${pos.translateY}px) translateZ(${pos.translateZ}px) rotateY(${pos.rotateY}deg) scale(${baseScale})`;
+                e.currentTarget.style.zIndex = String(baseZIndex);
               }}
               role="option"
               aria-selected={pos.isCenter}
-              aria-label={`${service.category} - Click para ver proveedores`}
-              tabIndex={pos.isCenter ? 0 : -1}
+              aria-label={`${service.category} - ${isDisabled ? 'Próximamente' : 'Click para ver proveedores'}`}
+              aria-disabled={isDisabled}
+              tabIndex={isDisabled ? -1 : (pos.isCenter ? 0 : -1)}
             >
-              {/* TARJETA - usa clase para hover/touch CSS */}
+              {/* TARJETA - MISMO FONDO SÓLIDO para TODAS (con/sin proveedores) */}
               <div 
-                className="carousel-card-inner relative rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 lg:p-5 xl:p-6"
+                className="carousel-card-inner relative rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 lg:p-5 xl:p-6 transition-all duration-300 hover:shadow-2xl"
                 style={{
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 100%)',
-                  backdropFilter: 'blur(10px) saturate(140%)',
-                  WebkitBackdropFilter: 'blur(10px) saturate(140%)',
-                  border: '1.5px solid rgba(255,255,255,0.25)',
-                  boxShadow: '0 8px 20px -8px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.25)'
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(240,240,255,0.9) 100%)',
+                  backdropFilter: 'blur(20px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                  border: '2px solid rgba(255,255,255,0.7)',
+                  boxShadow: '0 15px 40px -10px rgba(0,0,0,0.4), 0 5px 15px -5px rgba(255,255,255,0.3), inset 0 1px 2px rgba(255,255,255,0.5)'
                 }}
               >
+                {/* Badge de PRÓXIMAMENTE en la esquina superior derecha - SOLO para tarjetas deshabilitadas */}
+                {isDisabled && (
+                  <div 
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg z-10"
+                    style={{
+                      boxShadow: '0 2px 8px rgba(245, 158, 11, 0.5)'
+                    }}
+                  >
+                    Próximamente
+                  </div>
+                )}
                 {/* Efecto de luz superior */}
                 <div 
                   className="absolute inset-0 rounded-2xl md:rounded-3xl pointer-events-none overflow-hidden"
@@ -379,11 +431,11 @@ function CategoryIconCarousel({
                   }}
                 />
 
-                {/* Icono SVG */}
+                {/* Icono SVG - MISMO COLOR VIBRANTE para TODAS las tarjetas */}
                 <div 
-                  className="carousel-card-icon relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 lg:w-11 lg:h-11 xl:w-13 xl:h-13 text-white [&>svg]:w-full [&>svg]:h-full"
+                  className="carousel-card-icon relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 lg:w-11 lg:h-11 xl:w-13 xl:h-13 [&>svg]:w-full [&>svg]:h-full text-brand-600"
                   style={{
-                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                    filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.2))'
                   }}
                 >
                   {CATEGORY_ICONS[service.category] || CATEGORY_ICONS['Otro']}
@@ -399,60 +451,21 @@ function CategoryIconCarousel({
                 />
               </div>
 
-              {/* Nombre de categoría */}
+              {/* Nombre de categoría - MISMO ESTILO para TODAS las tarjetas */}
               <span 
-                className="carousel-card-label font-bold whitespace-nowrap text-center mt-2 px-3 py-1 rounded-full text-xs sm:text-sm text-white"
+                className="carousel-card-label font-bold whitespace-nowrap text-center mt-2 px-3 py-1.5 rounded-full text-xs sm:text-sm shadow-lg text-white bg-brand-600"
                 style={{
-                  background: 'rgba(0,0,0,0.35)',
-                  backdropFilter: 'blur(8px)',
-                  textShadow: '0 1px 3px rgba(0,0,0,0.8)',
-                  maxWidth: '140px',
+                  maxWidth: '150px',
                   overflow: 'hidden',
-                  textOverflow: 'ellipsis'
+                  textOverflow: 'ellipsis',
+                  boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
                 }}
               >
                 {service.category}
               </span>
-            </button>
+            </div>
           );
         })}
-      </div>
-
-      {/* Indicadores de navegación lateral - Posición fija */}
-      <div className="absolute left-1 sm:left-2 md:left-3 lg:left-2 xl:left-3 top-1/2 -translate-y-1/2 z-50">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            navigatePrev();
-          }}
-          className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-9 lg:h-9 xl:w-11 xl:h-11 rounded-full bg-white/20 backdrop-blur-lg border border-white/40 flex items-center justify-center text-white/90 hover:text-white hover:bg-white/40 hover:border-white/60 hover:scale-110 hover:shadow-xl hover:shadow-white/25 transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-white/60"
-          aria-label="Categoría anterior"
-          style={{
-            boxShadow: '0 4px 20px -4px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.3)'
-          }}
-        >
-          <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-      </div>
-
-      <div className="absolute right-1 sm:right-2 md:right-3 lg:right-2 xl:right-3 top-1/2 -translate-y-1/2 z-50">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            navigateNext();
-          }}
-          className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-9 lg:h-9 xl:w-11 xl:h-11 rounded-full bg-white/20 backdrop-blur-lg border border-white/40 flex items-center justify-center text-white/90 hover:text-white hover:bg-white/40 hover:border-white/60 hover:scale-110 hover:shadow-xl hover:shadow-white/25 transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-white/60"
-          aria-label="Categoría siguiente"
-          style={{
-            boxShadow: '0 4px 20px -4px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.3)'
-          }}
-        >
-          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
       </div>
 
     </div>
@@ -462,7 +475,8 @@ function CategoryIconCarousel({
 CategoryIconCarousel.propTypes = {
   categories: PropTypes.arrayOf(PropTypes.shape({
     category: PropTypes.string.isRequired,
-    providerCount: PropTypes.number
+    providerCount: PropTypes.number,
+    hasProviders: PropTypes.bool
   })).isRequired,
   currentIndex: PropTypes.number.isRequired,
   onIndexChange: PropTypes.func.isRequired,

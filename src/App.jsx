@@ -21,6 +21,7 @@ const Inbox = lazy(() => import('./pages/provider/Inbox.jsx'));
 const Calendar = lazy(() => import('./pages/provider/Calendar.jsx'));
 const Referrals = lazy(() => import('./pages/provider/Referrals.jsx'));
 const Portfolio = lazy(() => import('./pages/provider/Portfolio.jsx'));
+const ProviderReviews = lazy(() => import('./pages/provider/Reviews.jsx'));
 const RequestDetail = lazy(() => import('./pages/provider/RequestDetail.jsx'));
 const ClientRequests = lazy(() => import('./pages/client/Requests.jsx'));
 const ClientRequestProposals = lazy(() => import('./pages/client/RequestProposals.jsx'));
@@ -60,6 +61,7 @@ function App() {
           <Route path="/empleos/:id" element={<RequestDetail />} />
           <Route path="/mensajes" element={<Inbox />} />
           <Route path="/portafolio" element={<Portfolio />} />
+          <Route path="/resenas" element={<ProviderReviews />} />
           <Route path="/calendario" element={<Calendar />} />
           <Route path="/referidos" element={<Referrals />} />
           <Route path="/plan" element={<Plan />} />

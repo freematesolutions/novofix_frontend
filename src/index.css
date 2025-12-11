@@ -590,12 +590,18 @@ body { margin: 0; }
 /* Asegurar que las tarjetas del carrusel reciban eventos correctamente */
 .carousel-card {
 	pointer-events: auto !important;
-	cursor: pointer !important;
+	cursor: pointer;
 	/* Padding invisible para área de interacción más grande y estable */
 	padding: 12px !important;
 	margin: -12px !important;
 	-webkit-tap-highlight-color: transparent;
 	touch-action: manipulation;
+}
+
+/* Cursor NOT-ALLOWED para tarjetas deshabilitadas (sin proveedores) */
+/* PERO mantienen la misma animación hover que las habilitadas */
+.carousel-card.cursor-not-allowed {
+	cursor: not-allowed !important;
 }
 
 /* Efecto en hover (desktop) y focus-visible */
