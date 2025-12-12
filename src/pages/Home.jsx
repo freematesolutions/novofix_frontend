@@ -6,6 +6,8 @@ import SearchBar from '@/components/ui/SearchBar.jsx';
 import ServiceCategoryCard from '@/components/ui/ServiceCategoryCard.jsx';
 import ProviderCard from '@/components/ui/ProviderCard.jsx';
 import CategoryIconCarousel from '@/components/ui/CategoryIconCarousel.jsx';
+// Scroll automático para enfocar la primera tarjeta con proveedores al cargar la sección
+// (Este useEffect debe ir dentro del componente Home, no aquí)
 import { CATEGORY_IMAGES } from '@/utils/categoryImages.js';
 import { SERVICE_CATEGORIES_WITH_DESCRIPTION } from '@/utils/categories.js';
 
@@ -14,7 +16,7 @@ function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, viewRole } = useAuth();
-  const [activeServices, setActiveServices] = useState([]);
+  // const [activeServices, setActiveServices] = useState([]);
   const [currentServiceIndex, setCurrentServiceIndex] = useState(0);
   const [carouselIndex, setCarouselIndex] = useState(0); // Índice independiente del carrusel
   const [searchResults, setSearchResults] = useState(null);
@@ -24,8 +26,8 @@ function Home() {
   const [categoryProviders, setCategoryProviders] = useState([]);
   const [loadingProviders, setLoadingProviders] = useState(false);
   const [firstImageLoaded, setFirstImageLoaded] = useState(false);
-  const [allImagesLoaded, setAllImagesLoaded] = useState(false);
-  const [isCarouselHovered, setIsCarouselHovered] = useState(false);
+  // const [allImagesLoaded, setAllImagesLoaded] = useState(false);
+  // const [isCarouselHovered, setIsCarouselHovered] = useState(false);
   // Map de providerCount por categoría (de la API)
   const [providerCountByCategory, setProviderCountByCategory] = useState({});
   // Flag para saber si ya cargaron los datos de la API
@@ -52,7 +54,7 @@ function Home() {
 
     const result = [];
     let wpIndex = 0;
-    withoutProviders.forEach((cat, i) => {
+    withoutProviders.forEach((cat) => {
       result.push({ ...cat });
       result.push({ ...withProviders[wpIndex] });
       wpIndex = (wpIndex + 1) % withProviders.length;
@@ -85,22 +87,30 @@ function Home() {
     return Object.values(providerCountByCategory).filter(count => count > 0).length;
   }, [providerCountByCategory]);
 
-  // Categorías ordenadas: primero las que tienen proveedores, luego las que no
-  // Para la sección de tarjetas de servicios, evitar duplicados y mantener el orden original
+  // Categorías ordenadas SOLO para la sección "Explora nuestros servicios":
+  // 1. Primero las que tienen proveedores (orden original de SERVICE_CATEGORIES_WITH_DESCRIPTION)
+  // 2. Luego las que no tienen proveedores (badge 'Próximamente'), también en orden original
   const sortedCategoriesForCards = useMemo(() => {
-    const seen = new Set();
-    return allCategoriesWithProviders.filter(cat => {
-      if (seen.has(cat.category)) return false;
-      seen.add(cat.category);
-      return true;
-    }).sort((a, b) => {
-      // Categorías con proveedores primero
-      if (a.hasProviders && !b.hasProviders) return -1;
-      if (!a.hasProviders && b.hasProviders) return 1;
-      // Dentro del mismo grupo, ordenar por cantidad de proveedores (mayor primero)
-      return b.providerCount - a.providerCount;
+    const withProviders = [];
+    const withoutProviders = [];
+    SERVICE_CATEGORIES_WITH_DESCRIPTION.forEach((cat, idx) => {
+      const providerCount = providerCountByCategory[cat.value] || 0;
+      const hasProviders = dataLoaded ? providerCount > 0 : true;
+      const card = {
+        category: cat.value,
+        description: cat.description,
+        providerCount,
+        hasProviders,
+        instanceId: `cat-${cat.value}-${idx}`
+      };
+      if (hasProviders) {
+        withProviders.push(card);
+      } else {
+        withoutProviders.push(card);
+      }
     });
-  }, [allCategoriesWithProviders]);
+    return [...withProviders, ...withoutProviders];
+  }, [providerCountByCategory, dataLoaded]);
 
   useEffect(() => {
     if (isAuthenticated && viewRole === 'provider') {
@@ -126,7 +136,7 @@ function Home() {
         const { data } = await api.get('/guest/services/active');
         console.log('API Response - Active Services:', data);
         if (data?.data?.services && data.data.services.length > 0) {
-          setActiveServices(data.data.services);
+          // setActiveServices(data.data.services);
           setAllCategories(data.data.services);
           // Crear mapa de providerCount por categoría
           const countMap = {};
@@ -173,11 +183,26 @@ function Home() {
       });
       
       await Promise.all(remainingImages);
-      setAllImagesLoaded(true);
+      // setAllImagesLoaded(true);
     };
     
     loadImages();
   }, [firstImageLoaded, allCategoriesWithProviders]);
+
+  // Efecto para desplazar el carrusel de servicios al inicio cuando se cargan las categorías
+useEffect(() => {
+  if (sortedCategoriesForCards.length > 0 && !searchResults && !selectedCategory && dataLoaded) {
+    // Pequeño delay para asegurar que el DOM esté renderizado
+    const timer = setTimeout(() => {
+      const container = document.getElementById('services-carousel');
+      if (container) {
+        container.scrollLeft = 0;
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }
+}, [sortedCategoriesForCards, searchResults, selectedCategory, dataLoaded]);
 
   // Rotar fondo del hero cada 8 segundos (lento para mejor UX visual)
   // El fondo NO se pausa cuando el mouse está sobre el carrusel - son independientes
@@ -397,7 +422,6 @@ function Home() {
                       currentIndex={carouselIndex}
                       onIndexChange={setCarouselIndex}
                       onCategoryClick={handleCategoryClick}
-                      onHoverChange={setIsCarouselHovered}
                       autoRotate={true}
                       rotationInterval={2800}
                     />
@@ -593,7 +617,7 @@ function Home() {
           </div>
 
           {/* Carrusel horizontal con scroll suave */}
-          <div className="relative -mx-4 sm:-mx-6 lg:-mx-8">
+          <div className="relative">
             {/* Botón izquierdo (solo en desktop) */}
             <button
               onClick={() => {
@@ -602,7 +626,7 @@ function Home() {
                   container.scrollBy({ left: -400, behavior: 'smooth' });
                 }
               }}
-              className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-xl items-center justify-center hover:bg-brand-50 transition-colors duration-200 group"
+              className="hidden lg:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-xl items-center justify-center hover:bg-brand-50 transition-colors duration-200 group"
               aria-label="Anterior"
             >
               <svg className="w-6 h-6 text-gray-600 group-hover:text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -613,7 +637,7 @@ function Home() {
             {/* Contenedor del carrusel */}
             <div
               id="services-carousel"
-              className="overflow-x-auto overflow-y-visible scrollbar-hide px-4 sm:px-6 lg:px-8 pb-4"
+              className="overflow-x-auto overflow-y-visible scrollbar-hide pl-4 sm:pl-6 lg:pl-8 pr-4 sm:pr-6 lg:pr-8 pb-4"
               style={{
                 scrollSnapType: 'x mandatory',
                 scrollbarWidth: 'none',
@@ -624,8 +648,9 @@ function Home() {
                 {sortedCategoriesForCards.map((service) => (
                   <div
                     key={service.instanceId}
-                    className="w-[320px] sm:w-[360px] shrink-0"
+                    className={`w-[320px] sm:w-[360px] shrink-0${service.hasProviders ? ' service-card-with-providers' : ''}`}
                     style={{ scrollSnapAlign: 'start' }}
+                    data-has-providers={service.hasProviders ? 'true' : 'false'}
                   >
                     <ServiceCategoryCard
                       category={service.category}
@@ -648,7 +673,7 @@ function Home() {
                   container.scrollBy({ left: 400, behavior: 'smooth' });
                 }
               }}
-              className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-xl items-center justify-center hover:bg-brand-50 transition-colors duration-200 group"
+              className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-xl items-center justify-center hover:bg-brand-50 transition-colors duration-200 group"
               aria-label="Siguiente"
             >
               <svg className="w-6 h-6 text-gray-600 group-hover:text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
