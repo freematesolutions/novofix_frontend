@@ -60,7 +60,7 @@ function CategoryIconCarousel({
     while (relativeIndex < -totalItems / 2) relativeIndex += totalItems;
     
     // Agregar offset del drag (en unidades de índice)
-    relativeIndex -= dragOffset / 100;
+    relativeIndex += dragOffset / 100;
 
     // SOLO mostrar 3 tarjetas: la central y una a cada lado
     // Si está más lejos de 1.5 posiciones, no es visible
