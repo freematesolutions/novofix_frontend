@@ -175,7 +175,7 @@ function CategoryIconCarousel({
     
     // Calcular cuántos items mover basado en el drag y aplicar al offset continuo
     const threshold = 50;
-    const itemsToMove = Math.round(dragOffset / -threshold);
+    const itemsToMove = Math.round(dragOffset / threshold);
     
     if (itemsToMove !== 0) {
       // Actualizar el offset continuo directamente

@@ -490,30 +490,7 @@ useEffect(() => {
                   </div>
                 </div>
 
-                {/* Indicadores de navegación de categorías - Línea independiente */}
-                {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
-                  <div 
-                    className="flex items-center justify-center gap-1.5 sm:gap-2 py-2"
-                    role="tablist"
-                    aria-label="Navegación de categorías"
-                  >
-                    {allCategoriesWithProviders.map((service, index) => (
-                      <button
-                        key={service.category + '-' + index}
-                        onClick={() => setCurrentServiceIndex(index)}
-                        className={`transition-all duration-300 rounded-full focus:outline-none focus:ring-2 focus:ring-white/50 ${
-                          index === currentServiceIndex
-                            ? 'w-6 sm:w-8 lg:w-6 xl:w-8 h-2 sm:h-2.5 lg:h-2 bg-white shadow-lg shadow-white/30'
-                            : 'w-2 sm:w-2.5 lg:w-2 h-2 sm:h-2.5 lg:h-2 bg-white/30 hover:bg-white/50'
-                        }`}
-                        role="tab"
-                        aria-selected={index === currentServiceIndex}
-                        aria-label={`Ver ${service.category}`}
-                        tabIndex={index === currentServiceIndex ? 0 : -1}
-                      />
-                    ))}
-                  </div>
-                )}
+                {/* Indicadores de navegación de categorías eliminados para simplificar la UI y mejorar la experiencia en móvil */}
 
                 {/* Botón Ver más - Destacado en línea independiente */}
                 <button
