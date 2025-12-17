@@ -150,7 +150,7 @@ function Modal({ open, title, children, onClose, actions, size = 'md', icon: Ico
           
           {/* Footer con acciones */}
           {actions && (
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex justify-end gap-3">
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex flex-col xs:flex-row gap-2 xs:gap-3 items-center xs:justify-end">
               {actions}
             </div>
           )}

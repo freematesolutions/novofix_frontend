@@ -793,13 +793,13 @@ export default function RequestDetail() {
           title="Mejora tu plan para enviar propuestas"
           onClose={() => setUpgrade({ show: false, message: '' })}
           actions={
-            <>
-              <Button variant="secondary" onClick={() => { setUpgrade({ show: false, message: '' }); navigate('/mensajes?upgrade=1'); }}>Ver bandeja</Button>
-              <Button onClick={() => { setUpgrade({ show: false, message: '' }); navigate('/plan'); }}>Ver planes</Button>
-            </>
+            <div className="flex flex-col xs:flex-row gap-2 w-full xs:w-auto">
+              <Button variant="secondary" className="w-full xs:w-auto" onClick={() => { setUpgrade({ show: false, message: '' }); navigate('/mensajes?upgrade=1'); }}>Ver bandeja</Button>
+              <Button className="w-full xs:w-auto" onClick={() => { setUpgrade({ show: false, message: '' }); navigate('/plan'); }}>Ver planes</Button>
+            </div>
           }
         >
-          <p className="text-sm text-gray-700">{upgrade.message || 'Para continuar, activa una suscripción o mejora tu plan y aumenta tu límite de leads.'}</p>
+          <p className="text-sm text-gray-700 text-center xs:text-left px-1 xs:px-0">{upgrade.message || 'Para continuar, activa una suscripción o mejora tu plan y aumenta tu límite de leads.'}</p>
         </Modal>
       </div>
     </div>

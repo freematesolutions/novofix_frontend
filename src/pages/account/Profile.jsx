@@ -255,12 +255,12 @@ export default function Profile() {
         </div>
         
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 sm:pt-10 sm:pb-20">
-          <div className="flex flex-col sm:flex-row items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
             {/* Avatar con efectos premium */}
-            <div className="relative group">
+            <div className="relative group flex flex-col items-center justify-center sm:block">
               {/* Glow effect */}
               <div className="absolute -inset-2 bg-white/30 rounded-full blur-xl group-hover:bg-white/40 transition-all duration-500"></div>
-              <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white/20 backdrop-blur-sm ring-4 ring-white/50 overflow-hidden shadow-2xl">
+              <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-white/20 backdrop-blur-sm ring-4 ring-white/50 overflow-hidden shadow-2xl transition-all duration-300">
                 {avatar ? (
                   <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -305,20 +305,20 @@ export default function Profile() {
                 )}
               </div>
               {/* Verified badge */}
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center">
+              <div className="absolute -bottom-1 -right-1 w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-full shadow-lg flex items-center justify-center">
                 <HiBadgeCheck className={`w-6 h-6 ${accent.text}`} />
               </div>
             </div>
             
             {/* User info */}
-            <div className="text-center sm:text-left text-white">
+            <div className="flex-1 text-center sm:text-left text-white mt-4 sm:mt-0">
               <h1 className="text-2xl sm:text-3xl font-bold drop-shadow-lg">
                 {form.firstName || form.lastName ? `${form.firstName} ${form.lastName}` : 'Mi Perfil'}
               </h1>
               <p className="text-white/80 text-sm sm:text-base mt-1">
                 {user?.email || 'Configura tu perfil'}
               </p>
-              <div className="flex items-center justify-center sm:justify-start gap-2 mt-3">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm`}>
                   <HiSparkles className="w-4 h-4" />
                   {viewRole === 'admin' ? 'Administrador' : viewRole === 'provider' ? 'Proveedor' : 'Cliente'}
@@ -334,7 +334,7 @@ export default function Profile() {
             
             {/* Quick actions */}
             {showProviderTab && activeTab === 'provider' && (
-              <div className="sm:ml-auto">
+              <div className="w-full sm:w-auto sm:ml-auto mt-4 sm:mt-0 flex justify-center sm:block">
                 <button
                   onClick={saveAll}
                   className="group flex items-center gap-2 px-5 py-2.5 bg-white text-gray-800 font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
@@ -349,7 +349,7 @@ export default function Profile() {
       </div>
       
       {/* Main content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-10 pb-8">
+      <div className="max-w-4xl mx-auto px-2 sm:px-6 lg:px-8 -mt-10 relative z-10 pb-8">
         {/* Tabs con diseño premium */}
         <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden mb-6">
           <div className="flex items-center border-b border-gray-100 p-1.5 bg-gray-50/50">
@@ -398,28 +398,6 @@ export default function Profile() {
           {/* Panel: Datos personales */}
           <section ref={personalSectionRef} hidden={activeTab !== 'personal'} className="p-6 sm:p-8">
             <div className="space-y-6">
-              {/* Sección de foto de perfil - diseño compacto en header ya muestra el avatar */}
-              <div className={`bg-linear-to-br ${accent.lightGradient} rounded-2xl p-6 border ${accent.border}`}>
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl bg-linear-to-br ${accent.gradient} flex items-center justify-center shadow-lg`}>
-                    <HiCamera className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">Foto de perfil</h3>
-                    <p className="text-sm text-gray-600">Haz clic en tu avatar arriba para cambiar tu foto</p>
-                  </div>
-                  <label className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer shadow-sm transition-all duration-200">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarChange}
-                      disabled={uploadingAvatar}
-                      className="hidden"
-                    />
-                    {uploadingAvatar ? 'Subiendo...' : 'Cambiar foto'}
-                  </label>
-                </div>
-              </div>
               
               {/* Form fields con diseño premium */}
               <form ref={personalRef} onSubmit={onSave} className="space-y-5">
@@ -503,22 +481,26 @@ export default function Profile() {
           {showProviderTab && (
             <section ref={providerSectionRef} hidden={activeTab !== 'provider'} className="p-6 sm:p-8">
               {viewRole !== 'provider' && (
-                <div className="mb-6 flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <HiSparkles className="w-5 h-5 text-amber-600" />
+                <div className="mb-6 p-3 sm:p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    {/* Contenido principal: icono + texto */}
+                    <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                        <HiSparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                      </div>
+                      <p className="text-sm text-amber-800 leading-relaxed">
+                        Estás en modo Cliente. Para una experiencia completa, cambia a modo Proveedor.
+                      </p>
+                    </div>
+                    {/* Botón de acción */}
+                    <button 
+                      type="button" 
+                      className="px-3 sm:px-4 py-2 bg-amber-600 text-white font-medium rounded-lg hover:bg-amber-700 transition-colors text-xs sm:text-sm whitespace-nowrap shrink-0 self-end sm:self-center"
+                      onClick={() => changeViewRole('provider')}
+                    >
+                      Cambiar modo
+                    </button>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-amber-800">
-                      Estás en modo Cliente. Para una experiencia completa, cambia a modo Proveedor.
-                    </p>
-                  </div>
-                  <button 
-                    type="button" 
-                    className="px-4 py-2 bg-amber-600 text-white font-medium rounded-lg hover:bg-amber-700 transition-colors text-sm"
-                    onClick={() => changeViewRole('provider')}
-                  >
-                    Cambiar modo
-                  </button>
                 </div>
               )}
 

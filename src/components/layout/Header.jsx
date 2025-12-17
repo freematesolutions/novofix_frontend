@@ -1796,26 +1796,34 @@ function Header() {
     </header>
     {isAuthenticated && viewRole==='provider' && upgradeHint.show && (
       <div className="bg-linear-to-r from-amber-50 via-amber-100/80 to-amber-50 border-b border-amber-200 text-amber-900 text-sm shadow-sm">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-200/50 flex items-center justify-center shrink-0 shadow-inner">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5 text-amber-600"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.6A1.75 1.75 0 0116.768 17H3.232a1.75 1.75 0 01-1.492-2.302l6.517-11.6zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a.75.75 0 01-.75-.75v-3.5a.75.75 0 011.5 0v3.5A.75.75 0 0110 12z" clipRule="evenodd"/></svg>
+        <div className="container mx-auto px-3 sm:px-4 py-3">
+          {/* Layout responsive: stack en móvil, row en desktop */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            {/* Contenido principal: icono + texto */}
+            <div className="flex items-start sm:items-center gap-3 min-w-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-200/50 flex items-center justify-center shrink-0 shadow-inner">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.6A1.75 1.75 0 0116.768 17H3.232a1.75 1.75 0 01-1.492-2.302l6.517-11.6zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a.75.75 0 01-.75-.75v-3.5a.75.75 0 011.5 0v3.5A.75.75 0 0110 12z" clipRule="evenodd"/></svg>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-amber-800 text-sm">¡Impulsa tu negocio!</p>
+                <p className="text-amber-700 text-xs leading-relaxed line-clamp-2">{upgradeHint.reason || 'Aumenta tu visibilidad y leads mejorando tu plan.'}</p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-amber-800">¡Impulsa tu negocio!</p>
-              <p className="text-amber-700 text-xs">{upgradeHint.reason || 'Aumenta tu visibilidad y leads mejorando tu plan.'}</p>
+            {/* Botones de acción: inline en móvil, shrink-0 en desktop */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0 self-end sm:self-center">
+              <Link to="/plan" className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl text-white bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 shadow-md shadow-amber-500/20 hover:shadow-lg transition-all duration-300 hover:scale-105 whitespace-nowrap">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                Ver planes
+              </Link>
+              <button 
+                className="text-xs font-medium text-amber-700 hover:text-amber-800 hover:bg-amber-200/50 px-2 py-1.5 rounded-lg transition-colors whitespace-nowrap" 
+                onClick={()=>{ try { localStorage.removeItem('upgrade_hint'); } catch {/* ignore storage errors */}; setUpgradeHint({ show: false, reason: '' }); }}
+              >
+                Ocultar
+              </button>
             </div>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <Link to="/plan" className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl text-white bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 shadow-md shadow-amber-500/20 hover:shadow-lg transition-all duration-300 hover:scale-105">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              Ver planes
-            </Link>
-            <button className="text-xs font-medium text-amber-700 hover:text-amber-800 hover:bg-amber-200/50 px-2 py-1 rounded-lg transition-colors" onClick={()=>{ try { localStorage.removeItem('upgrade_hint'); } catch {/* ignore storage errors */}; setUpgradeHint({ show: false, reason: '' }); }}>
-              Ocultar
-            </button>
           </div>
         </div>
       </div>
