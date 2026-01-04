@@ -4,6 +4,9 @@ import Header from './components/layout/Header.jsx';
 import Footer from './components/layout/Footer.jsx';
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx';
 import Spinner from './components/ui/Spinner.jsx';
+import VerifyEmail from './pages/auth/VerifyEmail.jsx';
+import { useAuth } from './state/AuthContext.jsx';
+import { useLocation } from 'react-router-dom';
 
 // Lazy-loaded pages for code-splitting
 const Home = lazy(() => import('./pages/Home.jsx'));
@@ -40,11 +43,16 @@ const AdminReports = lazy(() => import('./pages/admin/Reports.jsx'));
 const AdminAlerts = lazy(() => import('./pages/admin/AdminAlerts.jsx'));
 
 function App() {
+  const { pendingVerification, user } = useAuth();
+  const location = useLocation();
+  // Ocultar header SOLO en /verificar-email si hay verificación pendiente o usuario no verificado
+  const isVerifyRoute = location.pathname.startsWith('/verificar-email');
+  const hideHeader = isVerifyRoute && (pendingVerification || (user && user.emailVerified !== true));
   return (
     <div className="min-h-screen flex flex-col">
       {/* Skip link for keyboard users */}
       <a href="#main-content" className="skip-link">Saltar al contenido</a>
-      <Header />
+      {!hideHeader && <Header />}
       <ErrorBoundary>
       <main id="main-content" role="main" tabIndex="-1" className="flex-1 container mx-auto px-4 py-6">
         <Suspense fallback={<div className="flex items-center gap-2 text-gray-600"><Spinner size="sm"/> Cargando...</div>}>
@@ -73,6 +81,7 @@ function App() {
           <Route path="/reservas" element={<Bookings />} />
           <Route path="/notificaciones" element={<Notifications />} />
           <Route path="/payment/:intentId" element={<Payment />} />
+          <Route path="/verificar-email" element={<VerifyEmail />} />
           {/* Admin */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/usuarios" element={<AdminUsers />} />

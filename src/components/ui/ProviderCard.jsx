@@ -68,7 +68,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
   // Handle view profile
   const handleViewProfile = (e) => {
     e?.stopPropagation();
-    setShowProfile(true);
+    setShowProfile('about');
     onSelect?.(provider);
   };
 
@@ -94,8 +94,25 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
       {/* Modern Provider Card */}
       <div 
         onClick={handleViewProfile}
-        className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-brand-200 transition-all duration-300 cursor-pointer overflow-hidden"
+        className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-brand-200 transition-all duration-300 cursor-pointer overflow-hidden mx-auto w-[90vw] sm:w-[80vw] md:w-[70vw] lg:w-[60vw] xl:w-[50vw] max-w-2xl min-w-65 min-h-80 max-h-105"
       >
+        {/* Plan badge + Score/Rating in header */}
+        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+          {/* Score badge */}
+          {score > 0 && (
+            <div className="shrink-0 flex items-center gap-1 bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+              <span className="text-sm font-bold">{typeof score === 'number' ? score.toFixed(1) : score}</span>
+            </div>
+          )}
+          {/* Plan badge */}
+          <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full shadow-lg ${planInfo.gradient}`}>
+            <span className="text-xs">{planInfo.icon}</span>
+            <span className={`text-xs font-bold ${plan === 'free' ? '' : 'text-white'}`}>{planInfo.label}</span>
+          </div>
+        </div>
         {/* Gradient top border on hover */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-brand-400 via-brand-500 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
         
@@ -117,15 +134,6 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                   {businessName.charAt(0).toUpperCase()}
                 </div>
               )}
-              
-              {/* Plan badge on avatar */}
-              <div className={`absolute -bottom-2 -right-2 ${planInfo.gradient} px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1`}>
-                <span className="text-xs">{planInfo.icon}</span>
-                <span className={`text-xs font-bold ${plan === 'free' ? '' : 'text-white'}`}>
-                  {planInfo.label}
-                </span>
-              </div>
-
               {/* Verified badge */}
               <div className="absolute -top-1 -left-1 w-7 h-7 bg-white rounded-full shadow-md flex items-center justify-center">
                 <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
@@ -136,21 +144,11 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
 
             {/* Info Section */}
             <div className="flex-1 min-w-0">
-              {/* Header with name and score */}
+              {/* Header with name only (score y plan ya están en la esquina superior) */}
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="text-lg sm:text-xl font-bold text-gray-900 truncate group-hover:text-brand-600 transition-colors">
                   {businessName}
                 </h3>
-                
-                {/* Score badge */}
-                {score > 0 && (
-                  <div className="shrink-0 flex items-center gap-1 bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
-                    <span className="text-sm font-bold">{typeof score === 'number' ? score.toFixed(1) : score}</span>
-                  </div>
-                )}
               </div>
 
               {/* Rating */}
@@ -193,17 +191,25 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                   <div 
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleViewProfile(e);
-                      onViewPortfolio?.(provider);
+                      setShowProfile('portfolio');
+                        // showProfile puede ser false o un string con la pestaña inicial
+                      setTimeout(() => {
+                        const modal = document.querySelector('.ProviderProfileModal');
+                        if (modal) {
+                          const tabBtns = modal.querySelectorAll('button');
+                          tabBtns.forEach(btn => {
+                            if (btn.textContent?.toLowerCase().includes('portafolio')) btn.click();
+                          });
+                        }
+                      }, 200);
                     }}
-                    className="flex items-center gap-1.5 bg-purple-50 px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-purple-100 transition-colors"
+                    className="flex items-center gap-2 bg-linear-to-r from-purple-500 to-pink-500 px-3 py-2 rounded-xl cursor-pointer shadow-md hover:scale-105 hover:shadow-lg transition-all text-white font-semibold text-sm"
+                    title="Explora mis trabajos"
                   >
-                    <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span className="text-xs sm:text-sm text-gray-600">
-                      <b className="text-gray-900">{portfolio.length}</b> trabajos
-                    </span>
+                    Explora mis trabajos
                   </div>
                 )}
               </div>
@@ -237,7 +243,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
-                  <span className="underline underline-offset-2">Consultar precio</span>
+                  <span className="underline underline-offset-2">Enviar Solicitud</span>
                 </button>
 
                 <span className="text-gray-300">|</span>
@@ -267,9 +273,10 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
 
       {/* Provider Profile Modal */}
       <ProviderProfileModal
-        isOpen={showProfile}
+        isOpen={!!showProfile}
         onClose={() => setShowProfile(false)}
         provider={provider}
+        initialTab={showProfile === 'portfolio' ? 'portfolio' : 'about'}
       />
 
       {/* Request Wizard Modal */}

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import ChatRoom from '@/components/ui/ChatRoom.jsx';
@@ -14,6 +14,7 @@ import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketCli
  */
 export default function Messages() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { viewRole, clearError, user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -25,6 +26,16 @@ export default function Messages() {
   
   // Limpiar errores al montar
   useEffect(() => { clearError?.(); }, [clearError]);
+
+  // Leer chatId de query params y seleccionarlo automáticamente
+  useEffect(() => {
+    const chatFromUrl = searchParams.get('chat');
+    if (chatFromUrl && chatFromUrl !== selectedChatId) {
+      setSelectedChatId(chatFromUrl);
+      // Limpiar el param de la URL para evitar reseleccionar
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, selectedChatId, setSearchParams]);
 
   // Redirigir si no está autenticado
   useEffect(() => {
@@ -209,7 +220,7 @@ export default function Messages() {
           </div>
 
           {/* Chat Items */}
-          <div className="max-h-[500px] overflow-auto">
+          <div className="max-h-125 overflow-auto">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="w-8 h-8 rounded-full border-3 border-brand-100 border-t-brand-500 animate-spin" />
@@ -317,14 +328,14 @@ export default function Messages() {
               <ChatRoom
                 chatId={selectedChatId}
                 currentUserId={user?._id}
-                className="h-[500px] lg:h-[600px]"
+                className="h-125 lg:h-150"
                 showHeader={true}
                 participantName={getParticipantName(selectedChat)}
                 onChatError={(err) => setError(err)}
               />
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-[500px] lg:h-[600px] flex flex-col items-center justify-center p-8">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-125 lg:h-150 flex flex-col items-center justify-center p-8">
               <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-brand-100 to-cyan-100 flex items-center justify-center mb-4">
                 <svg className="w-10 h-10 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />

@@ -27,7 +27,7 @@ const STATUS_FLOW = {
 };
 
 export default function Bookings() {
-  const { role, viewRole, clearError, isAuthenticated } = useAuth();
+  const { viewRole, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
@@ -696,7 +696,7 @@ export default function Bookings() {
                 Estado
               </label>
               <select 
-                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300 min-w-[180px]" 
+                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300 min-w-45" 
                 value={statusFilter} 
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -1580,7 +1580,7 @@ export default function Bookings() {
       <Modal open={lightboxOpen} onClose={()=> setLightboxOpen(false)} title={`Evidencia (${lightboxIndex+1}/${lightboxItems.length})`}>
         <div className="flex flex-col items-center gap-4">
           {/* Media viewer */}
-          <div className="relative w-full flex items-center justify-center bg-gray-900/5 rounded-2xl overflow-hidden min-h-[300px]">
+          <div className="relative w-full flex items-center justify-center bg-gray-900/5 rounded-2xl overflow-hidden min-h-75">
             {lightboxItems[lightboxIndex] && (
               lightboxItems[lightboxIndex].kind === 'image' ? (
                 <img src={lightboxItems[lightboxIndex].url} alt="evidencia" className="max-h-[70vh] w-auto rounded-xl shadow-2xl" />

@@ -30,6 +30,8 @@ function Home() {
   // const [isCarouselHovered, setIsCarouselHovered] = useState(false);
   // Map de providerCount por categoría (de la API)
   const [providerCountByCategory, setProviderCountByCategory] = useState({});
+  // Total de proveedores únicos (de la API)
+  const [totalUniqueProviders, setTotalUniqueProviders] = useState(0);
   // Flag para saber si ya cargaron los datos de la API
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -76,11 +78,6 @@ function Home() {
 
     return result;
   }, [providerCountByCategory, dataLoaded]);
-
-  // Total de proveedores reales en el sistema
-  const totalProviders = useMemo(() => {
-    return Object.values(providerCountByCategory).reduce((sum, count) => sum + count, 0);
-  }, [providerCountByCategory]);
 
   // Cantidad de categorías con proveedores activos
   const categoriesWithProviders = useMemo(() => {
@@ -134,7 +131,7 @@ function Home() {
     const fetchActiveServices = async () => {
       try {
         const { data } = await api.get('/guest/services/active');
-        console.log('API Response - Active Services:', data);
+        // console.log('API Response - Active Services:', data);
         if (data?.data?.services && data.data.services.length > 0) {
           // setActiveServices(data.data.services);
           setAllCategories(data.data.services);
@@ -143,10 +140,14 @@ function Home() {
           data.data.services.forEach(service => {
             countMap[service.category] = service.providerCount || 0;
           });
-          console.log('Provider Count Map:', countMap);
+          // console.log('Provider Count Map:', countMap);
           setProviderCountByCategory(countMap);
+          // Guardar el total de proveedores únicos
+          if (data.data.totalUniqueProviders !== undefined) {
+            setTotalUniqueProviders(data.data.totalUniqueProviders);
+          }
         } else {
-          console.log('No services with providers found in API response');
+          // console.log('No services with providers found in API response');
         }
         // Marcar que los datos ya cargaron
         setDataLoaded(true);
@@ -157,8 +158,8 @@ function Home() {
         img.src = firstImageUrl;
         img.onload = () => setFirstImageLoaded(true);
         img.onerror = () => setFirstImageLoaded(true);
-      } catch (error) {
-        console.error('Error fetching active services:', error);
+      } catch {
+        // console.error('Error fetching active services:', error);
         // En caso de error, igual mostrar las categorías y marcar como cargado
         setDataLoaded(true);
         setFirstImageLoaded(true);
@@ -240,8 +241,8 @@ useEffect(() => {
         const { data } = await api.get(endpoint, { params });
         setSearchResults(data?.data?.providers || []);
       }
-    } catch (error) {
-      console.error('Error searching:', error);
+    } catch {
+      // console.error('Error searching:', error);
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -280,7 +281,7 @@ useEffect(() => {
 
   // Manejar clic en categoría
   const handleCategoryClick = async (category) => {
-    console.log('Home: handleCategoryClick llamado con:', category);
+    // console.log('Home: handleCategoryClick llamado con:', category);
     setSelectedCategory(category);
     setSearchResults(null);
     setLoadingProviders(true);
@@ -290,8 +291,8 @@ useEffect(() => {
         params: { category, limit: 50 }
       });
       setCategoryProviders(data?.data?.providers || []);
-    } catch (error) {
-      console.error('Error fetching providers for category:', error);
+    } catch {
+      // console.error('Error fetching providers for category:', error);
       setCategoryProviders([]);
     } finally {
       setLoadingProviders(false);
@@ -299,13 +300,13 @@ useEffect(() => {
   };
 
   // Manejar selección de proveedor - ahora manejado por ProviderCard
-  const handleProviderSelect = (provider) => {
-    console.log('Provider profile viewed:', provider);
+  const handleProviderSelect = () => {
+    // console.log('Provider profile viewed');
   };
 
   // Manejar vista de portafolio - ahora manejado por ProviderCard
-  const handleViewPortfolio = (provider) => {
-    console.log('Provider portfolio viewed:', provider);
+  const handleViewPortfolio = () => {
+    // console.log('Provider portfolio viewed');
   };
 
   return (
@@ -316,7 +317,7 @@ useEffect(() => {
           {/* Hero Section - Altura fija que garantiza visibilidad de todo el contenido */}
           {/* Usa min-height fijo para evitar cortes en resoluciones landscape (1024x600, 1280x720) */}
           <div 
-            className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-[380px] sm:min-h-[400px] md:min-h-[420px] lg:min-h-[380px] xl:min-h-[450px] 2xl:min-h-[500px]"
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-95 sm:min-h-100 md:min-h-105 lg:min-h-95 xl:min-h-112.5 2xl:min-h-125"
           >
             {/* Contenedor de imágenes de fondo con transiciones suaves */}
             <div className="absolute inset-0">
@@ -459,7 +460,7 @@ useEffect(() => {
                       boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                     }}
                   >
-                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">{allCategoriesWithProviders.length}+</span>
+                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">{SERVICE_CATEGORIES_WITH_DESCRIPTION.length}+</span>
                     <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">Servicios</span>
                   </div>
                   <div 
@@ -472,7 +473,7 @@ useEffect(() => {
                       boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                     }}
                   >
-                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">{totalProviders > 0 ? totalProviders : '—'}+</span>
+                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">{totalUniqueProviders > 0 ? totalUniqueProviders : '—'}+</span>
                     <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">Profesionales</span>
                   </div>
                   <div 
@@ -625,7 +626,7 @@ useEffect(() => {
                 {sortedCategoriesForCards.map((service) => (
                   <div
                     key={service.instanceId}
-                    className={`w-[320px] sm:w-[360px] shrink-0${service.hasProviders ? ' service-card-with-providers' : ''}`}
+                    className={`w-[320px] sm:w-90 shrink-0${service.hasProviders ? ' service-card-with-providers' : ''}`}
                     style={{ scrollSnapAlign: 'start' }}
                     data-has-providers={service.hasProviders ? 'true' : 'false'}
                   >
@@ -698,7 +699,7 @@ useEffect(() => {
       )}
 
       {/* Sección de Beneficios - Después de las tarjetas de servicios */}
-      {searchResults === null && !selectedCategory && allCategories.length > 0 && (
+      {searchResults === null && !selectedCategory && (
         <div id="benefits-section" className="py-8 scroll-mt-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
@@ -780,44 +781,70 @@ useEffect(() => {
       {/* Vista de proveedores por categoría */}
       {selectedCategory && (
         <div className="w-full">
-          <div className="bg-white rounded-xl border p-6">
-            {loadingProviders && (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
-                <p className="mt-4 text-gray-600">Cargando profesionales...</p>
-              </div>
-            )}
+          <div
+            className="relative rounded-xl border p-6 overflow-hidden min-h-100"
+            style={{
+              backgroundImage: `url(${CATEGORY_IMAGES[selectedCategory] || CATEGORY_IMAGES['Otro']})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+            }}
+          >
+            {/* Overlay para oscurecer y mejorar contraste */}
+            <div className="absolute inset-0 bg-linear-to-br from-gray-900/80 via-brand-900/60 to-gray-900/80 pointer-events-none z-0" />
 
-            {!loadingProviders && categoryProviders.length === 0 && (
-              <div className="text-center py-16 bg-gray-50 rounded-xl">
-                <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                <p className="mt-4 text-gray-700 font-semibold text-lg">No hay profesionales disponibles</p>
-                <p className="mt-2 text-gray-500 text-sm">Intenta buscar en otra categoría o realiza una búsqueda personalizada</p>
-              </div>
-            )}
-
-            {!loadingProviders && categoryProviders.length > 0 && (
-              <>
-                {/* Título estilizado igual que búsqueda */}
-                <h2 className="text-xl font-bold mb-4">
-                  {categoryProviders.length} {categoryProviders.length === 1 ? 'profesional encontrado' : 'profesionales encontrados'}
-                </h2>
-
-                {/* Grid de proveedores */}
-                <div className="grid gap-6">
-                  {categoryProviders.map((provider) => (
-                    <ProviderCard
-                      key={provider._id}
-                      provider={provider}
-                      onSelect={handleProviderSelect}
-                      onViewPortfolio={handleViewPortfolio}
-                    />
-                  ))}
+            <div className="relative z-10">
+              {loadingProviders && (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
+                  <p className="mt-4 text-gray-100">Cargando profesionales...</p>
                 </div>
-              </>
-            )}
+              )}
+
+              {!loadingProviders && categoryProviders.length === 0 && (
+                <div className="text-center py-16 bg-gray-50/80 rounded-xl">
+                  <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  <p className="mt-4 text-gray-700 font-semibold text-lg">No hay profesionales disponibles</p>
+                  <p className="mt-2 text-gray-500 text-sm">Intenta buscar en otra categoría o realiza una búsqueda personalizada</p>
+                </div>
+              )}
+
+              {!loadingProviders && categoryProviders.length > 0 && (
+                <>
+                  {/* Título estilizado igual que búsqueda, ahora con nombre de categoría */}
+                  <h2 className="text-xl font-bold mb-4 text-white drop-shadow-lg">
+                    {categoryProviders.length} {categoryProviders.length === 1 ? 'profesional encontrado' : 'profesionales encontrados'} en <span className="capitalize text-brand-200">{selectedCategory}</span>
+                  </h2>
+
+                  {/* Grid de proveedores */}
+                  <div className="grid gap-6">
+                    {categoryProviders
+                      .slice() // Copia para no mutar el estado
+                      .sort((a, b) => {
+                        // Ordenar por rating promedio (desc)
+                        const ratingA = a.providerProfile?.rating?.average ?? 0;
+                        const ratingB = b.providerProfile?.rating?.average ?? 0;
+                        if (ratingB !== ratingA) return ratingB - ratingA;
+                        // Si el rating es igual, ordenar por plan (PRO > BASIC > FREE)
+                        const planOrder = { pro: 3, basic: 2, free: 1 };
+                        const planA = planOrder[a.subscription?.plan] || 0;
+                        const planB = planOrder[b.subscription?.plan] || 0;
+                        return planB - planA;
+                      })
+                      .map((provider) => (
+                        <ProviderCard
+                          key={provider._id}
+                          provider={provider}
+                          onSelect={handleProviderSelect}
+                          onViewPortfolio={handleViewPortfolio}
+                        />
+                      ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

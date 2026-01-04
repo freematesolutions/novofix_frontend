@@ -9,7 +9,10 @@ import SearchBar from '@/components/ui/SearchBar.jsx';
 import api from '@/state/apiClient.js';
 
 function Header() {
-  const { user, role, roles, viewRole, isAuthenticated, changeViewRole, clearViewRoleLock, logout } = useAuth();
+  const { user, role, roles, viewRole, isAuthenticated, changeViewRole, startRoleSwitch, clearViewRoleLock, logout, pendingVerification } = useAuth();
+  const navigate = useNavigate();
+
+  // Move all hooks to the top, before any return
   const [open, setOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [confirmOut, setConfirmOut] = useState(false);
@@ -25,7 +28,6 @@ function Header() {
   // Subscription upgrade hints (provider mode)
   const [upgradeHint, setUpgradeHint] = useState({ show: false, reason: '' });
   const location = useLocation();
-  const navigate = useNavigate();
   const navRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const mobileToggleRef = useRef(null);
@@ -54,6 +56,10 @@ function Header() {
   const [searchInputValue, setSearchInputValue] = useState('');
   const searchInputRef = useRef(null);
   const searchPlaceholderRef = useRef(null);
+
+  // No mostrar header mientras loading o user no resuelto pero hay token (evita parpadeo de menú guest)
+  // Bloquear header si usuario pendiente de verificación
+  const isBlocked = (user && user.emailVerified !== true) || pendingVerification;
 
   // Compute responsive-safe display name
   const firstName = user?.profile?.firstName?.trim?.() || '';
@@ -415,7 +421,7 @@ function Header() {
             ref={(el) => { if (isActive) activeNavLinkRef.current = el; }}
             className="flex items-center gap-2 relative"
           >
-            <span className={`[&>svg]:w-5 [&>svg]:h-5 lg:[&>svg]:w-[18px] lg:[&>svg]:h-[18px] flex items-center transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`}>
+            <span className={`[&>svg]:w-5 [&>svg]:h-5 lg:[&>svg]:w-4.5 lg:[&>svg]:h-4.5 flex items-center transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`}>
               {icon}
             </span>
             <span className="hidden lg:inline tracking-tight">{label}</span>
@@ -623,7 +629,7 @@ function Header() {
             label="Reservas"
             showLabel={isMobile}
             badge={Number(counters?.provider?.bookingsUpcoming||0) > 0 && (
-              <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-1.5 py-0.5 rounded-full bg-brand-500 text-white min-w-[18px] shadow-sm">
+              <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-1.5 py-0.5 rounded-full bg-brand-500 text-white min-w-4.5 shadow-sm">
                 {counters.provider.bookingsUpcoming > 99 ? '99+' : counters.provider.bookingsUpcoming}
               </span>
             )}
@@ -728,15 +734,27 @@ function Header() {
   }, [location.pathname]);
 
   // Navigate to a sensible landing when user manually switches mode from an area of the other role
-  const navigateForRole = (target) => {
+  // IMPORTANTE: Esta función combina navegación + cambio de rol con flag de transición para evitar flash
+  const switchToRole = useCallback((target) => {
+    // 1. Activar flag de transición ANTES de cualquier cambio
+    // Esto evita que los componentes muestren mensajes de "esta sección es para X"
+    startRoleSwitch();
+    
+    // 2. Navegar a la nueva ruta
     if (target === 'provider') {
-      // Al pasar a proveedor desde áreas de cliente u otras, llevar a Empleos
-      if (pathRole === 'client' || pathRole === '' || pathRole === 'admin') navigate('/empleos');
+      if (pathRole === 'client' || pathRole === '' || pathRole === 'admin') {
+        navigate('/empleos', { replace: true });
+      }
     } else if (target === 'client') {
-      // Requisito: siempre enviar al Home al volver a cliente
-      navigate('/');
+      navigate('/', { replace: true });
     }
-  };
+    
+    // 3. Cambiar el rol (esto también desactiva el flag de transición)
+    // Usamos setTimeout(0) para ejecutar después del ciclo actual de eventos
+    setTimeout(() => {
+      changeViewRole(target);
+    }, 0);
+  }, [pathRole, navigate, changeViewRole, startRoleSwitch]);
 
   // Saber si el modo actual está fijado manualmente
   const isViewLocked = useMemo(() => {
@@ -858,7 +876,7 @@ function Header() {
       } catch {/* ignore */}
     };
 
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.emailVerified === true) {
       fetchUnread();
       // Polling cada 2 minutos para reducir carga en el servidor (los WebSockets actualizan en tiempo real)
       intervalId = setInterval(fetchUnread, 120000);
@@ -870,10 +888,10 @@ function Header() {
         window.removeEventListener('notifications:updated', handleUpdated);
       };
     }
-  }, [role, isAuthenticated]);
+  }, [role, isAuthenticated, user]);
 
   const loadNotifications = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || user?.emailVerified !== true) return;
     setNotifLoading(true);
     try {
       const { data } = await api.get('/notifications?page=1&limit=5');
@@ -881,20 +899,20 @@ function Header() {
       setUnreadCount(data?.data?.unreadCount || 0);
     } catch {/* ignore */}
     finally { setNotifLoading(false); }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.emailVerified]);
 
   useEffect(() => {
-    if (notifOpen) {
+    if (notifOpen && user?.emailVerified === true) {
       loadNotifications();
     }
-  }, [notifOpen, loadNotifications]);
+  }, [notifOpen, loadNotifications, user]);
 
   // Fetch counters periodically and on auth/role changes
   useEffect(() => {
     let mounted = true;
     let intervalId;
     const fetchCounters = async () => {
-      if (!isAuthenticated) return;
+      if (!isAuthenticated || user?.emailVerified !== true) return;
       try {
         const { data } = await api.get('/counters');
         const payload = data?.data || { notificationsUnread: 0 };
@@ -902,7 +920,7 @@ function Header() {
         setCounters(payload);
       } catch { /* ignore */ }
     };
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.emailVerified === true) {
       fetchCounters();
       // Polling cada 2 minutos para reducir carga (WebSockets manejan actualizaciones en tiempo real)
       intervalId = setInterval(fetchCounters, 120000);
@@ -914,7 +932,7 @@ function Header() {
         window.removeEventListener('notifications:updated', onUpdate);
       };
     }
-  }, [isAuthenticated, role, roles, viewRole]);
+  }, [isAuthenticated, role, roles, viewRole, user]);
 
   const markRead = async (id) => {
     try {
@@ -979,13 +997,78 @@ function Header() {
         }).catch(() => {});
       } catch {/* ignore */}
     };
+    
+    // Listener para nuevos mensajes de chat - mostrar toast y actualizar contador
+    const onNewChatMessage = (payload) => {
+      const msg = payload?.message || payload;
+      const chatId = payload?.chatId || payload?.chat;
+      const chatType = payload?.chatType;
+      const relatedTo = payload?.relatedTo;
+      const senderId = msg?.sender?._id || msg?.sender?.id || msg?.sender;
+      
+      // No notificar si el mensaje es del usuario actual
+      if (senderId === user?._id) return;
+      
+      // Solo notificar si el mensaje es de tipo texto (no sistema)
+      if (msg?.type === 'system') return;
+      
+      const senderName = msg?.sender?.name ||
+                        msg?.sender?.profile?.firstName || 
+                        msg?.sender?.providerProfile?.businessName || 
+                        'Nuevo mensaje';
+      const messageText = msg?.content?.text || msg?.content || 'Tienes un nuevo mensaje';
+      
+      // Determinar a dónde navegar cuando se haga click
+      const getNavigatePath = () => {
+        // Navegar a la página de mensajes con el chatId como param
+        if (chatId) {
+          return viewRole === 'provider' 
+            ? `/provider/inbox?chat=${chatId}`
+            : `/client/messages?chat=${chatId}`;
+        }
+        // Fallback a la página de mensajes sin chat específico
+        return viewRole === 'provider' ? '/provider/inbox' : '/client/messages';
+      };
+      
+      // Mostrar toast moderno con acción
+      toast.chat(
+        `💬 ${senderName}`,
+        messageText.length > 60 ? messageText.substring(0, 60) + '...' : messageText,
+        { 
+          duration: 8000,
+          action: {
+            label: 'Ver mensaje →',
+            onClick: () => {
+              navigate(getNavigatePath());
+            }
+          }
+        }
+      );
+      
+      // Reproducir sonido de notificación
+      try {
+        const audio = document.getElementById('notification-sound');
+        if (audio) {
+          audio.currentTime = 0;
+          audio.volume = 0.5;
+          audio.play().catch(() => {}); // Ignorar si autoplay está bloqueado
+        }
+      } catch {/* ignore */}
+      
+      // Actualizar contadores
+      onCountersUpdate();
+      
+      console.log('📩 New chat message received:', { chatId, senderId, senderName, chatType });
+    };
+
     const offConnect = socketOn('connect', onConnect);
     const offNotif = socketOn('notification', onNotification);
     const offCounters = socketOn('counters_update', onCountersUpdate);
+    const offNewMessage = socketOn('new_message', onNewChatMessage);
     return () => {
-      try { offConnect(); offNotif(); offCounters(); } catch { /* ignore */ }
+      try { offConnect(); offNotif(); offCounters(); offNewMessage(); } catch { /* ignore */ }
     };
-  }, [isAuthenticated, role]);
+  }, [isAuthenticated, role, user?._id, toast]);
 
   // Provider upgrade banner: check subscription status and local upgrade_hint
   const subscriptionCacheRef = useRef({ ts: 0, payload: null });
@@ -1034,6 +1117,10 @@ function Header() {
     return () => { mounted = false; window.removeEventListener('subscription:invalidate', onInvalidate); };
   }, [isAuthenticated, viewRole]);
 
+  if (isBlocked) {
+    // No renderizar header ni menú si está pendiente de verificación
+    return null;
+  }
   return (
     <>
     <header ref={headerRef} className="header-glass bg-white/70 backdrop-blur-2xl border-b border-gray-100/80 sticky top-0 z-50 transition-all duration-500 shadow-sm hover:shadow-md" role="banner">
@@ -1294,7 +1381,7 @@ function Header() {
                       role="tab"
                       aria-selected={viewRole === 'client'}
                       className={`relative px-3 py-1.5 rounded-lg font-medium transition-all duration-300 ${viewRole === 'client' ? 'bg-white text-emerald-700 shadow-md ring-1 ring-emerald-200' : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50/50'}`}
-                      onClick={() => { changeViewRole('client'); navigateForRole('client'); }}
+                      onClick={() => switchToRole('client')}
                     >
                       <span className="flex items-center gap-1.5">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1308,7 +1395,7 @@ function Header() {
                       role="tab"
                       aria-selected={viewRole === 'provider'}
                       className={`relative px-3 py-1.5 rounded-lg font-medium transition-all duration-300 ${viewRole === 'provider' ? 'bg-white text-brand-700 shadow-md ring-1 ring-brand-200' : 'text-gray-600 hover:text-brand-600 hover:bg-brand-50/50'}`}
-                      onClick={() => { changeViewRole('provider'); navigateForRole('provider'); }}
+                      onClick={() => switchToRole('provider')}
                     >
                       <span className="flex items-center gap-1.5">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1542,7 +1629,7 @@ function Header() {
                     {roles?.includes('client') && roles?.includes('provider') && (
                       <>
                         <div className="my-2 mx-4 border-t border-gray-100"></div>
-                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 group" onClick={()=>{ const next = viewRole === 'client' ? 'provider' : 'client'; changeViewRole(next); navigateForRole(next); setAccountOpen(false); }}>
+                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 group" onClick={()=>{ const next = viewRole === 'client' ? 'provider' : 'client'; switchToRole(next); setAccountOpen(false); }}>
                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${viewRole === 'client' ? 'bg-brand-50 group-hover:bg-brand-100' : 'bg-emerald-50 group-hover:bg-emerald-100'}`}>
                             <svg className={`w-4 h-4 transition-colors ${viewRole === 'client' ? 'text-brand-600' : 'text-emerald-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -1653,7 +1740,7 @@ function Header() {
               <button
                 type="button"
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 ${viewRole === 'client' ? 'bg-white text-emerald-700 shadow-md ring-1 ring-emerald-200' : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50/50'}`}
-                onClick={() => { changeViewRole('client'); navigateForRole('client'); }}
+                onClick={() => switchToRole('client')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -1663,7 +1750,7 @@ function Header() {
               <button
                 type="button"
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 ${viewRole === 'provider' ? 'bg-white text-brand-700 shadow-md ring-1 ring-brand-200' : 'text-gray-600 hover:text-brand-600 hover:bg-brand-50/50'}`}
-                onClick={() => { changeViewRole('provider'); navigateForRole('provider'); }}
+                onClick={() => switchToRole('provider')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -1735,7 +1822,7 @@ function Header() {
                 {roles?.includes('client') && roles?.includes('provider') && (
                   <>
                     <div className="my-2 border-t border-gray-100"></div>
-                    <button onClick={()=>{ const next = viewRole === 'client' ? 'provider' : 'client'; changeViewRole(next); navigateForRole(next); closeMenu(); }} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
+                    <button onClick={()=>{ const next = viewRole === 'client' ? 'provider' : 'client'; switchToRole(next); closeMenu(); }} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${viewRole === 'client' ? 'bg-brand-50 group-hover:bg-brand-100' : 'bg-emerald-50 group-hover:bg-emerald-100'}`}>
                         <svg className={`w-4 h-4 transition-colors ${viewRole === 'client' ? 'text-brand-600' : 'text-emerald-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />

@@ -4,6 +4,8 @@ import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
 import Spinner from '@/components/ui/Spinner.jsx';
+import Modal from '@/components/ui/Modal.jsx';
+import ChatRoom from '@/components/ui/ChatRoom.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
@@ -14,7 +16,7 @@ import {
 } from 'react-icons/hi';
 
 export default function ClientRequestProposals() {
-  const { role, roles, viewRole, clearError, isAuthenticated } = useAuth();
+  const { role, roles, viewRole, clearError, isAuthenticated, user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -25,6 +27,12 @@ export default function ClientRequestProposals() {
   const [requestMeta, setRequestMeta] = useState(null);
   const [accepting, setAccepting] = useState(''); // proposalId currently accepting
   const [rejecting, setRejecting] = useState(''); // proposalId currently rejecting
+  
+  // Estado para el chat/negociación
+  const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [activeChat, setActiveChat] = useState(null);
+  const [activeProposal, setActiveProposal] = useState(null);
+  const [loadingChat, setLoadingChat] = useState(false);
 
   useEffect(() => { clearError?.(); }, [clearError]);
 
@@ -96,6 +104,32 @@ export default function ClientRequestProposals() {
     } finally {
       setRejecting('');
     }
+  };
+
+  // Abrir chat de negociación con el proveedor
+  const openNegotiationChat = async (proposal) => {
+    setLoadingChat(true);
+    setActiveProposal(proposal);
+    try {
+      const { data } = await api.post(`/chats/proposal/${proposal._id}`);
+      if (data?.success && data?.data?.chat) {
+        setActiveChat(data.data.chat);
+        setChatModalOpen(true);
+      } else {
+        toast.error(data?.message || 'No se pudo abrir el chat');
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Error al abrir el chat';
+      toast.error(msg);
+    } finally {
+      setLoadingChat(false);
+    }
+  };
+
+  const closeChatModal = () => {
+    setChatModalOpen(false);
+    setActiveChat(null);
+    setActiveProposal(null);
   };
 
   // Plan badge styles
@@ -326,11 +360,17 @@ export default function ClientRequestProposals() {
                     </button>
                     
                     <button
-                      onClick={() => toast.info('Chat próximamente')}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors"
+                      onClick={() => openNegotiationChat(p)}
+                      disabled={loadingChat && activeProposal?._id === p._id}
+                      title="Conversar con el profesional para negociar términos o resolver dudas"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 font-medium rounded-xl hover:bg-blue-100 transition-colors disabled:opacity-50"
                     >
-                      <HiChat className="w-5 h-5" />
-                      Mensajes
+                      {loadingChat && activeProposal?._id === p._id ? (
+                        <Spinner size="sm" className="text-blue-600" />
+                      ) : (
+                        <HiChat className="w-5 h-5" />
+                      )}
+                      Negociar
                     </button>
                   </div>
                 </div>
@@ -356,6 +396,68 @@ export default function ClientRequestProposals() {
             </div>
           </div>
         )}
+
+        {/* Modal de Chat de Negociación */}
+        <Modal
+          open={chatModalOpen}
+          onClose={closeChatModal}
+          size="xl"
+          title={
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
+                <HiChat className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <span className="text-lg font-semibold text-gray-900">
+                  Negociar con {activeProposal?.provider?.providerProfile?.businessName || 'Profesional'}
+                </span>
+                <p className="text-sm text-gray-500 font-normal">
+                  Propuesta: {activeProposal?.pricing?.amount 
+                    ? Intl.NumberFormat('es-AR', { style: 'currency', currency: activeProposal?.pricing?.currency || 'USD' }).format(activeProposal.pricing.amount)
+                    : 'Sin precio'}
+                </p>
+              </div>
+            </div>
+          }
+        >
+          <div className="h-[60vh] flex flex-col">
+            {activeChat && (
+              <ChatRoom 
+                chatId={activeChat._id || activeChat.id}
+                chat={activeChat}
+                currentUserId={user?._id}
+                showHeader={false}
+                maxHeight="100%"
+              />
+            )}
+          </div>
+          
+          {/* Acciones rápidas del modal */}
+          <div className="mt-4 pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-gray-500">
+              💡 Tip: Usa este chat para negociar el precio, fechas o detalles antes de aceptar la propuesta.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={closeChatModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+              >
+                Cerrar
+              </button>
+              <button
+                onClick={() => {
+                  closeChatModal();
+                  if (activeProposal) accept(activeProposal._id);
+                }}
+                disabled={accepting === activeProposal?._id}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+              >
+                <HiCheckCircle className="w-4 h-4" />
+                Aceptar propuesta
+              </button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </div>
   );

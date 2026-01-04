@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { HiCheckCircle, HiExclamation, HiExclamationCircle, HiInformationCircle, HiX } from 'react-icons/hi';
+import { HiCheckCircle, HiExclamation, HiExclamationCircle, HiInformationCircle, HiX, HiChat } from 'react-icons/hi';
 
 const ToastContext = createContext(null);
 
@@ -37,6 +37,14 @@ const toastVariants = {
     iconColor: 'text-blue-600',
     text: 'text-blue-800',
     progressBar: 'bg-blue-500'
+  },
+  chat: {
+    bg: 'bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200',
+    icon: HiChat,
+    iconBg: 'bg-violet-100',
+    iconColor: 'text-violet-600',
+    text: 'text-violet-800',
+    progressBar: 'bg-violet-500'
   }
 };
 
@@ -63,6 +71,7 @@ export function ToastProvider({ children }) {
     error: (msg, opts={}) => push({ type: 'error', message: msg, ...opts }),
     info: (msg, opts={}) => push({ type: 'info', message: msg, ...opts }),
     warning: (msg, opts={}) => push({ type: 'warning', message: msg, ...opts }),
+    chat: (title, msg, opts={}) => push({ type: 'chat', title, message: msg, duration: 6000, ...opts }),
     remove
   }), [push, remove]);
 
@@ -81,7 +90,6 @@ export function ToastProvider({ children }) {
               className={`
                 relative overflow-hidden rounded-xl border shadow-lg backdrop-blur-sm
                 ${variant.bg}
-                animate-in slide-in-from-right-full fade-in duration-300
               `}
               style={{ 
                 animationDelay: `${index * 50}ms`,
@@ -102,6 +110,23 @@ export function ToastProvider({ children }) {
                     </div>
                   )}
                   <div className="text-sm text-gray-600">{t.message}</div>
+                  
+                  {/* Botón de acción opcional */}
+                  {t.action && (
+                    <button
+                      onClick={() => {
+                        t.action.onClick?.();
+                        remove(t.id);
+                      }}
+                      className={`mt-2 text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-200
+                        ${t.type === 'chat' 
+                          ? 'bg-violet-100 text-violet-700 hover:bg-violet-200' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                    >
+                      {t.action.label}
+                    </button>
+                  )}
                 </div>
                 
                 {/* Botón cerrar */}
@@ -120,7 +145,7 @@ export function ToastProvider({ children }) {
                   <div 
                     className={`h-full ${variant.progressBar} transition-all ease-linear`}
                     style={{ 
-                      animation: `shrinkWidth ${t.duration}ms linear forwards`
+                      animation: `growWidth ${t.duration}ms linear forwards`
                     }}
                   />
                 </div>
@@ -142,12 +167,12 @@ export function ToastProvider({ children }) {
             transform: translateX(0);
           }
         }
-        @keyframes shrinkWidth {
+        @keyframes growWidth {
           from {
-            width: 100%;
+            width: 0%;
           }
           to {
-            width: 0%;
+            width: 100%;
           }
         }
       `}</style>

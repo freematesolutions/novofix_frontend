@@ -9,7 +9,7 @@ import { isEmail, required, minLength, validate } from '@/utils/validation.js';
 import api from '@/state/apiClient.js';
 
 // ============================================================================
-// ICONS - Iconos SVG modernos
+// ICONS - Iconos SVG modernos (mantener igual)
 // ============================================================================
 const Icons = {
   User: ({ className }) => (
@@ -47,11 +47,6 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
     </svg>
   ),
-  Sparkles: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-    </svg>
-  ),
   Shield: ({ className }) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -69,9 +64,6 @@ const Icons = {
   )
 };
 
-// ============================================================================
-// PASSWORD STRENGTH REQUIREMENTS
-// ============================================================================
 const PASSWORD_REQUIREMENTS = [
   { id: 'length', label: '8+ caracteres', test: (p) => p.length >= 8 },
   { id: 'upper', label: 'Una mayúscula', test: (p) => /[A-Z]/.test(p) },
@@ -80,20 +72,19 @@ const PASSWORD_REQUIREMENTS = [
 ];
 
 function RegisterClient() {
-  const { registerClient, loading, error, clearError, role, viewRole } = useAuth();
-  useEffect(()=>{ clearError(); }, [clearError]);
+  const { registerClient, error, clearError } = useAuth();
+  useEffect(() => { clearError(); }, [clearError]);
   const toast = useToast();
   const navigate = useNavigate();
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '' });
+  const [localLoading, setLocalLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState({});
   const [errors, setErrors] = useState({});
   
-  // Validación de email en tiempo real
   const [emailValidation, setEmailValidation] = useState({ checking: false, message: '', isValid: null });
   const emailCheckTimeoutRef = useRef(null);
   
-  // Password strength
   const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
 
   // Validación de disponibilidad de email con debounce
@@ -232,60 +223,43 @@ function RegisterClient() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    setLocalLoading(true);
     const errs = await runValidation();
     if (Object.keys(errs).length) {
       setTouched({ firstName: true, lastName: true, email: true, password: true });
       toast.warning('Revisa los campos del formulario');
+      setLocalLoading(false);
       return;
     }
-    const ok = await registerClient(form);
-    if (ok) {
+    
+    const result = await registerClient(form);
+    
+    if (result.pending) {
+      // Registro exitoso pero pendiente de verificación
+      toast.success('¡Registro exitoso! Por favor verifica tu email para activar tu cuenta.');
+      navigate('/verificar-email', { replace: true });
+    } else if (result.ok) {
+      // Registro exitoso y ya verificado (caso raro)
       toast.success('¡Bienvenido! Te has registrado como cliente');
-      navigate('/');
+      navigate('/mis-solicitudes', { replace: true });
     } else {
-      toast.error('No se pudo completar el registro');
+      // Error en el registro
+      toast.error('Error en el registro. Por favor intenta de nuevo.');
     }
+    
+    setLocalLoading(false);
   };
-
-  // Email suggestions
-  const EMAIL_DOMAINS = ['gmail.com','hotmail.com','outlook.com','yahoo.com','icloud.com','live.com'];
-  const localPart = (form.email || '').split('@')[0] || '';
-  const typedDomain = (form.email || '').includes('@') ? (form.email || '').split('@')[1] : '';
-  const emailSuggestions = localPart
-    ? EMAIL_DOMAINS
-        .filter(d => !typedDomain || d.startsWith(typedDomain))
-        .map(d => `${localPart}@${d}`)
-    : [];
-
-  // Role-aware accent for the eye icon
-  const eyeClasses = (() => {
-    const r = role === 'guest' ? 'guest' : viewRole;
-    switch (r) {
-      case 'provider':
-        return 'text-brand-600 hover:text-brand-800 focus:ring-brand-500';
-      case 'client':
-        return 'text-emerald-600 hover:text-emerald-800 focus:ring-emerald-500';
-      case 'admin':
-        return 'text-indigo-600 hover:text-indigo-800 focus:ring-indigo-500';
-      default:
-        return 'text-gray-500 hover:text-gray-700 focus:ring-gray-500';
-    }
-  })();
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-lg">
-        {/* Card principal */}
         <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden">
-          {/* Header con gradiente esmeralda */}
           <div className="relative bg-linear-to-br from-emerald-500 via-emerald-600 to-teal-600 px-6 py-8 text-center">
-            {/* Decoración de fondo */}
             <div className="absolute inset-0 overflow-hidden">
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
               <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-400/20 rounded-full blur-2xl" />
             </div>
             
-            {/* Icono central */}
             <div className="relative inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur rounded-2xl mb-4">
               <Icons.User className="w-8 h-8 text-white" />
             </div>
@@ -297,7 +271,6 @@ function RegisterClient() {
               Encuentra los mejores profesionales en minutos
             </p>
 
-            {/* Benefits badges */}
             <div className="relative flex items-center justify-center gap-3 mt-4 flex-wrap">
               <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs text-white">
                 <Icons.Gift className="w-3.5 h-3.5" /> 100% Gratis
@@ -308,10 +281,8 @@ function RegisterClient() {
             </div>
           </div>
 
-          {/* Formulario */}
           <div className="p-6">
             <form onSubmit={onSubmit} className="space-y-4">
-              {/* Nombre y Apellido en grid */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="client-firstName" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
@@ -365,7 +336,6 @@ function RegisterClient() {
                 </div>
               </div>
 
-              {/* Email */}
               <div>
                 <label htmlFor="client-email" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
                   <Icons.Mail className="w-4 h-4 text-emerald-500" /> Correo electrónico
@@ -380,7 +350,6 @@ function RegisterClient() {
                     aria-invalid={Boolean(touched.email && errors.email)}
                     autoComplete="email"
                     inputMode="email"
-                    list="email-options-register-client"
                     id="client-email"
                     placeholder="tu@email.com"
                     className={`
@@ -392,7 +361,6 @@ function RegisterClient() {
                         'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}
                     `}
                   />
-                  {/* Status icon */}
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
                     {emailValidation.checking && (
                       <div className="w-5 h-5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
@@ -420,14 +388,8 @@ function RegisterClient() {
                     {emailValidation.message}
                   </p>
                 )}
-                <datalist id="email-options-register-client">
-                  {emailSuggestions.map(opt => (
-                    <option key={opt} value={opt} />
-                  ))}
-                </datalist>
               </div>
 
-              {/* Teléfono */}
               <div>
                 <label htmlFor="client-phone" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
                   <Icons.Phone className="w-4 h-4 text-emerald-500" /> Teléfono
@@ -445,7 +407,6 @@ function RegisterClient() {
                 />
               </div>
 
-              {/* Contraseña */}
               <div>
                 <label htmlFor="client-password" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
                   <Icons.Lock className="w-4 h-4 text-emerald-500" /> Contraseña
@@ -469,23 +430,24 @@ function RegisterClient() {
                         : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}
                     `}
                   />
-                  <PasswordToggle
-                    show={showPassword}
-                    onToggle={()=> setShowPassword(s=>!s)}
-                    onPeekStart={()=> setShowPassword(true)}
-                    onPeekEnd={()=> setShowPassword(false)}
-                    controls="client-password"
-                    className={eyeClasses}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? (
+                      <Icons.X className="w-5 h-5" />
+                    ) : (
+                      <Icons.Check className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
                 {touched.password && errors.password && (
                   <p className="text-xs text-red-600 mt-1">{errors.password}</p>
                 )}
                 
-                {/* Password strength indicator moderno */}
                 {form.password && (
                   <div className="mt-3 p-3 bg-gray-50 rounded-xl">
-                    {/* Barra de fuerza */}
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div 
@@ -501,7 +463,6 @@ function RegisterClient() {
                       </span>
                     </div>
                     
-                    {/* Requisitos */}
                     <div className="grid grid-cols-2 gap-1.5">
                       {PASSWORD_REQUIREMENTS.map((req) => {
                         const passed = req.test(form.password);
@@ -526,15 +487,13 @@ function RegisterClient() {
                 )}
               </div>
 
-              {/* Error general */}
               {error && <Alert type="error">{error}</Alert>}
 
-              {/* Botón Submit */}
               <Button 
-                loading={loading} 
+                loading={localLoading} 
                 className="w-full py-3 text-base font-semibold rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg shadow-emerald-500/25"
               >
-                {loading ? (
+                {localLoading ? (
                   <span className="flex items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Creando cuenta...
@@ -548,7 +507,6 @@ function RegisterClient() {
               </Button>
             </form>
 
-            {/* Divider */}
             <div className="relative my-5">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200" />
@@ -558,7 +516,6 @@ function RegisterClient() {
               </div>
             </div>
 
-            {/* Links */}
             <div className="grid grid-cols-2 gap-3">
               <Link
                 to="/login"
@@ -577,7 +534,6 @@ function RegisterClient() {
             </div>
           </div>
 
-          {/* Footer */}
           <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
             <p className="text-center text-xs text-gray-500">
               Al registrarte, aceptas nuestros{' '}

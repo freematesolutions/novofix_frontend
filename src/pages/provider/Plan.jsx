@@ -10,7 +10,7 @@ import { HiSparkles, HiLightningBolt, HiStar, HiCheck, HiCreditCard, HiCalendar,
 
 export default function Plan() {
   const navigate = useNavigate();
-  const { viewRole, clearError, isAuthenticated } = useAuth();
+  const { viewRole, clearError, isAuthenticated, isRoleSwitching } = useAuth();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [plans, setPlans] = useState([]);
@@ -101,6 +101,11 @@ export default function Plan() {
   }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
+    return null;
+  }
+
+  // Durante transición de rol, no mostrar mensaje de advertencia
+  if (isRoleSwitching) {
     return null;
   }
 
@@ -245,7 +250,7 @@ export default function Plan() {
                 <input
                   type="text"
                   placeholder="Ingresa el código"
-                  className="flex-1 sm:max-w-[200px] px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all placeholder:text-gray-400"
+                  className="flex-1 sm:max-w-50 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all placeholder:text-gray-400"
                   value={referralCode}
                   onChange={(e) => setReferralCode(e.target.value)}
                   disabled={referralLoading}

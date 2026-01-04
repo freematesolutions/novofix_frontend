@@ -15,7 +15,7 @@ function ServiceCategoryCard({ category, description, onClick, providerCount, sh
   return (
     <div
       onClick={handleClick}
-      className={`group relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-500 h-[420px] flex flex-col ${
+      className={`group relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-500 h-105 flex flex-col ${
         disabled 
           ? 'cursor-not-allowed opacity-90' 
           : 'cursor-pointer hover:shadow-2xl hover:-translate-y-2'

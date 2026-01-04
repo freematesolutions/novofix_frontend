@@ -9,7 +9,7 @@ import { SERVICE_CATEGORIES } from '@/utils/categories.js';
 
 export default function Services() {
   const navigate = useNavigate();
-  const { viewRole, clearError, isAuthenticated } = useAuth();
+  const { viewRole, clearError, isAuthenticated, isRoleSwitching } = useAuth();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -87,6 +87,11 @@ export default function Services() {
   }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
+    return null;
+  }
+
+  // Durante transición de rol, no mostrar mensaje de advertencia
+  if (isRoleSwitching) {
     return null;
   }
 

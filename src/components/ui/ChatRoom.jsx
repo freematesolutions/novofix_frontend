@@ -110,10 +110,9 @@ const MessageBubble = memo(({ message, isMine, showAvatar, userName }) => {
                     key={idx}
                     src={att.url}
                     alt="Attachment"
-                    className="max-w-[200px] rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
+                    className="max-w-50 rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={() => window.open(att.url, '_blank')}
-                  />
-                );
+                  />);
               }
               return (
                 <a
@@ -255,9 +254,11 @@ function ChatRoom({
     if (!chatId) return;
     
     setLoading(true);
+    console.log(`📥 Loading messages for chat: ${chatId}`);
     try {
       const { data } = await api.get(`/chats/${chatId}/messages?limit=100`);
       const msgs = data?.data?.messages || data?.messages || [];
+      console.log(`📬 Loaded ${msgs.length} messages for chat: ${chatId}`, msgs);
       setMessages(Array.isArray(msgs) ? msgs : []);
     } catch (err) {
       console.error('Error loading messages:', err);
@@ -276,15 +277,21 @@ function ChatRoom({
     socketRef.current = socket;
     if (!socket || !chatId) return;
 
+    console.log(`🔌 Joining chat room: ${chatId}`);
     // Join chat room
     socketEmit('join_chat', { chatId });
 
     // Listen for new messages
     const offNewMessage = socketOn('new_message', (payload) => {
+      console.log('📨 Received new_message event:', payload);
       const msgChatId = payload?.chatId || payload?.chat?._id;
-      if (msgChatId !== chatId) return;
+      if (msgChatId !== chatId) {
+        console.log(`📨 Message for different chat (${msgChatId}), ignoring`);
+        return;
+      }
       
       const msg = payload?.message || payload;
+      console.log('📨 Adding message to chat:', msg);
       setMessages(prev => {
         // Avoid duplicates
         if (prev.some(m => m._id === msg._id)) return prev;

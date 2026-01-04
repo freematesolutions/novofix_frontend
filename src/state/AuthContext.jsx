@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import api from './apiClient';
 
 // Normalize backend role values (e.g., 'Client'|'client' -> 'client')
@@ -15,78 +16,191 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [pendingVerification, setPendingVerification] = useState(() => {
+    const email = sessionStorage.getItem('pending_verification_email');
+    return email ? { email } : null;
+  });
   const [role, setRole] = useState('guest');
   const [roles, setRoles] = useState([]);
   const [viewRole, setViewRole] = useState(() => localStorage.getItem('view_role') || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  // Flag para indicar que se está cambiando de rol (evita flash de mensajes durante transición)
+  const [isRoleSwitching, setIsRoleSwitching] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
+  // Determinar si el usuario está autenticado (verificado)
+  const isAuthenticated = useMemo(() => {
+    return !!(user && user.isActive !== false && user.emailVerified !== false);
+  }, [user]);
+
+  // Determinar si está pendiente de verificación
+  const isPendingVerification = useMemo(() => {
+    return !!pendingVerification || (user && user.emailVerified === false);
+  }, [pendingVerification, user]);
+
+  // Redirigir a verificación si el usuario está pendiente de verificación
+  // Usar ref para evitar redirecciones repetidas
+  const redirectedToVerifyRef = useRef(false);
   
-
-  // Initialize or resume guest session
   useEffect(() => {
+    if (isPendingVerification && !location.pathname.startsWith('/verificar-email')) {
+      if (!redirectedToVerifyRef.current) {
+        redirectedToVerifyRef.current = true;
+        navigate('/verificar-email', { replace: true });
+      }
+    } else if (!isPendingVerification) {
+      // Resetear cuando ya no está pendiente
+      redirectedToVerifyRef.current = false;
+    }
+  }, [isPendingVerification, location.pathname, navigate]);
+
+  // Inicialización: guest session + hidratar perfil si hay token válido
+  // NOTA: Se usa un ref para evitar loops infinitos de re-render
+  const initRanRef = useRef(false);
+  
+  useEffect(() => {
+    // Evitar múltiples ejecuciones
+    if (initRanRef.current) return;
+    
+    let cancelled = false;
     const init = async () => {
-      try {
-        // Always ensure guest session exists for tracking before auth
-        const res = await api.get('/guest/session');
-        const sessionId = res?.data?.data?.session?.sessionId;
-        if (sessionId) localStorage.setItem('session_id', sessionId);
-      } catch {
-        console.debug('Guest session init skipped');
+      // Si hay verificación pendiente, NO intentar cargar perfil
+      if (pendingVerification) {
+        setUser(null);
+        setRoles([]);
+        setRole('guest');
+        setViewRole('guest');
+        try { localStorage.removeItem('access_token'); } catch { /* ignore */ }
+        try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
+        try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
+        initRanRef.current = true;
+        return;
       }
 
-      // If we already have an access token, hydrate user/profile and role on load
+      try {
+        // Crear guest session sólo si no hay token
+        const existingToken = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+        if (!existingToken) {
+          const res = await api.get('/guest/session');
+          const sessionId = res?.data?.data?.session?.sessionId;
+          if (sessionId) localStorage.setItem('session_id', sessionId);
+        }
+      } catch (err) {
+        if (!(err?.response?.status === 401)) {
+          console.debug('Guest session init error:', err);
+        }
+      }
+
       const token = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
       if (token) {
         try {
           const { data } = await api.get('/auth/profile');
           const u = data?.data?.user;
-          if (u) {
-            setUser(u);
-            const rs = Array.isArray(u.roles) ? u.roles.map(String) : [];
-            setRoles(rs);
-            // Rol primario para compatibilidad: admin > provider > client > guest
-            const primary = rs.includes('admin') ? 'admin' : rs.includes('provider') ? 'provider' : rs.includes('client') ? 'client' : normalizeRole(u.role);
-            setRole(primary);
-            // Establecer viewRole si estaba vacío o no válido
-            const vr = localStorage.getItem('view_role');
-            const valid = rs.includes(vr);
-            const initial = valid ? vr : primary;
-            setViewRole(initial);
-            localStorage.setItem('view_role', initial);
+          if (!cancelled) {
+            if (u && u.isActive !== false && u.emailVerified !== false) {
+              setUser(u);
+              const rs = Array.isArray(u.roles) ? u.roles.map(String) : [];
+              setRoles(rs);
+              const primary = rs.includes('admin') ? 'admin' : rs.includes('provider') ? 'provider' : rs.includes('client') ? 'client' : normalizeRole(u.role);
+              setRole(primary);
+              const vr = localStorage.getItem('view_role');
+              const valid = rs.includes(vr);
+              const initial = valid ? vr : primary;
+              setViewRole(initial);
+              localStorage.setItem('view_role', initial);
+            } else {
+              // Si el usuario no está verificado, establecer estado pendiente
+              setUser(null);
+              setRoles([]);
+              setRole('guest');
+              setViewRole('guest');
+              localStorage.setItem('view_role', 'guest');
+              
+              if (u && u.emailVerified === false) {
+                setPendingVerification({ email: u.email });
+                try { sessionStorage.setItem('pending_verification_email', u.email); } catch {/* ignore */}
+              }
+            }
           }
-        } catch {
-          // token may be invalid; drop to guest
-          localStorage.removeItem('access_token');
+        } catch (err) {
+          console.debug('Token inválido al cargar perfil:', err);
+          try { localStorage.removeItem('access_token'); } catch {/* ignore */}
+          try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
           setUser(null);
           setRole('guest');
           setRoles([]);
           setViewRole('guest');
-          localStorage.removeItem('view_role');
+          try { localStorage.removeItem('view_role'); } catch {/* ignore */}
         }
       } else {
-        // No token present: asegurar que el modo visual no quede "pegado" a un rol previo
         setUser(null);
         setRole('guest');
         setRoles([]);
         setViewRole('guest');
-        try { localStorage.removeItem('view_role'); } catch { /* ignore */ }
+        try { localStorage.removeItem('view_role'); } catch {/* ignore */}
       }
+      
+      initRanRef.current = true;
     };
+
     init();
-  }, []);
+
+    const forceGuest = () => {
+      setUser(null);
+      setRole('guest');
+      setRoles([]);
+      setViewRole('guest');
+      try { localStorage.removeItem('view_role'); } catch {/* ignore */}
+    };
+    window.addEventListener('auth:force-guest', forceGuest);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('auth:force-guest', forceGuest);
+    };
+  }, []); // Sin dependencias - solo ejecutar una vez al montar
 
   const setAuthState = useCallback((u, token, persist = 'local') => {
+    if (!u) {
+      setUser(null);
+      setRoles([]);
+      setRole('guest');
+      setViewRole('guest');
+      try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
+      return;
+    }
+
+    // Si el usuario no está verificado, NO guardar token
+    if (u.emailVerified === false) {
+      setUser(null);
+      setRoles([]);
+      setRole('guest');
+      setViewRole('guest');
+      try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
+      setPendingVerification({ email: u.email });
+      try { sessionStorage.setItem('pending_verification_email', u.email); } catch {/* ignore */}
+      try { localStorage.removeItem('access_token'); } catch {/* ignore */}
+      try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
+      return;
+    }
+
+    // Usuario verificado: guardar token
     if (token) {
       try {
         if (persist === 'session') {
           sessionStorage.setItem('access_token', token);
+          localStorage.removeItem('access_token');
         } else {
           localStorage.setItem('access_token', token);
+          sessionStorage.removeItem('access_token');
         }
       } catch { /* ignore */ }
     }
+
     setUser(u || null);
+    setPendingVerification(null);
+    try { sessionStorage.removeItem('pending_verification_email'); } catch {/* ignore */}
     const rs = Array.isArray(u?.roles) ? u.roles.map(String) : [];
     setRoles(rs);
     const primary = rs.includes('admin') ? 'admin' : rs.includes('provider') ? 'provider' : rs.includes('client') ? 'client' : normalizeRole(u?.role);
@@ -95,7 +209,7 @@ export function AuthProvider({ children }) {
     const valid = rs.includes(vr);
     const nextVR = valid ? vr : primary;
     setViewRole(nextVR);
-    localStorage.setItem('view_role', nextVR);
+    try { localStorage.setItem('view_role', nextVR); } catch {/* ignore */}
   }, []);
 
   const login = useCallback(async ({ email, password, remember }) => {
@@ -103,7 +217,11 @@ export function AuthProvider({ children }) {
     try {
       const { data } = await api.post('/auth/login', { email, password });
       const { user: maybeUser, token } = data.data || {};
-      // Store token according to remember preference
+
+      if (!maybeUser || maybeUser.emailVerified === false) {
+        throw new Error('Debes verificar tu correo electrónico para acceder.');
+      }
+
       if (token) {
         try {
           if (remember) {
@@ -113,77 +231,107 @@ export function AuthProvider({ children }) {
             sessionStorage.setItem('access_token', token);
             localStorage.removeItem('access_token');
           }
-        } catch { /* ignore */ }
+        } catch {/* ignore */}
       }
-      // Always hydrate from /auth/profile to ensure latest role and shape
+
       let u = maybeUser;
       try {
         const prof = await api.get('/auth/profile');
         u = prof?.data?.data?.user || maybeUser;
-      } catch {
-        // If profile fails, proceed with the user from login response
-      }
-      // Pass null token here since already stored according to preference
+      } catch { /* ignore */ }
+
       setAuthState(u, null);
-      // Return hydrated user for callers that need immediate role-based navigation
       return { ok: true, user: u };
     } catch (err) {
-      setError(err?.response?.data?.message || 'Error al iniciar sesión');
+      setError(err?.response?.data?.message || err.message || 'Error al iniciar sesión');
       return { ok: false, error: err };
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }, [setAuthState]);
 
   const registerClient = useCallback(async (payload) => {
     setLoading(true); setError('');
     try {
       const { data } = await api.post('/auth/register/client', payload);
-      const { user: u, token } = data.data;
-      setAuthState(u, token);
-      // Hidratar perfil completo por consistencia inmediata
-      try {
-        const prof = await api.get('/auth/profile');
-        const u2 = prof?.data?.data?.user || u;
-        setAuthState(u2, null);
-      } catch { /* ignore */ }
-      // Merge guest data after register (optional, backend can auto-merge)
+      const { user: u, token, pendingVerification: backendPending } = data.data || {};
+
+      // Si el backend indica que está pendiente de verificación
+      if (backendPending || (u && u.emailVerified === false)) {
+        setPendingVerification({ email: u.email });
+        try { sessionStorage.setItem('pending_verification_email', u.email); } catch {/* ignore */}
+        setUser(null);
+        setRoles([]);
+        setRole('guest');
+        setViewRole('guest');
+        try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
+        try { localStorage.removeItem('access_token'); } catch {/* ignore */}
+        try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
+        return { pending: true, email: u.email };
+      }
+
+      // Si viene con token, es porque ya está verificado (caso raro)
+      if (token) {
+        setAuthState(u, token);
+      } else {
+        setAuthState(u, null);
+      }
+
+      // Intentar merge de sesión guest
       try {
         await api.post('/auth/merge-guest', { sessionId: localStorage.getItem('session_id') });
-        // La sesión guest fue eliminada en el servidor; limpiar id local para evitar headers obsoletos
-        try { localStorage.removeItem('session_id'); } catch { /* ignore */ }
+        try { localStorage.removeItem('session_id'); } catch {/* ignore */}
       } catch { /* noop */ }
-      return true;
+
+      return { ok: true };
     } catch (err) {
       setError(err?.response?.data?.message || 'Error al registrarse');
-      return false;
-    } finally { setLoading(false); }
+      return { ok: false, error: err };
+    } finally {
+      setLoading(false);
+    }
   }, [setAuthState]);
 
   const registerProvider = useCallback(async (payload) => {
     setLoading(true); setError('');
     try {
       const { data } = await api.post('/auth/register/provider', payload);
-      const { user: u, token } = data.data;
-      setAuthState(u, token);
-      // Hidratar perfil completo de inmediato
-      try {
-        const prof = await api.get('/auth/profile');
-        const u2 = prof?.data?.data?.user || u;
-        setAuthState(u2, null);
-      } catch { /* ignore */ }
-      // Merge guest data after register (paridad con cliente)
+      const { user: u, token, pendingVerification: backendPending } = data.data || {};
+
+      // Si el backend indica que está pendiente de verificación
+      if (backendPending || (u && u.emailVerified === false)) {
+        setPendingVerification({ email: u.email });
+        try { sessionStorage.setItem('pending_verification_email', u.email); } catch {/* ignore */}
+        setUser(null);
+        setRoles([]);
+        setRole('guest');
+        setViewRole('guest');
+        try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
+        try { localStorage.removeItem('access_token'); } catch {/* ignore */}
+        try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
+        return { pending: true, email: u.email };
+      }
+
+      if (token) {
+        setAuthState(u, token);
+      } else {
+        setAuthState(u, null);
+      }
+
+      // Intentar merge de sesión guest
       try {
         await api.post('/auth/merge-guest', { sessionId: localStorage.getItem('session_id') });
-        try { localStorage.removeItem('session_id'); } catch { /* ignore */ }
+        try { localStorage.removeItem('session_id'); } catch {/* ignore */}
       } catch { /* noop */ }
-      return true;
+
+      return { ok: true };
     } catch (err) {
-      // Si ya existe como cliente, usar el endpoint dedicado para ampliar a proveedor
       const status = err?.response?.status;
       const msg = err?.response?.data?.message || '';
+
       const isConflictClient = status === 409 && msg.toLowerCase().includes('become-provider');
       if (isConflictClient) {
         try {
-          // Sanitizar payload para upgrade (no enviar email/password)
           const upgrade = {
             businessName: payload.businessName,
             description: payload.description,
@@ -192,23 +340,15 @@ export function AuthProvider({ children }) {
             phone: payload.phone,
             referredBy: payload.referredByCode || payload.referredBy
           };
-          // Requiere que el usuario ya esté autenticado (token presente)
           const bearer = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
           if (!bearer) {
             setError('Ya existe una cuenta de cliente con este correo. Inicia sesión con ese correo y vuelve a intentar para activar el modo proveedor.');
-            return false;
+            return { ok: false };
           }
-          // Adjuntar explícitamente Authorization por seguridad (además del interceptor)
-          const { data } = await api.post('/auth/become-provider', upgrade, { headers: { Authorization: `Bearer ${bearer}` } });
-          const { user: u, token: newToken } = data.data || {};
-          setAuthState(u, newToken);
-          // Hidratar perfil completo tras upgrade
-          try {
-            const prof = await api.get('/auth/profile');
-            const u2 = prof?.data?.data?.user || u;
-            setAuthState(u2, null);
-          } catch { /* ignore */ }
-          return true;
+          const { data: data2 } = await api.post('/auth/become-provider', upgrade, { headers: { Authorization: `Bearer ${bearer}` } });
+          const { user: u2, token: newToken } = data2.data || {};
+          setAuthState(u2, newToken);
+          return { ok: true };
         } catch (e2) {
           const st = e2?.response?.status;
           if (st === 401) {
@@ -216,54 +356,93 @@ export function AuthProvider({ children }) {
           } else {
             setError(e2?.response?.data?.message || 'No se pudo completar el upgrade a proveedor');
           }
-          return false;
+          return { ok: false, error: e2 };
         } finally {
           setLoading(false);
         }
       }
+
       setError(msg || 'Error al registrarse');
-      return false;
-    } finally { setLoading(false); }
+      return { ok: false, error: err };
+    } finally {
+      setLoading(false);
+    }
   }, [setAuthState]);
 
-  const logout = useCallback(async () => {
-    try { await api.post('/auth/logout'); } catch { /* ignore */ }
-    // Establecer viewRole como guest ANTES de limpiar tokens para evitar estado inconsistente
-    setViewRole('guest');
-    try { localStorage.setItem('view_role', 'guest'); } catch { /* ignore */ }
-    setUser(null); setRole('guest');
+  const logout = useCallback(() => {
+    try { localStorage.removeItem('access_token'); } catch {/* ignore */}
+    try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
+    setUser(null);
     setRoles([]);
-    try { localStorage.removeItem('access_token'); } catch { /* ignore */ }
-    try { sessionStorage.removeItem('access_token'); } catch { /* ignore */ }
-    try { sessionStorage.removeItem('view_role_lock'); } catch { /* ignore */ }
-    // Privacy: Remove client_id and its metadata on logout
-    try { localStorage.removeItem('client_id'); } catch { /* ignore */ }
-    try { localStorage.removeItem('client_id_meta'); } catch { /* ignore */ }
+    setRole('guest');
+    setViewRole('guest');
+    try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
+    setPendingVerification(null);
+    try { sessionStorage.removeItem('pending_verification_email'); } catch {/* ignore */}
   }, []);
 
-  const changeViewRole = useCallback((nextRole) => {
-    const r = String(nextRole || '').toLowerCase();
-    if (r && (r === 'admin' || r === 'provider' || r === 'client' || r === 'guest')) {
-      // solo permitir si el usuario realmente tiene ese rol (salvo guest)
-      if (r === 'guest' || roles.includes(r)) {
-        setViewRole(r);
-        localStorage.setItem('view_role', r);
-        // Bloquear auto-ajuste por esta sesión hasta salir del área
-        try {
-          sessionStorage.setItem('view_role_lock', JSON.stringify({ role: r, at: Date.now() }));
-        } catch { /* ignore storage errors */ }
-      }
+  const clearPendingVerification = useCallback(() => {
+    setPendingVerification(null);
+    try { sessionStorage.removeItem('pending_verification_email'); } catch {/* ignore */}
+  }, []);
+
+  // Cambiar el rol de vista activo (para usuarios multi-rol)
+  const changeViewRole = useCallback((newRole) => {
+    if (!roles.includes(newRole) && newRole !== 'guest') {
+      console.warn(`changeViewRole: Rol '${newRole}' no disponible para este usuario`);
+      return;
     }
+    setViewRole(newRole);
+    // Desactivar el flag de transición después de cambiar el rol
+    setIsRoleSwitching(false);
+    try { 
+      localStorage.setItem('view_role', newRole);
+      // Guardar lock temporal en sessionStorage
+      sessionStorage.setItem('view_role_lock', JSON.stringify({ role: newRole, ts: Date.now() }));
+    } catch {/* ignore */}
   }, [roles]);
 
+  // Iniciar cambio de rol (activa flag de transición para evitar flash)
+  const startRoleSwitch = useCallback(() => {
+    setIsRoleSwitching(true);
+  }, []);
+
+  // Limpiar el lock del rol de vista
   const clearViewRoleLock = useCallback(() => {
-    try { sessionStorage.removeItem('view_role_lock'); } catch { /* ignore */ }
+    try { sessionStorage.removeItem('view_role_lock'); } catch {/* ignore */}
   }, []);
 
   const clearError = useCallback(() => setError(''), []);
 
-  const isAuthenticated = !!user && role !== 'guest';
-  const value = useMemo(() => ({ user, role, roles, viewRole, isAuthenticated, changeViewRole, clearViewRoleLock, loading, error, login, registerClient, registerProvider, logout, clearError }), [user, role, roles, viewRole, isAuthenticated, changeViewRole, clearViewRoleLock, loading, error, login, registerClient, registerProvider, logout, clearError]);
+  const value = useMemo(() => ({
+    user,
+    role,
+    roles,
+    viewRole,
+    setViewRole,
+    changeViewRole,
+    startRoleSwitch,
+    isRoleSwitching,
+    clearViewRoleLock,
+    loading,
+    error,
+    setError,
+    clearError,
+    login,
+    registerClient,
+    registerProvider,
+    setAuthState,
+    logout,
+    pendingVerification,
+    isAuthenticated,
+    isPendingVerification,
+    clearPendingVerification,
+  }), [
+    user, role, roles, viewRole, isRoleSwitching, loading, error, 
+    login, registerClient, registerProvider, changeViewRole, startRoleSwitch, clearViewRoleLock, 
+    setAuthState, logout, pendingVerification, 
+    isAuthenticated, isPendingVerification, clearError, clearPendingVerification
+  ]);
 
   return (
     <AuthContext.Provider value={value}>

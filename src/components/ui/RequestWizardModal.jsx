@@ -90,7 +90,7 @@ const STEPS = [
   { 
     id: 'media', 
     title: 'Multimedia', 
-    shortTitle: 'Media',
+    shortTitle: 'Fotos/Videos',
     description: 'Adjunta fotos o videos',
     icon: '📸',
     color: 'from-purple-500 to-pink-500'
@@ -113,10 +113,10 @@ const STEPS = [
   },
   { 
     id: 'budget', 
-    title: 'Presupuesto', 
-    shortTitle: 'Precio',
-    description: 'Tu presupuesto estimado',
-    icon: '💰',
+    title: 'Resumen', 
+    shortTitle: 'Resumen',
+    description: 'Revisa tu solicitud',
+    icon: '📋',
     color: 'from-green-500 to-emerald-500'
   }
 ];
@@ -292,9 +292,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
       case 3:
         break;
       case 4:
-        if (!formData.budgetAmount || Number(formData.budgetAmount) <= 0) {
-          errors.budgetAmount = 'El presupuesto debe ser mayor a 0';
-        }
+        // El paso de resumen no requiere validación adicional
         break;
     }
     
@@ -337,8 +335,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
       formData.description || 
       formData.address ||
       formData.photos.length > 0 || 
-      formData.videos.length > 0 ||
-      formData.budgetAmount;
+      formData.videos.length > 0;
 
     if (hasData) {
       setShowConfirmClose(true);
@@ -563,10 +560,10 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
         address: formData.address.trim(),
         coordinates: formData.coordinates,
         preferredDate: formData.preferredDate || undefined,
-        budget: {
+        budget: formData.budgetAmount ? {
           amount: Number(formData.budgetAmount),
           currency: formData.currency
-        },
+        } : undefined,
         photos: formData.photos,
         videos: formData.videos,
         visibility: 'auto',
@@ -641,16 +638,15 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
       )}
 
       {/* Modal principal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="fixed inset-0 z-60 flex items-center justify-center pt-20 pb-4 px-2 sm:pt-24 sm:pb-6 sm:px-4 lg:pt-20 lg:pb-8 lg:px-8">
         {/* Backdrop con blur */}
         <div
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-modal-enter"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-modal-enter"
           onClick={handleCloseAttempt}
         />
-        
         {/* Modal content */}
         <div 
-          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[95vh] flex flex-col overflow-hidden animate-zoom-in"
+          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-full flex flex-col overflow-hidden animate-zoom-in z-60"
           onClick={(e) => e.stopPropagation()}
         >
           {/* ============================================================ */}
@@ -804,32 +800,40 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                       ¿Qué tan urgente es? *
                     </label>
                     <div className="grid grid-cols-2 gap-3">
-                      {URGENCY_OPTIONS.map((option) => (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => updateField('urgency', option.value)}
-                          className={`
-                            relative p-4 rounded-xl border-2 text-left transition-all
-                            ${formData.urgency === option.value 
-                              ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20' 
-                              : option.color}
-                          `}
-                        >
-                          <div className="flex items-start gap-3">
-                            <span className="text-2xl">{option.icon}</span>
-                            <div>
-                              <p className="font-semibold text-gray-900">{option.label}</p>
-                              <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
+                      {URGENCY_OPTIONS.map((option) => {
+                        const isSelected = formData.urgency === option.value;
+                        const isUrgent = option.value === 'immediate';
+                        
+                        // Estilos cuando está seleccionado
+                        const selectedStyles = isUrgent
+                          ? 'border-red-500 bg-red-50 ring-2 ring-red-500/20'
+                          : 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20';
+                        
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => updateField('urgency', option.value)}
+                            className={`
+                              relative p-4 rounded-xl border-2 text-left transition-all
+                              ${isSelected ? selectedStyles : option.color}
+                            `}
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="text-2xl">{option.icon}</span>
+                              <div>
+                                <p className="font-semibold text-gray-900">{option.label}</p>
+                                <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
+                              </div>
                             </div>
-                          </div>
-                          {formData.urgency === option.value && (
-                            <div className="absolute top-2 right-2 w-5 h-5 bg-brand-500 rounded-full flex items-center justify-center">
-                              <Icons.Check className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                        </button>
-                      ))}
+                            {isSelected && (
+                              <div className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center ${isUrgent ? 'bg-red-500' : 'bg-brand-500'}`}>
+                                <Icons.Check className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                     {formErrors.urgency && (
                       <p className="text-xs text-red-600 mt-2">{formErrors.urgency}</p>
@@ -1085,73 +1089,9 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                 </div>
               )}
 
-              {/* ==================== STEP 4: BUDGET ==================== */}
+              {/* ==================== STEP 4: RESUMEN ==================== */}
               {currentStep === 4 && (
                 <div className="space-y-5">
-                  {/* Budget input */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Tu presupuesto estimado *
-                    </label>
-                    <div className="flex gap-3">
-                      <select
-                        value={formData.currency}
-                        onChange={(e) => updateField('currency', e.target.value)}
-                        className="w-28 border-2 border-gray-200 rounded-xl px-3 py-3 text-gray-900 focus:outline-none focus:border-brand-500"
-                      >
-                        {CURRENCIES.map((c) => (
-                          <option key={c.code} value={c.code}>
-                            {c.symbol} {c.code}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="flex-1 relative">
-                        <input
-                          type="number"
-                          min="1"
-                          step="0.01"
-                          value={formData.budgetAmount}
-                          onChange={(e) => updateField('budgetAmount', e.target.value)}
-                          className={`
-                            w-full border-2 rounded-xl px-4 py-3 text-gray-900 text-lg font-semibold
-                            placeholder:text-gray-400 placeholder:font-normal transition-colors
-                            focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20
-                            ${formErrors.budgetAmount ? 'border-red-300 bg-red-50' : 'border-gray-200'}
-                          `}
-                          placeholder="0.00"
-                        />
-                      </div>
-                    </div>
-                    {formErrors.budgetAmount && (
-                      <p className="text-xs text-red-600 mt-2">{formErrors.budgetAmount}</p>
-                    )}
-                  </div>
-
-                  {/* Quick budget options */}
-                  <div>
-                    <p className="text-sm text-gray-500 mb-3">Rangos sugeridos:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {[50, 100, 200, 500, 1000].map((amount) => {
-                        const isSelected = Number(formData.budgetAmount) === amount;
-                        return (
-                          <button
-                            key={amount}
-                            type="button"
-                            onClick={() => updateField('budgetAmount', amount.toString())}
-                            className={`
-                              px-4 py-2 rounded-full text-sm font-medium transition-all
-                              ${isSelected 
-                                ? 'bg-green-600 text-white' 
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
-                            `}
-                          >
-                            ${amount}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
                   {/* Summary card */}
                   <div className="bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
                     <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -1165,6 +1105,13 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                           <p className="text-xs text-gray-500">Descripción</p>
                           <p className="text-sm text-gray-900 line-clamp-2">{formData.description || '-'}</p>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentStep(0)}
+                          className="text-xs text-brand-600 hover:text-brand-700 font-medium shrink-0"
+                        >
+                          Editar
+                        </button>
                       </div>
                       <div className="flex items-start gap-3">
                         <span className="text-gray-400 shrink-0">📍</span>
@@ -1172,6 +1119,13 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                           <p className="text-xs text-gray-500">Ubicación</p>
                           <p className="text-sm text-gray-900 truncate">{formData.address || '-'}</p>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentStep(2)}
+                          className="text-xs text-brand-600 hover:text-brand-700 font-medium shrink-0"
+                        >
+                          Editar
+                        </button>
                       </div>
                       <div className="flex items-start gap-3">
                         <span className="text-gray-400 shrink-0">📅</span>
@@ -1179,25 +1133,133 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                           <p className="text-xs text-gray-500">Fecha</p>
                           <p className="text-sm text-gray-900">{formData.preferredDate || 'No especificada'}</p>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentStep(3)}
+                          className="text-xs text-brand-600 hover:text-brand-700 font-medium shrink-0"
+                        >
+                          Editar
+                        </button>
                       </div>
                       <div className="flex items-start gap-3">
-                        <span className="text-gray-400 shrink-0">📸</span>
+                        <span className="text-gray-400 shrink-0">⚡</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">Archivos adjuntos</p>
+                          <p className="text-xs text-gray-500">Urgencia</p>
                           <p className="text-sm text-gray-900">
-                            {formData.photos.length} foto(s), {formData.videos.length} video(s)
+                            {formData.urgency === 'immediate' ? '🔴 Urgente' : '🔵 Programado'}
                           </p>
                         </div>
-                      </div>
-                      <div className="pt-3 border-t border-gray-200 flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Presupuesto</span>
-                        <span className="text-xl font-bold text-green-600">
-                          {CURRENCIES.find(c => c.code === formData.currency)?.symbol}
-                          {Number(formData.budgetAmount || 0).toLocaleString()} {formData.currency}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentStep(0)}
+                          className="text-xs text-brand-600 hover:text-brand-700 font-medium shrink-0"
+                        >
+                          Editar
+                        </button>
                       </div>
                     </div>
                   </div>
+
+                  {/* Archivos adjuntos con miniaturas */}
+                  {(formData.photos.length > 0 || formData.videos.length > 0) && (
+                    <div className="bg-white rounded-xl p-5 border border-gray-200">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-bold text-gray-900 flex items-center gap-2">
+                          <span className="text-lg">📸</span>
+                          Archivos adjuntos ({formData.photos.length + formData.videos.length})
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentStep(1)}
+                          className="text-xs text-brand-600 hover:text-brand-700 font-medium"
+                        >
+                          Editar archivos
+                        </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                        {/* Miniaturas de fotos */}
+                        {formData.photos.map((photo, index) => (
+                          <div 
+                            key={`photo-${index}`} 
+                            className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200 group"
+                          >
+                            <img
+                              src={photo.url || photo.preview || URL.createObjectURL(photo)}
+                              alt={`Foto ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newPhotos = formData.photos.filter((_, i) => i !== index);
+                                  updateField('photos', newPhotos);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600"
+                                title="Eliminar foto"
+                              >
+                                <Icons.Close className="w-3 h-3" />
+                              </button>
+                            </div>
+                            <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+                              Foto
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {/* Miniaturas de videos */}
+                        {formData.videos.map((video, index) => (
+                          <div 
+                            key={`video-${index}`} 
+                            className="relative aspect-square rounded-lg overflow-hidden bg-gray-800 border border-gray-200 group"
+                          >
+                            <video
+                              src={video.url || video.preview || URL.createObjectURL(video)}
+                              className="w-full h-full object-cover"
+                              muted
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="bg-black/50 rounded-full p-2">
+                                <Icons.Play className="w-4 h-4 text-white" />
+                              </div>
+                            </div>
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newVideos = formData.videos.filter((_, i) => i !== index);
+                                  updateField('videos', newVideos);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600"
+                                title="Eliminar video"
+                              >
+                                <Icons.Close className="w-3 h-3" />
+                              </button>
+                            </div>
+                            <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+                              Video
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mensaje si no hay archivos */}
+                  {formData.photos.length === 0 && formData.videos.length === 0 && (
+                    <div className="bg-gray-50 rounded-xl p-5 border border-dashed border-gray-300 text-center">
+                      <span className="text-3xl mb-2 block">📷</span>
+                      <p className="text-sm text-gray-500 mb-2">No has adjuntado archivos</p>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(1)}
+                        className="text-sm text-brand-600 hover:text-brand-700 font-medium"
+                      >
+                        + Agregar fotos o videos
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

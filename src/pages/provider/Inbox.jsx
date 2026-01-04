@@ -1,15 +1,20 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
+import Modal from '@/components/ui/Modal.jsx';
 import ChatRoom from '@/components/ui/ChatRoom.jsx';
+import Spinner from '@/components/ui/Spinner.jsx';
+import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
 import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketClient.js';
 
 export default function Inbox() {
   const navigate = useNavigate();
-  const { viewRole, clearError, user, isAuthenticated } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const toast = useToast();
+  const { viewRole, clearError, user, isAuthenticated, isRoleSwitching } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [proposals, setProposals] = useState([]);
@@ -20,9 +25,28 @@ export default function Inbox() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [typingUsers, setTypingUsers] = useState({});
   const socketRef = useRef(null);
+  
+  // Estado para chat de negociación con cliente
+  const [negotiationModalOpen, setNegotiationModalOpen] = useState(false);
+  const [negotiationChat, setNegotiationChat] = useState(null);
+  const [negotiationProposal, setNegotiationProposal] = useState(null);
+  const [loadingNegotiationChat, setLoadingNegotiationChat] = useState(false);
 
 
   useEffect(()=>{ clearError?.(); }, [clearError]);
+
+  // Leer chatId de query params y seleccionarlo automáticamente cuando los chats estén cargados
+  useEffect(() => {
+    const chatFromUrl = searchParams.get('chat');
+    if (chatFromUrl && chats.length > 0) {
+      const chatToSelect = chats.find(c => (c._id || c.id) === chatFromUrl);
+      if (chatToSelect && (!selectedChat || (selectedChat._id || selectedChat.id) !== chatFromUrl)) {
+        setSelectedChat(chatToSelect);
+        // Limpiar el param de la URL
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, chats, selectedChat, setSearchParams]);
 
   const load = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -47,6 +71,11 @@ export default function Inbox() {
   }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
+    return null;
+  }
+
+  // Durante transición de rol, no mostrar mensaje de advertencia
+  if (isRoleSwitching) {
     return null;
   }
 
@@ -119,6 +148,32 @@ export default function Inbox() {
   const selectChat = (chat) => {
     if (!chat) return;
     setSelectedChat(chat);
+  };
+
+  // Abrir chat de negociación con el cliente (para propuestas enviadas)
+  const openNegotiationChat = async (proposal) => {
+    setLoadingNegotiationChat(true);
+    setNegotiationProposal(proposal);
+    try {
+      const { data } = await api.post(`/chats/proposal/${proposal._id}`);
+      if (data?.success && data?.data?.chat) {
+        setNegotiationChat(data.data.chat);
+        setNegotiationModalOpen(true);
+      } else {
+        toast.error(data?.message || 'No se pudo abrir el chat');
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Error al abrir el chat';
+      toast.error(msg);
+    } finally {
+      setLoadingNegotiationChat(false);
+    }
+  };
+
+  const closeNegotiationModal = () => {
+    setNegotiationModalOpen(false);
+    setNegotiationChat(null);
+    setNegotiationProposal(null);
   };
 
   // Handler for new messages from ChatRoom - update chat list
@@ -227,16 +282,35 @@ export default function Inbox() {
                       )}
                     </div>
                   </div>
-                  {requestId && (
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/empleos/${requestId}`)}
-                      className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-300 hover:bg-brand-50/30 text-sm font-medium text-gray-700 transition-all flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                      Ver solicitud
-                    </button>
-                  )}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {/* Botón Negociar - solo para propuestas enviadas o vistas */}
+                    {['sent', 'viewed'].includes(p.status) && (
+                      <button
+                        type="button"
+                        onClick={() => openNegotiationChat(p)}
+                        disabled={loadingNegotiationChat && negotiationProposal?._id === p._id}
+                        title="Chatear con el cliente para negociar términos o resolver dudas"
+                        className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 hover:border-blue-300 hover:bg-blue-100 text-sm font-medium text-blue-600 transition-all flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {loadingNegotiationChat && negotiationProposal?._id === p._id ? (
+                          <Spinner size="sm" className="text-blue-600" />
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                        )}
+                        Negociar
+                      </button>
+                    )}
+                    {requestId && (
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/empleos/${requestId}`)}
+                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-300 hover:bg-brand-50/30 text-sm font-medium text-gray-700 transition-all flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        Ver solicitud
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -255,7 +329,7 @@ export default function Inbox() {
             <span className="font-semibold text-gray-900">Conversaciones</span>
           </div>
           {chatError && <div className="p-3 text-sm text-red-600 bg-red-50">{chatError}</div>}
-          <div className="max-h-[400px] overflow-auto">
+          <div className="max-h-100 overflow-auto">
             {Array.isArray(chats) && chats.length > 0 ? chats.map((c) => {
               const id = c._id || c.id;
               const last = c.lastMessage?.content?.text || c.lastMessage?.content || '';
@@ -295,7 +369,7 @@ export default function Inbox() {
         {/* Chat Area - Using ChatRoom component */}
         <div className="lg:col-span-2">
           {!selectedChat ? (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-[500px] flex flex-col items-center justify-center p-8">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-125 flex flex-col items-center justify-center p-8">
               <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-brand-100 to-cyan-100 flex items-center justify-center mb-4">
                 <svg className="w-10 h-10 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
               </div>
@@ -309,13 +383,62 @@ export default function Inbox() {
               currentUserId={user?._id}
               onNewMessage={handleNewMessage}
               placeholder="Escribe un mensaje..."
-              className="min-h-[500px]"
+              className="min-h-125"
               maxHeight="400px"
               showHeader={true}
             />
           )}
         </div>
       </div>
+
+      {/* Modal de Chat de Negociación con Cliente */}
+      <Modal
+        open={negotiationModalOpen}
+        onClose={closeNegotiationModal}
+        size="xl"
+        title={
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+            </div>
+            <div>
+              <span className="text-lg font-semibold text-gray-900">
+                Negociar propuesta
+              </span>
+              <p className="text-sm text-gray-500 font-normal">
+                Propuesta: {negotiationProposal?.pricing?.amount 
+                  ? Intl.NumberFormat('es-AR', { style: 'currency', currency: negotiationProposal?.pricing?.currency || 'USD' }).format(negotiationProposal.pricing.amount)
+                  : 'Sin precio definido'}
+              </p>
+            </div>
+          </div>
+        }
+      >
+        <div className="h-[60vh] flex flex-col">
+          {negotiationChat && (
+            <ChatRoom 
+              chatId={negotiationChat._id || negotiationChat.id}
+              chat={negotiationChat}
+              currentUserId={user?._id}
+              showHeader={false}
+              maxHeight="100%"
+            />
+          )}
+        </div>
+        
+        {/* Información del modal */}
+        <div className="mt-4 pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-gray-500">
+            💬 Conversa con el cliente para ajustar términos, fechas o resolver cualquier duda sobre tu propuesta.
+          </p>
+          <button
+            onClick={closeNegotiationModal}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+          >
+            Cerrar
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

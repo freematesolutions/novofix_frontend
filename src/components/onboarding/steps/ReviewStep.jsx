@@ -38,34 +38,21 @@ export default function ReviewStep() {
     
     const result = await submitOnboarding(finalData);
 
+    // Si el resultado fue exitoso pero no hay redirección automática del callback
+    // (esto puede pasar si se usa el flujo fallback sin onRegistrationComplete)
     if (result.success) {
-      // Limpiar draft
+      // Limpiar draft por si acaso
       clearDraft();
-
-      // El token ya fue guardado por registerProvider/becomeProvider en AuthContext
-      // Solo necesitamos forzar recarga del perfil y redirigir
       
-      // Pequeña espera para que el backend procese todo
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Forzar recarga del perfil desde el servidor
-      try {
-        await api.get('/auth/profile');
-      } catch (err) {
-        console.error('Error loading profile:', err);
-      }
-
-      // Redirigir según el tipo de usuario
-      if (isExistingClient) {
-        // Cliente que se convirtió en proveedor - ir a empleos
-        navigate('/empleos', { replace: true });
-      } else {
-        // Nuevo proveedor registrado - ir a empleos
-        navigate('/empleos', { replace: true });
-      }
-
-      // Recargar página para actualizar contexto de auth completamente
-      window.location.href = '/empleos';
+      // Solo redirigir si el callback no lo hizo (flujo fallback)
+      // Esperamos un momento para ver si ya se redirigió
+      setTimeout(() => {
+        if (window.location.pathname !== '/verificar-email' && 
+            !window.location.pathname.includes('/servicios') &&
+            !window.location.pathname.includes('/empleos')) {
+          navigate('/verificar-email', { replace: true });
+        }
+      }, 100);
     }
   };
 

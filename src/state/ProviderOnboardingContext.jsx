@@ -14,7 +14,7 @@ export function useProviderOnboarding() {
 
 const STORAGE_KEY = 'provider_onboarding_draft';
 
-export function ProviderOnboardingProvider({ children, user, isExistingClient = false }) {
+export function ProviderOnboardingProvider({ children, user, isExistingClient = false, onRegistrationComplete }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -298,12 +298,35 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
         payload.lastName = formData.lastName || '';
       }
 
+      // Si hay un callback de registro, usarlo (pasa por AuthContext para manejo correcto del estado)
+      if (onRegistrationComplete && typeof onRegistrationComplete === 'function') {
+        // Limpiar draft antes de llamar al callback
+        clearDraft();
+        
+        // Llamar al callback que está conectado a AuthContext.registerProvider
+        // Este se encarga de establecer pendingVerification y manejar tokens
+        const result = await onRegistrationComplete(payload);
+        
+        // Si el callback retorna algo, usarlo como resultado
+        if (result) {
+          if (result.pending || result.ok) {
+            return { success: true, data: result };
+          } else if (result.error) {
+            setError(result.error?.message || result.error || 'Error en el registro');
+            return { success: false, error: result.error };
+          }
+        }
+        
+        return { success: true };
+      }
+
+      // Fallback: llamada directa a la API (no recomendado, no actualiza AuthContext)
       let response;
       if (isExistingClient) {
         // Upgrade de cliente a proveedor
         response = await api.post('/auth/become-provider', payload);
       } else {
-        // Registro nuevo - el AuthContext.registerProvider ya maneja el token
+        // Registro nuevo
         response = await api.post('/auth/register/provider', payload);
         
         // Guardar token en localStorage para nuevos usuarios
@@ -313,6 +336,16 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
             localStorage.setItem('access_token', token);
           } catch (e) {
             console.error('Error saving token:', e);
+          }
+        }
+        
+        // Guardar email pendiente en sessionStorage para que VerifyEmail lo recupere
+        const userEmail = response.data?.data?.user?.email || formData.email;
+        if (userEmail) {
+          try {
+            sessionStorage.setItem('pending_verification_email', userEmail);
+          } catch (e) {
+            console.error('Error saving pending email:', e);
           }
         }
       }

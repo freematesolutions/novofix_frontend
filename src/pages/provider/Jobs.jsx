@@ -8,7 +8,7 @@ import { getArray } from '@/utils/data.js';
 
 export default function Jobs() {
   const navigate = useNavigate();
-  const { viewRole, user, clearError, isAuthenticated } = useAuth();
+  const { viewRole, user, clearError, isAuthenticated, isRoleSwitching } = useAuth();
   // no toast used here; navigation to detail handles actions
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,6 +38,11 @@ export default function Jobs() {
   }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
+    return null;
+  }
+
+  // Durante transición de rol, no mostrar mensaje de advertencia
+  if (isRoleSwitching) {
     return null;
   }
 

@@ -7,7 +7,7 @@ import { useAuth } from '@/state/AuthContext.jsx';
 
 export default function Calendar() {
   const navigate = useNavigate();
-  const { viewRole, clearError, isAuthenticated } = useAuth();
+  const { viewRole, clearError, isAuthenticated, isRoleSwitching } = useAuth();
   const [date, setDate] = useState(() => new Date().toISOString().slice(0,10));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -36,6 +36,11 @@ export default function Calendar() {
   }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
+    return null;
+  }
+
+  // Durante transición de rol, no mostrar mensaje de advertencia
+  if (isRoleSwitching) {
     return null;
   }
 

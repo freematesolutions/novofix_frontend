@@ -20,7 +20,7 @@ export default function RequestDetail() {
   const navigate = useNavigate();
   const { search } = useLocation();
   const toast = useToast();
-  const { viewRole, clearError, isAuthenticated } = useAuth();
+  const { viewRole, clearError, isAuthenticated, isRoleSwitching } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -103,6 +103,11 @@ export default function RequestDetail() {
   }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
+    return null;
+  }
+
+  // Durante transición de rol, no mostrar mensaje de advertencia
+  if (isRoleSwitching) {
     return null;
   }
 

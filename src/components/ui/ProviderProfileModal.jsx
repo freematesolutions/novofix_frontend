@@ -125,9 +125,9 @@ const TABS = [
   { id: 'reviews', label: 'Reseñas', icon: '⭐' }
 ];
 
-function ProviderProfileModal({ isOpen, onClose, provider }) {
+function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
   const { isAuthenticated, viewRole } = useAuth();
-  const [activeTab, setActiveTab] = useState('about');
+  const [activeTab, setActiveTab] = useState(initialTab || 'about');
   const [showRequestWizard, setShowRequestWizard] = useState(false);
   const [selectedPortfolioItem, setSelectedPortfolioItem] = useState(null);
   const [portfolioIndex, setPortfolioIndex] = useState(0);
@@ -138,6 +138,19 @@ function ProviderProfileModal({ isOpen, onClose, provider }) {
     portfolio: useRef(null),
     reviews: useRef(null)
   };
+
+  // Scroll automático a la sección correspondiente según initialTab
+  useEffect(() => {
+    if (isOpen && initialTab && activeTab === initialTab) {
+      setTimeout(() => {
+        if (initialTab === 'portfolio') {
+          sectionRefs.portfolio.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (initialTab === 'about') {
+          sectionRefs.about.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 250);
+    }
+  }, [isOpen, initialTab, activeTab]);
 
   // Extract provider data
   const businessName = provider?.providerProfile?.businessName || provider?.profile?.firstName || 'Profesional';
@@ -169,6 +182,12 @@ function ProviderProfileModal({ isOpen, onClose, provider }) {
   }, [isOpen]);
 
   // Handle escape key
+  useEffect(() => {
+    if (isOpen && initialTab && initialTab !== activeTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -246,14 +265,14 @@ function ProviderProfileModal({ isOpen, onClose, provider }) {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-60 transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div 
         ref={modalRef}
-        className="fixed inset-2 sm:inset-4 lg:inset-8 bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden animate-modal-enter"
+        className="fixed left-2 right-2 top-16 bottom-2 sm:left-4 sm:right-4 sm:top-24 sm:bottom-4 lg:left-8 lg:right-8 lg:top-32 lg:bottom-8 bg-white rounded-2xl shadow-2xl z-60 flex flex-col overflow-hidden animate-modal-enter"
       >
         {/* Compact Header with Provider Basic Info */}
         <div className={`relative bg-linear-to-br ${planInfo.gradient} px-4 py-3 sm:px-6 sm:py-4`}>
@@ -318,14 +337,14 @@ function ProviderProfileModal({ isOpen, onClose, provider }) {
                 className="flex items-center gap-1.5 bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-all shadow"
               >
                 <Icons.Message className="w-4 h-4" />
-                Mensaje
+                Enviar Solicitud
               </button>
               <button
                 onClick={() => {/* TODO: Implement quote request */}}
                 className="flex items-center gap-1.5 bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-all border border-white/30"
               >
                 <Icons.Quote className="w-4 h-4" />
-                Cotización
+                Estimado
               </button>
             </div>
           </div>
@@ -408,14 +427,14 @@ function ProviderProfileModal({ isOpen, onClose, provider }) {
                       className="flex items-center justify-center gap-2 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow"
                     >
                       <Icons.Message className="w-4 h-4" />
-                      Enviar Mensaje
+                      Enviar Solicitud
                     </button>
                     <button
                       onClick={() => {/* TODO: Implement quote request */}}
                       className="flex items-center justify-center gap-2 bg-white text-gray-700 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-all border border-gray-200"
                     >
                       <Icons.Quote className="w-4 h-4" />
-                      Solicitar Cotización
+                      Solicitar Estimado
                     </button>
                   </div>
                 </div>
@@ -667,14 +686,14 @@ function ProviderProfileModal({ isOpen, onClose, provider }) {
             className="flex-1 flex items-center justify-center gap-2 bg-brand-600 text-white px-4 py-3 rounded-xl font-semibold"
           >
             <Icons.Message className="w-5 h-5" />
-            Mensaje
+            Enviar Solicitud
           </button>
           <button
             onClick={() => {/* TODO */}}
             className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-semibold"
           >
             <Icons.Quote className="w-5 h-5" />
-            Cotización
+            Estimado
           </button>
         </div>
       </div>
@@ -749,6 +768,7 @@ function ProviderProfileModal({ isOpen, onClose, provider }) {
 }
 
 ProviderProfileModal.propTypes = {
+  initialTab: PropTypes.string,
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   provider: PropTypes.object

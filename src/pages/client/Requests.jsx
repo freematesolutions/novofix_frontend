@@ -24,6 +24,9 @@ export default function ClientRequests() {
   const [searchRes, setSearchRes] = useState([]);
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState({}); // providerId: true
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null); // request object to delete
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => { clearError?.(); }, [clearError]);
 
@@ -119,6 +122,40 @@ export default function ClientRequests() {
   };
 
   const toggleSelect = (id) => setSelected(prev => ({ ...prev, [id]: !prev[id] }));
+
+  // Funciones para eliminar solicitud
+  const openDeleteConfirm = (reqItem) => {
+    setDeleteTarget(reqItem);
+    setDeleteConfirmOpen(true);
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmOpen(false);
+    setDeleteTarget(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const { data } = await api.put(`/client/requests/${deleteTarget._id}/cancel`, { 
+        reason: 'Eliminada por el usuario' 
+      });
+      if (data?.success) {
+        toast.success('Solicitud eliminada correctamente');
+        setDeleteConfirmOpen(false);
+        setDeleteTarget(null);
+        await load(); // Recargar lista
+      } else {
+        toast.warning(data?.message || 'No se pudo eliminar la solicitud');
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Error al eliminar la solicitud';
+      toast.error(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const sendInvites = async () => {
     if (!inviteTarget) return;
@@ -523,6 +560,21 @@ export default function ClientRequests() {
                             Republicar
                           </button>
                         )}
+                        
+                        {/* Botón eliminar - disponible para draft, published y archived */}
+                        {['draft', 'published', 'archived'].includes(r.status) && (
+                          <button
+                            onClick={() => openDeleteConfirm(r)}
+                            disabled={busyId === r._id}
+                            title="Eliminar esta solicitud permanentemente"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 hover:border-red-300 transition-all duration-300 disabled:opacity-50"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Eliminar
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -692,6 +744,81 @@ export default function ClientRequests() {
                   </label>
                 );
               })}
+            </div>
+          </div>
+        </Modal>
+
+        {/* Modal de confirmación de eliminación */}
+        <Modal
+          open={deleteConfirmOpen}
+          onClose={cancelDelete}
+          title={
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-red-500 to-rose-500 flex items-center justify-center shadow-lg shadow-red-500/25">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div>
+                <span className="text-lg font-semibold text-gray-900">Eliminar solicitud</span>
+                <p className="text-sm text-gray-500 font-normal">Esta acción no se puede deshacer</p>
+              </div>
+            </div>
+          }
+          actions={
+            <div className="flex gap-3">
+              <button 
+                onClick={cancelDelete}
+                disabled={deleting}
+                className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-300 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-red-500 to-rose-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-red-500/25 hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleting ? (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                )}
+                {deleting ? 'Eliminando...' : 'Sí, eliminar'}
+              </button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            {/* Info de la solicitud a eliminar */}
+            <div className="p-4 bg-linear-to-r from-red-50 to-rose-50 rounded-xl border border-red-100">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-900">{deleteTarget?.basicInfo?.title || 'Solicitud'}</span>
+                  {deleteTarget?.basicInfo?.category && (
+                    <>
+                      <span className="mx-2 text-gray-300">·</span>
+                      <span className="text-red-600 font-medium">{deleteTarget.basicInfo.category}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="text-sm text-gray-600 space-y-2">
+              <p>¿Estás seguro de que deseas eliminar esta solicitud?</p>
+              <ul className="list-disc list-inside text-gray-500 space-y-1">
+                <li>Se eliminarán todas las propuestas recibidas</li>
+                <li>Se notificará a los profesionales involucrados</li>
+                <li>Las imágenes adjuntas serán eliminadas</li>
+              </ul>
             </div>
           </div>
         </Modal>

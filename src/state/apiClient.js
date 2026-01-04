@@ -128,10 +128,12 @@ api.interceptors.response.use(
       } finally {
         isRefreshing = false;
       }
-      // If refresh fails, clear tokens and bubble up
+      // If refresh fails, clear tokens and force guest mode (emit event for AuthContext)
       try { localStorage.removeItem('access_token'); } catch { /* ignore */ }
       try { sessionStorage.removeItem('access_token'); } catch { /* ignore */ }
       try { localStorage.removeItem('view_role'); } catch { /* ignore */ }
+      // Notificar a AuthContext para limpiar usuario global
+      try { window.dispatchEvent(new CustomEvent('auth:force-guest')); } catch { /* ignore */ }
     }
     return Promise.reject(error);
   }
