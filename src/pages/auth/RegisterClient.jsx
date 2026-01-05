@@ -235,9 +235,17 @@ function RegisterClient() {
     const result = await registerClient(form);
     
     if (result.pending) {
-      // Registro exitoso pero pendiente de verificación
+      // Registro exitoso, pendiente de verificación
+      // En modo demo, verificationUrl viene incluida para mostrar en la UI
       toast.success('¡Registro exitoso! Por favor verifica tu email para activar tu cuenta.');
-      navigate('/verificar-email', { replace: true });
+      navigate('/verificar-email', { 
+        replace: true,
+        state: { 
+          email: form.email,
+          verificationUrl: result.verificationUrl,
+          demoMode: result.demoMode
+        }
+      });
     } else if (result.ok) {
       // Registro exitoso y ya verificado (caso raro)
       toast.success('¡Bienvenido! Te has registrado como cliente');

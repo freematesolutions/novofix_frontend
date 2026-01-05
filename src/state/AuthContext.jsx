@@ -254,12 +254,26 @@ export function AuthProvider({ children }) {
     setLoading(true); setError('');
     try {
       const { data } = await api.post('/auth/register/client', payload);
-      const { user: u, token, pendingVerification: backendPending } = data.data || {};
+      const { user: u, pendingVerification: backendPending, verificationUrl, demoMode } = data.data || {};
 
-      // Si el backend indica que está pendiente de verificación
+      // Debug log en desarrollo
+      if (import.meta.env.DEV) {
+        console.log('[AuthContext] registerClient response:', {
+          user: u,
+          pendingVerification: backendPending,
+          verificationUrl: verificationUrl ? 'presente' : 'ausente',
+          demoMode,
+          emailVerified: u?.emailVerified
+        });
+      }
+
+      // Siempre pendiente de verificación (flujo unificado)
       if (backendPending || (u && u.emailVerified === false)) {
-        setPendingVerification({ email: u.email });
+        setPendingVerification({ email: u.email, verificationUrl, demoMode });
         try { sessionStorage.setItem('pending_verification_email', u.email); } catch {/* ignore */}
+        if (verificationUrl) {
+          try { sessionStorage.setItem('pending_verification_url', verificationUrl); } catch {/* ignore */}
+        }
         setUser(null);
         setRoles([]);
         setRole('guest');
@@ -267,21 +281,8 @@ export function AuthProvider({ children }) {
         try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
         try { localStorage.removeItem('access_token'); } catch {/* ignore */}
         try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
-        return { pending: true, email: u.email };
+        return { pending: true, email: u.email, verificationUrl, demoMode };
       }
-
-      // Si viene con token, es porque ya está verificado (caso raro)
-      if (token) {
-        setAuthState(u, token);
-      } else {
-        setAuthState(u, null);
-      }
-
-      // Intentar merge de sesión guest
-      try {
-        await api.post('/auth/merge-guest', { sessionId: localStorage.getItem('session_id') });
-        try { localStorage.removeItem('session_id'); } catch {/* ignore */}
-      } catch { /* noop */ }
 
       return { ok: true };
     } catch (err) {
@@ -296,12 +297,26 @@ export function AuthProvider({ children }) {
     setLoading(true); setError('');
     try {
       const { data } = await api.post('/auth/register/provider', payload);
-      const { user: u, token, pendingVerification: backendPending } = data.data || {};
+      const { user: u, pendingVerification: backendPending, verificationUrl, demoMode } = data.data || {};
 
-      // Si el backend indica que está pendiente de verificación
+      // Debug log en desarrollo
+      if (import.meta.env.DEV) {
+        console.log('[AuthContext] registerProvider response:', {
+          user: u,
+          pendingVerification: backendPending,
+          verificationUrl: verificationUrl ? 'presente' : 'ausente',
+          demoMode,
+          emailVerified: u?.emailVerified
+        });
+      }
+
+      // Siempre pendiente de verificación (flujo unificado)
       if (backendPending || (u && u.emailVerified === false)) {
-        setPendingVerification({ email: u.email });
+        setPendingVerification({ email: u.email, verificationUrl, demoMode });
         try { sessionStorage.setItem('pending_verification_email', u.email); } catch {/* ignore */}
+        if (verificationUrl) {
+          try { sessionStorage.setItem('pending_verification_url', verificationUrl); } catch {/* ignore */}
+        }
         setUser(null);
         setRoles([]);
         setRole('guest');
@@ -309,20 +324,8 @@ export function AuthProvider({ children }) {
         try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
         try { localStorage.removeItem('access_token'); } catch {/* ignore */}
         try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
-        return { pending: true, email: u.email };
+        return { pending: true, email: u.email, verificationUrl, demoMode };
       }
-
-      if (token) {
-        setAuthState(u, token);
-      } else {
-        setAuthState(u, null);
-      }
-
-      // Intentar merge de sesión guest
-      try {
-        await api.post('/auth/merge-guest', { sessionId: localStorage.getItem('session_id') });
-        try { localStorage.removeItem('session_id'); } catch {/* ignore */}
-      } catch { /* noop */ }
 
       return { ok: true };
     } catch (err) {

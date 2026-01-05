@@ -43,19 +43,47 @@ const VerifyEmail = () => {
   const params = new URLSearchParams(location.search);
   const token = params.get('token');
 
+  // Obtener datos desde location.state (navegación) o pendingVerification (contexto)
+  const locationState = location.state || {};
+  
   const [status, setStatus] = useState(token ? 'pending' : 'idle');
   const [message, setMessage] = useState('');
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
   const [countdown, setCountdown] = useState(0);
   
+  // Inicializar verificationUrl desde múltiples fuentes
+  const [verificationUrl, setVerificationUrl] = useState(() => {
+    // 1. Primero desde location.state (navegación reciente)
+    if (locationState.verificationUrl) {
+      return locationState.verificationUrl;
+    }
+    // 2. Luego desde pendingVerification (contexto de React)
+    if (pendingVerification?.verificationUrl) {
+      return pendingVerification.verificationUrl;
+    }
+    // 3. Desde sessionStorage (persistencia entre recargas)
+    try {
+      const stored = sessionStorage.getItem('pending_verification_url');
+      if (stored) return stored;
+    } catch { /* ignore */ }
+    return null;
+  });
+
+  // Detectar si es modo demo
+  const isDemoMode = locationState.demoMode || pendingVerification?.demoMode || !!verificationUrl;
+  
   // Inicializar email desde múltiples fuentes con prioridad
   const [email, setEmail] = useState(() => {
-    // 1. Primero intentar desde pendingVerification (estado de React)
+    // 1. Desde location.state
+    if (locationState.email) {
+      return locationState.email;
+    }
+    // 2. Desde pendingVerification (estado de React)
     if (pendingVerification?.email) {
       return pendingVerification.email;
     }
-    // 2. Luego desde sessionStorage (persistencia entre recargas)
+    // 3. Desde sessionStorage (persistencia entre recargas)
     try {
       const stored = sessionStorage.getItem('pending_verification_email');
       if (stored) return stored;
@@ -177,9 +205,35 @@ const VerifyEmail = () => {
         )}
 
         <p className="text-gray-600 mb-6 text-base sm:text-lg">
-          Te hemos enviado un enlace de verificación a tu email. 
-          Por seguridad, debes verificarlo para activar tu cuenta y acceder a todas las funcionalidades.
+          {isDemoMode 
+            ? 'En modo demo, puedes verificar tu cuenta usando el enlace de abajo.'
+            : 'Te hemos enviado un enlace de verificación a tu email. Por seguridad, debes verificarlo para activar tu cuenta y acceder a todas las funcionalidades.'
+          }
         </p>
+
+        {/* Bloque de verificación MODO DEMO */}
+        {isDemoMode && verificationUrl && status === 'idle' && (
+          <div className="mb-6 p-4 bg-linear-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-xl">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">🎯</span>
+              <h3 className="text-lg font-bold text-amber-800">Modo Demo</h3>
+            </div>
+            <p className="text-sm text-amber-700 mb-4">
+              En producción, este enlace llegaría a tu bandeja de entrada. 
+              Para esta demostración, haz clic en el botón:
+            </p>
+            <a 
+              href={verificationUrl}
+              className="inline-flex items-center justify-center gap-2 w-full bg-linear-to-r from-amber-500 to-yellow-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-amber-600 hover:to-yellow-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              <Icons.Check className="w-5 h-5" />
+              Verificar mi cuenta
+            </a>
+            <p className="text-xs text-amber-600 mt-3 italic">
+              ✨ Este enlace simula el que recibirías por email
+            </p>
+          </div>
+        )}
 
         {/* Estados de feedback */}
         {status === 'pending' && (
@@ -205,8 +259,8 @@ const VerifyEmail = () => {
           </div>
         )}
 
-        {/* Reenvío de email */}
-        {status === 'idle' && (
+        {/* Reenvío de email - solo en modo real, no en demo */}
+        {status === 'idle' && !isDemoMode && (
           <div className="flex flex-col gap-2 mb-6">
             <p className="mb-2 text-gray-700">¿No recibiste el correo? Ingresa tu email para reenviar el enlace de verificación.</p>
             <input
@@ -219,10 +273,10 @@ const VerifyEmail = () => {
             />
             <Button 
               onClick={handleResend} 
-              disabled={resending || !email} 
+              disabled={resending || !email || countdown > 0} 
               className="w-full mb-1 bg-linear-to-r from-cyan-500 to-blue-500 text-white font-semibold shadow-md hover:from-cyan-600 hover:to-blue-600 transition"
             >
-              {resending ? 'Enviando...' : 'Reenviar email de verificación'}
+              {resending ? 'Enviando...' : countdown > 0 ? `Reenviar en ${countdown}s` : 'Reenviar email de verificación'}
             </Button>
             {resent && <div className="text-green-600 text-sm">¡Email reenviado! Revisa tu bandeja de entrada.</div>}
           </div>

@@ -39,12 +39,24 @@ function RegisterProvider() {
     try {
       const result = await registerProvider(providerData);
       if (result.pending) {
+        // Registro exitoso, pendiente de verificación
+        // En modo demo, verificationUrl viene incluida para mostrar en la UI
         toast.success('¡Registro exitoso! Por favor verifica tu email para activar tu cuenta.');
         // Guardar email pendiente explícitamente en sessionStorage antes de redirigir
         if (result.email) {
           try { sessionStorage.setItem('pending_verification_email', result.email); } catch (e) {}
         }
-        window.location.replace('/verificar-email');
+        if (result.verificationUrl) {
+          try { sessionStorage.setItem('pending_verification_url', result.verificationUrl); } catch (e) {}
+        }
+        navigate('/verificar-email', { 
+          replace: true,
+          state: { 
+            email: providerData.email,
+            verificationUrl: result.verificationUrl,
+            demoMode: result.demoMode
+          }
+        });
       } else if (result.ok) {
         toast.success('¡Bienvenido! Te has registrado como proveedor');
         navigate('/servicios', { replace: true });
