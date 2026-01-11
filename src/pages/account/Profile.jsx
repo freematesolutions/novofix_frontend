@@ -81,7 +81,8 @@ export default function Profile() {
   const onSave = async (e) => {
     e.preventDefault(); setSaving(true); setError('');
     try {
-      await api.put('/auth/profile', { profile: form });
+      // Incluir avatar en el payload aunque no haya cambiado
+      await api.put('/auth/profile', { profile: { ...form, avatar } });
       toast.success('Perfil actualizado');
     } catch (err) {
       setError(err?.response?.data?.message || 'No se pudo guardar');
@@ -150,13 +151,13 @@ export default function Profile() {
             avatarCloudinaryId: cloudinaryId 
           } 
         });
-        
-        // Fase 4: Completado (95-100%)
-        setAvatarProgress(100);
         setAvatar(avatarUrl);
+        // Actualizar el usuario en el contexto de autenticación para reflejar el cambio en todas las vistas
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+          window.dispatchEvent(new Event('auth:refresh'));
+        }
         toast.success('Avatar actualizado');
-        
-        // Reset progress después de un momento
+        setAvatarProgress(100);
         setTimeout(() => setAvatarProgress(0), 1000);
       }
     } catch (err) {
@@ -247,7 +248,7 @@ export default function Profile() {
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-linear-to-r from-white/5 to-transparent rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-linear-to-r from-white/5 to-transparent rounded-full blur-3xl"></div>
           {/* Grid pattern overlay */}
           <div className="absolute inset-0 opacity-10" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,

@@ -139,18 +139,79 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
     reviews: useRef(null)
   };
 
+  // Ref para el contenedor scrollable
+  const scrollContainerRef = useRef(null);
+  
+  // Flag para evitar actualizar tab durante scroll programático
+  const isScrollingProgrammatically = useRef(false);
+
   // Scroll automático a la sección correspondiente según initialTab
   useEffect(() => {
-    if (isOpen && initialTab && activeTab === initialTab) {
+    if (isOpen && initialTab) {
+      setActiveTab(initialTab);
       setTimeout(() => {
-        if (initialTab === 'portfolio') {
-          sectionRefs.portfolio.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else if (initialTab === 'about') {
-          sectionRefs.about.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const sectionEl = sectionRefs[initialTab]?.current;
+        const scrollContainer = scrollContainerRef.current;
+        if (sectionEl && scrollContainer) {
+          isScrollingProgrammatically.current = true;
+          const containerRect = scrollContainer.getBoundingClientRect();
+          const sectionRect = sectionEl.getBoundingClientRect();
+          const currentScroll = scrollContainer.scrollTop;
+          const targetScroll = currentScroll + sectionRect.top - containerRect.top - 16;
+          
+          scrollContainer.scrollTo({
+            top: Math.max(0, targetScroll),
+            behavior: 'smooth'
+          });
+          
+          // Resetear el flag después de que termine el scroll
+          setTimeout(() => {
+            isScrollingProgrammatically.current = false;
+          }, 500);
         }
       }, 250);
     }
-  }, [isOpen, initialTab, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialTab]);
+
+  // Scroll spy: actualizar pestaña activa según la sección visible
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!isOpen || !scrollContainer) return;
+
+    const handleScroll = () => {
+      // No actualizar si el scroll es programático (click en tab)
+      if (isScrollingProgrammatically.current) return;
+
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const containerTop = containerRect.top;
+      
+      // Encontrar qué sección está más cerca del tope del contenedor
+      let closestSection = 'about';
+      let closestDistance = Infinity;
+
+      TABS.forEach(tab => {
+        const sectionEl = sectionRefs[tab.id]?.current;
+        if (sectionEl) {
+          const sectionRect = sectionEl.getBoundingClientRect();
+          // Distancia desde el tope de la sección al tope del contenedor
+          const distance = Math.abs(sectionRect.top - containerTop - 50);
+          
+          // Si la sección está visible y es la más cercana al tope
+          if (sectionRect.top <= containerTop + 150 && distance < closestDistance) {
+            closestDistance = distance;
+            closestSection = tab.id;
+          }
+        }
+      });
+
+      setActiveTab(closestSection);
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   // Extract provider data
   const businessName = provider?.providerProfile?.businessName || provider?.profile?.firstName || 'Profesional';
@@ -160,7 +221,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
   const ratingBreakdown = provider?.providerProfile?.rating?.breakdown || {};
   const plan = provider?.subscription?.plan || 'free';
   const services = provider?.providerProfile?.services || [];
-  const profileImage = provider?.profile?.profileImage || null;
+  const profileImage = provider?.profile?.avatar || null;
   const portfolio = provider?.providerProfile?.portfolio || [];
   const stats = provider?.providerProfile?.stats || {};
   const score = provider?.score?.total || 0;
@@ -199,24 +260,27 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
   // Scroll to section when tab changes
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
+    isScrollingProgrammatically.current = true;
+    
     const sectionEl = sectionRefs[tabId]?.current;
-    if (sectionEl) {
-      // Obtener el contenedor scrollable (el div con overflow-y-auto)
-      const scrollContainer = sectionEl.closest('.overflow-y-auto');
-      if (scrollContainer) {
-        // Calcular la posición relativa al contenedor scrollable
-        const containerRect = scrollContainer.getBoundingClientRect();
-        const sectionRect = sectionEl.getBoundingClientRect();
-        const currentScroll = scrollContainer.scrollTop;
-        
-        // Calcular el offset: posición actual de la sección + scroll actual - posición del contenedor - margen deseado
-        const targetScroll = currentScroll + sectionRect.top - containerRect.top - 16;
-        
-        scrollContainer.scrollTo({
-          top: Math.max(0, targetScroll),
-          behavior: 'smooth'
-        });
-      }
+    const scrollContainer = scrollContainerRef.current;
+    if (sectionEl && scrollContainer) {
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const sectionRect = sectionEl.getBoundingClientRect();
+      const currentScroll = scrollContainer.scrollTop;
+      const targetScroll = currentScroll + sectionRect.top - containerRect.top - 16;
+      
+      scrollContainer.scrollTo({
+        top: Math.max(0, targetScroll),
+        behavior: 'smooth'
+      });
+      
+      // Resetear el flag después de que termine el scroll
+      setTimeout(() => {
+        isScrollingProgrammatically.current = false;
+      }, 500);
+    } else {
+      isScrollingProgrammatically.current = false;
     }
   };
 
@@ -381,7 +445,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto scroll-smooth">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto scroll-smooth">
           <div className="p-4 sm:p-5 space-y-8">
             
             {/* ========== ABOUT SECTION ========== */}

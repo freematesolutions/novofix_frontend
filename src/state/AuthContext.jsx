@@ -57,14 +57,13 @@ export function AuthProvider({ children }) {
   }, [isPendingVerification, location.pathname, navigate]);
 
   // Inicialización: guest session + hidratar perfil si hay token válido
-  // NOTA: Se usa un ref para evitar loops infinitos de re-render
   const initRanRef = useRef(false);
   
   useEffect(() => {
     // Evitar múltiples ejecuciones
     if (initRanRef.current) return;
-    
     let cancelled = false;
+
     const init = async () => {
       // Si hay verificación pendiente, NO intentar cargar perfil
       if (pendingVerification) {
@@ -72,9 +71,9 @@ export function AuthProvider({ children }) {
         setRoles([]);
         setRole('guest');
         setViewRole('guest');
-        try { localStorage.removeItem('access_token'); } catch { /* ignore */ }
-        try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
-        try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
+        try { localStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
+        try { sessionStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
+        try { localStorage.setItem('view_role', 'guest'); } catch { /* intentionally empty */ }
         initRanRef.current = true;
         return;
       }
@@ -111,37 +110,34 @@ export function AuthProvider({ children }) {
               setViewRole(initial);
               localStorage.setItem('view_role', initial);
             } else {
-              // Si el usuario no está verificado, establecer estado pendiente
               setUser(null);
               setRoles([]);
               setRole('guest');
               setViewRole('guest');
               localStorage.setItem('view_role', 'guest');
-              
               if (u && u.emailVerified === false) {
                 setPendingVerification({ email: u.email });
-                try { sessionStorage.setItem('pending_verification_email', u.email); } catch {/* ignore */}
+                try { sessionStorage.setItem('pending_verification_email', u.email); } catch { /* intentionally empty */ }
               }
             }
           }
         } catch (err) {
           console.debug('Token inválido al cargar perfil:', err);
-          try { localStorage.removeItem('access_token'); } catch {/* ignore */}
-          try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
+          try { localStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
+          try { sessionStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
           setUser(null);
           setRole('guest');
           setRoles([]);
           setViewRole('guest');
-          try { localStorage.removeItem('view_role'); } catch {/* ignore */}
+          try { localStorage.removeItem('view_role'); } catch { /* intentionally empty */ }
         }
       } else {
         setUser(null);
         setRole('guest');
         setRoles([]);
         setViewRole('guest');
-        try { localStorage.removeItem('view_role'); } catch {/* ignore */}
+        try { localStorage.removeItem('view_role'); } catch { /* intentionally empty */ }
       }
-      
       initRanRef.current = true;
     };
 
@@ -152,13 +148,28 @@ export function AuthProvider({ children }) {
       setRole('guest');
       setRoles([]);
       setViewRole('guest');
-      try { localStorage.removeItem('view_role'); } catch {/* ignore */}
+      try { localStorage.removeItem('view_role'); } catch { /* intentionally empty */ }
     };
     window.addEventListener('auth:force-guest', forceGuest);
+
+    // Refrescar usuario al recibir evento 'auth:refresh'
+    const refreshUser = async () => {
+      try {
+        const { data } = await api.get('/auth/profile');
+        const u = data?.data?.user;
+        if (u && u.isActive !== false && u.emailVerified !== false) {
+          setUser(u);
+        }
+      } catch { /* intentionally empty */ }
+    };
+    window.addEventListener('auth:refresh', refreshUser);
+
     return () => {
       cancelled = true;
       window.removeEventListener('auth:force-guest', forceGuest);
+      window.removeEventListener('auth:refresh', refreshUser);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Sin dependencias - solo ejecutar una vez al montar
 
   const setAuthState = useCallback((u, token, persist = 'local') => {
@@ -167,7 +178,7 @@ export function AuthProvider({ children }) {
       setRoles([]);
       setRole('guest');
       setViewRole('guest');
-      try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
+      try { localStorage.setItem('view_role', 'guest'); } catch { /* intentionally empty */ }
       return;
     }
 
@@ -177,11 +188,11 @@ export function AuthProvider({ children }) {
       setRoles([]);
       setRole('guest');
       setViewRole('guest');
-      try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
+      try { localStorage.setItem('view_role', 'guest'); } catch { /* intentionally empty */ }
       setPendingVerification({ email: u.email });
-      try { sessionStorage.setItem('pending_verification_email', u.email); } catch {/* ignore */}
-      try { localStorage.removeItem('access_token'); } catch {/* ignore */}
-      try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
+      try { sessionStorage.setItem('pending_verification_email', u.email); } catch { /* intentionally empty */ }
+      try { localStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
+      try { sessionStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
       return;
     }
 
@@ -195,12 +206,12 @@ export function AuthProvider({ children }) {
           localStorage.setItem('access_token', token);
           sessionStorage.removeItem('access_token');
         }
-      } catch { /* ignore */ }
+      } catch { /* intentionally empty */ }
     }
 
     setUser(u || null);
     setPendingVerification(null);
-    try { sessionStorage.removeItem('pending_verification_email'); } catch {/* ignore */}
+    try { sessionStorage.removeItem('pending_verification_email'); } catch { /* intentionally empty */ }
     const rs = Array.isArray(u?.roles) ? u.roles.map(String) : [];
     setRoles(rs);
     const primary = rs.includes('admin') ? 'admin' : rs.includes('provider') ? 'provider' : rs.includes('client') ? 'client' : normalizeRole(u?.role);
@@ -209,7 +220,7 @@ export function AuthProvider({ children }) {
     const valid = rs.includes(vr);
     const nextVR = valid ? vr : primary;
     setViewRole(nextVR);
-    try { localStorage.setItem('view_role', nextVR); } catch {/* ignore */}
+    try { localStorage.setItem('view_role', nextVR); } catch { /* intentionally empty */ }
   }, []);
 
   const login = useCallback(async ({ email, password, remember }) => {
@@ -231,14 +242,14 @@ export function AuthProvider({ children }) {
             sessionStorage.setItem('access_token', token);
             localStorage.removeItem('access_token');
           }
-        } catch {/* ignore */}
+        } catch { /* intentionally empty */ }
       }
 
       let u = maybeUser;
       try {
         const prof = await api.get('/auth/profile');
         u = prof?.data?.data?.user || maybeUser;
-      } catch { /* ignore */ }
+      } catch { /* intentionally empty */ }
 
       setAuthState(u, null);
       return { ok: true, user: u };
@@ -270,17 +281,17 @@ export function AuthProvider({ children }) {
       // Siempre pendiente de verificación (flujo unificado)
       if (backendPending || (u && u.emailVerified === false)) {
         setPendingVerification({ email: u.email, verificationUrl, demoMode });
-        try { sessionStorage.setItem('pending_verification_email', u.email); } catch {/* ignore */}
+        try { sessionStorage.setItem('pending_verification_email', u.email); } catch { /* intentionally empty */ }
         if (verificationUrl) {
-          try { sessionStorage.setItem('pending_verification_url', verificationUrl); } catch {/* ignore */}
+          try { sessionStorage.setItem('pending_verification_url', verificationUrl); } catch { /* intentionally empty */ }
         }
         setUser(null);
         setRoles([]);
         setRole('guest');
         setViewRole('guest');
-        try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
-        try { localStorage.removeItem('access_token'); } catch {/* ignore */}
-        try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
+        try { localStorage.setItem('view_role', 'guest'); } catch { /* intentionally empty */ }
+        try { localStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
+        try { sessionStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
         return { pending: true, email: u.email, verificationUrl, demoMode };
       }
 
@@ -291,7 +302,7 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [setAuthState]);
+  }, []);
 
   const registerProvider = useCallback(async (payload) => {
     setLoading(true); setError('');
@@ -313,17 +324,17 @@ export function AuthProvider({ children }) {
       // Siempre pendiente de verificación (flujo unificado)
       if (backendPending || (u && u.emailVerified === false)) {
         setPendingVerification({ email: u.email, verificationUrl, demoMode });
-        try { sessionStorage.setItem('pending_verification_email', u.email); } catch {/* ignore */}
+        try { sessionStorage.setItem('pending_verification_email', u.email); } catch { /* intentionally empty */ }
         if (verificationUrl) {
-          try { sessionStorage.setItem('pending_verification_url', verificationUrl); } catch {/* ignore */}
+          try { sessionStorage.setItem('pending_verification_url', verificationUrl); } catch { /* intentionally empty */ }
         }
         setUser(null);
         setRoles([]);
         setRole('guest');
         setViewRole('guest');
-        try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
-        try { localStorage.removeItem('access_token'); } catch {/* ignore */}
-        try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
+        try { localStorage.setItem('view_role', 'guest'); } catch { /* intentionally empty */ }
+        try { localStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
+        try { sessionStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
         return { pending: true, email: u.email, verificationUrl, demoMode };
       }
 
@@ -373,20 +384,20 @@ export function AuthProvider({ children }) {
   }, [setAuthState]);
 
   const logout = useCallback(() => {
-    try { localStorage.removeItem('access_token'); } catch {/* ignore */}
-    try { sessionStorage.removeItem('access_token'); } catch {/* ignore */}
+    try { localStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
+    try { sessionStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
     setUser(null);
     setRoles([]);
     setRole('guest');
     setViewRole('guest');
-    try { localStorage.setItem('view_role', 'guest'); } catch {/* ignore */}
+    try { localStorage.setItem('view_role', 'guest'); } catch { /* intentionally empty */ }
     setPendingVerification(null);
-    try { sessionStorage.removeItem('pending_verification_email'); } catch {/* ignore */}
+    try { sessionStorage.removeItem('pending_verification_email'); } catch { /* intentionally empty */ }
   }, []);
 
   const clearPendingVerification = useCallback(() => {
     setPendingVerification(null);
-    try { sessionStorage.removeItem('pending_verification_email'); } catch {/* ignore */}
+    try { sessionStorage.removeItem('pending_verification_email'); } catch { /* intentionally empty */ }
   }, []);
 
   // Cambiar el rol de vista activo (para usuarios multi-rol)
@@ -402,7 +413,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('view_role', newRole);
       // Guardar lock temporal en sessionStorage
       sessionStorage.setItem('view_role_lock', JSON.stringify({ role: newRole, ts: Date.now() }));
-    } catch {/* ignore */}
+    } catch { /* intentionally empty */ }
   }, [roles]);
 
   // Iniciar cambio de rol (activa flag de transición para evitar flash)
@@ -412,7 +423,7 @@ export function AuthProvider({ children }) {
 
   // Limpiar el lock del rol de vista
   const clearViewRoleLock = useCallback(() => {
-    try { sessionStorage.removeItem('view_role_lock'); } catch {/* ignore */}
+    try { sessionStorage.removeItem('view_role_lock'); } catch { /* intentionally empty */ }
   }, []);
 
   const clearError = useCallback(() => setError(''), []);
