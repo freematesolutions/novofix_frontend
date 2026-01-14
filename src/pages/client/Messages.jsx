@@ -156,8 +156,10 @@ export default function Messages() {
   const getParticipantName = (chat) => {
     if (!chat) return 'Chat';
     // Para cliente, mostrar el nombre del proveedor
-    const provider = chat.participants?.find(p => p?.role === 'provider' || p?.user?.role === 'provider');
-    return provider?.name || provider?.user?.name || 
+    // participants es un objeto { client, provider }, no un array
+    const provider = chat.participants?.provider;
+    return provider?.providerProfile?.businessName || 
+           provider?.profile?.firstName ||
            chat.booking?.basicInfo?.title || 
            'Proveedor';
   };
@@ -327,10 +329,10 @@ export default function Messages() {
               {/* ChatRoom Component */}
               <ChatRoom
                 chatId={selectedChatId}
+                chat={selectedChat}
                 currentUserId={user?._id}
                 className="h-125 lg:h-150"
                 showHeader={true}
-                participantName={getParticipantName(selectedChat)}
                 onChatError={(err) => setError(err)}
               />
             </div>

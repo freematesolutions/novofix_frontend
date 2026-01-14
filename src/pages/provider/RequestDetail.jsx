@@ -357,15 +357,7 @@ export default function RequestDetail() {
                 <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
                   {request.basicInfo?.title || 'Detalle de solicitud'}
                 </h1>
-                {request.budget?.amount && (
-                  <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl">
-                    <HiCurrencyDollar className="w-5 h-5 text-white" />
-                    <span className="text-xl font-bold text-white">
-                      {Intl.NumberFormat('es-AR', { style: 'currency', currency: request.budget?.currency || 'USD' }).format(request.budget.amount)}
-                    </span>
-                    <span className="text-white/70 text-sm">presupuesto</span>
-                  </div>
-                )}
+                {/* Eliminar presupuesto del header, ya no es relevante */}
               </div>
               {/* Quick stats */}
               {request.media && ((request.media.photos?.length > 0) || (request.media.videos?.length > 0)) && (

@@ -4,6 +4,18 @@ let socket = null;
 let lastToken = null;
 let listenersBound = false;
 
+// Estado global para el userId (evita problemas de stale closures con refs de React)
+let globalUserId = null;
+
+export function setGlobalUserId(userId) {
+  globalUserId = userId;
+  console.log('🔑 Socket globalUserId set to:', userId);
+}
+
+export function getGlobalUserId() {
+  return globalUserId;
+}
+
 function getToken() {
   try {
     return sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
@@ -19,6 +31,7 @@ export function getSocket() {
   if (!socket) {
     // Conectar al servidor backend en puerto 5000
     const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    console.log('🔌 Creating new socket connection to:', serverUrl);
     socket = io(serverUrl, {
       transports: ['websocket', 'polling'],
       auth: { token },
@@ -28,6 +41,23 @@ export function getSocket() {
       reconnectionAttempts: 5
     });
     lastToken = token;
+    
+    // Debug: log all socket events
+    socket.onAny((eventName, ...args) => {
+      console.log(`📡 Socket event received: ${eventName}`, args);
+    });
+    
+    socket.on('connect', () => {
+      console.log('✅ Socket connected, id:', socket.id);
+    });
+    
+    socket.on('connect_error', (error) => {
+      console.error('❌ Socket connection error:', error.message);
+    });
+    
+    socket.on('disconnect', (reason) => {
+      console.log('❌ Socket disconnected:', reason);
+    });
   } else if (lastToken !== token) {
     try {
       socket.auth = socket.auth || {};
@@ -52,9 +82,21 @@ export function disconnectSocket() {
 
 export function on(event, handler) {
   const s = getSocket();
-  if (!s) return () => {};
-  s.on(event, handler);
-  return () => { try { s.off(event, handler); } catch { /* ignore */ } };
+  if (!s) {
+    console.log(`⚠️ socketOn(${event}): socket not available`);
+    return () => {};
+  }
+  // Crear wrapper para debugging
+  const wrappedHandler = (...args) => {
+    console.log(`📥 Handler called for ${event}, globalUserId:`, globalUserId);
+    handler(...args);
+  };
+  console.log(`📌 socketOn(${event}): registering handler`);
+  s.on(event, wrappedHandler);
+  return () => { 
+    console.log(`📌 socketOff(${event}): removing handler`);
+    try { s.off(event, wrappedHandler); } catch { /* ignore */ } 
+  };
 }
 
 export function emit(event, payload) {

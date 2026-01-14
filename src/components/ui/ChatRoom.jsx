@@ -277,32 +277,44 @@ function ChatRoom({
     socketRef.current = socket;
     if (!socket || !chatId) return;
 
-    console.log(`🔌 Joining chat room: ${chatId}`);
+    // Normalizar chatId a string para comparaciones consistentes
+    const normalizedChatId = String(chatId);
+    
+    console.log(`🔌 Joining chat room: ${normalizedChatId}`);
     // Join chat room
-    socketEmit('join_chat', { chatId });
+    socketEmit('join_chat', { chatId: normalizedChatId });
 
     // Listen for new messages
     const offNewMessage = socketOn('new_message', (payload) => {
       console.log('📨 Received new_message event:', payload);
-      const msgChatId = payload?.chatId || payload?.chat?._id;
-      if (msgChatId !== chatId) {
+      // El chatId puede venir como ObjectId o string, normalizar a string
+      const msgChatId = String(payload?.chatId || payload?.chat?._id || payload?.chat || '');
+      
+      console.log('📨 Comparing chatIds:', { msgChatId, normalizedChatId, match: msgChatId === normalizedChatId });
+      
+      if (!msgChatId || msgChatId !== normalizedChatId) {
         console.log(`📨 Message for different chat (${msgChatId}), ignoring`);
         return;
       }
       
       const msg = payload?.message || payload;
-      console.log('📨 Adding message to chat:', msg);
+      // Asegurar que el mensaje tenga createdAt para mostrar fecha correctamente
+      const msgWithDate = {
+        ...msg,
+        createdAt: msg.createdAt || msg.metadata?.timestamp || new Date().toISOString()
+      };
+      console.log('📨 Adding message to chat:', msgWithDate);
       setMessages(prev => {
         // Avoid duplicates
-        if (prev.some(m => m._id === msg._id)) return prev;
-        return [...prev, msg];
+        if (prev.some(m => m._id === msgWithDate._id)) return prev;
+        return [...prev, msgWithDate];
       });
-      onNewMessage?.(msg);
+      onNewMessage?.(msgWithDate);
     });
 
     // Listen for message sent confirmation
     const offSent = socketOn('message_sent', (payload) => {
-      if (payload?.chatId !== chatId) return;
+      if (String(payload?.chatId || '') !== normalizedChatId) return;
       // Update local message status
       setMessages(prev => prev.map(m => 
         m.localId === payload.localId ? { ...m, ...payload, status: 'sent' } : m
@@ -311,12 +323,12 @@ function ChatRoom({
 
     // Typing indicators
     const offTyping = socketOn('user_typing', ({ userId, userName, chatId: typingChatId }) => {
-      if (typingChatId !== chatId || userId === currentUserId) return;
+      if (String(typingChatId || '') !== normalizedChatId || userId === currentUserId) return;
       setTypingUsers(prev => ({ ...prev, [userId]: { userName, ts: Date.now() } }));
     });
 
     const offStoppedTyping = socketOn('user_stopped_typing', ({ userId, chatId: typingChatId }) => {
-      if (typingChatId !== chatId) return;
+      if (String(typingChatId || '') !== normalizedChatId) return;
       setTypingUsers(prev => {
         const next = { ...prev };
         delete next[userId];

@@ -92,8 +92,11 @@ export function ToastProvider({ children }) {
                 ${variant.bg}
               `}
               style={{ 
-                animationDelay: `${index * 50}ms`,
-                animation: 'slideInFromRight 0.3s ease-out forwards'
+                animationName: 'slideInFromRight',
+                animationDuration: '0.3s',
+                animationTimingFunction: 'ease-out',
+                animationFillMode: 'forwards',
+                animationDelay: `${index * 50}ms`
               }}
             >
               <div className="flex items-start gap-3 p-4">

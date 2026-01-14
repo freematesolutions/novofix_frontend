@@ -1,6 +1,6 @@
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketClient.js';
+import { getSocket, on as socketOn, emit as socketEmit, setGlobalUserId, getGlobalUserId } from '@/state/socketClient.js';
 import { useAuth } from '@/state/AuthContext.jsx';
 import Modal from '@/components/ui/Modal.jsx';
 import Button from '@/components/ui/Button.jsx';
@@ -41,6 +41,10 @@ function Header() {
   const [canScrollNavRight, setCanScrollNavRight] = useState(false);
   const activeNavLinkRef = useRef(null);
   const socketRef = useRef(null);
+  const userIdRef = useRef(null); // Ref para mantener el userId actual para evitar stale closures
+  const viewRoleRef = useRef(null); // Ref para mantener viewRole actual
+  const toastRef = useRef(null); // Ref para toast para evitar re-runs del useEffect
+  const navigateRef = useRef(null); // Ref para navigate para evitar re-runs del useEffect
   
   // Estado para SearchBar integrado en Header
   const [searchBarState, setSearchBarState] = useState({
@@ -60,6 +64,21 @@ function Header() {
   // No mostrar header mientras loading o user no resuelto pero hay token (evita parpadeo de menú guest)
   // Bloquear header si usuario pendiente de verificación
   const isBlocked = (user && user.emailVerified !== true) || pendingVerification;
+
+  // Mantener userId global para evitar stale closures en listeners de socket
+  // El usuario puede tener .id o ._id dependiendo de la fuente
+  const currentUserIdValue = user?.id ? String(user.id) : (user?._id ? String(user._id) : null);
+  
+  // Actualizar el userId global en el módulo de socket
+  if (currentUserIdValue) {
+    setGlobalUserId(currentUserIdValue);
+  }
+  
+  // También mantener refs locales para otros usos
+  userIdRef.current = currentUserIdValue;
+  viewRoleRef.current = viewRole;
+  toastRef.current = toast;
+  navigateRef.current = navigate;
 
   // Compute responsive-safe display name
   const firstName = user?.profile?.firstName?.trim?.() || '';
@@ -493,6 +512,20 @@ function Header() {
                 )}
               />
               <NavLinkWithTooltip
+                to="/mis-mensajes"
+                onClick={closeMenu}
+                icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>}
+                label="Mensajes"
+                showLabel={isMobile}
+                badge={Number(counters?.client?.chatsUnread||0) > 0 && (
+                  <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-violet-500 to-purple-500 text-white min-w-5 shadow-lg shadow-violet-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                    {counters.client.chatsUnread > 99 ? '99+' : counters.client.chatsUnread}
+                  </span>
+                )}
+              />
+              <NavLinkWithTooltip
                 to="/empleos"
                 onClick={closeMenu}
                 icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -537,6 +570,20 @@ function Header() {
                 badge={Number(counters?.client?.bookingsUpcoming||0) > 0 && (
                   <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-teal-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-teal-500/40 ring-2 ring-white/30">
                     {counters.client.bookingsUpcoming > 99 ? '99+' : counters.client.bookingsUpcoming}
+                  </span>
+                )}
+              />
+              <NavLinkWithTooltip
+                to="/mis-mensajes"
+                onClick={closeMenu}
+                icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>}
+                label="Mensajes"
+                showLabel={isMobile}
+                badge={Number(counters?.client?.chatsUnread||0) > 0 && (
+                  <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-violet-500 to-purple-500 text-white min-w-5 shadow-lg shadow-violet-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                    {counters.client.chatsUnread > 99 ? '99+' : counters.client.chatsUnread}
                   </span>
                 )}
               />
@@ -958,12 +1005,20 @@ function Header() {
   // Realtime notifications via Socket.IO
   useEffect(() => {
     // Use shared socket; subscribe to notifications and counters
-    // Clean previous bindings
     const s = getSocket();
     socketRef.current = s;
-    if (!isAuthenticated || !s) return;
+    
+    // Solo necesitamos socket y autenticación para registrar listeners
+    // El userId se lee dinámicamente desde userIdRef dentro de los handlers
+    if (!isAuthenticated || !s) {
+      console.log('🔌 Socket listener not registered:', { isAuthenticated, hasSocket: !!s });
+      return;
+    }
+
+    console.log('🔌 Registering socket listeners (userId will be read from ref)');
 
     const onConnect = () => {
+      console.log('🔌 Socket connected');
       try { socketEmit('subscribe_notifications'); } catch { /* ignore */ }
     };
     const onNotification = (payload) => {
@@ -999,18 +1054,37 @@ function Header() {
     };
     
     // Listener para nuevos mensajes de chat - mostrar toast y actualizar contador
+    // Usar getGlobalUserId() para obtener el userId dinámicamente (variable de módulo, no ref de React)
     const onNewChatMessage = (payload) => {
       const msg = payload?.message || payload;
       const chatId = payload?.chatId || payload?.chat;
       const chatType = payload?.chatType;
       const relatedTo = payload?.relatedTo;
-      const senderId = msg?.sender?._id || msg?.sender?.id || msg?.sender;
+      
+      // Obtener senderId como string para comparación correcta
+      const senderId = String(msg?.sender?._id || msg?.sender?.id || msg?.sender || '');
+      // Leer userId desde la variable global del módulo (evita stale closures)
+      const myUserId = getGlobalUserId() || '';
+      
+      console.log('📨 onNewChatMessage:', { senderId, myUserId, chatId, msgType: msg?.type });
+      
+      // No notificar si no tenemos userId (usuario no autenticado)
+      if (!myUserId) {
+        console.log('📨 Skipping toast - no current user ID');
+        return;
+      }
       
       // No notificar si el mensaje es del usuario actual
-      if (senderId === user?._id) return;
+      if (senderId && senderId === myUserId) {
+        console.log('📨 Skipping toast - message is from current user');
+        return;
+      }
       
       // Solo notificar si el mensaje es de tipo texto (no sistema)
-      if (msg?.type === 'system') return;
+      if (msg?.type === 'system') {
+        console.log('📨 Skipping toast - system message');
+        return;
+      }
       
       const senderName = msg?.sender?.name ||
                         msg?.sender?.profile?.firstName || 
@@ -1020,18 +1094,21 @@ function Header() {
       
       // Determinar a dónde navegar cuando se haga click
       const getNavigatePath = () => {
+        // Usar ref para obtener viewRole actual
+        const currentViewRole = viewRoleRef.current;
         // Navegar a la página de mensajes con el chatId como param
         if (chatId) {
-          return viewRole === 'provider' 
-            ? `/provider/inbox?chat=${chatId}`
-            : `/client/messages?chat=${chatId}`;
+          return currentViewRole === 'provider' 
+            ? `/mensajes?chat=${chatId}`
+            : `/mis-mensajes?chat=${chatId}`;
         }
         // Fallback a la página de mensajes sin chat específico
-        return viewRole === 'provider' ? '/provider/inbox' : '/client/messages';
+        return currentViewRole === 'provider' ? '/mensajes' : '/mis-mensajes';
       };
       
       // Mostrar toast moderno con acción
-      toast.chat(
+      // Usar refs para toast y navigate para evitar stale closures
+      toastRef.current?.chat(
         `💬 ${senderName}`,
         messageText.length > 60 ? messageText.substring(0, 60) + '...' : messageText,
         { 
@@ -1039,7 +1116,7 @@ function Header() {
           action: {
             label: 'Ver mensaje →',
             onClick: () => {
-              navigate(getNavigatePath());
+              navigateRef.current?.(getNavigatePath());
             }
           }
         }
@@ -1065,10 +1142,17 @@ function Header() {
     const offNotif = socketOn('notification', onNotification);
     const offCounters = socketOn('counters_update', onCountersUpdate);
     const offNewMessage = socketOn('new_message', onNewChatMessage);
+    
+    console.log('✅ Socket listeners registered for events: connect, notification, counters_update, new_message');
+    
     return () => {
+      console.log('🔌 Cleaning up socket listeners (caused by dependency change)');
       try { offConnect(); offNotif(); offCounters(); offNewMessage(); } catch { /* ignore */ }
     };
-  }, [isAuthenticated, role, user?._id, toast]);
+    // Dependencias mínimas: solo isAuthenticated
+    // toast y navigate se leen desde refs para evitar re-runs innecesarios
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // Provider upgrade banner: check subscription status and local upgrade_hint
   const subscriptionCacheRef = useRef({ ts: 0, payload: null });
