@@ -543,50 +543,55 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
 
     if (!formData.category) {
       toast.error('No se pudo determinar la categoría del servicio');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const autoTitle = formData.description.trim().substring(0, 50) + 
-                       (formData.description.trim().length > 50 ? '...' : '');
-      
-      const payload = {
-        title: autoTitle,
-        description: formData.description.trim(),
-        category: formData.category,
-        subcategory: formData.subcategory || undefined,
-        urgency: formData.urgency,
-        address: formData.address.trim(),
-        coordinates: formData.coordinates,
-        preferredDate: formData.preferredDate || undefined,
-        budget: formData.budgetAmount ? {
-          amount: Number(formData.budgetAmount),
-          currency: formData.currency
-        } : undefined,
-        photos: formData.photos,
-        videos: formData.videos,
-        visibility: 'auto',
-        targetProviders: provider ? [provider._id] : undefined
-      };
-
-      const { data } = await api.post('/client/requests', payload);
-      
-      if (data?.success) {
+      setLoading(true);
+      let data;
+      try {
+        const autoTitle = formData.description.trim().substring(0, 50) + 
+                         (formData.description.trim().length > 50 ? '...' : '');
+        const payload = {
+          title: autoTitle,
+          description: formData.description.trim(),
+          category: formData.category,
+          subcategory: formData.subcategory || undefined,
+          urgency: formData.urgency,
+          address: formData.address.trim(),
+          coordinates: formData.coordinates,
+          preferredDate: formData.preferredDate || undefined,
+          budget: formData.budgetAmount ? {
+            amount: Number(formData.budgetAmount),
+            currency: formData.currency
+          } : undefined,
+          photos: formData.photos,
+          videos: formData.videos,
+          visibility: 'auto',
+          targetProviders: provider ? [provider._id] : undefined
+        };
+        data = await api.post('/client/requests', payload);
+      } catch (err) {
+        // Si es timeout pero la solicitud se creó, intentar fallback
+        if (err.code === 'ECONNABORTED' && err.message?.includes('timeout')) {
+          toast.info('La solicitud puede haberse creado, verificando...');
+          onClose();
+          navigate('/mis-solicitudes');
+          return;
+        } else {
+          console.error('Error creating request:', err);
+          const msg = err?.response?.data?.message || 'Error al crear la solicitud';
+          toast.error(msg);
+          return;
+        }
+      }
+      if (data?.data?.success) {
         const providerName = provider?.providerProfile?.businessName || provider?.profile?.firstName || 'el proveedor';
         toast.success(`¡Solicitud enviada exitosamente a ${providerName}!`);
         onClose();
         navigate('/mis-solicitudes');
       } else {
-        toast.warning(data?.message || 'No se pudo crear la solicitud');
+        toast.warning(data?.data?.message || 'No se pudo crear la solicitud');
       }
-    } catch (err) {
-      console.error('Error creating request:', err);
-      const msg = err?.response?.data?.message || 'Error al crear la solicitud';
-      toast.error(msg);
-    } finally {
+        toast.warning(data?.data?.message || 'No se pudo crear la solicitud');
+      }
       setLoading(false);
-    }
   };
 
   if (!isOpen || !provider) return null;
