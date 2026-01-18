@@ -11,13 +11,16 @@ export default function Portfolio() {
   const [portfolio, setPortfolio] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const { setAuthState } = useAuth();
   const fetchPortfolio = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoading(true);
     try {
-      const { data } = await api.get('/auth/profile');
-      // La respuesta del servidor es: { success: true, data: { user: {...} } }
-      // Por lo tanto accedemos a data.data.user.providerProfile.portfolio
+      const { data } = await api.get('/auth/me');
+      // Actualizar usuario global para sincronizar portafolio en todas las vistas
+      if (data?.success && data?.data?.user && setAuthState) {
+        setAuthState(data.data.user);
+      }
       const userPortfolio = data?.data?.user?.providerProfile?.portfolio || [];
       setPortfolio(userPortfolio);
     } catch (err) {
@@ -25,7 +28,7 @@ export default function Portfolio() {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, setAuthState]);
 
   useEffect(() => {
     fetchPortfolio();

@@ -178,21 +178,20 @@ export default function Profile() {
     } catch { /* ignore, los formularios ya muestran errores */ }
   };
 
+  const { setAuthState } = useAuth();
   const handlePortfolioUpdate = useCallback(async () => {
     // Forzar re-render del PortfolioManager incrementando la key
     setPortfolioKey(prev => prev + 1);
-    
-    // Recargar datos del usuario para actualizar el portfolio inmediatamente
+    // Refrescar datos del usuario y actualizar el contexto global sin recargar la página
     try {
       const { data } = await api.get('/auth/me');
-      if (data?.success && data?.data?.user) {
-        // Actualizar el contexto de autenticación con datos frescos
-        window.location.reload(); // Forzar recarga completa para actualizar contexto
+      if (data?.success && data?.data?.user && setAuthState) {
+        setAuthState(data.data.user);
       }
     } catch (error) {
       console.error('Error refreshing user data:', error);
     }
-  }, []);
+  }, [setAuthState]);
 
   const showProviderTab = hasProvider && (viewRole === 'provider' || activeTab === 'provider');
 
