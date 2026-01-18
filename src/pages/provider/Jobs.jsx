@@ -105,7 +105,10 @@ export default function Jobs() {
           const me = user?.id || user?._id;
           const selectedForMe = isDirected && Array.isArray(r?.selectedProviders) && r.selectedProviders.some(pid => String(pid) === String(me));
           const notifiedForMe = Array.isArray(r?.eligibleProviders) && r.eligibleProviders.some(ep => String(ep?.provider?._id || ep?.provider) === String(me));
-          
+
+          // NUEVO: Detectar si el proveedor ya envió propuesta
+          const hasProposal = Array.isArray(r?.proposals) && r.proposals.some(p => String(p?.provider?._id || p?.provider) === String(me));
+
           // Urgency configuration
           const urgencyConfig = {
             'baja': { color: 'from-gray-500 to-slate-500', bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', icon: '⏱️' },
@@ -155,6 +158,13 @@ export default function Jobs() {
                             Notificada
                           </>
                         )}
+                      </span>
+                    )}
+                    {/* NUEVO: Badge de propuesta enviada */}
+                    {hasProposal && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-300 animate-pulse">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        Propuesta enviada
                       </span>
                     )}
                   </div>
