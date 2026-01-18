@@ -63,6 +63,7 @@ function App() {
           <Route path="/restablecer-contrasena" element={<ResetPassword />} />
           <Route path="/registrarse" element={<RegisterClient />} />
           <Route path="/unete" element={<RegisterProvider />} />
+          <Route path="/registro-proveedor" element={<RegisterProvider />} />
           <Route path="/provider/onboarding" element={<Onboarding />} />
           <Route path="/servicios" element={<Services />} />
           <Route path="/empleos" element={<Jobs />} />

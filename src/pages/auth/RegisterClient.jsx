@@ -524,7 +524,7 @@ function RegisterClient() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex justify-center mt-3">
               <Link
                 to="/login"
                 className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all"
@@ -532,14 +532,19 @@ function RegisterClient() {
                 <Icons.User className="w-4 h-4" />
                 <span className="text-sm">Iniciar sesión</span>
               </Link>
-              <Link
-                to="/registro-proveedor"
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-50 text-brand-700 rounded-xl font-medium hover:bg-brand-100 transition-all"
-              >
-                <Icons.Briefcase className="w-4 h-4" />
-                <span className="text-sm">Soy profesional</span>
-              </Link>
             </div>
+          </div>
+
+          {/* Registro profesional separado */}
+          <div className="flex flex-col items-center mt-6 mb-4">
+            <span className="text-sm text-gray-500 mb-2">¿Eres profesional?</span>
+            <Link
+              to="/registro-proveedor"
+              className="flex items-center gap-2 px-4 py-2.5 bg-brand-50 text-brand-700 rounded-xl font-medium hover:bg-brand-100 transition-all"
+            >
+              <Icons.Briefcase className="w-4 h-4" />
+              <span className="text-sm">Registrarme como profesional</span>
+            </Link>
           </div>
 
           <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">

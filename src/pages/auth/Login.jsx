@@ -314,21 +314,14 @@ function Login() {
               </div>
             </div>
 
-            {/* Links de registro */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Botón único de registro */}
+            <div className="flex justify-center mt-3">
               <Link
-                to="/registro"
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-emerald-50 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-all group"
+                to="/registrarse"
+                className="flex items-center gap-2 px-4 py-3 bg-emerald-50 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-all group"
               >
                 <Icons.User className="w-5 h-5" />
-                <span className="text-sm">Cliente</span>
-              </Link>
-              <Link
-                to="/registro-proveedor"
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-brand-50 text-brand-700 rounded-xl font-medium hover:bg-brand-100 transition-all group"
-              >
-                <Icons.Briefcase className="w-5 h-5" />
-                <span className="text-sm">Profesional</span>
+                <span className="text-sm">Registrarse gratis</span>
               </Link>
             </div>
           </div>
