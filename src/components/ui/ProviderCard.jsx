@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import ProviderProfileModal from './ProviderProfileModal.jsx';
 import RequestWizardModal from './RequestWizardModal.jsx';
+import ImageZoomModal from './ImageZoomModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 
 // Star Rating Component
@@ -53,6 +54,8 @@ const planConfig = {
 };
 
 function ProviderCard({ provider, onSelect, onViewPortfolio }) {
+  const [showImageZoom, setShowImageZoom] = useState(false);
+  const [blockCardClicks, setBlockCardClicks] = useState(false);
   const { isAuthenticated, viewRole } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
   const [showRequestWizard, setShowRequestWizard] = useState(false);
@@ -74,16 +77,26 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
 
   // Handler único que maneja TODOS los clicks usando onClickCapture
   const handleCardClickCapture = (e) => {
+    if (blockCardClicks) {
+      e.stopPropagation();
+      return;
+    }
+    // Click en avatar: ampliar imagen
+    const avatarImg = e.target.closest('[data-avatar-img]');
+    if (avatarImg) {
+      e.stopPropagation();
+      setBlockCardClicks(true);
+      setShowImageZoom(true);
+      return;
+    }
     // Buscar si el click fue en un elemento con data-nav-section
     const navElement = e.target.closest('[data-nav-section]');
-    
     if (navElement) {
       const section = navElement.getAttribute('data-nav-section');
       e.stopPropagation();
       setShowProfile(section);
       return;
     }
-    
     // Verificar si es el botón de contacto
     const contactBtn = e.target.closest('[data-action="contact"]');
     if (contactBtn) {
@@ -99,7 +112,6 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
       setShowRequestWizard(true);
       return;
     }
-    
     // Click en área general - ir a about
     setShowProfile('about');
     onSelect?.(provider);
@@ -152,7 +164,9 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                   <img 
                     src={profileImage} 
                     alt={businessName}
-                    className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-2 ${planInfo.ring} ring-offset-2 transition-transform duration-300 group-hover:scale-105`}
+                    data-avatar-img
+                    className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-2 ${planInfo.ring} ring-offset-2 transition-transform duration-300 group-hover:scale-105 cursor-zoom-in`}
+                    title="Ampliar imagen"
                   />
                 ) : (
                   <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold ring-2 ${planInfo.ring} ring-offset-2 transition-transform duration-300 group-hover:scale-105`}>
@@ -301,6 +315,19 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
           </svg>
         </div>
       </div>
+
+      {/* Modal de zoom de imagen del avatar (fuera del card) */}
+      {profileImage && (
+        <ImageZoomModal
+          isOpen={showImageZoom}
+          onClose={() => {
+            setShowImageZoom(false);
+            setTimeout(() => setBlockCardClicks(false), 100);
+          }}
+          imageUrl={profileImage}
+          alt={businessName}
+        />
+      )}
 
       {/* Provider Profile Modal */}
       <ProviderProfileModal

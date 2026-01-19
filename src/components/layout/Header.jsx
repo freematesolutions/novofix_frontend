@@ -8,6 +8,59 @@ import { useToast } from '@/components/ui/Toast.jsx';
 import SearchBar from '@/components/ui/SearchBar.jsx';
 import api from '@/state/apiClient.js';
 
+// Componente para items de notificación en el dropdown con soporte para expandir mensajes largos
+function NotificationDropdownItem({ notification: n, index, onMarkRead, onNavigate, actionUrl, message, isLongMessage, compact = false }) {
+  const [expanded, setExpanded] = useState(false);
+  
+  const displayMessage = isLongMessage && !expanded 
+    ? message.substring(0, compact ? 60 : 80) + '...'
+    : message;
+
+  return (
+    <div className={`px-4 py-3 text-sm transition-all duration-200 hover:bg-gray-50 ${!n.read ? 'bg-brand-50/50 border-l-3 border-l-brand-500' : ''} ${index > 0 ? 'border-t border-gray-100' : ''}`}>
+      <div className="flex items-start gap-3">
+        <div className={`${compact ? 'w-2 h-2 mt-2' : 'w-2.5 h-2.5 mt-1.5'} rounded-full shrink-0 transition-all duration-300 ${n.read ? 'bg-gray-300' : `bg-brand-500 ${compact ? 'animate-pulse' : 'ring-4 ring-brand-100 animate-pulse'}`}`}></div>
+        <div className="flex-1 min-w-0">
+          <div className={`${compact ? 'font-medium truncate' : 'font-semibold'} text-gray-900`}>{n.title || 'Notificación'}</div>
+          <div className="text-gray-600 mt-0.5">
+            {displayMessage}
+            {isLongMessage && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+                className="ml-1 text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors"
+              >
+                {expanded ? '▲ Ver menos' : '▼ Ver más'}
+              </button>
+            )}
+          </div>
+          <div className={`flex items-center ${compact ? 'gap-2 mt-1' : 'gap-3 mt-2'} flex-wrap`}>
+            <span className="text-xs text-gray-400">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</span>
+            {!n.read && (
+              <button
+                className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-2 py-0.5 rounded transition-colors"
+                onClick={(e) => { e.stopPropagation(); onMarkRead(); }}
+              >
+                {compact ? 'Leída' : 'Marcar leída'}
+              </button>
+            )}
+            {actionUrl && (
+              <button
+                className="text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-2 py-0.5 rounded transition-colors flex items-center gap-1"
+                onClick={(e) => { e.stopPropagation(); onNavigate(actionUrl); }}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                Abrir
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Header() {
   const { user, role, roles, viewRole, isAuthenticated, changeViewRole, startRoleSwitch, clearViewRoleLock, logout, pendingVerification } = useAuth();
   const navigate = useNavigate();
@@ -1062,11 +1115,17 @@ function Header() {
       const relatedTo = payload?.relatedTo;
       
       // Obtener senderId como string para comparación correcta
-      const senderId = String(msg?.sender?._id || msg?.sender?.id || msg?.sender || '');
+      // El sender puede ser: string, ObjectId, o objeto con _id o id
+      const senderId = String(
+        msg?.sender?._id || 
+        msg?.sender?.id || 
+        (typeof msg?.sender === 'string' ? msg.sender : '') ||
+        ''
+      );
       // Leer userId desde la variable global del módulo (evita stale closures)
-      const myUserId = getGlobalUserId() || '';
+      const myUserId = String(getGlobalUserId() || '');
       
-      console.log('📨 onNewChatMessage:', { senderId, myUserId, chatId, msgType: msg?.type });
+      console.log('📨 onNewChatMessage:', { senderId, myUserId, chatId, msgType: msg?.type, senderObj: msg?.sender });
       
       // No notificar si no tenemos userId (usuario no autenticado)
       if (!myUserId) {
@@ -1090,7 +1149,26 @@ function Header() {
                         msg?.sender?.profile?.firstName || 
                         msg?.sender?.providerProfile?.businessName || 
                         'Nuevo mensaje';
-      const messageText = msg?.content?.text || msg?.content || 'Tienes un nuevo mensaje';
+      // Extraer texto del mensaje - content puede ser string u objeto {text, attachments}
+      const contentObj = msg?.content;
+      let messageText;
+      if (typeof contentObj === 'string') {
+        messageText = contentObj;
+      } else if (contentObj?.text) {
+        messageText = contentObj.text;
+      } else if (contentObj?.attachments?.length) {
+        // Determinar tipo de adjunto para el texto del toast
+        const attType = contentObj.attachments[0]?.type;
+        if (attType === 'video') {
+          messageText = '🎬 Te envió un video';
+        } else if (attType === 'image') {
+          messageText = '📷 Te envió una imagen';
+        } else {
+          messageText = '📎 Te envió un archivo';
+        }
+      } else {
+        messageText = 'Tienes un nuevo mensaje';
+      }
       
       // Determinar a dónde navegar cuando se haga click
       const getNavigatePath = () => {
@@ -1373,25 +1451,21 @@ function Header() {
                     )}
                     {notifications.map((n, index) => {
                       const id = n._id || n.id;
+                      const actionUrl = n?.data?.actionUrl;
+                      const message = n.message || n.body || '—';
+                      const isLongMessage = message.length > 60;
                       return (
-                        <div key={id} className={`px-4 py-3 text-sm transition-all duration-200 hover:bg-gray-50 ${!n.read ? 'bg-brand-50/50 border-l-3 border-l-brand-500' : ''} ${index > 0 ? 'border-t border-gray-100' : ''}`}>
-                          <div className="flex items-start gap-3">
-                            <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${n.read ? 'bg-gray-300' : 'bg-brand-500 animate-pulse'}`}></div>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-gray-900 truncate">{n.title || 'Notificación'}</div>
-                              <div className="text-gray-600 line-clamp-2 mt-0.5">{n.message || n.body || '—'}</div>
-                              <div className="text-xs text-gray-400 mt-1">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</div>
-                            </div>
-                            {!n.read && (
-                              <button
-                                className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-2 py-1 rounded-lg shrink-0 transition-colors"
-                                onClick={() => markRead(id)}
-                              >
-                                Leída
-                              </button>
-                            )}
-                          </div>
-                        </div>
+                        <NotificationDropdownItem
+                          key={id}
+                          notification={n}
+                          index={index}
+                          onMarkRead={() => markRead(id)}
+                          onNavigate={(url) => { setNotifOpen(false); navigate(url); }}
+                          actionUrl={actionUrl}
+                          message={message}
+                          isLongMessage={isLongMessage}
+                          compact={true}
+                        />
                       );
                     })}
                   </div>
@@ -1556,27 +1630,21 @@ function Header() {
                         )}
                         {notifications.map((n, index) => {
                           const id = n._id || n.id;
+                          const actionUrl = n?.data?.actionUrl;
+                          const message = n.message || n.body || '—';
+                          const isLongMessage = message.length > 80;
                           return (
-                            <div key={id} className={`px-4 py-3 text-sm transition-all duration-200 hover:bg-gray-50 cursor-pointer ${!n.read ? 'bg-brand-50/50 border-l-3 border-l-brand-500' : ''} ${index > 0 ? 'border-t border-gray-100' : ''}`}>
-                              <div className="flex items-start gap-3">
-                                <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 transition-all duration-300 ${n.read ? 'bg-gray-300' : 'bg-brand-500 ring-4 ring-brand-100 animate-pulse'}`}></div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-semibold text-gray-900">{n.title || 'Notificación'}</div>
-                                  <div className="text-gray-600 line-clamp-2 mt-0.5">{n.message || n.body || '—'}</div>
-                                  <div className="flex items-center gap-3 mt-2">
-                                    <span className="text-xs text-gray-400">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</span>
-                                    {!n.read && (
-                                      <button
-                                        className="text-xs font-medium text-brand-600 hover:text-brand-700"
-                                        onClick={(e) => { e.stopPropagation(); markRead(id); }}
-                                      >
-                                        Marcar como leída
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                            <NotificationDropdownItem
+                              key={id}
+                              notification={n}
+                              index={index}
+                              onMarkRead={() => markRead(id)}
+                              onNavigate={(url) => { setNotifOpen(false); navigate(url); }}
+                              actionUrl={actionUrl}
+                              message={message}
+                              isLongMessage={isLongMessage}
+                              compact={false}
+                            />
                           );
                         })}
                       </div>

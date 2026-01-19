@@ -232,8 +232,11 @@ export default function Messages() {
                 const id = chat._id || chat.id;
                 const isActive = selectedChatId === id;
                 const unread = unreadCounts[id] || 0;
-                const lastMsg = chat.lastMessage?.content?.text || 
-                               (typeof chat.lastMessage?.content === 'string' ? chat.lastMessage.content : '');
+                // Extraer texto del mensaje - content puede ser string u objeto {text, attachments}
+                const contentObj = chat.lastMessage?.content;
+                const lastMsg = typeof contentObj === 'string' 
+                  ? contentObj 
+                  : (contentObj?.text || (contentObj?.attachments?.length ? '📎 Archivo adjunto' : ''));
                 const name = getParticipantName(chat);
                 const initial = name[0]?.toUpperCase() || 'P';
                 const lastTime = chat.metadata?.lastActivity || chat.updatedAt;
@@ -330,7 +333,7 @@ export default function Messages() {
               <ChatRoom
                 chatId={selectedChatId}
                 chat={selectedChat}
-                currentUserId={user?._id}
+                currentUserId={user?.id || user?._id}
                 className="h-125 lg:h-150"
                 showHeader={true}
                 onChatError={(err) => setError(err)}

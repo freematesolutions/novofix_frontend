@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Spinner from './Spinner.jsx';
 import api from '@/state/apiClient.js';
 import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketClient.js';
+import { compressImage } from '@/utils/fileCompression.js';
 
 /**
  * ChatRoom Component - Componente de chat en tiempo real reutilizable
@@ -50,8 +51,21 @@ const Icons = {
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
     </svg>
+  ),
+  Reply: ({ className = 'w-4 h-4' }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+    </svg>
+  ),
+  Close: ({ className = 'w-4 h-4' }) => (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
   )
 };
+
+// Emojis rápidos para reacciones
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
 // Typing Indicator Component
 const TypingIndicator = memo(({ userName }) => (
@@ -75,12 +89,34 @@ TypingIndicator.propTypes = {
   userName: PropTypes.string
 };
 
-// Message Bubble Component
-const MessageBubble = memo(({ message, isMine, showAvatar, userName }) => {
+// Message Bubble Component with Reactions and Reply support
+const MessageBubble = memo(({ 
+  message, 
+  isMine, 
+  showAvatar, 
+  userName,
+  onReply,
+  onReact,
+  allMessages = []
+}) => {
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+  const longPressTimer = useRef(null);
+  const bubbleRef = useRef(null);
+  
   const text = message?.content?.text ?? (typeof message?.content === 'string' ? message.content : '');
-  const timestamp = message?.createdAt || message?.metadata?.timestamp;
-  const status = message?.status;
   const attachments = message?.content?.attachments || [];
+  const timestamp = message?.createdAt || message?.metadata?.timestamp;
+  const status = message?.status || 'sent';
+  const reactions = message?.reactions || [];
+  const replyTo = message?.replyTo;
+  
+  // Encontrar el mensaje original si es una respuesta
+  const replyToMessage = useMemo(() => {
+    if (!replyTo) return null;
+    const replyId = typeof replyTo === 'object' ? replyTo._id : replyTo;
+    return allMessages.find(m => m._id === replyId) || (typeof replyTo === 'object' ? replyTo : null);
+  }, [replyTo, allMessages]);
 
   const formatTime = (dateStr) => {
     if (!dateStr) return '';
@@ -88,8 +124,62 @@ const MessageBubble = memo(({ message, isMine, showAvatar, userName }) => {
     return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Agrupar reacciones por emoji
+  const groupedReactions = useMemo(() => {
+    const groups = {};
+    reactions.forEach(r => {
+      if (!groups[r.emoji]) {
+        groups[r.emoji] = { emoji: r.emoji, count: 0, users: [] };
+      }
+      groups[r.emoji].count++;
+      groups[r.emoji].users.push(r.user);
+    });
+    return Object.values(groups);
+  }, [reactions]);
+
+  // Long press para mostrar acciones en móvil
+  const handleTouchStart = useCallback(() => {
+    longPressTimer.current = setTimeout(() => {
+      setShowActions(true);
+    }, 500);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+  }, []);
+
+  // Cerrar picker al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (bubbleRef.current && !bubbleRef.current.contains(e.target)) {
+        setShowReactionPicker(false);
+        setShowActions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleReaction = useCallback((emoji) => {
+    onReact?.(message._id, emoji);
+    setShowReactionPicker(false);
+    setShowActions(false);
+  }, [message._id, onReact]);
+
+  const handleReply = useCallback(() => {
+    onReply?.(message);
+    setShowActions(false);
+  }, [message, onReply]);
+
   return (
-    <div className={`flex gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'} group`}>
+    <div 
+      ref={bubbleRef}
+      className={`flex gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'} group relative`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Avatar (for received messages) */}
       {!isMine && showAvatar && (
         <div className="w-8 h-8 rounded-full bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center text-white text-xs font-semibold shrink-0 shadow-lg shadow-brand-500/20">
@@ -99,12 +189,42 @@ const MessageBubble = memo(({ message, isMine, showAvatar, userName }) => {
       {!isMine && !showAvatar && <div className="w-8" />}
 
       {/* Message content */}
-      <div className={`max-w-[75%] ${isMine ? 'items-end' : 'items-start'}`}>
+      <div className={`max-w-[75%] flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+        
+        {/* Reply preview - Si este mensaje es respuesta a otro */}
+        {replyToMessage && (
+          <div 
+            className={`
+              mb-1 px-3 py-1.5 rounded-lg text-xs max-w-full cursor-pointer 
+              hover:opacity-80 transition-opacity border-l-[3px]
+              ${isMine 
+                ? 'bg-brand-400/30 border-white/50 text-white/90' 
+                : 'bg-gray-100 border-brand-400 text-gray-600'
+              }
+            `}
+            onClick={() => {
+              // Scroll al mensaje original
+              const el = document.getElementById(`msg-${replyToMessage._id}`);
+              el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el?.classList.add('ring-2', 'ring-brand-400');
+              setTimeout(() => el?.classList.remove('ring-2', 'ring-brand-400'), 1500);
+            }}
+          >
+            <p className="font-medium text-[10px] opacity-70 mb-0.5">
+              {replyToMessage.sender?.profile?.firstName || 'Usuario'}
+            </p>
+            <p className="truncate">
+              {replyToMessage.content?.text || replyToMessage.text || '📎 Archivo adjunto'}
+            </p>
+          </div>
+        )}
+        
         {/* Attachments */}
         {attachments.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-1">
             {attachments.map((att, idx) => {
-              if (att.type?.startsWith('image')) {
+              // Imágenes
+              if (att.type === 'image' || att.type?.startsWith('image') || att.mimeType?.startsWith('image')) {
                 return (
                   <img 
                     key={idx}
@@ -114,6 +234,22 @@ const MessageBubble = memo(({ message, isMine, showAvatar, userName }) => {
                     onClick={() => window.open(att.url, '_blank')}
                   />);
               }
+              // Videos
+              if (att.type === 'video' || att.type?.startsWith('video') || att.mimeType?.startsWith('video')) {
+                return (
+                  <video 
+                    key={idx}
+                    src={att.url}
+                    controls
+                    preload="metadata"
+                    className="max-w-80 rounded-xl"
+                    style={{ maxHeight: '300px' }}
+                  >
+                    Tu navegador no soporta videos.
+                  </video>
+                );
+              }
+              // Documentos y otros
               return (
                 <a
                   key={idx}
@@ -130,32 +266,110 @@ const MessageBubble = memo(({ message, isMine, showAvatar, userName }) => {
           </div>
         )}
 
-        {/* Text bubble */}
-        {text && (
+        {/* Text bubble with reactions */}
+        <div className="relative" id={`msg-${message._id}`}>
+          {text && (
+            <div 
+              className={`
+                relative px-4 py-2.5 rounded-2xl text-sm transition-all
+                ${isMine 
+                  ? 'bg-linear-to-r from-brand-500 to-cyan-500 text-white rounded-br-md shadow-lg shadow-brand-500/20' 
+                  : 'bg-white border border-gray-100 text-gray-900 rounded-bl-md shadow-sm'
+                }
+              `}
+            >
+              <p className="whitespace-pre-wrap wrap-break-word">{text}</p>
+              
+              {/* Time & Status */}
+              <div className={`flex items-center gap-1 mt-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                <span className={`text-[10px] ${isMine ? 'text-white/70' : 'text-gray-400'}`}>
+                  {formatTime(timestamp)}
+                </span>
+                {isMine && (
+                  <span className={`${status === 'read' ? 'text-cyan-300' : 'text-white/50'}`}>
+                    {status === 'read' ? <Icons.DoubleCheck className="w-3 h-3" /> : <Icons.Check />}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Reactions display */}
+          {groupedReactions.length > 0 && (
+            <div className={`flex flex-wrap gap-1 mt-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
+              {groupedReactions.map(({ emoji, count }) => (
+                <button
+                  key={emoji}
+                  onClick={() => handleReaction(emoji)}
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-gray-200 rounded-full text-xs shadow-sm hover:bg-gray-50 transition-colors"
+                  title="Clic para alternar reacción"
+                >
+                  <span>{emoji}</span>
+                  {count > 1 && <span className="text-gray-500 text-[10px]">{count}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Quick action buttons - visible on hover (desktop) */}
           <div 
             className={`
-              relative px-4 py-2.5 rounded-2xl text-sm
-              ${isMine 
-                ? 'bg-linear-to-r from-brand-500 to-cyan-500 text-white rounded-br-md shadow-lg shadow-brand-500/20' 
-                : 'bg-white border border-gray-100 text-gray-900 rounded-bl-md shadow-sm'
-              }
+              absolute top-0 opacity-0 group-hover:opacity-100 transition-opacity z-10
+              flex items-center gap-1 bg-white rounded-lg shadow-lg border border-gray-100 p-0.5
+              ${isMine ? 'left-0 -translate-x-full -ml-2' : 'right-0 translate-x-full ml-2'}
             `}
           >
-            <p className="whitespace-pre-wrap wrap-break-word">{text}</p>
-            
-            {/* Time & Status */}
-            <div className={`flex items-center gap-1 mt-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
-              <span className={`text-[10px] ${isMine ? 'text-white/70' : 'text-gray-400'}`}>
-                {formatTime(timestamp)}
-              </span>
-              {isMine && (
-                <span className={`${status === 'read' ? 'text-cyan-300' : 'text-white/50'}`}>
-                  {status === 'read' ? <Icons.DoubleCheck className="w-3 h-3" /> : <Icons.Check />}
-                </span>
+            <button
+              onClick={handleReply}
+              className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+              title="Responder"
+            >
+              <Icons.Reply className="w-4 h-4 text-gray-500" />
+            </button>
+            <button
+              onClick={() => setShowReactionPicker(!showReactionPicker)}
+              className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+              title="Reaccionar"
+            >
+              <Icons.Emoji className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
+
+          {/* Reaction picker popup */}
+          {(showReactionPicker || showActions) && (
+            <div 
+              className={`
+                absolute z-50 bg-white rounded-xl shadow-xl border border-gray-100 p-2
+                ${isMine ? 'right-0' : 'left-0'} 
+                ${text ? '-top-14' : 'top-0'}
+              `}
+              style={{ animation: 'fadeInScale 0.15s ease-out' }}
+            >
+              <div className="flex items-center gap-1">
+                {QUICK_REACTIONS.map(emoji => (
+                  <button
+                    key={emoji}
+                    onClick={() => handleReaction(emoji)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-all hover:scale-125 text-xl"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              {showActions && (
+                <div className="border-t border-gray-100 mt-2 pt-2">
+                  <button
+                    onClick={handleReply}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <Icons.Reply className="w-4 h-4" />
+                    Responder
+                  </button>
+                </div>
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -167,7 +381,10 @@ MessageBubble.propTypes = {
   message: PropTypes.object.isRequired,
   isMine: PropTypes.bool,
   showAvatar: PropTypes.bool,
-  userName: PropTypes.string
+  userName: PropTypes.string,
+  onReply: PropTypes.func,
+  onReact: PropTypes.func,
+  allMessages: PropTypes.array
 };
 
 // Date Separator
@@ -221,13 +438,18 @@ function ChatRoom({
   const [typingUsers, setTypingUsers] = useState({});
   const [isTyping, setIsTyping] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ show: false, progress: 0, message: '' });
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [replyingTo, setReplyingTo] = useState(null); // Mensaje al que se está respondiendo
   
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const socketRef = useRef(null);
   const fileInputRef = useRef(null);
+  const isInitialLoadRef = useRef(true);
+  const shouldAutoScrollRef = useRef(true);
+  const lastMessageCountRef = useRef(0);
 
   // Get chat title and partner info
   const chatTitle = useMemo(() => {
@@ -254,6 +476,8 @@ function ChatRoom({
     if (!chatId) return;
     
     setLoading(true);
+    isInitialLoadRef.current = true; // Reset para nuevo chat
+    lastMessageCountRef.current = 0;
     console.log(`📥 Loading messages for chat: ${chatId}`);
     try {
       const { data } = await api.get(`/chats/${chatId}/messages?limit=100`);
@@ -275,7 +499,17 @@ function ChatRoom({
   useEffect(() => {
     const socket = getSocket();
     socketRef.current = socket;
-    if (!socket || !chatId) return;
+    if (!socket || !chatId) {
+      console.log('🔌 ChatRoom: Cannot setup WebSocket:', { hasSocket: !!socket, chatId });
+      return;
+    }
+
+    console.log('🔌 ChatRoom WebSocket status:', { 
+      connected: socket.connected, 
+      socketId: socket.id,
+      chatId,
+      currentUserId
+    });
 
     // Normalizar chatId a string para comparaciones consistentes
     const normalizedChatId = String(chatId);
@@ -283,6 +517,13 @@ function ChatRoom({
     console.log(`🔌 Joining chat room: ${normalizedChatId}`);
     // Join chat room
     socketEmit('join_chat', { chatId: normalizedChatId });
+    
+    // Si el socket no está conectado aún, unirse cuando se conecte
+    const onReconnect = () => {
+      console.log('🔌 Socket reconnected, rejoining chat room:', normalizedChatId);
+      socketEmit('join_chat', { chatId: normalizedChatId });
+    };
+    const offReconnect = socketOn('connect', onReconnect);
 
     // Listen for new messages
     const offNewMessage = socketOn('new_message', (payload) => {
@@ -336,6 +577,14 @@ function ChatRoom({
       });
     });
 
+    // Listen for reaction updates from other users
+    const offReaction = socketOn('message_reaction', ({ chatId: reactionChatId, messageId, reactions }) => {
+      if (String(reactionChatId || '') !== normalizedChatId) return;
+      setMessages(prev => prev.map(m => 
+        m._id === messageId ? { ...m, reactions } : m
+      ));
+    });
+
     return () => {
       try {
         socketEmit('leave_chat', { chatId });
@@ -343,16 +592,46 @@ function ChatRoom({
         offSent?.();
         offTyping?.();
         offStoppedTyping?.();
+        offReaction?.();
+        offReconnect?.();
       } catch { /* ignore */ }
     };
   }, [chatId, currentUserId, onNewMessage]);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom - solo cuando corresponde
   useEffect(() => {
-    if (!loading && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (loading) return;
+    
+    const container = containerRef.current;
+    if (!container || !messagesEndRef.current) return;
+
+    // Auto-scroll solo si:
+    // 1. Es la carga inicial
+    // 2. El usuario estaba cerca del fondo (shouldAutoScrollRef)
+    // 3. El usuario envió un nuevo mensaje (se detecta porque aumentó el count)
+    const isNewMessage = messages.length > lastMessageCountRef.current;
+    lastMessageCountRef.current = messages.length;
+
+    if (isInitialLoadRef.current || shouldAutoScrollRef.current || isNewMessage) {
+      messagesEndRef.current.scrollIntoView({ behavior: isInitialLoadRef.current ? 'auto' : 'smooth' });
+      isInitialLoadRef.current = false;
     }
-  }, [messages, loading, typingUsers]);
+  }, [messages, loading]);
+
+  // Detectar si el usuario está cerca del fondo para auto-scroll inteligente
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      // Considerar "cerca del fondo" si está a menos de 100px del final
+      shouldAutoScrollRef.current = scrollHeight - scrollTop - clientHeight < 100;
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Clear stale typing indicators
   useEffect(() => {
@@ -387,6 +666,56 @@ function ChatRoom({
     }, 1500);
   }, [chatId, isTyping]);
 
+  // Handle reply to a message
+  const handleReply = useCallback((message) => {
+    setReplyingTo(message);
+    // Focus en el input después de seleccionar responder
+    document.querySelector('textarea')?.focus();
+  }, []);
+
+  // Cancel reply
+  const cancelReply = useCallback(() => {
+    setReplyingTo(null);
+  }, []);
+
+  // Handle reaction to a message
+  const handleReaction = useCallback(async (messageId, emoji) => {
+    if (!messageId || !chatId) return;
+    
+    try {
+      // Optimistic update
+      setMessages(prev => prev.map(m => {
+        if (m._id !== messageId) return m;
+        
+        const reactions = [...(m.reactions || [])];
+        const existingIndex = reactions.findIndex(
+          r => r.user === currentUserId && r.emoji === emoji
+        );
+        
+        if (existingIndex >= 0) {
+          // Remove reaction if exists
+          reactions.splice(existingIndex, 1);
+        } else {
+          // Add new reaction
+          reactions.push({ 
+            emoji, 
+            user: currentUserId, 
+            userModel: 'User',
+            createdAt: new Date().toISOString() 
+          });
+        }
+        
+        return { ...m, reactions };
+      }));
+
+      // Send to server
+      await api.patch(`/chats/${chatId}/messages/${messageId}/reactions`, { emoji });
+    } catch (err) {
+      console.error('Error adding reaction:', err);
+      // Could revert optimistic update here if needed
+    }
+  }, [chatId, currentUserId]);
+
   // Send message
   const sendMessage = useCallback(async () => {
     const text = composer.trim();
@@ -401,12 +730,14 @@ function ChatRoom({
       content: { text },
       type: 'text',
       status: 'sending',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      replyTo: replyingTo?._id || null
     };
 
     // Optimistic update
     setMessages(prev => [...prev, optimisticMessage]);
     setComposer('');
+    setReplyingTo(null); // Clear reply state
     setSending(true);
 
     // Stop typing
@@ -417,16 +748,23 @@ function ChatRoom({
 
     try {
       // Try WebSocket first
+      console.log('📤 Attempting to send message via WebSocket:', { chatId, text: text.substring(0, 50), localId });
       const socketOk = socketEmit('send_message', { 
         chatId, 
         content: { text }, 
         type: 'text',
-        localId 
+        localId,
+        replyTo: replyingTo?._id || null
       });
+      console.log('📤 WebSocket send result:', socketOk ? 'SUCCESS' : 'FAILED - falling back to REST');
 
       if (!socketOk) {
         // Fallback to REST
-        const { data } = await api.post(`/chats/${chatId}/messages`, { text, type: 'text' });
+        const { data } = await api.post(`/chats/${chatId}/messages`, { 
+          text, 
+          type: 'text',
+          replyTo: replyingTo?._id || null
+        });
         const serverMsg = data?.data?.message || data?.message;
         
         if (serverMsg) {
@@ -444,20 +782,36 @@ function ChatRoom({
     } finally {
       setSending(false);
     }
-  }, [composer, chatId, currentUserId, sending, isTyping]);
+  }, [composer, chatId, currentUserId, sending, isTyping, replyingTo]);
 
-  // Handle file selection
+  // Handle file selection - soporta imágenes, videos y documentos
   const handleFileSelect = useCallback((event) => {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
     
-    // Filter valid files (images, PDFs, docs - max 5MB each)
+    // Tipos permitidos: imágenes, videos, PDFs, documentos
     const validFiles = files.filter(file => {
-      const isValidType = file.type.startsWith('image/') || 
-                         file.type === 'application/pdf' ||
-                         file.type.includes('document') ||
-                         file.type.includes('text');
-      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      const isDocument = file.type === 'application/pdf' ||
+                        file.type.includes('document') ||
+                        file.type.includes('text');
+      
+      // Límites de tamaño: imágenes 10MB, videos 100MB, documentos 5MB
+      let maxSize = 5 * 1024 * 1024; // 5MB default para documentos
+      if (isImage) maxSize = 10 * 1024 * 1024; // 10MB para imágenes
+      if (isVideo) maxSize = 100 * 1024 * 1024; // 100MB para videos
+      
+      const isValidType = isImage || isVideo || isDocument;
+      const isValidSize = file.size <= maxSize;
+      
+      if (!isValidType) {
+        console.warn(`Tipo de archivo no soportado: ${file.type}`);
+      }
+      if (!isValidSize) {
+        console.warn(`Archivo muy grande: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      }
+      
       return isValidType && isValidSize;
     });
     
@@ -474,87 +828,152 @@ function ChatRoom({
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   }, []);
 
-  // Upload file and send as message
-  const uploadAndSendFile = useCallback(async (file) => {
+  // Upload single file to Cloudinary with compression for images
+  const uploadSingleFile = useCallback(async (file, fileIndex, totalFiles) => {
     if (!chatId || !file) return null;
     
     try {
+      let processedFile = file;
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      
+      // Comprimir imágenes antes de subir
+      if (isImage && file.size > 500 * 1024) { // Solo comprimir si > 500KB
+        setUploadProgress(prev => ({
+          ...prev,
+          message: `Comprimiendo ${file.name}...`
+        }));
+        
+        try {
+          processedFile = await compressImage(file, {
+            maxSizeMB: 2,
+            maxWidthOrHeight: 1920,
+            initialQuality: 0.85
+          });
+          console.log(`✅ Compressed ${file.name}: ${(file.size / 1024).toFixed(0)}KB → ${(processedFile.size / 1024).toFixed(0)}KB`);
+        } catch (compressErr) {
+          console.warn('Compression failed, using original:', compressErr);
+          processedFile = file;
+        }
+      }
+      
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', file.type.startsWith('image/') ? 'image' : 'document');
+      formData.append('file', processedFile);
+      
+      // Determinar tipo para el servidor
+      let fileType = 'document';
+      if (isImage) fileType = 'image';
+      if (isVideo) fileType = 'video';
+      formData.append('type', fileType);
+      
+      setUploadProgress(prev => ({
+        ...prev,
+        message: isVideo 
+          ? `Subiendo video ${fileIndex + 1}/${totalFiles} (puede tardar)...`
+          : `Subiendo archivo ${fileIndex + 1}/${totalFiles}...`
+      }));
       
       const { data } = await api.post('/uploads/chat', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: isVideo ? 600000 : 120000, // 10min para videos, 2min para otros
+        onUploadProgress: (progressEvent) => {
+          if (!progressEvent.total) return;
+          const fileProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          const overallProgress = Math.round(((fileIndex + fileProgress / 100) / totalFiles) * 100);
+          setUploadProgress(prev => ({
+            ...prev,
+            progress: overallProgress
+          }));
+        }
       });
       
-      return data?.data?.url || data?.url || null;
+      return {
+        url: data?.data?.url || data?.url,
+        type: fileType,
+        name: file.name,
+        mimeType: file.type
+      };
     } catch (err) {
-      console.error('Error uploading file:', err);
+      console.error(`Error uploading ${file.name}:`, err);
       return null;
     }
   }, [chatId]);
 
-  // Send message with attachments
+  // Send message with attachments - with compression and progress
   const sendMessageWithAttachments = useCallback(async () => {
     if (selectedFiles.length === 0 || !chatId || uploadingFile) return;
     
     setUploadingFile(true);
+    setUploadProgress({ show: true, progress: 0, message: 'Preparando archivos...' });
     
     try {
-      // Upload all files
-      const uploadPromises = selectedFiles.map(async (file) => {
-        const url = await uploadAndSendFile(file);
-        if (url) {
-          return {
-            type: file.type.startsWith('image/') ? 'image' : 'document',
-            url,
-            name: file.name
-          };
+      const attachments = [];
+      
+      // Subir archivos uno por uno con progreso
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const result = await uploadSingleFile(selectedFiles[i], i, selectedFiles.length);
+        if (result && result.url) {
+          attachments.push({
+            type: result.type,
+            url: result.url,
+            name: result.name
+          });
         }
-        return null;
+      }
+      
+      if (attachments.length === 0) {
+        throw new Error('No se pudieron subir los archivos');
+      }
+      
+      setUploadProgress(prev => ({ ...prev, progress: 100, message: 'Enviando mensaje...' }));
+      
+      const localId = `local_${Date.now()}`;
+      const text = composer.trim();
+      
+      // Determinar tipo de mensaje (usa el primer attachment como referencia)
+      const msgType = attachments[0].type === 'video' ? 'video' : attachments[0].type;
+      
+      const optimisticMessage = {
+        _id: localId,
+        localId,
+        chat: chatId,
+        sender: currentUserId,
+        content: { text, attachments },
+        type: msgType,
+        status: 'sending',
+        createdAt: new Date().toISOString(),
+        replyTo: replyingTo?._id || null
+      };
+      
+      setMessages(prev => [...prev, optimisticMessage]);
+      setComposer('');
+      setSelectedFiles([]);
+      setReplyingTo(null); // Clear reply state
+      
+      // Enviar mensaje vía REST
+      const { data } = await api.post(`/chats/${chatId}/messages`, { 
+        text, 
+        attachments,
+        type: msgType,
+        replyTo: replyingTo?._id || null
       });
       
-      const attachments = (await Promise.all(uploadPromises)).filter(Boolean);
-      
-      if (attachments.length > 0) {
-        const localId = `local_${Date.now()}`;
-        const text = composer.trim();
-        
-        const optimisticMessage = {
-          _id: localId,
-          localId,
-          chat: chatId,
-          sender: currentUserId,
-          content: { text, attachments },
-          type: attachments[0].type,
-          status: 'sending',
-          createdAt: new Date().toISOString()
-        };
-        
-        setMessages(prev => [...prev, optimisticMessage]);
-        setComposer('');
-        setSelectedFiles([]);
-        
-        // Send via REST (attachments require REST)
-        const { data } = await api.post(`/chats/${chatId}/messages`, { 
-          text, 
-          attachments,
-          type: attachments[0].type 
-        });
-        
-        const serverMsg = data?.data?.message || data?.message;
-        if (serverMsg) {
-          setMessages(prev => prev.map(m => 
-            m.localId === localId ? { ...serverMsg, status: 'sent' } : m
-          ));
-        }
+      const serverMsg = data?.data?.message || data?.message;
+      if (serverMsg) {
+        setMessages(prev => prev.map(m => 
+          m.localId === localId ? { ...serverMsg, status: 'sent' } : m
+        ));
       }
     } catch (err) {
       console.error('Error sending message with attachments:', err);
+      // Mostrar error pero no bloquear
+      setUploadProgress(prev => ({ ...prev, message: 'Error al enviar. Intente nuevamente.' }));
+      await new Promise(r => setTimeout(r, 2000)); // Mostrar error por 2s
     } finally {
       setUploadingFile(false);
+      setUploadProgress({ show: false, progress: 0, message: '' });
     }
-  }, [selectedFiles, chatId, uploadingFile, composer, currentUserId, uploadAndSendFile]);
+  }, [selectedFiles, chatId, uploadingFile, composer, currentUserId, uploadSingleFile, replyingTo]);
 
   // Handle Enter key
   const handleKeyDown = useCallback((e) => {
@@ -632,10 +1051,23 @@ function ChatRoom({
                 return <DateSeparator key={`date-${idx}`} date={item.date} />;
               }
               
-              const isMine = (item?.sender?._id || item?.sender) === currentUserId;
+              // Normalizar IDs a string para comparación consistente
+              // El sender puede ser: string, ObjectId, o objeto con _id o id
+              const senderId = String(
+                item?.sender?._id || 
+                item?.sender?.id || 
+                (typeof item?.sender === 'string' ? item.sender : '') ||
+                ''
+              );
+              const currentId = String(currentUserId || '');
+              const isMine = senderId && currentId && senderId === currentId;
+              
+              // Debug desactivado para evitar logs infinitos
+              // console.log('🔍 Message alignment check:', { messageId: item._id, senderId, currentId, isMine });
+              
               const prevItem = groupedMessages[idx - 1];
-              const showAvatar = prevItem?.type === 'date' || 
-                               (prevItem?.sender?._id || prevItem?.sender) !== (item?.sender?._id || item?.sender);
+              const prevSenderId = String(prevItem?.sender?._id || prevItem?.sender || '');
+              const showAvatar = prevItem?.type === 'date' || prevSenderId !== senderId;
               
               return (
                 <MessageBubble
@@ -644,6 +1076,9 @@ function ChatRoom({
                   isMine={isMine}
                   showAvatar={showAvatar}
                   userName={partnerName}
+                  onReply={handleReply}
+                  onReact={handleReaction}
+                  allMessages={messages}
                 />
               );
             })}
@@ -663,8 +1098,49 @@ function ChatRoom({
 
       {/* Composer */}
       <div className="p-4 border-t border-gray-100 bg-white">
+        {/* Reply preview - shown when replying to a message */}
+        {replyingTo && (
+          <div className="mb-3 p-3 bg-brand-50/50 rounded-lg border-l-[3px] border-brand-500 flex items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-brand-600 font-medium mb-0.5">
+                Respondiendo a {replyingTo.sender?.profile?.firstName || 'Usuario'}
+              </p>
+              <p className="text-sm text-gray-700 truncate">
+                {replyingTo.content?.text || replyingTo.text || '📎 Archivo adjunto'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={cancelReply}
+              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded transition-colors"
+              title="Cancelar respuesta"
+            >
+              <Icons.Close className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+        
+        {/* Upload progress indicator */}
+        {uploadProgress.show && (
+          <div className="mb-3 p-3 bg-brand-50 rounded-lg border border-brand-100">
+            <div className="flex items-center gap-3">
+              <Spinner size="sm" className="text-brand-500" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-brand-700 font-medium truncate">{uploadProgress.message}</p>
+                <div className="mt-1 w-full bg-brand-100 rounded-full h-1.5">
+                  <div 
+                    className="bg-brand-500 h-1.5 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress.progress}%` }}
+                  />
+                </div>
+              </div>
+              <span className="text-xs text-brand-600 font-medium">{uploadProgress.progress}%</span>
+            </div>
+          </div>
+        )}
+        
         {/* Selected files preview */}
-        {selectedFiles.length > 0 && (
+        {selectedFiles.length > 0 && !uploadProgress.show && (
           <div className="flex flex-wrap gap-2 mb-3 p-2 bg-gray-50 rounded-lg">
             {selectedFiles.map((file, idx) => (
               <div key={idx} className="relative group">
@@ -674,6 +1150,14 @@ function ChatRoom({
                     alt={file.name}
                     className="w-16 h-16 object-cover rounded-lg border border-gray-200"
                   />
+                ) : file.type.startsWith('video/') ? (
+                  <div className="w-16 h-16 flex flex-col items-center justify-center bg-gray-800 rounded-lg border border-gray-200 p-1">
+                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-[8px] text-white truncate max-w-full mt-0.5">{(file.size / 1024 / 1024).toFixed(1)}MB</span>
+                  </div>
                 ) : (
                   <div className="w-16 h-16 flex flex-col items-center justify-center bg-white rounded-lg border border-gray-200 p-1">
                     <Icons.Attachment className="w-5 h-5 text-gray-400" />
@@ -699,7 +1183,7 @@ function ChatRoom({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className={`p-2 rounded-lg transition-colors ${selectedFiles.length > 0 ? 'text-brand-500 bg-brand-50' : 'text-gray-400 hover:text-brand-500 hover:bg-brand-50'}`}
-              title="Adjuntar archivo (máx. 5MB)"
+              title="Adjuntar archivo (imágenes, videos, documentos)"
               disabled={uploadingFile}
             >
               <Icons.Attachment />
@@ -717,7 +1201,7 @@ function ChatRoom({
             ref={fileInputRef}
             type="file"
             className="hidden"
-            accept="image/*,.pdf,.doc,.docx,.txt"
+            accept="image/*,video/*,.pdf,.doc,.docx,.txt"
             multiple
             onChange={handleFileSelect}
           />

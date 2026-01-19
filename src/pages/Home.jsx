@@ -548,11 +548,28 @@ useEffect(() => {
       {searchResults !== null && !isSearching && (
         <div className="w-full">
           <div className="bg-white rounded-xl border p-6">
-            <h2 className="text-xl font-bold mb-4">
-              {searchResults.length > 0 
-                ? `${searchResults.length} profesionales encontrados` 
-                : 'No se encontraron profesionales'}
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">
+                {searchResults.length > 0 
+                  ? `${searchResults.length} profesionales encontrados` 
+                  : 'No se encontraron profesionales'}
+              </h2>
+              <button
+                onClick={() => {
+                  setSearchResults(null);
+                  setSelectedCategory(null);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-linear-to-r from-brand-100 to-brand-50 text-brand-700 font-semibold border border-brand-200 hover:from-brand-200 hover:to-brand-100 hover:text-brand-900 transition-all text-xs sm:text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
+                style={{ minHeight: 'auto', lineHeight: '1.2' }}
+                aria-label="Volver a inicio"
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="hidden sm:inline">Volver a Inicio</span>
+              </button>
+            </div>
             {searchResults.length > 0 ? (
               <div className="grid gap-6">
                 {searchResults.map((provider) => (
@@ -794,6 +811,27 @@ useEffect(() => {
             <div className="absolute inset-0 bg-linear-to-br from-gray-900/80 via-brand-900/60 to-gray-900/80 pointer-events-none z-0" />
 
             <div className="relative z-10">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold mb-0 text-white drop-shadow-lg">
+                  {categoryProviders.length} {categoryProviders.length === 1 ? 'profesional encontrado' : 'profesionales encontrados'} en <span className="capitalize text-brand-200">{selectedCategory}</span>
+                </h2>
+                <button
+                  onClick={() => {
+                    setSearchResults(null);
+                    setSelectedCategory(null);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-linear-to-r from-brand-100 to-brand-50 text-brand-700 font-semibold border border-brand-200 hover:from-brand-200 hover:to-brand-100 hover:text-brand-900 transition-all text-xs sm:text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
+                  style={{ minHeight: 'auto', lineHeight: '1.2' }}
+                  aria-label="Volver a inicio"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span className="hidden sm:inline">Volver a Inicio</span>
+                </button>
+              </div>
+
               {loadingProviders && (
                 <div className="text-center py-12">
                   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
@@ -812,37 +850,29 @@ useEffect(() => {
               )}
 
               {!loadingProviders && categoryProviders.length > 0 && (
-                <>
-                  {/* Título estilizado igual que búsqueda, ahora con nombre de categoría */}
-                  <h2 className="text-xl font-bold mb-4 text-white drop-shadow-lg">
-                    {categoryProviders.length} {categoryProviders.length === 1 ? 'profesional encontrado' : 'profesionales encontrados'} en <span className="capitalize text-brand-200">{selectedCategory}</span>
-                  </h2>
-
-                  {/* Grid de proveedores */}
-                  <div className="grid gap-6">
-                    {categoryProviders
-                      .slice() // Copia para no mutar el estado
-                      .sort((a, b) => {
-                        // Ordenar por rating promedio (desc)
-                        const ratingA = a.providerProfile?.rating?.average ?? 0;
-                        const ratingB = b.providerProfile?.rating?.average ?? 0;
-                        if (ratingB !== ratingA) return ratingB - ratingA;
-                        // Si el rating es igual, ordenar por plan (PRO > BASIC > FREE)
-                        const planOrder = { pro: 3, basic: 2, free: 1 };
-                        const planA = planOrder[a.subscription?.plan] || 0;
-                        const planB = planOrder[b.subscription?.plan] || 0;
-                        return planB - planA;
-                      })
-                      .map((provider) => (
-                        <ProviderCard
-                          key={provider._id}
-                          provider={provider}
-                          onSelect={handleProviderSelect}
-                          onViewPortfolio={handleViewPortfolio}
-                        />
-                      ))}
-                  </div>
-                </>
+                <div className="grid gap-6">
+                  {categoryProviders
+                    .slice() // Copia para no mutar el estado
+                    .sort((a, b) => {
+                      // Ordenar por rating promedio (desc)
+                      const ratingA = a.providerProfile?.rating?.average ?? 0;
+                      const ratingB = b.providerProfile?.rating?.average ?? 0;
+                      if (ratingB !== ratingA) return ratingB - ratingA;
+                      // Si el rating es igual, ordenar por plan (PRO > BASIC > FREE)
+                      const planOrder = { pro: 3, basic: 2, free: 1 };
+                      const planA = planOrder[a.subscription?.plan] || 0;
+                      const planB = planOrder[b.subscription?.plan] || 0;
+                      return planB - planA;
+                    })
+                    .map((provider) => (
+                      <ProviderCard
+                        key={provider._id}
+                        provider={provider}
+                        onSelect={handleProviderSelect}
+                        onViewPortfolio={handleViewPortfolio}
+                      />
+                    ))}
+                </div>
               )}
             </div>
           </div>

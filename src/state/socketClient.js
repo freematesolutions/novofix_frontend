@@ -101,8 +101,25 @@ export function on(event, handler) {
 
 export function emit(event, payload) {
   const s = getSocket();
-  if (!s) return false;
-  try { s.emit(event, payload); return true; } catch { return false; }
+  if (!s) {
+    console.log(`⚠️ socketEmit(${event}): socket not available`);
+    return false;
+  }
+  if (!s.connected) {
+    console.log(`⚠️ socketEmit(${event}): socket not connected, attempting reconnect`);
+    try {
+      s.connect();
+    } catch { /* ignore */ }
+    return false;
+  }
+  try { 
+    console.log(`📤 socketEmit(${event}):`, payload);
+    s.emit(event, payload); 
+    return true; 
+  } catch (err) { 
+    console.error(`❌ socketEmit(${event}) error:`, err);
+    return false; 
+  }
 }
 
 // Utility to run a setup callback once per app lifetime

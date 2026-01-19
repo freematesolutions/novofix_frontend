@@ -425,7 +425,7 @@ export default function ClientRequestProposals() {
               <ChatRoom 
                 chatId={activeChat._id || activeChat.id}
                 chat={activeChat}
-                currentUserId={user?._id}
+                currentUserId={user?.id || user?._id}
                 showHeader={false}
                 maxHeight="100%"
               />

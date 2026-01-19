@@ -1,9 +1,12 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { HiCheckCircle, HiExclamation, HiExclamationCircle, HiInformationCircle, HiX, HiChat } from 'react-icons/hi';
+import { HiCheckCircle, HiExclamation, HiExclamationCircle, HiInformationCircle, HiX, HiChat, HiChevronDown, HiChevronUp } from 'react-icons/hi';
 
 const ToastContext = createContext(null);
 
 let idSeq = 0;
+
+// Longitud máxima del mensaje antes de truncar
+const MESSAGE_TRUNCATE_LENGTH = 80;
 
 const toastVariants = {
   success: {
@@ -48,6 +51,117 @@ const toastVariants = {
   }
 };
 
+// Componente individual de Toast con capacidad de expandir mensajes largos
+function ToastItem({ toast: t, index, onRemove }) {
+  const [expanded, setExpanded] = useState(false);
+  const variant = toastVariants[t.type] || toastVariants.info;
+  const IconComponent = variant.icon;
+  
+  // Determinar si el mensaje es largo y necesita truncarse
+  const message = t.message || '';
+  const isLongMessage = message.length > MESSAGE_TRUNCATE_LENGTH;
+  const displayMessage = isLongMessage && !expanded 
+    ? message.substring(0, MESSAGE_TRUNCATE_LENGTH) + '...'
+    : message;
+
+  return (
+    <div
+      role="status"
+      className={`
+        relative overflow-hidden rounded-xl border shadow-lg backdrop-blur-sm
+        ${variant.bg}
+      `}
+      style={{ 
+        animationName: 'slideInFromRight',
+        animationDuration: '0.3s',
+        animationTimingFunction: 'ease-out',
+        animationFillMode: 'forwards',
+        animationDelay: `${index * 50}ms`
+      }}
+    >
+      <div className="flex items-start gap-3 p-4">
+        {/* Icono */}
+        <div className={`shrink-0 p-1.5 rounded-lg ${variant.iconBg}`}>
+          <IconComponent className={`w-5 h-5 ${variant.iconColor}`} />
+        </div>
+        
+        {/* Contenido */}
+        <div className="flex-1 min-w-0 pt-0.5">
+          {t.title && (
+            <div className={`font-semibold text-sm mb-0.5 ${variant.text}`}>
+              {t.title}
+            </div>
+          )}
+          <div className="text-sm text-gray-600">
+            {displayMessage}
+            {/* Botón para expandir/colapsar mensaje largo */}
+            {isLongMessage && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className={`ml-1 inline-flex items-center gap-0.5 text-xs font-medium transition-colors duration-200 ${
+                  t.type === 'chat' 
+                    ? 'text-violet-600 hover:text-violet-700' 
+                    : 'text-brand-600 hover:text-brand-700'
+                }`}
+              >
+                {expanded ? (
+                  <>
+                    Ver menos
+                    <HiChevronUp className="w-3.5 h-3.5" />
+                  </>
+                ) : (
+                  <>
+                    Ver más
+                    <HiChevronDown className="w-3.5 h-3.5" />
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          
+          {/* Botón de acción opcional */}
+          {t.action && (
+            <button
+              onClick={() => {
+                t.action.onClick?.();
+                onRemove(t.id);
+              }}
+              className={`mt-2 text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-200
+                ${t.type === 'chat' 
+                  ? 'bg-violet-100 text-violet-700 hover:bg-violet-200' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+            >
+              {t.action.label}
+            </button>
+          )}
+        </div>
+        
+        {/* Botón cerrar */}
+        <button 
+          onClick={() => onRemove(t.id)}
+          className="shrink-0 p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors duration-200"
+          aria-label="Cerrar notificación"
+        >
+          <HiX className="w-4 h-4" />
+        </button>
+      </div>
+      
+      {/* Barra de progreso */}
+      {t.duration && (
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100">
+          <div 
+            className={`h-full ${variant.progressBar} transition-all ease-linear`}
+            style={{ 
+              animation: `growWidth ${t.duration}ms linear forwards`
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
@@ -79,83 +193,14 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={api}>
       {children}
       <div className="fixed top-4 right-4 z-9999 space-y-3 w-96 max-w-[calc(100vw-2rem)]">
-        {toasts.map((t, index) => {
-          const variant = toastVariants[t.type] || toastVariants.info;
-          const IconComponent = variant.icon;
-          
-          return (
-            <div
-              key={t.id}
-              role="status"
-              className={`
-                relative overflow-hidden rounded-xl border shadow-lg backdrop-blur-sm
-                ${variant.bg}
-              `}
-              style={{ 
-                animationName: 'slideInFromRight',
-                animationDuration: '0.3s',
-                animationTimingFunction: 'ease-out',
-                animationFillMode: 'forwards',
-                animationDelay: `${index * 50}ms`
-              }}
-            >
-              <div className="flex items-start gap-3 p-4">
-                {/* Icono */}
-                <div className={`shrink-0 p-1.5 rounded-lg ${variant.iconBg}`}>
-                  <IconComponent className={`w-5 h-5 ${variant.iconColor}`} />
-                </div>
-                
-                {/* Contenido */}
-                <div className="flex-1 min-w-0 pt-0.5">
-                  {t.title && (
-                    <div className={`font-semibold text-sm mb-0.5 ${variant.text}`}>
-                      {t.title}
-                    </div>
-                  )}
-                  <div className="text-sm text-gray-600">{t.message}</div>
-                  
-                  {/* Botón de acción opcional */}
-                  {t.action && (
-                    <button
-                      onClick={() => {
-                        t.action.onClick?.();
-                        remove(t.id);
-                      }}
-                      className={`mt-2 text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-200
-                        ${t.type === 'chat' 
-                          ? 'bg-violet-100 text-violet-700 hover:bg-violet-200' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                    >
-                      {t.action.label}
-                    </button>
-                  )}
-                </div>
-                
-                {/* Botón cerrar */}
-                <button 
-                  onClick={() => remove(t.id)}
-                  className="shrink-0 p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors duration-200"
-                  aria-label="Cerrar notificación"
-                >
-                  <HiX className="w-4 h-4" />
-                </button>
-              </div>
-              
-              {/* Barra de progreso */}
-              {t.duration && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100">
-                  <div 
-                    className={`h-full ${variant.progressBar} transition-all ease-linear`}
-                    style={{ 
-                      animation: `growWidth ${t.duration}ms linear forwards`
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {toasts.map((t, index) => (
+          <ToastItem 
+            key={t.id} 
+            toast={t} 
+            index={index} 
+            onRemove={remove}
+          />
+        ))}
       </div>
       
       {/* Estilos de animación */}

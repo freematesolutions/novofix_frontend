@@ -332,7 +332,11 @@ export default function Inbox() {
           <div className="max-h-100 overflow-auto">
             {Array.isArray(chats) && chats.length > 0 ? chats.map((c) => {
               const id = c._id || c.id;
-              const last = c.lastMessage?.content?.text || c.lastMessage?.content || '';
+              // Extraer texto del mensaje - content puede ser string u objeto {text, attachments}
+              const contentObj = c.lastMessage?.content;
+              const last = typeof contentObj === 'string' 
+                ? contentObj 
+                : (contentObj?.text || (contentObj?.attachments?.length ? '📎 Archivo adjunto' : ''));
               const active = selectedChat && (selectedChat._id || selectedChat.id) === id;
               const title = c?.booking?.basicInfo?.title || 'Chat';
               const unread = c?.unreadCount?.provider || 0;
@@ -380,7 +384,7 @@ export default function Inbox() {
             <ChatRoom
               chatId={selectedChat._id}
               chat={selectedChat}
-              currentUserId={user?._id}
+              currentUserId={user?.id || user?._id}
               onNewMessage={handleNewMessage}
               placeholder="Escribe un mensaje..."
               className="min-h-125"
@@ -419,7 +423,7 @@ export default function Inbox() {
             <ChatRoom 
               chatId={negotiationChat._id || negotiationChat.id}
               chat={negotiationChat}
-              currentUserId={user?._id}
+              currentUserId={user?.id || user?._id}
               showHeader={false}
               maxHeight="100%"
             />
