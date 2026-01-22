@@ -3,7 +3,9 @@ import PropTypes from 'prop-types';
 import ProviderProfileModal from './ProviderProfileModal.jsx';
 import RequestWizardModal from './RequestWizardModal.jsx';
 import ImageZoomModal from './ImageZoomModal.jsx';
+import GuestConversionModal from './GuestConversionModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
+import { useToast } from './Toast.jsx';
 
 // Star Rating Component
 const StarRating = ({ rating, size = 'sm', dataNavSection }) => {
@@ -57,8 +59,10 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
   const [showImageZoom, setShowImageZoom] = useState(false);
   const [blockCardClicks, setBlockCardClicks] = useState(false);
   const { isAuthenticated, viewRole } = useAuth();
+  const toast = useToast();
   const [showProfile, setShowProfile] = useState(false);
   const [showRequestWizard, setShowRequestWizard] = useState(false);
+  const [showGuestConversion, setShowGuestConversion] = useState(false);
   
   // Extract provider data
   const businessName = provider.providerProfile?.businessName || provider.profile?.firstName || 'Profesional';
@@ -101,12 +105,14 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
     const contactBtn = e.target.closest('[data-action="contact"]');
     if (contactBtn) {
       e.stopPropagation();
+      // Si no está autenticado, mostrar modal de conversión guest
       if (!isAuthenticated) {
-        alert('Debes iniciar sesión como cliente para contactar proveedores');
+        setShowGuestConversion(true);
         return;
       }
+      // Si está autenticado pero no es cliente, mostrar mensaje
       if (viewRole !== 'client') {
-        alert('Solo los clientes pueden enviar solicitudes a proveedores');
+        toast.warning('Solo los clientes pueden enviar solicitudes a proveedores');
         return;
       }
       setShowRequestWizard(true);
@@ -345,6 +351,18 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
           onClose={() => setShowRequestWizard(false)}
         />
       )}
+
+      {/* Guest Conversion Modal */}
+      <GuestConversionModal
+        isOpen={showGuestConversion}
+        onClose={() => setShowGuestConversion(false)}
+        provider={provider}
+        onConversionComplete={() => {
+          // Después de registrarse/login exitoso, abrir el wizard de solicitud
+          setShowGuestConversion(false);
+          setShowRequestWizard(true);
+        }}
+      />
     </>
   );
 }

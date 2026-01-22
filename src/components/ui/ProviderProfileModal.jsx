@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import RequestWizardModal from './RequestWizardModal.jsx';
+import GuestConversionModal from './GuestConversionModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
+import { useToast } from './Toast.jsx';
 import StarRating from './StarRating.jsx';
 
 // Iconos SVG inline para mejor rendimiento
@@ -127,8 +129,10 @@ const TABS = [
 
 function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
   const { isAuthenticated, viewRole } = useAuth();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState(initialTab || 'about');
   const [showRequestWizard, setShowRequestWizard] = useState(false);
+  const [showGuestConversion, setShowGuestConversion] = useState(false);
   const [selectedPortfolioItem, setSelectedPortfolioItem] = useState(null);
   const [portfolioIndex, setPortfolioIndex] = useState(0);
   const modalRef = useRef(null);
@@ -286,12 +290,14 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
 
   // Handle contact/message
   const handleMessage = () => {
+    // Si no está autenticado, mostrar modal de conversión guest
     if (!isAuthenticated) {
-      alert('Debes iniciar sesión como cliente para contactar proveedores');
+      setShowGuestConversion(true);
       return;
     }
+    // Si está autenticado pero no es cliente, mostrar mensaje
     if (viewRole !== 'client') {
-      alert('Solo los clientes pueden enviar solicitudes a proveedores');
+      toast.warning('Solo los clientes pueden enviar solicitudes a proveedores');
       return;
     }
     setShowRequestWizard(true);
@@ -827,6 +833,18 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
           onClose={() => setShowRequestWizard(false)}
         />
       )}
+
+      {/* Guest Conversion Modal */}
+      <GuestConversionModal
+        isOpen={showGuestConversion}
+        onClose={() => setShowGuestConversion(false)}
+        provider={provider}
+        onConversionComplete={() => {
+          // Después de registrarse/login exitoso, abrir el wizard de solicitud
+          setShowGuestConversion(false);
+          setShowRequestWizard(true);
+        }}
+      />
     </>
   );
 }
