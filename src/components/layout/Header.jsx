@@ -7,21 +7,27 @@ import Button from '@/components/ui/Button.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import SearchBar from '@/components/ui/SearchBar.jsx';
 import api from '@/state/apiClient.js';
+// import { useTranslation } from 'react-i18next';
 
 // Componente para items de notificación en el dropdown con soporte para expandir mensajes largos
+// import { useTranslation } from 'react-i18next';
+
+
+import LanguageSelector from '@/components/ui/LanguageSelector.jsx';
+import { useTranslation } from 'react-i18next';
+
 function NotificationDropdownItem({ notification: n, index, onMarkRead, onNavigate, actionUrl, message, isLongMessage, compact = false }) {
   const [expanded, setExpanded] = useState(false);
-  
+  const { t } = useTranslation();
   const displayMessage = isLongMessage && !expanded 
     ? message.substring(0, compact ? 60 : 80) + '...'
     : message;
-
   return (
     <div className={`px-4 py-3 text-sm transition-all duration-200 hover:bg-gray-50 ${!n.read ? 'bg-brand-50/50 border-l-3 border-l-brand-500' : ''} ${index > 0 ? 'border-t border-gray-100' : ''}`}>
       <div className="flex items-start gap-3">
         <div className={`${compact ? 'w-2 h-2 mt-2' : 'w-2.5 h-2.5 mt-1.5'} rounded-full shrink-0 transition-all duration-300 ${n.read ? 'bg-gray-300' : `bg-brand-500 ${compact ? 'animate-pulse' : 'ring-4 ring-brand-100 animate-pulse'}`}`}></div>
         <div className="flex-1 min-w-0">
-          <div className={`${compact ? 'font-medium truncate' : 'font-semibold'} text-gray-900`}>{n.title || 'Notificación'}</div>
+          <div className={`${compact ? 'font-medium truncate' : 'font-semibold'} text-gray-900`}>{n.title || t('header.notification')}</div>
           <div className="text-gray-600 mt-0.5">
             {displayMessage}
             {isLongMessage && (
@@ -29,7 +35,7 @@ function NotificationDropdownItem({ notification: n, index, onMarkRead, onNaviga
                 onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
                 className="ml-1 text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors"
               >
-                {expanded ? '▲ Ver menos' : '▼ Ver más'}
+                {expanded ? `▲ ${t('header.seeLess')}` : `▼ ${t('header.seeMore')}`}
               </button>
             )}
           </div>
@@ -40,7 +46,7 @@ function NotificationDropdownItem({ notification: n, index, onMarkRead, onNaviga
                 className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-2 py-0.5 rounded transition-colors"
                 onClick={(e) => { e.stopPropagation(); onMarkRead(); }}
               >
-                {compact ? 'Leída' : 'Marcar leída'}
+                {compact ? t('header.read') : t('header.markRead')}
               </button>
             )}
             {actionUrl && (
@@ -51,7 +57,7 @@ function NotificationDropdownItem({ notification: n, index, onMarkRead, onNaviga
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
-                Abrir
+                {t('header.open')}
               </button>
             )}
           </div>
@@ -60,8 +66,8 @@ function NotificationDropdownItem({ notification: n, index, onMarkRead, onNaviga
     </div>
   );
 }
-
 function Header() {
+  const { t } = useTranslation();
   const { user, role, roles, viewRole, isAuthenticated, changeViewRole, startRoleSwitch, clearViewRoleLock, logout, pendingVerification } = useAuth();
   const navigate = useNavigate();
 
@@ -516,14 +522,14 @@ function Header() {
             to="/"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>}
-            label="Explora nuestros servicios"
+            label={t('header.exploreServices')}
             showLabel={isMobile}
           />
           <NavLinkWithTooltip
             to="/unete"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>}
-            label="Únete como profesional"
+            label={t('header.joinAsProfessional')}
             showLabel={isMobile}
           />
         </>
@@ -1289,7 +1295,7 @@ function Header() {
       {/* Subtle gradient overlay for depth */}
       <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent pointer-events-none"></div>
       
-      {/* Primera fila: Logo + Navegación/SearchBar + Usuario */}
+      {/* Primera fila: Logo + Navegación/SearchBar + Usuario + Selector de idioma */}
       <div className="relative container mx-auto px-2 sm:px-4 lg:px-6 min-h-14 sm:min-h-16 py-2 flex items-center justify-between gap-2 sm:gap-4">
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <Link 
@@ -1305,7 +1311,7 @@ function Header() {
               {/* Logo NovoFix - SVG optimizado */}
               <img 
                 src="/novofix-logo.svg" 
-                alt="NovoFix Logo" 
+                alt={t('logoAlt')} 
                 className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 relative drop-shadow-lg"
               />
             </div>
@@ -1315,6 +1321,8 @@ function Header() {
               <span className="text-gray-800 group-hover:text-gray-900 transition-colors duration-300">Fix</span>
             </span>
           </Link>
+          {/* Selector de idioma */}
+          <LanguageSelector className="ml-2" />
         </div>
 
         <div className="flex items-center gap-0.5 sm:gap-2 min-w-0 flex-1 overflow-visible">
@@ -1338,7 +1346,7 @@ function Header() {
                     className={`animated-placeholder ${searchNeedsAnimation ? 'overflow' : ''}`}
                     style={{ display: searchInputValue ? 'none' : 'block' }}
                   >
-                    {searchBarState.categoryName ? `Buscar en ${searchBarState.categoryName}...` : 'Buscar servicios profesionales...'}
+                    {searchBarState.categoryName ? t('search') : t('search')}
                   </span>
                 </div>
                 <button
@@ -1517,7 +1525,7 @@ function Header() {
                   <svg className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                   </svg>
-                  Inicia Sesión
+                  {t('header.login')}
                 </Link>
                 <Link 
                   to="/registrarse" 
@@ -1526,7 +1534,7 @@ function Header() {
                   <svg className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                   </svg>
-                  Regístrate
+                  {t('header.register')}
                 </Link>
               </>
             ) : (
@@ -1788,6 +1796,7 @@ function Header() {
                             </svg>
                           </div>
                           <span className="font-medium">Cambiar a modo {viewRole === 'client' ? 'Profesional' : 'Cliente'}</span>
+                                                  <span className="font-medium">{t('header.switchMode', { mode: viewRole === 'client' ? t('header.professional') : t('header.client') })}</span>
                         </button>
                         <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 group" onClick={()=>{ clearViewRoleLock(); toast.info('Modo automático restablecido'); setAccountOpen(false); }}>
                           <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-yellow-50 transition-colors">
@@ -1796,6 +1805,7 @@ function Header() {
                             </svg>
                           </div>
                           <span className="font-medium">Modo automático</span>
+                                                  <span className="font-medium">{t('header.autoMode')}</span>
                         </button>
                       </>
                     )}
@@ -1807,7 +1817,7 @@ function Header() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                           </svg>
                         </div>
-                        <span className="font-medium">Cerrar sesión</span>
+                        <span className="font-medium">{t('header.logout')}</span>
                       </button>
                     </div>
                   </div>
@@ -1932,13 +1942,13 @@ function Header() {
                   <svg className="w-5 h-5 transition-transform duration-300 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                   </svg>
-                  Inicia Sesión
+                  {t('header.login')}
                 </Link>
                 <Link to="/registrarse" onClick={closeMenu} className="group inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-brand-300 hover:text-brand-600 hover:bg-brand-50 transition-all duration-300">
                   <svg className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                   </svg>
-                  Regístrate gratis
+                  {t('header.registerFree')}
                 </Link>
               </div>
             ) : (

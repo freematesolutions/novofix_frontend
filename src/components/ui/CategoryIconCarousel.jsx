@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { CATEGORY_ICONS } from '@/utils/categoryIcons.jsx';
+import { useTranslation } from 'react-i18next';
 
 /**
  * CategoryIconCarousel - Carrusel 3D estilo "Encarta 2004" moderno
@@ -22,6 +23,7 @@ function CategoryIconCarousel({
   autoRotate = true,
   rotationInterval = 2800
 }) {
+  const { t } = useTranslation();
   const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -420,7 +422,7 @@ function CategoryIconCarousel({
                       boxShadow: '0 2px 8px rgba(245, 158, 11, 0.5)'
                     }}
                   >
-                    Próximamente
+                    {t('comingSoon')}
                   </div>
                 )}
                 {/* Efecto de luz superior */}
@@ -461,7 +463,7 @@ function CategoryIconCarousel({
                   boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
                 }}
               >
-                {service.category}
+                {service.translatedName}
               </span>
             </div>
           );

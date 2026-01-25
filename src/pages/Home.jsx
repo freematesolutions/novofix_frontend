@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
@@ -13,6 +14,7 @@ import { SERVICE_CATEGORIES_WITH_DESCRIPTION } from '@/utils/categories.js';
 
 
 function Home() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, viewRole } = useAuth();
@@ -36,24 +38,27 @@ function Home() {
   const [dataLoaded, setDataLoaded] = useState(false);
 
 
-  // Intercalar y repetir categorías con proveedores para el carrusel
-  // Generar instanceId estable por categoría+índice (sin Date.now())
+  // Generar dinámicamente nombres y descripciones traducidas de categorías para el carrusel
+  // Generar datos de categorías con traducción reactiva
   const allCategoriesWithProviders = useMemo(() => {
-    const all = SERVICE_CATEGORIES_WITH_DESCRIPTION.map((cat, idx) => ({
-      category: cat.value,
-      description: cat.description,
-      providerCount: providerCountByCategory[cat.value] || 0,
-      hasProviders: dataLoaded ? (providerCountByCategory[cat.value] || 0) > 0 : true,
-      instanceId: `cat-${cat.value}-${idx}`
-    }));
-
+    const all = SERVICE_CATEGORIES_WITH_DESCRIPTION.map((cat, idx) => {
+      const name = t([`categories.${cat.value}`, cat.value]);
+      // Fallback: si no hay traducción, usa descripción estática solo como último recurso
+      const descKey = `categoryDescriptions.${cat.value}`;
+      let desc = t(descKey);
+      if (desc === descKey) desc = cat.description;
+      return {
+        category: cat.value,
+        translatedName: name,
+        translatedDescription: desc,
+        providerCount: providerCountByCategory[cat.value] || 0,
+        hasProviders: dataLoaded ? (providerCountByCategory[cat.value] || 0) > 0 : true,
+        instanceId: `cat-${cat.value}-${idx}`
+      };
+    });
     const withProviders = all.filter(cat => cat.hasProviders);
     const withoutProviders = all.filter(cat => !cat.hasProviders);
-
-    if (withProviders.length === 0) {
-      return all;
-    }
-
+    if (withProviders.length === 0) return all;
     const result = [];
     let wpIndex = 0;
     withoutProviders.forEach((cat) => {
@@ -61,13 +66,11 @@ function Home() {
       result.push({ ...withProviders[wpIndex] });
       wpIndex = (wpIndex + 1) % withProviders.length;
     });
-
     for (let j = 0; j < withProviders.length; j++) {
       if (!result.some(x => x.instanceId === withProviders[j].instanceId)) {
         result.push({ ...withProviders[j] });
       }
     }
-
     if (result.length < all.length) {
       all.forEach(cat => {
         if (!result.some(x => x.instanceId === cat.instanceId)) {
@@ -75,27 +78,29 @@ function Home() {
         }
       });
     }
-
     return result;
-  }, [providerCountByCategory, dataLoaded]);
+  }, [providerCountByCategory, dataLoaded, t]);
 
   // Cantidad de categorías con proveedores activos
   const categoriesWithProviders = useMemo(() => {
     return Object.values(providerCountByCategory).filter(count => count > 0).length;
   }, [providerCountByCategory]);
 
-  // Categorías ordenadas SOLO para la sección "Explora nuestros servicios":
-  // 1. Primero las que tienen proveedores (orden original de SERVICE_CATEGORIES_WITH_DESCRIPTION)
-  // 2. Luego las que no tienen proveedores (badge 'Próximamente'), también en orden original
+  // Categorías ordenadas SOLO para la sección "Explora nuestros servicios" (con traducción reactiva)
   const sortedCategoriesForCards = useMemo(() => {
     const withProviders = [];
     const withoutProviders = [];
     SERVICE_CATEGORIES_WITH_DESCRIPTION.forEach((cat, idx) => {
       const providerCount = providerCountByCategory[cat.value] || 0;
       const hasProviders = dataLoaded ? providerCount > 0 : true;
+      const name = t([`categories.${cat.value}`, cat.value]);
+      const descKey = `categoryDescriptions.${cat.value}`;
+      let desc = t(descKey);
+      if (desc === descKey) desc = cat.description;
       const card = {
         category: cat.value,
-        description: cat.description,
+        translatedName: name,
+        translatedDescription: desc,
         providerCount,
         hasProviders,
         instanceId: `cat-${cat.value}-${idx}`
@@ -107,7 +112,7 @@ function Home() {
       }
     });
     return [...withProviders, ...withoutProviders];
-  }, [providerCountByCategory, dataLoaded]);
+  }, [providerCountByCategory, dataLoaded, t]);
 
   useEffect(() => {
     if (isAuthenticated && viewRole === 'provider') {
@@ -395,7 +400,7 @@ useEffect(() => {
                         }}
                         aria-hidden={index !== currentServiceIndex}
                       >
-                        <span className="truncate max-w-full">{service.category}</span>
+                        <span className="truncate max-w-full">{t([`categories.${service.category}`, service.category])}</span>
                       </span>
                     ))}
                   </div>
@@ -404,10 +409,10 @@ useEffect(() => {
                 {/* Título principal */}
                 <div className="text-center w-full pb-2 sm:pb-3 lg:pb-2">
                   <h1 className="text-lg sm:text-xl md:text-2xl lg:text-xl xl:text-4xl 2xl:text-5xl font-extrabold text-white leading-tight drop-shadow-2xl">
-                    Encuentra el profesional
+                    {t('home.title1')}
                     <br />
                     <span className="inline-block bg-linear-to-r from-amber-400 via-orange-400 to-amber-300 bg-clip-text text-transparent animate-pulse-slow drop-shadow-lg">
-                      que necesitas
+                      {t('home.title2')}
                     </span>
                   </h1>
                 </div>
@@ -425,6 +430,7 @@ useEffect(() => {
                       onCategoryClick={handleCategoryClick}
                       autoRotate={true}
                       rotationInterval={2800}
+                      t={t}
                     />
                   </div>
                 )}
@@ -440,7 +446,7 @@ useEffect(() => {
                       border: '1px solid rgba(255, 255, 255, 0.2)'
                     }}
                   >
-                    <SearchBar onSearch={handleSearch} variant="hero" />
+                    <SearchBar onSearch={handleSearch} variant="hero" placeholder={t('searchBar.placeholder')} buttonLabel={t('searchBar.button')} />
                   </div>
                 </div>
               </div>
@@ -461,7 +467,7 @@ useEffect(() => {
                     }}
                   >
                     <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">{SERVICE_CATEGORIES_WITH_DESCRIPTION.length}+</span>
-                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">Servicios</span>
+                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.services')}</span>
                   </div>
                   <div 
                     className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
@@ -474,7 +480,7 @@ useEffect(() => {
                     }}
                   >
                     <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">{totalUniqueProviders > 0 ? totalUniqueProviders : '—'}+</span>
-                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">Profesionales</span>
+                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.professionals')}</span>
                   </div>
                   <div 
                     className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
@@ -487,7 +493,7 @@ useEffect(() => {
                     }}
                   >
                     <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-purple-300 transition-colors">24/7</span>
-                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">Disponible</span>
+                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.available')}</span>
                   </div>
                 </div>
 
@@ -512,7 +518,7 @@ useEffect(() => {
                   aria-label="Ver más contenido"
                 >
                   <span className="text-xs sm:text-sm lg:text-xs text-white font-semibold group-hover:text-yellow-300 transition-colors">
-                    Explorar servicios
+                    {t('home.exploreBadge')}
                   </span>
                   <svg 
                     className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 text-white animate-bounce group-hover:text-yellow-300 transition-colors" 
@@ -551,8 +557,8 @@ useEffect(() => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">
                 {searchResults.length > 0 
-                  ? `${searchResults.length} profesionales encontrados` 
-                  : 'No se encontraron profesionales'}
+                  ? t('home.foundProfessionals', { count: searchResults.length })
+                  : t('home.noProfessionalsFound')}
               </h2>
               <button
                 onClick={() => {
@@ -568,6 +574,7 @@ useEffect(() => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
                 <span className="hidden sm:inline">Volver a Inicio</span>
+                              <span className="hidden sm:inline">{t('home.backToHome')}</span>
               </button>
             </div>
             {searchResults.length > 0 ? (
@@ -587,7 +594,7 @@ useEffect(() => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <p className="mt-4 text-gray-600">No encontramos profesionales con esos criterios</p>
-                <p className="mt-2 text-sm text-gray-500">Intenta con otros términos de búsqueda o categorías</p>
+                <p className="mt-2 text-sm text-gray-500">{t('home.tryOtherSearch')}</p>
               </div>
             )}
           </div>
@@ -600,12 +607,12 @@ useEffect(() => {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-                Explora nuestros servicios
+                {t('header.exploreServices')}
               </h2>
               <p className="text-gray-600">
                 {categoriesWithProviders > 0
-                  ? `${categoriesWithProviders} categorías con profesionales disponibles`
-                  : 'Próximamente tendremos profesionales disponibles'
+                  ? t('home.categoriesWithProfessionals', { count: categoriesWithProviders })
+                  : t('home.comingSoonProfessionals')
                 }
               </p>
             </div>
@@ -649,7 +656,8 @@ useEffect(() => {
                   >
                     <ServiceCategoryCard
                       category={service.category}
-                      description={service.description}
+                      translatedName={service.translatedName}
+                      translatedDescription={service.translatedDescription}
                       providerCount={service.providerCount}
                       onClick={handleCategoryClick}
                       showComingSoon={!service.hasProviders}
@@ -684,6 +692,7 @@ useEffect(() => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
               </svg>
               <span>Desliza para ver más</span>
+                          <span>{t('home.swipeToSeeMore')}</span>
             </div>
           </div>
 
@@ -700,7 +709,7 @@ useEffect(() => {
               aria-label="Ver por qué elegir NovoFix"
             >
               <span className="text-sm font-semibold group-hover:text-white transition-colors">
-                ¿Por qué elegirnos?
+                {t('home.whyChooseUs')}
               </span>
               <svg 
                 className="w-5 h-5 text-white animate-bounce transition-colors" 
@@ -720,10 +729,10 @@ useEffect(() => {
         <div id="benefits-section" className="py-8 scroll-mt-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              ¿Por qué elegir NovoFix?
+              {t('home.whyChooseNovoFix')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              La forma más rápida y segura de conectar con profesionales calificados
+              {t('home.whyChooseNovoFixDesc')}
             </p>
           </div>
 
@@ -737,9 +746,9 @@ useEffect(() => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Conexión Instantánea</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('home.benefit1Title')}</h3>
                 <p className="text-gray-600">
-                  Encuentra y contacta profesionales en minutos, no en días
+                  {t('home.benefit1Desc')}
                 </p>
               </div>
             </div>
@@ -753,9 +762,9 @@ useEffect(() => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">100% Verificados</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('home.benefit2Title')}</h3>
                 <p className="text-gray-600">
-                  Todos nuestros profesionales están verificados y calificados
+                  {t('home.benefit2Desc')}
                 </p>
               </div>
             </div>
@@ -769,9 +778,9 @@ useEffect(() => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Precios Transparentes</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('home.benefit3Title')}</h3>
                 <p className="text-gray-600">
-                  Compara presupuestos y elige la mejor opción para ti
+                  {t('home.benefit3Desc')}
                 </p>
               </div>
             </div>
@@ -785,9 +794,9 @@ useEffect(() => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Calidad Garantizada</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('home.benefit4Title')}</h3>
                 <p className="text-gray-600">
-                  Reseñas reales de clientes para ayudarte a decidir
+                  {t('home.benefit4Desc')}
                 </p>
               </div>
             </div>
@@ -813,7 +822,8 @@ useEffect(() => {
             <div className="relative z-10">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold mb-0 text-white drop-shadow-lg">
-                  {categoryProviders.length} {categoryProviders.length === 1 ? 'profesional encontrado' : 'profesionales encontrados'} en <span className="capitalize text-brand-200">{selectedCategory}</span>
+                  {categoryProviders.length} {categoryProviders.length === 1 ? t('home.oneProfessionalFound') : t('home.manyProfessionalsFound')} {t('home.inCategory')} <span className="capitalize text-brand-200">{selectedCategory}</span>
+                                <span className="hidden sm:inline">{t('home.backToHome')}</span>
                 </h2>
                 <button
                   onClick={() => {
@@ -845,7 +855,7 @@ useEffect(() => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                   <p className="mt-4 text-gray-700 font-semibold text-lg">No hay profesionales disponibles</p>
-                  <p className="mt-2 text-gray-500 text-sm">Intenta buscar en otra categoría o realiza una búsqueda personalizada</p>
+                  <p className="mt-2 text-gray-500 text-sm">{t('home.tryOtherCategory')}</p>
                 </div>
               )}
 

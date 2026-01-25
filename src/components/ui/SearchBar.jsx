@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import { SERVICE_CATEGORIES } from '@/utils/categories.js';
 
 function SearchBar({ onSearch, variant = 'default' }) {
+  const { t, i18n } = useTranslation();
   const [textQuery, setTextQuery] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -13,25 +15,26 @@ function SearchBar({ onSearch, variant = 'default' }) {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
 
-  // Placeholder dinámico
+  // Placeholders dinámicos internacionalizados
   const placeholders = [
-    'Necesito un plomero urgente...',
-    'Busco electricista certificado...',
-    'Reparar aire acondicionado...',
-    'Servicio de limpieza profunda...',
-    'Pintar mi departamento...',
-    'Instalación de cerámica...'
+    t('home.searchBar.placeholders.0', t('home.placeholders.0', 'Necesito un plomero urgente...')),
+    t('home.searchBar.placeholders.1', t('home.placeholders.1', 'Busco electricista certificado...')),
+    t('home.searchBar.placeholders.2', t('home.placeholders.2', 'Reparar aire acondicionado...')),
+    t('home.searchBar.placeholders.3', t('home.placeholders.3', 'Servicio de limpieza profunda...')),
+    t('home.searchBar.placeholders.4', t('home.placeholders.4', 'Pintar mi departamento...')),
+    t('home.searchBar.placeholders.5', t('home.placeholders.5', 'Instalación de cerámica...'))
   ];
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
-  // Rotar placeholders
+  // Rotar placeholders y reiniciar al cambiar idioma
   useEffect(() => {
-    if (textQuery) return; // No rotar si hay texto
+    if (textQuery) return;
+    setPlaceholderIndex(0); // Reinicia al cambiar idioma
     const interval = setInterval(() => {
       setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, [textQuery, placeholders.length]);
+  }, [textQuery, placeholders.length, i18n.language]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -134,12 +137,12 @@ function SearchBar({ onSearch, variant = 'default' }) {
                   }`
               }
             `}
-            title={showAdvancedFilters ? 'Ocultar filtros' : 'Mostrar filtros avanzados'}
+            title={showAdvancedFilters ? t('home.searchBar.hideFilters', t('home.hideFilters', 'Ocultar filtros')) : t('home.searchBar.showAdvancedFilters', t('home.showAdvancedFilters', 'Mostrar filtros avanzados'))}
           >
             <svg className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
             </svg>
-            <span className="hidden sm:inline lg:hidden xl:inline text-xs sm:text-sm">Filtros</span>
+            <span className="hidden sm:inline lg:hidden xl:inline text-xs sm:text-sm">{t('home.searchBar.filters', t('home.filters', 'Filtros'))}</span>
             {hasActiveFilters && (
               <span className={`
                 rounded-full w-2 h-2 
@@ -167,7 +170,7 @@ function SearchBar({ onSearch, variant = 'default' }) {
             <svg className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <span className={isHeroVariant ? 'hidden sm:inline' : 'hidden sm:inline'}>Buscar</span>
+            <span className={isHeroVariant ? 'hidden sm:inline' : 'hidden sm:inline'}>{t('home.searchBar.button', t('home.searchButton', 'Buscar'))}</span>
           </button>
         </div>
 
@@ -182,7 +185,7 @@ function SearchBar({ onSearch, variant = 'default' }) {
               {/* Categoría */}
               <div className="space-y-1.5">
                 <label htmlFor="category" className="block text-sm font-semibold text-gray-700">
-                  📂 Categoría
+                  📂 {t('home.searchBar.category', t('home.category', 'Categoría'))}
                 </label>
                 <select
                   id="category"
@@ -190,9 +193,9 @@ function SearchBar({ onSearch, variant = 'default' }) {
                   onChange={(e) => handleFilterChange('category', e.target.value)}
                   className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white transition-all duration-200 hover:border-gray-300"
                 >
-                  <option value="">Todas las categorías</option>
+                  <option value="">{t('home.searchBar.allCategories', t('home.allCategories', 'Todas las categorías'))}</option>
                   {SERVICE_CATEGORIES.filter(cat => cat !== 'Otro').map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                    <option key={cat} value={cat}>{t(`categories.${cat}`, cat)}</option>
                   ))}
                 </select>
               </div>
@@ -200,14 +203,14 @@ function SearchBar({ onSearch, variant = 'default' }) {
               {/* Ubicación */}
               <div className="space-y-1.5">
                 <label htmlFor="location" className="block text-sm font-semibold text-gray-700">
-                  📍 Ubicación
+                  📍 {t('home.searchBar.location', t('home.location', 'Ubicación'))}
                 </label>
                 <input
                   id="location"
                   type="text"
                   value={filters.location}
                   onChange={(e) => handleFilterChange('location', e.target.value)}
-                  placeholder="Ciudad, código postal..."
+                  placeholder={t('home.searchBar.locationPlaceholder', t('home.locationPlaceholder', 'Ciudad, código postal...'))}
                   className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all duration-200 hover:border-gray-300"
                 />
               </div>
@@ -215,7 +218,7 @@ function SearchBar({ onSearch, variant = 'default' }) {
               {/* Urgencia */}
               <div className="space-y-1.5">
                 <label htmlFor="urgency" className="block text-sm font-semibold text-gray-700">
-                  ⏰ Urgencia
+                  ⏰ {t('home.searchBar.urgency', t('home.urgency', 'Urgencia'))}
                 </label>
                 <select
                   id="urgency"
@@ -223,10 +226,10 @@ function SearchBar({ onSearch, variant = 'default' }) {
                   onChange={(e) => handleFilterChange('urgency', e.target.value)}
                   className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white transition-all duration-200 hover:border-gray-300"
                 >
-                  <option value="">Cualquier momento</option>
-                  <option value="urgent">🔴 Urgente (hoy)</option>
-                  <option value="soon">🟡 Pronto (esta semana)</option>
-                  <option value="flexible">🟢 Flexible</option>
+                  <option value="">{t('home.searchBar.anyTime', t('home.anytime', 'Cualquier momento'))}</option>
+                  <option value="urgent">🔴 {t('home.searchBar.urgent', t('home.urgencyUrgent', 'Urgente (hoy)'))}</option>
+                  <option value="soon">🟡 {t('home.searchBar.soon', t('home.urgencySoon', 'Pronto (esta semana)'))}</option>
+                  <option value="flexible">🟢 {t('home.searchBar.flexible', t('home.urgencyFlexible', 'Flexible'))}</option>
                 </select>
               </div>
             </div>
@@ -241,7 +244,7 @@ function SearchBar({ onSearch, variant = 'default' }) {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Limpiar todos los filtros
+                {t('home.searchBar.clearFilters', t('home.clearAllFilters', 'Limpiar todos los filtros'))}
               </button>
             )}
           </div>
@@ -251,7 +254,7 @@ function SearchBar({ onSearch, variant = 'default' }) {
       {/* Tip - Solo fuera del Hero */}
       {!isHeroVariant && (
         <p className="text-xs text-gray-500 mt-4">
-          💡 Tip: Describe tu necesidad en lenguaje natural. Ejemplo: &quot;Necesito un plomero para reparar una fuga&quot;
+          {t('home.searchBar.tip', t('home.tip', '💡 Tip: Describe tu necesidad en lenguaje natural. Ejemplo: "Necesito un plomero para reparar una fuga"'))}
         </p>
       )}
     </div>
