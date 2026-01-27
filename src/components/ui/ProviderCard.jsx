@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import ProviderProfileModal from './ProviderProfileModal.jsx';
 import RequestWizardModal from './RequestWizardModal.jsx';
@@ -56,6 +57,7 @@ const planConfig = {
 };
 
 function ProviderCard({ provider, onSelect, onViewPortfolio }) {
+  const { t } = useTranslation();
   const [showImageZoom, setShowImageZoom] = useState(false);
   const [blockCardClicks, setBlockCardClicks] = useState(false);
   const { isAuthenticated, viewRole } = useAuth();
@@ -65,7 +67,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
   const [showGuestConversion, setShowGuestConversion] = useState(false);
   
   // Extract provider data
-  const businessName = provider.providerProfile?.businessName || provider.profile?.firstName || 'Profesional';
+  const businessName = provider.providerProfile?.businessName || provider.profile?.firstName || t('ui.providerCard.professional');
   const rating = provider.providerProfile?.rating?.average || 0;
   const reviewCount = provider.providerProfile?.rating?.count || 0;
   const plan = provider.subscription?.plan || 'free';
@@ -112,7 +114,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
       }
       // Si está autenticado pero no es cliente, mostrar mensaje
       if (viewRole !== 'client') {
-        toast.warning('Solo los clientes pueden enviar solicitudes a proveedores');
+        toast.warning(t('ui.providerCard.onlyClientsCanRequest'));
         return;
       }
       setShowRequestWizard(true);
@@ -215,7 +217,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                     data-nav-section="reviews"
                     className="text-xs sm:text-sm text-gray-400"
                   >
-                    ({reviewCount} {reviewCount === 1 ? 'reseña' : 'reseñas'})
+                    ({t('ui.providerCard.reviewsCount', { count: reviewCount })})
                   </span>
                 </div>
               </div>
@@ -228,7 +230,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   <span className="text-xs sm:text-sm text-gray-600">
-                    <b className="text-gray-900">{completedJobs}</b> contrataciones
+                    <b className="text-gray-900">{completedJobs}</b> {t('ui.providerCard.hires')}
                   </span>
                 </div>
 
@@ -239,7 +241,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span className="text-xs sm:text-sm text-gray-600">
-                      <b className="text-gray-900">{responseRate}%</b> respuesta
+                      <b className="text-gray-900">{responseRate}%</b> {t('ui.providerCard.response')}
                     </span>
                   </div>
                 )}
@@ -249,12 +251,12 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                   <div 
                     data-nav-section="portfolio"
                     className="flex items-center gap-2 bg-linear-to-r from-purple-500 to-pink-500 px-3 py-2 rounded-xl cursor-pointer shadow-md hover:scale-105 hover:shadow-lg transition-all text-white font-semibold text-sm"
-                    title="Explora mis trabajos"
+                    title={t('ui.providerCard.exploreWorksTooltip')}
                   >
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    Explora mis trabajos
+                    {t('ui.providerCard.exploreWorks')}
                   </div>
                 )}
               </div>
@@ -276,9 +278,9 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                     <span 
                       data-nav-section="services"
                       className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 cursor-pointer hover:bg-brand-100 hover:text-brand-700 transition-colors"
-                      title="Ver todos los servicios"
+                      title={t('ui.providerCard.viewAllServices')}
                     >
-                      +{services.length - 2} más
+                      {t('ui.providerCard.moreServices', { count: services.length - 2 })}
                     </span>
                   )}
                 </div>
@@ -294,7 +296,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
-                  <span className="underline underline-offset-2">Enviar Solicitud</span>
+                  <span className="underline underline-offset-2">{t('ui.providerCard.sendRequest')}</span>
                 </button>
 
                 <span className="text-gray-300">|</span>
@@ -307,7 +309,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  Ver Perfil
+                  {t('ui.providerCard.viewProfile')}
                 </button>
               </div>
             </div>

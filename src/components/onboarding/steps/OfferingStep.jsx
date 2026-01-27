@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useProviderOnboarding } from '@/state/ProviderOnboardingContext.jsx';
 import Button from '@/components/ui/Button.jsx';
 import Alert from '@/components/ui/Alert.jsx';
 import { SERVICE_CATEGORIES } from '@/utils/categories.js';
 
 export default function OfferingStep() {
+  const { t } = useTranslation();
   const { 
     formData, 
     updateFormData, 
@@ -54,10 +56,10 @@ export default function OfferingStep() {
       {/* Categorías */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">
-          Categorías de servicio <span className="text-red-500">*</span>
+          {t('onboarding.offering.categoriesLabel')} <span className="text-red-500">*</span>
         </label>
         <p className="text-sm text-gray-600 mb-3">
-          Selecciona las categorías que mejor describan tus servicios (al menos una)
+          {t('onboarding.offering.categoriesHint')}
         </p>
         
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
@@ -74,7 +76,7 @@ export default function OfferingStep() {
                 }
               `}
             >
-              {category}
+              {t(`home.categories.${category}`, category)}
             </button>
           ))}
         </div>
@@ -87,14 +89,14 @@ export default function OfferingStep() {
             onChange={(e) => setCustomCategory(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomCategory())}
             className="flex-1 border border-gray-300 rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-            placeholder="Otra categoría..."
+            placeholder={t('onboarding.offering.customCategoryPlaceholder')}
           />
           <Button
             type="button"
             variant="secondary"
             onClick={addCustomCategory}
           >
-            Añadir
+            {t('onboarding.offering.addButton')}
           </Button>
         </div>
 
@@ -122,43 +124,43 @@ export default function OfferingStep() {
       {/* Servicio principal */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Describe tu servicio principal <span className="text-red-500">*</span>
+          {t('onboarding.offering.mainServiceLabel')} <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
           value={mainService}
           onChange={(e) => setMainService(e.target.value)}
           className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-          placeholder="Ej: Reparación de cañerías y grifos"
+          placeholder={t('onboarding.offering.mainServicePlaceholder')}
           required
           minLength={3}
         />
         <p className="text-xs text-gray-500 mt-1">
-          Este será el título que verán los clientes en las búsquedas
+          {t('onboarding.offering.mainServiceHint')}
         </p>
       </div>
 
       {/* Descripción */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Descripción de tu negocio <span className="text-gray-400">(opcional)</span>
+          {t('onboarding.offering.descriptionLabel')} <span className="text-gray-400">({t('onboarding.identity.optional')})</span>
         </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={4}
           className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-          placeholder="Cuéntanos sobre tu experiencia, especialidades, certificaciones o lo que te hace único..."
+          placeholder={t('onboarding.offering.descriptionPlaceholder')}
         />
         <p className="text-xs text-gray-500 mt-1">
-          {description.length}/500 caracteres
+          {t('onboarding.offering.descriptionHint', { count: description.length })}
         </p>
       </div>
 
       {/* Tip */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
         <p className="text-sm text-yellow-800">
-          💡 <strong>Consejo:</strong> Una buena descripción aumenta tus posibilidades de ser contactado. Incluye tu experiencia y lo que te diferencia.
+          💡 <strong>{t('common.tip')}:</strong> {t('onboarding.offering.tipText')}
         </p>
       </div>
 
@@ -172,13 +174,13 @@ export default function OfferingStep() {
           variant="secondary" 
           onClick={prevStep}
         >
-          Atrás
+          {t('common.back')}
         </Button>
         <div className="text-sm text-gray-500">
-          Paso 2 de 4
+          {t('onboarding.offering.stepOf', { current: 2, total: 4 })}
         </div>
         <Button type="submit" loading={loading}>
-          {loading ? 'Guardando...' : 'Continuar'}
+          {loading ? t('common.saving') : t('common.continue')}
         </Button>
       </div>
     </form>

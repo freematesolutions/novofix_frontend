@@ -5,9 +5,11 @@ import { ProviderOnboardingProvider } from '@/state/ProviderOnboardingContext.js
 import ProviderOnboardingWizard from '@/components/onboarding/ProviderOnboardingWizard.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import Spinner from '@/components/ui/Spinner.jsx';
+import { useTranslation } from 'react-i18next';
 
 function RegisterProvider() {
   const { user, role, roles, isAuthenticated, clearError, registerProvider } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
@@ -41,7 +43,7 @@ function RegisterProvider() {
       if (result.pending) {
         // Registro exitoso, pendiente de verificación
         // En modo demo, verificationUrl viene incluida para mostrar en la UI
-        toast.success('¡Registro exitoso! Por favor verifica tu email para activar tu cuenta.');
+        toast.success(t('toast.verifyEmailPending'));
         // Guardar email pendiente explícitamente en sessionStorage antes de redirigir
         if (result.email) {
           try { sessionStorage.setItem('pending_verification_email', result.email); } catch (e) {}
@@ -58,14 +60,14 @@ function RegisterProvider() {
           }
         });
       } else if (result.ok) {
-        toast.success('¡Bienvenido! Te has registrado como proveedor');
+        toast.success(t('toast.welcomeProvider'));
         navigate('/servicios', { replace: true });
       } else {
-        toast.error(result.error?.message || 'Error en el registro. Por favor intenta de nuevo.');
+        toast.error(result.error?.message || t('toast.registerError') + '. ' + t('toast.tryAgain'));
       }
     } catch (error) {
       console.error('Error en registro de proveedor:', error);
-      toast.error('Error en el registro. Por favor intenta de nuevo.');
+      toast.error(t('toast.registerError') + '. ' + t('toast.tryAgain'));
     } finally {
       setLoading(false);
     }
@@ -77,7 +79,7 @@ function RegisterProvider() {
       <div className="flex items-center justify-center min-h-[80vh]">
         <div className="text-center">
           <Spinner className="mx-auto mb-4" />
-          <p className="text-gray-600">Procesando registro...</p>
+          <p className="text-gray-600">{t('auth.processingRegistration')}</p>
         </div>
       </div>
     );

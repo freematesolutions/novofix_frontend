@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useProviderOnboarding } from '@/state/ProviderOnboardingContext.jsx';
 import Button from '@/components/ui/Button.jsx';
 import Alert from '@/components/ui/Alert.jsx';
 import PasswordToggle from '@/components/ui/PasswordToggle.jsx';
 
 export default function IdentityStep() {
+  const { t } = useTranslation();
   const { 
     formData, 
     updateFormData, 
@@ -35,7 +37,7 @@ export default function IdentityStep() {
       }
 
       // Mostrar estado "verificando"
-      setEmailValidation({ checking: true, message: 'Verificando...', isValid: null });
+      setEmailValidation({ checking: true, message: t('onboarding.identity.verifying'), isValid: null });
 
       // Debounce de 800ms
       emailCheckTimeoutRef.current = setTimeout(async () => {
@@ -43,13 +45,13 @@ export default function IdentityStep() {
         if (result.available) {
           setEmailValidation({ 
             checking: false, 
-            message: '✓ Email disponible', 
+            message: t('onboarding.identity.emailAvailable'), 
             isValid: true 
           });
         } else {
           setEmailValidation({ 
             checking: false, 
-            message: result.error || 'Email no disponible', 
+            message: result.error || t('onboarding.identity.emailNotAvailable'), 
             isValid: false 
           });
         }
@@ -63,7 +65,7 @@ export default function IdentityStep() {
         clearTimeout(emailCheckTimeoutRef.current);
       }
     };
-  }, [formData.email, isExistingClient, checkEmailAvailability]);
+  }, [formData.email, isExistingClient, checkEmailAvailability, t]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -82,7 +84,7 @@ export default function IdentityStep() {
         <>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email <span className="text-red-500">*</span>
+              {t('onboarding.identity.email')} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
@@ -95,7 +97,7 @@ export default function IdentityStep() {
                   emailValidation.isValid === false ? 'border-red-500' : 
                   'border-gray-300'
                 }`}
-                placeholder="tu@email.com"
+                placeholder={t('onboarding.identity.emailPlaceholder')}
                 required
               />
               {emailValidation.checking && (
@@ -127,7 +129,7 @@ export default function IdentityStep() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Contraseña <span className="text-red-500">*</span>
+              {t('onboarding.identity.password')} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
@@ -136,7 +138,7 @@ export default function IdentityStep() {
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-md px-4 py-2.5 pr-12 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                placeholder="Mínimo 6 caracteres"
+                placeholder={t('onboarding.identity.passwordPlaceholder')}
                 minLength={6}
                 required
               />
@@ -146,7 +148,7 @@ export default function IdentityStep() {
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Usa al menos 6 caracteres con letras y números
+              {t('onboarding.identity.passwordHint')}
             </p>
           </div>
         </>
@@ -155,7 +157,7 @@ export default function IdentityStep() {
       {/* Información del negocio */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Nombre comercial o profesional <span className="text-red-500">*</span>
+          {t('onboarding.identity.businessName')} <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -163,12 +165,12 @@ export default function IdentityStep() {
           value={formData.businessName}
           onChange={handleChange}
           className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-          placeholder="Ej: Juan Pérez - Plomero, TechFix Reparaciones"
+          placeholder={t('onboarding.identity.businessNamePlaceholder')}
           required
           minLength={3}
         />
         <p className="text-xs text-gray-500 mt-1">
-          Este nombre aparecerá en tu perfil público
+          {t('onboarding.identity.businessNameHint')}
         </p>
       </div>
 
@@ -178,10 +180,10 @@ export default function IdentityStep() {
             <div className="text-blue-600 text-xl">💼</div>
             <div>
               <p className="text-sm font-medium text-blue-900 mb-1">
-                ¡Excelente! Te estás uniendo como profesional
+                {t('onboarding.identity.multiRoleInfo.title')}
               </p>
               <p className="text-sm text-blue-700">
-                Tu cuenta {formData.email && `(${formData.email}) `}se convertirá en multi-rol: podrás contratar servicios como cliente y ofrecer servicios como proveedor con el mismo email. Solo completa la información de tu negocio.
+                {t('onboarding.identity.multiRoleInfo.description', { email: formData.email || '' })}
               </p>
             </div>
           </div>
@@ -191,7 +193,7 @@ export default function IdentityStep() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Nombre {!isExistingClient && <span className="text-gray-400">(opcional)</span>}
+            {t('onboarding.identity.firstName')} {!isExistingClient && <span className="text-gray-400">({t('onboarding.identity.optional')})</span>}
           </label>
           <input
             type="text"
@@ -199,14 +201,14 @@ export default function IdentityStep() {
             value={formData.firstName}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-            placeholder="Juan"
+            placeholder={t('onboarding.identity.firstNamePlaceholder')}
             disabled={isExistingClient}
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Apellido {!isExistingClient && <span className="text-gray-400">(opcional)</span>}
+            {t('onboarding.identity.lastName')} {!isExistingClient && <span className="text-gray-400">({t('onboarding.identity.optional')})</span>}
           </label>
           <input
             type="text"
@@ -214,7 +216,7 @@ export default function IdentityStep() {
             value={formData.lastName}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-            placeholder="Pérez"
+            placeholder={t('onboarding.identity.lastNamePlaceholder')}
             disabled={isExistingClient}
           />
         </div>
@@ -222,7 +224,7 @@ export default function IdentityStep() {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Teléfono <span className="text-red-500">*</span>
+          {t('onboarding.identity.phone')} <span className="text-red-500">*</span>
         </label>
         <input
           type="tel"
@@ -230,11 +232,11 @@ export default function IdentityStep() {
           value={formData.phone}
           onChange={handleChange}
           className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-          placeholder="+54 11 1234-5678"
+          placeholder={t('onboarding.identity.phonePlaceholder')}
           required
         />
         <p className="text-xs text-gray-500 mt-1">
-          Los clientes podrán contactarte por este número
+          {t('onboarding.identity.phoneHint')}
         </p>
       </div>
 
@@ -244,10 +246,10 @@ export default function IdentityStep() {
 
       <div className="flex justify-between items-center pt-4 border-t">
         <div className="text-sm text-gray-500">
-          Paso 1 de 4
+          {t('onboarding.identity.stepOf', { current: 1, total: 4 })}
         </div>
         <Button type="submit" loading={loading}>
-          {loading ? 'Guardando...' : 'Continuar'}
+          {loading ? t('common.saving') : t('common.continue')}
         </Button>
       </div>
     </form>

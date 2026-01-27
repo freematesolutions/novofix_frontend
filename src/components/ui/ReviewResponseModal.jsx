@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, memo } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import Button from './Button.jsx';
 import Spinner from './Spinner.jsx';
 import { useToast } from './Toast.jsx';
@@ -58,17 +59,20 @@ const Icons = {
 };
 
 // Formato de fecha relativa
-const formatRelativeDate = (dateStr) => {
+const formatRelativeDate = (dateStr, t) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now - date;
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   
-  if (diffDays === 0) return 'Hoy';
-  if (diffDays === 1) return 'Ayer';
-  if (diffDays < 7) return `Hace ${diffDays} días`;
-  if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semana${Math.floor(diffDays / 7) > 1 ? 's' : ''}`;
+  if (diffDays === 0) return t('ui.reviewResponse.today');
+  if (diffDays === 1) return t('ui.reviewResponse.yesterday');
+  if (diffDays < 7) return t('ui.reviewResponse.daysAgo', { count: diffDays });
+  if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return t('ui.reviewResponse.weeksAgo', { count: weeks });
+  }
   return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
@@ -78,6 +82,7 @@ function ReviewResponseModal({
   review,
   onSuccess
 }) {
+  const { t } = useTranslation();
   const toast = useToast();
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
@@ -111,12 +116,12 @@ function ReviewResponseModal({
 
   const handleSubmit = async () => {
     if (response.length < MIN_RESPONSE_LENGTH) {
-      toast.error(`La respuesta debe tener al menos ${MIN_RESPONSE_LENGTH} caracteres`);
+      toast.error(t('ui.reviewResponse.minLengthError', { min: MIN_RESPONSE_LENGTH }));
       return;
     }
 
     if (response.length > MAX_RESPONSE_LENGTH) {
-      toast.error(`La respuesta no puede exceder ${MAX_RESPONSE_LENGTH} caracteres`);
+      toast.error(t('ui.reviewResponse.maxLengthError', { max: MAX_RESPONSE_LENGTH }));
       return;
     }
 
@@ -130,11 +135,11 @@ function ReviewResponseModal({
       
       await api[method](endpoint, { comment: response });
       
-      toast.success(hasExistingResponse ? 'Respuesta actualizada' : 'Respuesta enviada');
+      toast.success(hasExistingResponse ? t('ui.reviewResponse.updated') : t('ui.reviewResponse.sent'));
       onSuccess?.();
       handleClose();
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Error al enviar respuesta');
+      toast.error(err?.response?.data?.message || t('ui.reviewResponse.sendError'));
     } finally {
       setLoading(false);
     }
@@ -144,11 +149,11 @@ function ReviewResponseModal({
     setDeleting(true);
     try {
       await api.delete(`/reviews/${review._id}/response`);
-      toast.success('Respuesta eliminada');
+      toast.success(t('ui.reviewResponse.deleted'));
       onSuccess?.();
       handleClose();
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Error al eliminar respuesta');
+      toast.error(err?.response?.data?.message || t('ui.reviewResponse.deleteError'));
     } finally {
       setDeleting(false);
     }
@@ -159,7 +164,7 @@ function ReviewResponseModal({
 
   if (!isOpen || !review) return null;
 
-  const clientName = review?.client?.profile?.firstName || 'Cliente';
+  const clientName = review?.client?.profile?.firstName || t('ui.reviewResponse.client');
   const clientInitial = clientName.charAt(0).toUpperCase();
   const overall = review?.rating?.overall || 0;
   const title = review?.review?.title;
@@ -186,12 +191,12 @@ function ReviewResponseModal({
               </div>
               <div>
                 <h2 className="text-xl font-bold">
-                  {hasExistingResponse ? 'Tu respuesta' : 'Responder reseña'}
+                  {hasExistingResponse ? t('ui.reviewResponse.yourResponse') : t('ui.reviewResponse.respondToReview')}
                 </h2>
                 <p className="text-brand-100 text-sm">
                   {hasExistingResponse 
-                    ? 'Gestiona tu respuesta a esta reseña'
-                    : 'Responde de forma profesional a esta reseña'
+                    ? t('ui.reviewResponse.manageYourResponse')
+                    : t('ui.reviewResponse.respondProfessionally')
                   }
                 </p>
               </div>
@@ -221,7 +226,7 @@ function ReviewResponseModal({
                     <span className="text-xs font-semibold text-amber-700">{overall}</span>
                   </div>
                 </div>
-                <span className="text-xs text-gray-500">{formatRelativeDate(review.createdAt)}</span>
+                <span className="text-xs text-gray-500">{formatRelativeDate(review.createdAt, t)}</span>
               </div>
             </div>
             
@@ -239,8 +244,8 @@ function ReviewResponseModal({
                   <Icons.Warning className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-red-900 mb-1">¿Eliminar tu respuesta?</h4>
-                  <p className="text-sm text-red-700">Esta acción no se puede deshacer. El cliente será notificado.</p>
+                  <h4 className="font-semibold text-red-900 mb-1">{t('ui.reviewResponse.deleteConfirmTitle')}</h4>
+                  <p className="text-sm text-red-700">{t('ui.reviewResponse.deleteConfirmMessage')}</p>
                 </div>
               </div>
               <div className="flex gap-3 justify-end">
@@ -250,7 +255,7 @@ function ReviewResponseModal({
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={deleting}
                 >
-                  Cancelar
+                  {t('ui.reviewResponse.cancel')}
                 </Button>
                 <Button
                   variant="danger"
@@ -258,7 +263,7 @@ function ReviewResponseModal({
                   onClick={handleDelete}
                   loading={deleting}
                 >
-                  Sí, eliminar
+                  {t('ui.reviewResponse.yesDelete')}
                 </Button>
               </div>
             </div>
@@ -271,11 +276,11 @@ function ReviewResponseModal({
                     <Icons.Reply className="w-4 h-4 text-brand-600" />
                   </div>
                   <div>
-                    <span className="font-semibold text-gray-900 text-sm">Tu respuesta</span>
+                    <span className="font-semibold text-gray-900 text-sm">{t('ui.reviewResponse.yourResponse')}</span>
                     {review.providerResponse.respondedAt && (
                       <span className="text-xs text-gray-500 ml-2">
-                        {formatRelativeDate(review.providerResponse.respondedAt)}
-                        {review.providerResponse.editedAt && ' (editada)'}
+                        {formatRelativeDate(review.providerResponse.respondedAt, t)}
+                        {review.providerResponse.editedAt && ` (${t('ui.reviewResponse.edited')})`}
                       </span>
                     )}
                   </div>
@@ -284,14 +289,14 @@ function ReviewResponseModal({
                   <button
                     onClick={() => setIsEditing(true)}
                     className="p-2 hover:bg-brand-100 rounded-lg text-brand-600 transition-colors"
-                    title="Editar respuesta"
+                    title={t('ui.reviewResponse.editResponse')}
                   >
                     <Icons.Edit />
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
                     className="p-2 hover:bg-red-100 rounded-lg text-red-600 transition-colors"
-                    title="Eliminar respuesta"
+                    title={t('ui.reviewResponse.deleteResponse')}
                   >
                     <Icons.Trash />
                   </button>
@@ -304,12 +309,12 @@ function ReviewResponseModal({
             <div className="space-y-4">
               <label className="block">
                 <span className="text-sm font-medium text-gray-700 mb-2 block">
-                  {hasExistingResponse ? 'Editar respuesta' : 'Escribe tu respuesta'}
+                  {hasExistingResponse ? t('ui.reviewResponse.editLabel') : t('ui.reviewResponse.writeLabel')}
                 </span>
                 <textarea
                   value={response}
                   onChange={(e) => setResponse(e.target.value)}
-                  placeholder="Agradece el feedback, aborda los puntos mencionados y muestra tu profesionalismo..."
+                  placeholder={t('ui.reviewResponse.placeholder')}
                   rows={5}
                   maxLength={MAX_RESPONSE_LENGTH}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none transition-shadow text-sm"
@@ -319,11 +324,11 @@ function ReviewResponseModal({
               {/* Character counter */}
               <div className="flex items-center justify-between text-xs">
                 <span className={`${charactersLeft < 50 ? 'text-amber-600' : 'text-gray-500'}`}>
-                  {charactersLeft} caracteres restantes
+                  {t('ui.reviewResponse.charactersLeft', { count: charactersLeft })}
                 </span>
                 {response.length > 0 && response.length < MIN_RESPONSE_LENGTH && (
                   <span className="text-red-500">
-                    Mínimo {MIN_RESPONSE_LENGTH} caracteres
+                    {t('ui.reviewResponse.minCharacters', { min: MIN_RESPONSE_LENGTH })}
                   </span>
                 )}
               </div>
@@ -334,13 +339,13 @@ function ReviewResponseModal({
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
-                  Consejos para una buena respuesta
+                  {t('ui.reviewResponse.tipsTitle')}
                 </h5>
                 <ul className="text-xs text-blue-800 space-y-1">
-                  <li>• Agradece siempre el tiempo del cliente</li>
-                  <li>• Sé profesional incluso ante críticas</li>
-                  <li>• Ofrece soluciones si hubo algún problema</li>
-                  <li>• Mantén un tono cordial y constructivo</li>
+                  <li>• {t('ui.reviewResponse.tip1')}</li>
+                  <li>• {t('ui.reviewResponse.tip2')}</li>
+                  <li>• {t('ui.reviewResponse.tip3')}</li>
+                  <li>• {t('ui.reviewResponse.tip4')}</li>
                 </ul>
               </div>
             </div>
@@ -355,7 +360,7 @@ function ReviewResponseModal({
               onClick={handleClose}
               disabled={loading}
             >
-              Cancelar
+              {t('ui.reviewResponse.cancel')}
             </Button>
             <Button
               onClick={handleSubmit}
@@ -364,7 +369,7 @@ function ReviewResponseModal({
               className="bg-linear-to-r from-brand-500 to-cyan-500 text-white"
             >
               <Icons.Check className="w-4 h-4 mr-2" />
-              {hasExistingResponse ? 'Guardar cambios' : 'Enviar respuesta'}
+              {hasExistingResponse ? t('ui.reviewResponse.saveChanges') : t('ui.reviewResponse.sendResponse')}
             </Button>
           </div>
         )}

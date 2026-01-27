@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
@@ -8,6 +9,7 @@ import Button from '@/components/ui/Button.jsx';
 import { HiUsers, HiFilter, HiCheck, HiX, HiDownload, HiUserAdd, HiBriefcase, HiShieldCheck, HiChevronLeft, HiChevronRight, HiRefresh } from 'react-icons/hi';
 
 export default function AdminUsers() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -35,7 +37,7 @@ export default function AdminUsers() {
       setItems(users);
       setPages(pg?.pages || 1);
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudieron cargar los usuarios');
+      setError(e?.response?.data?.message || t('admin.users.loadError'));
     } finally { setLoading(false); }
   };
 
@@ -47,7 +49,7 @@ export default function AdminUsers() {
       await api.put(`/admin/users/${u._id}/status`, { isActive: nextState, reason: nextState ? 'Reactivación' : 'Política de seguridad' });
       await load();
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudo actualizar');
+      setError(e?.response?.data?.message || t('admin.users.updateError'));
     } finally { setUpdating(''); }
   };
 
@@ -57,7 +59,7 @@ export default function AdminUsers() {
       await api.put(`/admin/users/${u._id}/role`, { role: nextRole });
       await load();
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudo cambiar el rol');
+      setError(e?.response?.data?.message || t('admin.users.roleChangeError'));
     } finally { setUpdating(''); }
   };
 
@@ -85,7 +87,7 @@ export default function AdminUsers() {
       setSelected(new Set());
       await load();
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudo ejecutar la acción masiva');
+      setError(e?.response?.data?.message || t('admin.users.bulkError'));
     } finally { setUpdating(''); }
   };
 
@@ -110,9 +112,9 @@ export default function AdminUsers() {
 
   const getRoleInfo = (r) => {
     const info = {
-      client: { label: 'Cliente', icon: <HiUserAdd className="w-3.5 h-3.5" />, color: 'bg-emerald-100 text-emerald-700' },
-      provider: { label: 'Proveedor', icon: <HiBriefcase className="w-3.5 h-3.5" />, color: 'bg-brand-100 text-brand-700' },
-      admin: { label: 'Admin', icon: <HiShieldCheck className="w-3.5 h-3.5" />, color: 'bg-indigo-100 text-indigo-700' },
+      client: { label: t('admin.users.roles.client'), icon: <HiUserAdd className="w-3.5 h-3.5" />, color: 'bg-emerald-100 text-emerald-700' },
+      provider: { label: t('admin.users.roles.provider'), icon: <HiBriefcase className="w-3.5 h-3.5" />, color: 'bg-brand-100 text-brand-700' },
+      admin: { label: t('admin.users.roles.admin'), icon: <HiShieldCheck className="w-3.5 h-3.5" />, color: 'bg-indigo-100 text-indigo-700' },
     };
     return info[r] || { label: r, icon: null, color: 'bg-gray-100 text-gray-700' };
   };
@@ -128,7 +130,7 @@ export default function AdminUsers() {
     return null;
   }
 
-  if (role !== 'admin') return <Alert type="warning">Solo administradores.</Alert>;
+  if (role !== 'admin') return <Alert type="warning">{t('admin.users.adminOnly')}</Alert>;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -142,8 +144,8 @@ export default function AdminUsers() {
               <HiUsers className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold mb-1">Gestión de Usuarios</h1>
-              <p className="text-indigo-200 text-sm">Administra cuentas, roles y permisos del sistema</p>
+              <h1 className="text-2xl font-bold mb-1">{t('admin.users.title')}</h1>
+              <p className="text-indigo-200 text-sm">{t('admin.users.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -152,7 +154,7 @@ export default function AdminUsers() {
               className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl text-sm font-medium transition-all"
             >
               <HiDownload className="w-4 h-4" />
-              Exportar CSV
+              {t('admin.users.exportCsv')}
             </button>
             <button
               onClick={load}
@@ -170,7 +172,7 @@ export default function AdminUsers() {
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <HiFilter className="w-5 h-5 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Filtros:</span>
+            <span className="text-sm font-medium text-gray-700">{t('admin.users.filters.label')}:</span>
           </div>
           <div className="flex flex-wrap gap-3">
             <select 
@@ -178,26 +180,26 @@ export default function AdminUsers() {
               value={roleFilter} 
               onChange={(e) => setRoleFilter(e.target.value)}
             >
-              <option value="">Todos los roles</option>
-              <option value="client">Cliente</option>
-              <option value="provider">Proveedor</option>
-              <option value="admin">Admin</option>
+              <option value="">{t('admin.users.filters.allRoles')}</option>
+              <option value="client">{t('admin.users.roles.client')}</option>
+              <option value="provider">{t('admin.users.roles.provider')}</option>
+              <option value="admin">{t('admin.users.roles.admin')}</option>
             </select>
             <select 
               className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
               value={statusFilter} 
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="">Todos los estados</option>
-              <option value="active">Activo</option>
-              <option value="inactive">Inactivo</option>
+              <option value="">{t('admin.users.filters.allStatuses')}</option>
+              <option value="active">{t('admin.users.status.active')}</option>
+              <option value="inactive">{t('admin.users.status.inactive')}</option>
             </select>
             {(roleFilter || statusFilter) && (
               <button 
                 onClick={() => { setRoleFilter(''); setStatusFilter(''); }}
                 className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
               >
-                Limpiar filtros
+                {t('admin.users.filters.clear')}
               </button>
             )}
           </div>
@@ -211,7 +213,7 @@ export default function AdminUsers() {
         <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <span className="text-sm font-medium text-indigo-700">
-              {selected.size} usuario{selected.size > 1 ? 's' : ''} seleccionado{selected.size > 1 ? 's' : ''}
+              {selected.size} {t('admin.users.bulk.selected', { count: selected.size })}
             </span>
             <div className="flex items-center gap-2">
               <button 
@@ -220,7 +222,7 @@ export default function AdminUsers() {
                 className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50"
               >
                 {updating === 'bulk' ? <Spinner size="xs" /> : <HiCheck className="w-4 h-4" />}
-                Activar
+                {t('admin.users.bulk.activate')}
               </button>
               <button 
                 onClick={() => bulkUpdateActive(false)}
@@ -228,7 +230,7 @@ export default function AdminUsers() {
                 className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50"
               >
                 {updating === 'bulk' ? <Spinner size="xs" /> : <HiX className="w-4 h-4" />}
-                Desactivar
+                {t('admin.users.bulk.deactivate')}
               </button>
             </div>
           </div>
@@ -247,7 +249,7 @@ export default function AdminUsers() {
                 checked={selected.size === items.length && items.length > 0} 
                 onChange={selectAll} 
               />
-              <span className="text-sm text-gray-600">Seleccionar todos</span>
+              <span className="text-sm text-gray-600">{t('admin.users.selectAll')}</span>
             </label>
             {loading && <Spinner size="sm" />}
           </div>
@@ -290,7 +292,7 @@ export default function AdminUsers() {
                     <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
                       u.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
                     }`}>
-                      {u.isActive ? 'Activo' : 'Inactivo'}
+                      {u.isActive ? t('admin.users.status.active') : t('admin.users.status.inactive')}
                     </span>
                     {/* Role Selector */}
                     <select 
@@ -299,9 +301,9 @@ export default function AdminUsers() {
                       value={u.role} 
                       onChange={(e) => updateRole(u, e.target.value)}
                     >
-                      <option value="client">Cliente</option>
-                      <option value="provider">Proveedor</option>
-                      <option value="admin">Admin</option>
+                      <option value="client">{t('admin.users.roles.client')}</option>
+                      <option value="provider">{t('admin.users.roles.provider')}</option>
+                      <option value="admin">{t('admin.users.roles.admin')}</option>
                     </select>
                     {/* Action Button */}
                     {u.role !== 'admin' && (
@@ -312,7 +314,7 @@ export default function AdminUsers() {
                           className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-700 text-xs font-medium rounded-lg transition-all disabled:opacity-50"
                         >
                           {updating === u._id ? <Spinner size="xs" /> : <HiX className="w-3.5 h-3.5" />}
-                          Desactivar
+                          {t('admin.users.actions.deactivate')}
                         </button>
                       ) : (
                         <button 
@@ -321,7 +323,7 @@ export default function AdminUsers() {
                           className="flex items-center gap-1 px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-xs font-medium rounded-lg transition-all disabled:opacity-50"
                         >
                           {updating === u._id ? <Spinner size="xs" /> : <HiCheck className="w-3.5 h-3.5" />}
-                          Activar
+                          {t('admin.users.actions.activate')}
                         </button>
                       )
                     )}
@@ -335,8 +337,8 @@ export default function AdminUsers() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
                 <HiUsers className="w-8 h-8 text-gray-400" />
               </div>
-              <p className="text-gray-500 font-medium">Sin usuarios</p>
-              <p className="text-sm text-gray-400 mt-1">No se encontraron resultados</p>
+              <p className="text-gray-500 font-medium">{t('admin.users.empty.title')}</p>
+              <p className="text-sm text-gray-400 mt-1">{t('admin.users.empty.subtitle')}</p>
             </div>
           )}
         </div>
@@ -351,7 +353,7 @@ export default function AdminUsers() {
                 className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <HiChevronLeft className="w-4 h-4" />
-                Anterior
+                {t('admin.users.pagination.previous')}
               </button>
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, pages) }, (_, i) => {
@@ -376,7 +378,7 @@ export default function AdminUsers() {
                 onClick={() => setPage(p => Math.min(pages, p + 1))}
                 className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Siguiente
+                {t('admin.users.pagination.next')}
                 <HiChevronRight className="w-4 h-4" />
               </button>
             </div>

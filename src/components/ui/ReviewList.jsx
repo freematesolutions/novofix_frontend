@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, memo } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import StarRating from './StarRating.jsx';
 import Spinner from './Spinner.jsx';
 import api from '@/state/apiClient.js';
@@ -79,19 +80,25 @@ const Icons = {
   )
 };
 
-// Formato de fecha relativa
-const formatRelativeDate = (dateStr) => {
+// Formato de fecha relativa - will be replaced by function using t
+const formatRelativeDate = (dateStr, t) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now - date;
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   
-  if (diffDays === 0) return 'Hoy';
-  if (diffDays === 1) return 'Ayer';
-  if (diffDays < 7) return `Hace ${diffDays} días`;
-  if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semana${Math.floor(diffDays / 7) > 1 ? 's' : ''}`;
-  if (diffDays < 365) return `Hace ${Math.floor(diffDays / 30)} mes${Math.floor(diffDays / 30) > 1 ? 'es' : ''}`;
+  if (diffDays === 0) return t('ui.reviewList.today');
+  if (diffDays === 1) return t('ui.reviewList.yesterday');
+  if (diffDays < 7) return t('ui.reviewList.daysAgo', { count: diffDays });
+  if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return t('ui.reviewList.weeksAgo', { count: weeks });
+  }
+  if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    return t('ui.reviewList.monthsAgo', { count: months });
+  }
   return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
@@ -137,9 +144,10 @@ const ReviewCard = memo(({
   onRespond,
   isProvider = false,
   helpfulLoading = false,
-  userVote = null // 'helpful' | 'notHelpful' | null
+  userVote = null, // 'helpful' | 'notHelpful' | null
+  t // Translation function passed from parent
 }) => {
-  const clientName = review?.client?.profile?.firstName || 'Cliente';
+  const clientName = review?.client?.profile?.firstName || t('ui.reviewList.client');
   const clientInitial = clientName.charAt(0).toUpperCase();
   const overall = review?.rating?.overall || 0;
   const title = review?.review?.title;
@@ -165,7 +173,7 @@ const ReviewCard = memo(({
               </div>
               <div className="flex items-center gap-2 mt-0.5">
                 <StarRating value={overall} size="sm" readonly />
-                <span className="text-xs text-gray-500">{formatRelativeDate(createdAt)}</span>
+                <span className="text-xs text-gray-500">{formatRelativeDate(createdAt, t)}</span>
               </div>
             </div>
           </div>
@@ -190,7 +198,7 @@ const ReviewCard = memo(({
               >
                 <img
                   src={photo.url}
-                  alt={`Foto ${idx + 1}`}
+                  alt={t('ui.reviewList.photo', { number: idx + 1 })}
                   className="w-full h-full object-cover transition-transform group-hover:scale-110"
                 />
                 {idx === 3 && photos.length > 4 && (
@@ -217,7 +225,7 @@ const ReviewCard = memo(({
               }`}
             >
               <Icons.ThumbUp className={userVote === 'helpful' ? 'fill-current' : ''} />
-              <span>Útil</span>
+              <span>{t('ui.reviewList.helpful')}</span>
               {(review?.helpfulness?.helpful > 0) && (
                 <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded-full">
                   {review.helpfulness.helpful}
@@ -242,7 +250,7 @@ const ReviewCard = memo(({
             <button 
               onClick={() => onReport?.(review)}
               className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-500 transition-colors ml-2"
-              title="Reportar como inapropiada"
+              title={t('ui.reviewList.reportAsInappropriate')}
             >
               <Icons.Flag />
             </button>
@@ -255,7 +263,7 @@ const ReviewCard = memo(({
               className="flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors"
             >
               <Icons.Reply />
-              <span>Responder</span>
+              <span>{t('ui.reviewList.respond')}</span>
             </button>
           )}
         </div>
@@ -270,10 +278,10 @@ const ReviewCard = memo(({
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-gray-900 text-sm">Respuesta del profesional</span>
+                <span className="font-semibold text-gray-900 text-sm">{t('ui.reviewList.providerResponse')}</span>
                 {providerResponse.respondedAt && (
                   <span className="text-xs text-gray-400">
-                    {formatRelativeDate(providerResponse.respondedAt)}
+                    {formatRelativeDate(providerResponse.respondedAt, t)}
                   </span>
                 )}
               </div>
@@ -297,11 +305,14 @@ ReviewCard.propTypes = {
   onRespond: PropTypes.func,
   isProvider: PropTypes.bool,
   helpfulLoading: PropTypes.bool,
-  userVote: PropTypes.string
+  userVote: PropTypes.string,
+  t: PropTypes.func.isRequired
 };
 
 // Photo Lightbox
 const PhotoLightbox = memo(({ isOpen, photos, currentIndex, onClose, onPrev, onNext }) => {
+  const { t } = useTranslation();
+  
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -351,14 +362,14 @@ const PhotoLightbox = memo(({ isOpen, photos, currentIndex, onClose, onPrev, onN
       {/* Image */}
       <img
         src={photos[currentIndex]?.url}
-        alt={`Foto ${currentIndex + 1}`}
+        alt={t('ui.reviewList.photo', { number: currentIndex + 1 })}
         className="max-w-[90vw] max-h-[90vh] object-contain"
       />
 
       {/* Counter */}
       {photos.length > 1 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-white/10 rounded-full text-white text-sm">
-          {currentIndex + 1} / {photos.length}
+          {t('ui.reviewList.photoCounter', { current: currentIndex + 1, total: photos.length })}
         </div>
       )}
     </div>
@@ -376,22 +387,22 @@ PhotoLightbox.propTypes = {
   onNext: PropTypes.func
 };
 
-// Sort options
+// Sort options - labels will be translated in component
 const SORT_OPTIONS = [
-  { value: 'recent', label: 'Más recientes' },
-  { value: 'oldest', label: 'Más antiguas' },
-  { value: 'highest', label: 'Mayor calificación' },
-  { value: 'lowest', label: 'Menor calificación' },
-  { value: 'helpful', label: 'Más útiles' }
+  { value: 'recent', labelKey: 'recent' },
+  { value: 'oldest', labelKey: 'oldest' },
+  { value: 'highest', labelKey: 'highest' },
+  { value: 'lowest', labelKey: 'lowest' },
+  { value: 'helpful', labelKey: 'helpful' }
 ];
 
-// Date filter options
+// Date filter options - labels will be translated in component
 const DATE_FILTER_OPTIONS = [
-  { value: '', label: 'Todas las fechas' },
-  { value: 'week', label: 'Última semana' },
-  { value: 'month', label: 'Último mes' },
-  { value: 'quarter', label: 'Últimos 3 meses' },
-  { value: 'year', label: 'Último año' }
+  { value: '', labelKey: 'allDates' },
+  { value: 'week', labelKey: 'lastWeek' },
+  { value: 'month', labelKey: 'lastMonth' },
+  { value: 'quarter', labelKey: 'lastQuarter' },
+  { value: 'year', labelKey: 'lastYear' }
 ];
 
 // Main Component
@@ -403,6 +414,7 @@ function ReviewList({
   isProvider = false,
   onReviewUpdate
 }) {
+  const { t } = useTranslation();
   const toast = useToast();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -514,7 +526,7 @@ function ReviewList({
         return r;
       }));
     } catch (err) {
-      toast.error('Error al votar');
+      toast.error(t('ui.reviewList.voteError'));
       // Revert on error
       setUserVotes(prev => ({ ...prev, [reviewId]: userVotes[reviewId] }));
     } finally {
@@ -550,7 +562,7 @@ function ReviewList({
         return r;
       }));
     } catch (err) {
-      toast.error('Error al votar');
+      toast.error(t('ui.reviewList.voteError'));
       // Revert on error
       setUserVotes(prev => ({ ...prev, [reviewId]: userVotes[reviewId] }));
     } finally {
@@ -566,17 +578,17 @@ function ReviewList({
 
   const submitReport = async () => {
     if (!reportReason.trim()) {
-      toast.error('Por favor indica el motivo del reporte');
+      toast.error(t('ui.reviewList.reportReasonRequired'));
       return;
     }
     
     setReportLoading(true);
     try {
       await api.put(`/reviews/${reportModal.review._id}/report`, { reason: reportReason });
-      toast.success('Reporte enviado. Nuestro equipo lo revisará.');
+      toast.success(t('ui.reviewList.reportSent'));
       setReportModal({ open: false, review: null });
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Error al enviar reporte');
+      toast.error(err?.response?.data?.message || t('ui.reviewList.reportError'));
     } finally {
       setReportLoading(false);
     }
@@ -634,7 +646,7 @@ function ReviewList({
                 </div>
                 <StarRating value={averageRating} size="md" readonly />
                 <div className="text-sm text-gray-500 mt-2">
-                  {totalReviews.toLocaleString()} reseña{totalReviews !== 1 ? 's' : ''}
+                  {t('ui.reviewList.reviewCount', { count: totalReviews })}
                 </div>
               </div>
               
@@ -656,20 +668,20 @@ function ReviewList({
           {/* Category Breakdown */}
           {stats?.categories && (
             <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <h4 className="font-semibold text-gray-900 mb-4">Por categoría</h4>
+              <h4 className="font-semibold text-gray-900 mb-4">{t('ui.reviewList.byCategory')}</h4>
               <div className="space-y-3">
                 {[
-                  { key: 'professionalism', label: 'Profesionalismo', icon: '👔' },
-                  { key: 'quality', label: 'Calidad', icon: '⭐' },
-                  { key: 'punctuality', label: 'Puntualidad', icon: '⏰' },
-                  { key: 'communication', label: 'Comunicación', icon: '💬' },
-                  { key: 'value', label: 'Valor', icon: '💰' }
+                  { key: 'professionalism', labelKey: 'professionalism', icon: '👔' },
+                  { key: 'quality', labelKey: 'quality', icon: '⭐' },
+                  { key: 'punctuality', labelKey: 'punctuality', icon: '⏰' },
+                  { key: 'communication', labelKey: 'communication', icon: '💬' },
+                  { key: 'value', labelKey: 'value', icon: '💰' }
                 ].map(cat => {
                   const value = stats.categories[cat.key] || 0;
                   return (
                     <div key={cat.key} className="flex items-center gap-3">
                       <span className="text-lg w-6">{cat.icon}</span>
-                      <span className="text-sm text-gray-600 flex-1">{cat.label}</span>
+                      <span className="text-sm text-gray-600 flex-1">{t(`ui.reviewList.categories.${cat.labelKey}`)}</span>
                       <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-linear-to-r from-brand-400 to-cyan-400 rounded-full"
@@ -699,7 +711,7 @@ function ReviewList({
             }`}
           >
             <Icons.Filter />
-            Filtros
+            {t('ui.reviewList.filters')}
             {hasActiveFilters && (
               <span className="w-2 h-2 rounded-full bg-brand-500"></span>
             )}
@@ -712,7 +724,7 @@ function ReviewList({
             className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           >
             {SORT_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option key={opt.value} value={opt.value}>{t(`ui.reviewList.sortOptions.${opt.labelKey}`)}</option>
             ))}
           </select>
 
@@ -722,7 +734,7 @@ function ReviewList({
               onClick={clearFilters}
               className="text-sm text-gray-500 hover:text-gray-700 underline"
             >
-              Limpiar filtros
+              {t('ui.reviewList.clearFilters')}
             </button>
           )}
         </div>
@@ -734,32 +746,32 @@ function ReviewList({
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
             {/* Date filter */}
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">Período</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('ui.reviewList.period')}</label>
               <select
                 value={dateFilter}
                 onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
                 className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 {DATE_FILTER_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option key={opt.value} value={opt.value}>{t(`ui.reviewList.dateOptions.${opt.labelKey}`)}</option>
                 ))}
               </select>
             </div>
 
             {/* Rating filter */}
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">Calificación</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">{t('ui.reviewList.rating')}</label>
               <select
                 value={filterRating || ''}
                 onChange={(e) => { setFilterRating(e.target.value ? parseInt(e.target.value) : null); setPage(1); }}
                 className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
-                <option value="">Todas</option>
-                <option value="5">5 estrellas</option>
-                <option value="4">4 estrellas</option>
-                <option value="3">3 estrellas</option>
-                <option value="2">2 estrellas</option>
-                <option value="1">1 estrella</option>
+                <option value="">{t('ui.reviewList.allRatings')}</option>
+                <option value="5">{t('ui.reviewList.stars', { count: 5 })}</option>
+                <option value="4">{t('ui.reviewList.stars', { count: 4 })}</option>
+                <option value="3">{t('ui.reviewList.stars', { count: 3 })}</option>
+                <option value="2">{t('ui.reviewList.stars', { count: 2 })}</option>
+                <option value="1">{t('ui.reviewList.star')}</option>
               </select>
             </div>
 
@@ -772,7 +784,7 @@ function ReviewList({
                   onChange={(e) => { setOnlyVerified(e.target.checked); setPage(1); }}
                   className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                 />
-                <span className="text-sm text-gray-700">Solo verificadas</span>
+                <span className="text-sm text-gray-700">{t('ui.reviewList.onlyVerified')}</span>
               </label>
             </div>
 
@@ -785,7 +797,7 @@ function ReviewList({
                   onChange={(e) => { setOnlyWithPhotos(e.target.checked); setPage(1); }}
                   className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                 />
-                <span className="text-sm text-gray-700">Con fotos</span>
+                <span className="text-sm text-gray-700">{t('ui.reviewList.withPhotos')}</span>
               </label>
             </div>
           </div>
@@ -795,14 +807,14 @@ function ReviewList({
       {/* Active filters chips */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          <span className="text-sm text-gray-500">Filtros activos:</span>
+          <span className="text-sm text-gray-500">{t('ui.reviewList.activeFilters')}:</span>
           
           {filterRating && (
             <button
               onClick={() => setFilterRating(null)}
               className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium hover:bg-amber-200 transition-colors"
             >
-              {filterRating} estrellas
+              {filterRating === 1 ? t('ui.reviewList.star') : t('ui.reviewList.stars', { count: filterRating })}
               <Icons.Close className="w-3 h-3" />
             </button>
           )}
@@ -812,7 +824,7 @@ function ReviewList({
               onClick={() => setSortBy('recent')}
               className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200 transition-colors"
             >
-              {SORT_OPTIONS.find(o => o.value === sortBy)?.label}
+              {t(`ui.reviewList.sortOptions.${SORT_OPTIONS.find(o => o.value === sortBy)?.labelKey}`)}
               <Icons.Close className="w-3 h-3" />
             </button>
           )}
@@ -822,7 +834,7 @@ function ReviewList({
               onClick={() => setDateFilter('')}
               className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium hover:bg-purple-200 transition-colors"
             >
-              {DATE_FILTER_OPTIONS.find(o => o.value === dateFilter)?.label}
+              {t(`ui.reviewList.dateOptions.${DATE_FILTER_OPTIONS.find(o => o.value === dateFilter)?.labelKey}`)}
               <Icons.Close className="w-3 h-3" />
             </button>
           )}
@@ -832,7 +844,7 @@ function ReviewList({
               onClick={() => setOnlyVerified(false)}
               className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium hover:bg-emerald-200 transition-colors"
             >
-              Verificadas
+              {t('ui.reviewList.verified')}
               <Icons.Close className="w-3 h-3" />
             </button>
           )}
@@ -842,7 +854,7 @@ function ReviewList({
               onClick={() => setOnlyWithPhotos(false)}
               className="inline-flex items-center gap-1 px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium hover:bg-pink-200 transition-colors"
             >
-              Con fotos
+              {t('ui.reviewList.withPhotos')}
               <Icons.Close className="w-3 h-3" />
             </button>
           )}
@@ -859,18 +871,18 @@ function ReviewList({
           <div className="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
             <Icons.Empty className="w-10 h-10 text-gray-300" />
           </div>
-          <h4 className="text-lg font-semibold text-gray-900 mb-1">Sin reseñas aún</h4>
+          <h4 className="text-lg font-semibold text-gray-900 mb-1">{t('ui.reviewList.noReviewsYet')}</h4>
           <p className="text-sm text-gray-500 max-w-xs">
             {hasActiveFilters
-              ? 'No hay reseñas que coincidan con los filtros seleccionados'
-              : 'Este profesional aún no ha recibido reseñas'}
+              ? t('ui.reviewList.noMatchingReviews')
+              : t('ui.reviewList.providerNoReviews')}
           </p>
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
               className="mt-3 text-sm text-brand-600 hover:text-brand-700 font-medium"
             >
-              Limpiar filtros
+              {t('ui.reviewList.clearFilters')}
             </button>
           )}
         </div>
@@ -888,6 +900,7 @@ function ReviewList({
               isProvider={isProvider}
               helpfulLoading={helpfulLoading === review._id}
               userVote={userVotes[review._id]}
+              t={t}
             />
           ))}
         </div>
@@ -905,7 +918,7 @@ function ReviewList({
           </button>
           
           <span className="px-4 py-2 text-sm text-gray-600">
-            Página {page} de {totalPages}
+            {t('ui.reviewList.pagination', { page, totalPages })}
           </span>
           
           <button
@@ -950,8 +963,8 @@ function ReviewList({
                   <Icons.Flag className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900">Reportar reseña</h3>
-                  <p className="text-sm text-gray-500">Indica el motivo del reporte</p>
+                  <h3 className="font-bold text-gray-900">{t('ui.reviewList.reportReview')}</h3>
+                  <p className="text-sm text-gray-500">{t('ui.reviewList.indicateReason')}</p>
                 </div>
               </div>
             </div>
@@ -959,26 +972,26 @@ function ReviewList({
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Motivo del reporte
+                  {t('ui.reviewList.reportReason')}
                 </label>
                 <select
                   value={reportReason}
                   onChange={(e) => setReportReason(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
                 >
-                  <option value="">Selecciona un motivo</option>
-                  <option value="spam">Spam o publicidad</option>
-                  <option value="fake">Reseña falsa</option>
-                  <option value="offensive">Contenido ofensivo</option>
-                  <option value="irrelevant">No relacionado con el servicio</option>
-                  <option value="personal">Información personal inapropiada</option>
-                  <option value="other">Otro motivo</option>
+                  <option value="">{t('ui.reviewList.selectReason')}</option>
+                  <option value="spam">{t('ui.reviewList.reportReasons.spam')}</option>
+                  <option value="fake">{t('ui.reviewList.reportReasons.fake')}</option>
+                  <option value="offensive">{t('ui.reviewList.reportReasons.offensive')}</option>
+                  <option value="irrelevant">{t('ui.reviewList.reportReasons.irrelevant')}</option>
+                  <option value="personal">{t('ui.reviewList.reportReasons.personal')}</option>
+                  <option value="other">{t('ui.reviewList.reportReasons.other')}</option>
                 </select>
               </div>
               
               {reportReason === 'other' && (
                 <textarea
-                  placeholder="Describe el motivo..."
+                  placeholder={t('ui.reviewList.describeReason')}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm resize-none"
                   rows={3}
                   onChange={(e) => setReportReason(e.target.value)}
@@ -991,14 +1004,14 @@ function ReviewList({
                 onClick={() => setReportModal({ open: false, review: null })}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Cancelar
+                {t('ui.reviewList.cancel')}
               </button>
               <button
                 onClick={submitReport}
                 disabled={!reportReason || reportLoading}
                 className="px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors disabled:opacity-50"
               >
-                {reportLoading ? 'Enviando...' : 'Enviar reporte'}
+                {reportLoading ? t('ui.reviewList.sending') : t('ui.reviewList.sendReport')}
               </button>
             </div>
           </div>

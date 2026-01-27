@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Modal from '@/components/ui/Modal.jsx';
@@ -12,6 +13,7 @@ import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketCli
 
 export default function Inbox() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
   const { viewRole, clearError, user, isAuthenticated, isRoleSwitching } = useAuth();
@@ -57,7 +59,7 @@ export default function Inbox() {
       const list = getArray(data, [['data','proposals'], ['proposals']]);
       setProposals(list);
     } catch (err) {
-      setError(err?.response?.data?.message || 'No se pudo cargar la bandeja');
+      setError(err?.response?.data?.message || t('provider.inbox.errorLoading'));
     } finally { setLoading(false); }
   }, [isAuthenticated]);
 
@@ -80,7 +82,7 @@ export default function Inbox() {
   }
 
   if (viewRole !== 'provider') {
-    return <Alert type="warning">Esta sección es para proveedores.</Alert>;
+    return <Alert type="warning">{t('provider.inbox.providerOnly')}</Alert>;
   }
 
   // Load user chats (provider side)
@@ -91,7 +93,7 @@ export default function Inbox() {
       const list = getArray(data, [['data','chats'], ['chats']]);
       setChats(Array.isArray(list) ? list : []);
     } catch (err) {
-      setChatError(err?.response?.data?.message || 'No se pudieron cargar los chats');
+      setChatError(err?.response?.data?.message || t('provider.inbox.errorLoadingChats'));
     }
   }, []);
 
@@ -160,10 +162,10 @@ export default function Inbox() {
         setNegotiationChat(data.data.chat);
         setNegotiationModalOpen(true);
       } else {
-        toast.error(data?.message || 'No se pudo abrir el chat');
+        toast.error(data?.message || t('toast.errorOpeningChat'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al abrir el chat';
+      const msg = err?.response?.data?.message || t('toast.errorOpeningChat');
       toast.error(msg);
     } finally {
       setLoadingNegotiationChat(false);
@@ -208,8 +210,8 @@ export default function Inbox() {
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Bandeja de entrada</h1>
-            <p className="text-sm sm:text-base text-brand-100">Chatea con clientes y gestiona tus propuestas activas</p>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">{t('provider.inbox.title')}</h1>
+            <p className="text-sm sm:text-base text-brand-100">{t('provider.inbox.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -225,8 +227,8 @@ export default function Inbox() {
             </svg>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Mis propuestas</h3>
-            <p className="text-sm text-gray-500">{proposals.length} propuesta{proposals.length !== 1 ? 's' : ''} enviada{proposals.length !== 1 ? 's' : ''}</p>
+            <h3 className="text-lg font-semibold text-gray-900">{t('provider.inbox.myProposals')}</h3>
+            <p className="text-sm text-gray-500">{t('provider.inbox.proposalsCount', { count: proposals.length })}</p>
           </div>
         </div>
         
@@ -238,12 +240,12 @@ export default function Inbox() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h4 className="text-lg font-medium text-gray-900 mb-1">Sin propuestas</h4>
-              <p className="text-sm text-gray-500 text-center">Aún no has enviado propuestas a los clientes</p>
+              <h4 className="text-lg font-medium text-gray-900 mb-1">{t('provider.inbox.noProposals')}</h4>
+              <p className="text-sm text-gray-500 text-center">{t('provider.inbox.noProposalsDescription')}</p>
             </div>
           )}
           {(Array.isArray(proposals) ? proposals : []).map((p) => {
-            const title = p?.serviceRequest?.basicInfo?.title || 'Propuesta';
+            const title = p?.serviceRequest?.basicInfo?.title || t('provider.inbox.proposal');
             const amount = p?.pricing?.amount;
             const currency = p?.pricing?.currency || 'USD';
             const requestId = p?.serviceRequest?._id || p?.serviceRequest;
@@ -289,7 +291,7 @@ export default function Inbox() {
                         type="button"
                         onClick={() => openNegotiationChat(p)}
                         disabled={loadingNegotiationChat && negotiationProposal?._id === p._id}
-                        title="Chatear con el cliente para negociar términos o resolver dudas"
+                        title={t('provider.inbox.negotiateTooltip')}
                         className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 hover:border-blue-300 hover:bg-blue-100 text-sm font-medium text-blue-600 transition-all flex items-center gap-2 disabled:opacity-50"
                       >
                         {loadingNegotiationChat && negotiationProposal?._id === p._id ? (
@@ -297,7 +299,7 @@ export default function Inbox() {
                         ) : (
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
                         )}
-                        Negociar
+                        {t('provider.inbox.negotiate')}
                       </button>
                     )}
                     {requestId && (
@@ -307,7 +309,7 @@ export default function Inbox() {
                         className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-300 hover:bg-brand-50/30 text-sm font-medium text-gray-700 transition-all flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        Ver solicitud
+                        {t('provider.inbox.viewRequest')}
                       </button>
                     )}
                   </div>
@@ -326,7 +328,7 @@ export default function Inbox() {
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-cyan-500 text-white">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>
             </div>
-            <span className="font-semibold text-gray-900">Conversaciones</span>
+            <span className="font-semibold text-gray-900">{t('provider.inbox.conversations')}</span>
           </div>
           {chatError && <div className="p-3 text-sm text-red-600 bg-red-50">{chatError}</div>}
           <div className="max-h-100 overflow-auto">
@@ -336,9 +338,9 @@ export default function Inbox() {
               const contentObj = c.lastMessage?.content;
               const last = typeof contentObj === 'string' 
                 ? contentObj 
-                : (contentObj?.text || (contentObj?.attachments?.length ? '📎 Archivo adjunto' : ''));
+                : (contentObj?.text || (contentObj?.attachments?.length ? `📎 ${t('provider.inbox.attachment')}` : ''));
               const active = selectedChat && (selectedChat._id || selectedChat.id) === id;
-              const title = c?.booking?.basicInfo?.title || 'Chat';
+              const title = c?.booking?.basicInfo?.title || t('provider.inbox.chat');
               const unread = c?.unreadCount?.provider || 0;
               return (
                 <button 
@@ -349,7 +351,7 @@ export default function Inbox() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="font-medium text-gray-900 truncate">{title}</div>
-                      <div className="text-sm text-gray-500 truncate mt-0.5">{last || 'Sin mensajes'}</div>
+                      <div className="text-sm text-gray-500 truncate mt-0.5">{last || t('provider.inbox.noMessages')}</div>
                     </div>
                     {unread > 0 && (
                       <span className="shrink-0 inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/30">
@@ -364,7 +366,7 @@ export default function Inbox() {
                 <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
                   <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
                 </div>
-                <p className="text-sm text-gray-500">Sin chats aún</p>
+                <p className="text-sm text-gray-500">{t('provider.inbox.noChats')}</p>
               </div>
             )}
           </div>
@@ -377,8 +379,8 @@ export default function Inbox() {
               <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-brand-100 to-cyan-100 flex items-center justify-center mb-4">
                 <svg className="w-10 h-10 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Selecciona una conversación</h3>
-              <p className="text-sm text-gray-500 text-center max-w-sm">Elige un chat de la lista para comenzar a conversar con el cliente</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('provider.inbox.selectConversation')}</h3>
+              <p className="text-sm text-gray-500 text-center max-w-sm">{t('provider.inbox.selectConversationDesc')}</p>
             </div>
           ) : (
             <ChatRoom
@@ -386,7 +388,7 @@ export default function Inbox() {
               chat={selectedChat}
               currentUserId={user?.id || user?._id}
               onNewMessage={handleNewMessage}
-              placeholder="Escribe un mensaje..."
+              placeholder={t('provider.inbox.writeMessage')}
               className="min-h-125"
               maxHeight="400px"
               showHeader={true}
@@ -407,12 +409,12 @@ export default function Inbox() {
             </div>
             <div>
               <span className="text-lg font-semibold text-gray-900">
-                Negociar propuesta
+                {t('provider.inbox.negotiateProposal')}
               </span>
               <p className="text-sm text-gray-500 font-normal">
-                Propuesta: {negotiationProposal?.pricing?.amount 
+                {t('provider.inbox.proposalLabel')}: {negotiationProposal?.pricing?.amount 
                   ? Intl.NumberFormat('es-AR', { style: 'currency', currency: negotiationProposal?.pricing?.currency || 'USD' }).format(negotiationProposal.pricing.amount)
-                  : 'Sin precio definido'}
+                  : t('provider.inbox.noPrice')}
               </p>
             </div>
           </div>
@@ -433,13 +435,13 @@ export default function Inbox() {
         {/* Información del modal */}
         <div className="mt-4 pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-gray-500">
-            💬 Conversa con el cliente para ajustar términos, fechas o resolver cualquier duda sobre tu propuesta.
+            💬 {t('provider.inbox.negotiateInfo')}
           </p>
           <button
             onClick={closeNegotiationModal}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
           >
-            Cerrar
+            {t('provider.inbox.close')}
           </button>
         </div>
       </Modal>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import Button from './Button.jsx';
 import MapPicker from './MapPicker.jsx';
 import api from '@/state/apiClient';
@@ -81,41 +82,41 @@ const Icons = {
 const STEPS = [
   { 
     id: 'description', 
-    title: 'Descripción', 
-    shortTitle: 'Descripción',
-    description: 'Cuéntanos qué necesitas',
+    titleKey: 'description', 
+    shortTitleKey: 'description',
+    descriptionKey: 'descriptionHint',
     icon: '📝',
     color: 'from-blue-500 to-indigo-500'
   },
   { 
     id: 'media', 
-    title: 'Multimedia', 
-    shortTitle: 'Fotos/Videos',
-    description: 'Adjunta fotos o videos',
+    titleKey: 'media', 
+    shortTitleKey: 'photosVideos',
+    descriptionKey: 'mediaHint',
     icon: '📸',
     color: 'from-purple-500 to-pink-500'
   },
   { 
     id: 'location', 
-    title: 'Ubicación', 
-    shortTitle: 'Ubicación',
-    description: 'Dónde se realizará',
+    titleKey: 'location', 
+    shortTitleKey: 'location',
+    descriptionKey: 'locationHint',
     icon: '📍',
     color: 'from-emerald-500 to-teal-500'
   },
   { 
     id: 'date', 
-    title: 'Fecha', 
-    shortTitle: 'Fecha',
-    description: 'Cuándo lo necesitas',
+    titleKey: 'date', 
+    shortTitleKey: 'date',
+    descriptionKey: 'dateHint',
     icon: '📅',
     color: 'from-amber-500 to-orange-500'
   },
   { 
     id: 'budget', 
-    title: 'Resumen', 
-    shortTitle: 'Resumen',
-    description: 'Revisa tu solicitud',
+    titleKey: 'summary', 
+    shortTitleKey: 'summary',
+    descriptionKey: 'summaryHint',
     icon: '📋',
     color: 'from-green-500 to-emerald-500'
   }
@@ -127,15 +128,15 @@ const STEPS = [
 const URGENCY_OPTIONS = [
   { 
     value: 'scheduled', 
-    label: 'Programado', 
-    description: 'Puedo esperar unos días',
+    labelKey: 'scheduled', 
+    descriptionKey: 'scheduledDesc',
     icon: '🗓️',
     color: 'border-blue-200 bg-blue-50 hover:border-blue-400'
   },
   { 
     value: 'immediate', 
-    label: 'Urgente', 
-    description: 'Lo necesito lo antes posible',
+    labelKey: 'urgent', 
+    descriptionKey: 'urgentDesc',
     icon: '⚡',
     color: 'border-red-200 bg-red-50 hover:border-red-400'
   }
@@ -155,6 +156,7 @@ const CURRENCIES = [
 // MAIN COMPONENT
 // ============================================================================
 function RequestWizardModal({ provider, isOpen, onClose }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
   const [currentStep, setCurrentStep] = useState(0);
@@ -273,20 +275,20 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
     switch (step) {
       case 0:
         if (!formData.description || formData.description.trim().length < 10) {
-          errors.description = 'La descripción debe tener al menos 10 caracteres';
+          errors.description = t('ui.requestWizard.descriptionMinLength');
         }
         if (!formData.urgency) {
-          errors.urgency = 'Selecciona el nivel de urgencia';
+          errors.urgency = t('ui.requestWizard.selectUrgency');
         }
         break;
       case 1:
         break;
       case 2:
         if (!formData.address || formData.address.trim().length < 3) {
-          errors.address = 'La dirección es requerida';
+          errors.address = t('ui.requestWizard.addressRequired');
         }
         if (!formData.coordinates || !Number.isFinite(formData.coordinates.lat) || !Number.isFinite(formData.coordinates.lng)) {
-          errors.coordinates = 'Debes seleccionar una ubicación en el mapa';
+          errors.coordinates = t('ui.requestWizard.selectLocationOnMap');
         }
         break;
       case 3:
@@ -325,7 +327,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
     if (canAccess) {
       setCurrentStep(targetIndex);
     } else {
-      toast.warning(`Debes completar el paso anterior antes de continuar`);
+      toast.warning(t('ui.requestWizard.completePreviousStep'));
     }
   };
 
@@ -394,7 +396,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
           show: true,
           progress: 0,
           fileName: '',
-          message: 'Comprimiendo imágenes...',
+          message: t('ui.requestWizard.compressingImages'),
           totalFiles: validation.validFiles.length,
           currentFile: 0,
           status: 'compressing'
@@ -420,7 +422,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
           show: true,
           progress: 0,
           fileName: processedFiles[0]?.name || '',
-          message: 'Preparando subida de videos...',
+          message: t('ui.requestWizard.preparingVideoUpload'),
           totalFiles: validation.validFiles.length,
           currentFile: 0,
           status: 'uploading'
@@ -433,7 +435,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
       setUploadProgress(prev => ({
         ...prev,
         progress: type === 'photos' ? 30 : 0,
-        message: `Subiendo ${type === 'photos' ? 'fotos' : 'videos'} (${totalSizeMB}MB)...`,
+        message: t('ui.requestWizard.uploadingMedia', { type: type === 'photos' ? t('ui.requestWizard.photos') : t('ui.requestWizard.videos'), size: totalSizeMB }),
         status: 'uploading',
         fileName: processedFiles[0]?.name || ''
       }));
@@ -456,7 +458,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
           setUploadProgress(prev => ({
             ...prev,
             progress: Math.min(adjustedProgress, 90),
-            message: `Subiendo ${type === 'photos' ? 'fotos' : 'videos'}... (${totalSizeMB}MB)`
+            message: t('ui.requestWizard.uploadingMedia', { type: type === 'photos' ? t('ui.requestWizard.photos') : t('ui.requestWizard.videos'), size: totalSizeMB })
           }));
         }
       });
@@ -464,7 +466,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
       setUploadProgress(prev => ({
         ...prev,
         progress: 95,
-        message: 'Procesando archivos en Cloudinary...',
+        message: t('ui.requestWizard.processingCloudinary'),
         status: 'processing'
       }));
 
@@ -483,7 +485,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
           show: true,
           progress: 100,
           fileName: '',
-          message: '¡Archivos subidos exitosamente!',
+          message: t('ui.requestWizard.filesUploadedSuccess'),
           totalFiles: validation.validFiles.length,
           currentFile: validation.validFiles.length,
           status: 'success'
@@ -493,7 +495,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
           setUploadProgress(prev => ({ ...prev, show: false }));
         }, 2000);
 
-        toast.success(`${uploaded.length} ${type === 'photos' ? 'foto(s)' : 'video(s)'} subido(s)`);
+        toast.success(t('ui.requestWizard.filesUploaded', { count: uploaded.length, type: type === 'photos' ? t('ui.requestWizard.photoPlural') : t('ui.requestWizard.videoPlural') }));
       }
     } catch (e) {
       console.error('Upload error:', e);
@@ -507,9 +509,9 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
         }
       });
       
-      let errorMsg = `No se pudieron subir los ${type === 'photos' ? 'fotos' : 'videos'}`;
+      let errorMsg = t('ui.requestWizard.uploadFailed', { type: type === 'photos' ? t('ui.requestWizard.photos') : t('ui.requestWizard.videos') });
       if (e.code === 'ECONNABORTED' || e.message?.includes('timeout')) {
-        errorMsg = 'El archivo es demasiado grande o la conexión es lenta. Intenta con un archivo más pequeño.';
+        errorMsg = t('ui.requestWizard.fileTooLarge');
       } else if (e?.response?.data?.message) {
         errorMsg = e.response.data.message;
       }
@@ -518,7 +520,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
         show: true,
         progress: 0,
         fileName: '',
-        message: 'Error al subir archivos',
+        message: t('ui.requestWizard.uploadError'),
         totalFiles: validation.validFiles.length,
         currentFile: 0,
         status: 'error'
@@ -542,7 +544,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
     if (!validateStep(currentStep)) return;
 
     if (!formData.category) {
-      toast.error('No se pudo determinar la categoría del servicio');
+      toast.error(t('ui.requestWizard.categoryNotDetermined'));
       return;
     }
 
@@ -573,13 +575,13 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
     } catch (err) {
       // Si es timeout pero la solicitud se creó, intentar fallback
       if (err.code === 'ECONNABORTED' && err.message?.includes('timeout')) {
-        toast.info('La solicitud puede haberse creado, verificando...');
+        toast.info(t('ui.requestWizard.requestMayBeCreated'));
         onClose();
         navigate('/mis-solicitudes');
         return;
       } else {
         console.error('Error creating request:', err);
-        const msg = err?.response?.data?.message || 'Error al crear la solicitud';
+        const msg = err?.response?.data?.message || t('ui.requestWizard.createError');
         toast.error(msg);
         return;
       }
@@ -588,18 +590,18 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
     }
 
     if (data?.data?.success) {
-      const providerName = provider?.providerProfile?.businessName || provider?.profile?.firstName || 'el proveedor';
-      toast.success(`¡Solicitud enviada exitosamente a ${providerName}!`);
+      const providerName = provider?.providerProfile?.businessName || provider?.profile?.firstName || t('ui.requestWizard.theProvider');
+      toast.success(t('ui.requestWizard.requestSent', { provider: providerName }));
       onClose();
       navigate('/mis-solicitudes');
     } else {
-      toast.warning(data?.data?.message || 'No se pudo crear la solicitud');
+      toast.warning(data?.data?.message || t('ui.requestWizard.couldNotCreate'));
     }
   };
 
   if (!isOpen || !provider) return null;
 
-  const providerName = provider.providerProfile?.businessName || provider.profile?.firstName || 'este profesional';
+  const providerName = provider.providerProfile?.businessName || provider.profile?.firstName || t('ui.requestWizard.thisProfessional');
   const providerAvatar = provider.providerProfile?.avatar || provider.profile?.avatar;
   const step = STEPS[currentStep];
 
@@ -621,10 +623,10 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
                 <Icons.Warning className="w-7 h-7 text-amber-600" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">
-                ¿Cancelar solicitud?
+                {t('ui.requestWizard.cancelRequest')}
               </h3>
               <p className="text-sm text-gray-600 mb-6">
-                Se perderá toda la información que has ingresado.
+                {t('ui.requestWizard.dataWillBeLost')}
               </p>
             </div>
             <div className="flex gap-3">
@@ -632,13 +634,13 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
                 onClick={handleCancelClose}
                 className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
               >
-                Continuar
+                {t('ui.requestWizard.continue')}
               </button>
               <button
                 onClick={handleConfirmClose}
                 className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors"
               >
-                Sí, cancelar
+                {t('ui.requestWizard.yesCancel')}
               </button>
             </div>
           </div>
@@ -691,12 +693,12 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
               {/* Info */}
               <div className="flex-1 min-w-0 text-white">
                 <h2 className="text-base sm:text-lg font-bold truncate pr-8">
-                  Solicitud para {providerName}
+                  {t('ui.requestWizard.requestFor', { provider: providerName })}
                 </h2>
                 <div className="flex items-center gap-2 text-sm text-white/80">
-                  <span>Paso {currentStep + 1}/{STEPS.length}</span>
+                  <span>{t('ui.requestWizard.stepOf', { current: currentStep + 1, total: STEPS.length })}</span>
                   <span>•</span>
-                  <span>{step.title}</span>
+                  <span>{t(`ui.requestWizard.steps.${step.titleKey}`)}</span>
                 </div>
               </div>
             </div>
@@ -746,7 +748,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
                     <span className={`text-[10px] sm:text-xs text-center truncate w-full ${
                       isCurrent ? 'text-gray-900 font-medium' : 'text-gray-500'
                     }`}>
-                      {s.shortTitle}
+                      {t(`ui.requestWizard.steps.${s.shortTitleKey}`)}
                     </span>
                   </button>
                 );
@@ -763,9 +765,9 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
               <div className="mb-5">
                 <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                   <span className="text-2xl">{step.icon}</span>
-                  {step.title}
+                  {t(`ui.requestWizard.steps.${step.titleKey}`)}
                 </h3>
-                <p className="text-sm text-gray-500 mt-1">{step.description}</p>
+                <p className="text-sm text-gray-500 mt-1">{t(`ui.requestWizard.steps.${step.descriptionKey}`)}</p>
               </div>
 
               {/* ==================== STEP 0: DESCRIPTION ==================== */}
@@ -774,7 +776,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
                   {/* Description textarea */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      ¿Qué servicio necesitas? *
+                      {t('ui.requestWizard.whatServiceNeeded')} *
                     </label>
                     <textarea
                       rows={5}
@@ -786,18 +788,16 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
                         focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20
                         ${formErrors.description ? 'border-red-300 bg-red-50' : 'border-gray-200'}
                       `}
-                      placeholder="Describe detalladamente lo que necesitas...
-
-Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la pared. El problema parece venir de debajo del lavabo."
+                      placeholder={t('ui.requestWizard.descriptionPlaceholder')}
                     />
                     <div className="flex items-center justify-between mt-1">
                       {formErrors.description ? (
                         <p className="text-xs text-red-600">{formErrors.description}</p>
                       ) : (
-                        <p className="text-xs text-gray-400">Mínimo 10 caracteres</p>
+                        <p className="text-xs text-gray-400">{t('ui.requestWizard.minCharacters', { min: 10 })}</p>
                       )}
                       <span className="text-xs text-gray-400">
-                        {formData.description.length} caracteres
+                        {t('ui.requestWizard.characters', { count: formData.description.length })}
                       </span>
                     </div>
                   </div>
@@ -805,7 +805,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                   {/* Urgency selection */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      ¿Qué tan urgente es? *
+                      {t('ui.requestWizard.howUrgent')} *
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                       {URGENCY_OPTIONS.map((option) => {
@@ -830,8 +830,8 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                             <div className="flex items-start gap-3">
                               <span className="text-2xl">{option.icon}</span>
                               <div>
-                                <p className="font-semibold text-gray-900">{option.label}</p>
-                                <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
+                                <p className="font-semibold text-gray-900">{t(`ui.requestWizard.urgency.${option.labelKey}`)}</p>
+                                <p className="text-xs text-gray-500 mt-0.5">{t(`ui.requestWizard.urgency.${option.descriptionKey}`)}</p>
                               </div>
                             </div>
                             {isSelected && (
@@ -857,8 +857,8 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                   <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
                     <Icons.Sparkles className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-blue-800">Tip</p>
-                      <p className="text-sm text-blue-700">Las imágenes se comprimen automáticamente para subir más rápido sin perder calidad.</p>
+                      <p className="text-sm font-medium text-blue-800">{t('ui.requestWizard.tip')}</p>
+                      <p className="text-sm text-blue-700">{t('ui.requestWizard.compressionTip')}</p>
                     </div>
                   </div>
 
@@ -867,8 +867,8 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                     <div className="bg-gray-50 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-3">
                         <Icons.Photo className="w-5 h-5 text-purple-600" />
-                        <label className="text-sm font-semibold text-gray-700">Fotos</label>
-                        <span className="text-xs text-gray-400">(opcional)</span>
+                        <label className="text-sm font-semibold text-gray-700">{t('ui.requestWizard.photos')}</label>
+                        <span className="text-xs text-gray-400">({t('ui.requestWizard.optional')})</span>
                       </div>
                       
                       <label className={`
@@ -877,7 +877,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                       `}>
                         <Icons.Upload className="w-8 h-8 text-gray-400 mb-2" />
                         <span className="text-sm text-gray-600 text-center">
-                          Haz clic o arrastra imágenes
+                          {t('ui.requestWizard.clickOrDragImages')}
                         </span>
                         <span className="text-xs text-gray-400 mt-1">JPG, PNG, GIF, WebP</span>
                         <input
@@ -896,7 +896,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                             <div key={idx} className="relative group aspect-square">
                               <img
                                 src={photo.url}
-                                alt={`Foto ${idx + 1}`}
+                                alt={t('ui.requestWizard.photoAlt', { number: idx + 1 })}
                                 className="w-full h-full object-cover rounded-lg"
                               />
                               {photo.isLocal && (
@@ -923,8 +923,8 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                     <div className="bg-gray-50 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-3">
                         <Icons.Video className="w-5 h-5 text-pink-600" />
-                        <label className="text-sm font-semibold text-gray-700">Videos</label>
-                        <span className="text-xs text-gray-400">(máx 200MB)</span>
+                        <label className="text-sm font-semibold text-gray-700">{t('ui.requestWizard.videos')}</label>
+                        <span className="text-xs text-gray-400">({t('ui.requestWizard.maxSize', { size: '200MB' })})</span>
                       </div>
                       
                       <label className={`
@@ -933,7 +933,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                       `}>
                         <Icons.Upload className="w-8 h-8 text-gray-400 mb-2" />
                         <span className="text-sm text-gray-600 text-center">
-                          Haz clic o arrastra videos
+                          {t('ui.requestWizard.clickOrDragVideos')}
                         </span>
                         <span className="text-xs text-gray-400 mt-1">MP4, MOV, AVI, WebM</span>
                         <input
@@ -964,7 +964,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                                 {video.isLocal && (
                                   <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center">
                                     <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mb-1" />
-                                    <span className="text-xs text-white">Subiendo...</span>
+                                    <span className="text-xs text-white">{t('ui.requestWizard.uploading')}</span>
                                   </div>
                                 )}
                               </div>
@@ -992,7 +992,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                   {/* Map */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Selecciona en el mapa *
+                      {t('ui.requestWizard.selectOnMap')} *
                     </label>
                     <div className="rounded-xl overflow-hidden border-2 border-gray-200">
                       <MapPicker
@@ -1010,7 +1010,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                   {/* Address input */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Dirección del servicio *
+                      {t('ui.requestWizard.serviceAddress')} *
                     </label>
                     <div className="relative">
                       <Icons.MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -1024,14 +1024,14 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                           focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20
                           ${formErrors.address ? 'border-red-300 bg-red-50' : 'border-gray-200'}
                         `}
-                        placeholder="La dirección se completará automáticamente al seleccionar en el mapa"
+                        placeholder={t('ui.requestWizard.addressAutoComplete')}
                       />
                     </div>
                     {formErrors.address ? (
                       <p className="text-xs text-red-600 mt-1">{formErrors.address}</p>
                     ) : (
                       <p className="text-xs text-gray-400 mt-1">
-                        💡 Puedes editar la dirección manualmente si es necesario
+                        💡 {t('ui.requestWizard.canEditAddress')}
                       </p>
                     )}
                   </div>
@@ -1044,13 +1044,13 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
                     <span className="text-xl">💡</span>
                     <p className="text-sm text-amber-800">
-                      Este paso es <strong>opcional</strong>. Si no tienes una fecha específica, puedes dejarlo en blanco.
+                      {t('ui.requestWizard.stepOptional')}
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      ¿Cuándo necesitas el servicio?
+                      {t('ui.requestWizard.whenNeeded')}
                     </label>
                     <input
                       type="date"
@@ -1063,13 +1063,13 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
 
                   {/* Quick date options */}
                   <div>
-                    <p className="text-sm text-gray-500 mb-3">O selecciona una opción rápida:</p>
+                    <p className="text-sm text-gray-500 mb-3">{t('ui.requestWizard.orSelectQuickOption')}:</p>
                     <div className="flex flex-wrap gap-2">
                       {[
-                        { label: 'Hoy', days: 0 },
-                        { label: 'Mañana', days: 1 },
-                        { label: 'Esta semana', days: 7 },
-                        { label: 'Próxima semana', days: 14 }
+                        { labelKey: 'today', days: 0 },
+                        { labelKey: 'tomorrow', days: 1 },
+                        { labelKey: 'thisWeek', days: 7 },
+                        { labelKey: 'nextWeek', days: 14 }
                       ].map((opt) => {
                         const date = new Date();
                         date.setDate(date.getDate() + opt.days);
@@ -1078,7 +1078,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                         
                         return (
                           <button
-                            key={opt.label}
+                            key={opt.labelKey}
                             type="button"
                             onClick={() => updateField('preferredDate', dateStr)}
                             className={`
@@ -1088,7 +1088,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
                             `}
                           >
-                            {opt.label}
+                            {t(`ui.requestWizard.dateOptions.${opt.labelKey}`)}
                           </button>
                         );
                       })}
@@ -1104,13 +1104,13 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                   <div className="bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
                     <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                       <span className="text-lg">📋</span>
-                      Resumen de tu solicitud
+                      {t('ui.requestWizard.requestSummary')}
                     </h4>
                     <div className="space-y-3">
                       <div className="flex items-start gap-3">
                         <span className="text-gray-400 shrink-0">📝</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">Descripción</p>
+                          <p className="text-xs text-gray-500">{t('ui.requestWizard.steps.description')}</p>
                           <p className="text-sm text-gray-900 line-clamp-2">{formData.description || '-'}</p>
                         </div>
                         <button
@@ -1118,13 +1118,13 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                           onClick={() => setCurrentStep(0)}
                           className="text-xs text-brand-600 hover:text-brand-700 font-medium shrink-0"
                         >
-                          Editar
+                          {t('ui.requestWizard.edit')}
                         </button>
                       </div>
                       <div className="flex items-start gap-3">
                         <span className="text-gray-400 shrink-0">📍</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">Ubicación</p>
+                          <p className="text-xs text-gray-500">{t('ui.requestWizard.steps.location')}</p>
                           <p className="text-sm text-gray-900 truncate">{formData.address || '-'}</p>
                         </div>
                         <button
@@ -1132,29 +1132,29 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                           onClick={() => setCurrentStep(2)}
                           className="text-xs text-brand-600 hover:text-brand-700 font-medium shrink-0"
                         >
-                          Editar
+                          {t('ui.requestWizard.edit')}
                         </button>
                       </div>
                       <div className="flex items-start gap-3">
                         <span className="text-gray-400 shrink-0">📅</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">Fecha</p>
-                          <p className="text-sm text-gray-900">{formData.preferredDate || 'No especificada'}</p>
+                          <p className="text-xs text-gray-500">{t('ui.requestWizard.steps.date')}</p>
+                          <p className="text-sm text-gray-900">{formData.preferredDate || t('ui.requestWizard.notSpecified')}</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setCurrentStep(3)}
                           className="text-xs text-brand-600 hover:text-brand-700 font-medium shrink-0"
                         >
-                          Editar
+                          {t('ui.requestWizard.edit')}
                         </button>
                       </div>
                       <div className="flex items-start gap-3">
                         <span className="text-gray-400 shrink-0">⚡</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">Urgencia</p>
+                          <p className="text-xs text-gray-500">{t('ui.requestWizard.urgencyLabel')}</p>
                           <p className="text-sm text-gray-900">
-                            {formData.urgency === 'immediate' ? '🔴 Urgente' : '🔵 Programado'}
+                            {formData.urgency === 'immediate' ? `🔴 ${t('ui.requestWizard.urgency.urgent')}` : `🔵 ${t('ui.requestWizard.urgency.scheduled')}`}
                           </p>
                         </div>
                         <button
@@ -1162,7 +1162,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                           onClick={() => setCurrentStep(0)}
                           className="text-xs text-brand-600 hover:text-brand-700 font-medium shrink-0"
                         >
-                          Editar
+                          {t('ui.requestWizard.edit')}
                         </button>
                       </div>
                     </div>
@@ -1174,14 +1174,14 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="font-bold text-gray-900 flex items-center gap-2">
                           <span className="text-lg">📸</span>
-                          Archivos adjuntos ({formData.photos.length + formData.videos.length})
+                          {t('ui.requestWizard.attachedFiles', { count: formData.photos.length + formData.videos.length })}
                         </h4>
                         <button
                           type="button"
                           onClick={() => setCurrentStep(1)}
                           className="text-xs text-brand-600 hover:text-brand-700 font-medium"
                         >
-                          Editar archivos
+                          {t('ui.requestWizard.editFiles')}
                         </button>
                       </div>
                       
@@ -1194,7 +1194,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                           >
                             <img
                               src={photo.url || photo.preview || URL.createObjectURL(photo)}
-                              alt={`Foto ${index + 1}`}
+                              alt={t('ui.requestWizard.photoAlt', { number: index + 1 })}
                               className="w-full h-full object-cover"
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
@@ -1205,13 +1205,13 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                                   updateField('photos', newPhotos);
                                 }}
                                 className="opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600"
-                                title="Eliminar foto"
+                                title={t('ui.requestWizard.deletePhoto')}
                               >
                                 <Icons.Close className="w-3 h-3" />
                               </button>
                             </div>
                             <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
-                              Foto
+                              {t('ui.requestWizard.photoLabel')}
                             </div>
                           </div>
                         ))}
@@ -1240,13 +1240,13 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                                   updateField('videos', newVideos);
                                 }}
                                 className="opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600"
-                                title="Eliminar video"
+                                title={t('ui.requestWizard.deleteVideo')}
                               >
                                 <Icons.Close className="w-3 h-3" />
                               </button>
                             </div>
                             <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
-                              Video
+                              {t('ui.requestWizard.videoLabel')}
                             </div>
                           </div>
                         ))}
@@ -1258,13 +1258,13 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                   {formData.photos.length === 0 && formData.videos.length === 0 && (
                     <div className="bg-gray-50 rounded-xl p-5 border border-dashed border-gray-300 text-center">
                       <span className="text-3xl mb-2 block">📷</span>
-                      <p className="text-sm text-gray-500 mb-2">No has adjuntado archivos</p>
+                      <p className="text-sm text-gray-500 mb-2">{t('ui.requestWizard.noFilesAttached')}</p>
                       <button
                         type="button"
                         onClick={() => setCurrentStep(1)}
                         className="text-sm text-brand-600 hover:text-brand-700 font-medium"
                       >
-                        + Agregar fotos o videos
+                        + {t('ui.requestWizard.addPhotosOrVideos')}
                       </button>
                     </div>
                   )}
@@ -1289,7 +1289,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
               `}
             >
               <Icons.ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Anterior</span>
+              <span className="hidden sm:inline">{t('ui.requestWizard.previous')}</span>
             </button>
 
             <div className="flex items-center gap-1.5">
@@ -1311,7 +1311,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                 disabled={uploadingMedia}
                 className="flex items-center gap-1.5 px-5 py-2.5 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition-all disabled:opacity-50"
               >
-                <span>Continuar</span>
+                <span>{t('ui.requestWizard.continue')}</span>
                 <Icons.ChevronRight className="w-4 h-4" />
               </button>
             ) : (
@@ -1322,7 +1322,7 @@ Ejemplo: Tengo una fuga de agua en el baño principal que está afectando la par
                 className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold"
               >
                 <Icons.Send className="w-4 h-4" />
-                <span>Enviar Solicitud</span>
+                <span>{t('ui.requestWizard.sendRequest')}</span>
               </Button>
             )}
           </div>

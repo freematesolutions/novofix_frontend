@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
@@ -16,6 +17,7 @@ import {
 } from 'react-icons/hi';
 
 export default function RequestDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { search } = useLocation();
@@ -55,7 +57,7 @@ export default function RequestDetail() {
       const req = data?.data?.request || data?.request || null;
       setRequest(req);
     } catch (err) {
-      const msg = err?.response?.data?.message || 'No se pudo cargar la solicitud';
+      const msg = err?.response?.data?.message || t('provider.requestDetail.errorLoading');
       setError(msg);
     } finally { setLoading(false); }
   };
@@ -76,7 +78,7 @@ export default function RequestDetail() {
       } catch (err) {
         const status = err?.response?.status;
         if (status === 403) {
-          setUpgrade({ show: true, message: 'Necesitas una suscripción activa para enviar propuestas.' });
+          setUpgrade({ show: true, message: t('provider.requestDetail.needSubscription') });
         }
       } finally {
         setContextLoading(false);
@@ -112,15 +114,15 @@ export default function RequestDetail() {
   }
 
   if (viewRole !== 'provider') {
-    return <Alert type="warning">Esta sección es para proveedores.</Alert>;
+    return <Alert type="warning">{t('provider.requestDetail.providerOnly')}</Alert>;
   }
 
   const validate = () => {
     const errs = {};
-    if (!form.amount || Number(form.amount) <= 0) errs.amount = 'Monto requerido y debe ser mayor a 0';
-    if (!form.message || form.message.trim().length < 10) errs.message = 'Mensaje requerido (mínimo 10 caracteres)';
+    if (!form.amount || Number(form.amount) <= 0) errs.amount = t('provider.requestDetail.amountRequired');
+    if (!form.message || form.message.trim().length < 10) errs.message = t('provider.requestDetail.messageRequired');
     // estimatedHours opcional pero si se provee debe ser > 0
-    if (form.estimatedHours && Number(form.estimatedHours) <= 0) errs.estimatedHours = 'Horas estimadas debe ser mayor a 0';
+    if (form.estimatedHours && Number(form.estimatedHours) <= 0) errs.estimatedHours = t('provider.requestDetail.hoursError');
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -144,26 +146,26 @@ export default function RequestDetail() {
       };
   const { data } = await api.post(`/provider/proposals/requests/${id}`, payload);
       if (data?.success) {
-        toast.success('Propuesta enviada con éxito');
+        toast.success(t('toast.proposalSent'));
         navigate('/mensajes');
       } else {
-        toast.warning(data?.message || 'No se pudo enviar la propuesta');
+        toast.warning(data?.message || t('provider.requestDetail.proposalNotSent'));
       }
     } catch (err) {
       const status = err?.response?.status;
-      const msg = err?.response?.data?.message || 'Error al enviar la propuesta';
+      const msg = err?.response?.data?.message || t('provider.requestDetail.errorSending');
       if (status === 403) {
-        toast.error(msg || 'Requiere suscripción activa');
+        toast.error(msg || t('provider.requestDetail.requiresSubscription'));
         localStorage.setItem('upgrade_hint', '1');
-        setUpgrade({ show: true, message: msg || 'Tu plan actual no permite enviar propuestas.' });
+        setUpgrade({ show: true, message: msg || t('provider.requestDetail.planNotAllowed') });
       } else if (status === 429) {
-        toast.error(msg || 'Límite mensual de leads alcanzado');
+        toast.error(msg || t('provider.requestDetail.leadLimitReached'));
         localStorage.setItem('upgrade_hint', '1');
-        setUpgrade({ show: true, message: msg || 'Has alcanzado el límite mensual de leads.' });
+        setUpgrade({ show: true, message: msg || t('provider.requestDetail.leadLimitReached') });
       } else if (status === 400) {
-        toast.error(msg || 'Validación inválida');
+        toast.error(msg || t('provider.requestDetail.invalidValidation'));
       } else if (status === 404) {
-        toast.error('La solicitud ya no está disponible');
+        toast.error(t('provider.requestDetail.requestNotAvailable'));
       } else {
         toast.error(msg);
       }
@@ -174,7 +176,7 @@ export default function RequestDetail() {
 
   const saveDraft = async () => {
     if (context && !context.unlimited && context.remaining <= 0) {
-      setUpgrade({ show: true, message: 'Has alcanzado tu límite mensual de leads.' });
+      setUpgrade({ show: true, message: t('provider.requestDetail.leadLimitReached') });
       return;
     }
     if (!validate()) return;
@@ -192,21 +194,21 @@ export default function RequestDetail() {
       const pid = data?.data?.proposal?._id || data?.proposal?._id || data?.proposalId;
       if (data?.success && pid) {
         setDraftId(pid);
-        toast.success('Borrador guardado');
+        toast.success(t('toast.draftSaved'));
       } else {
-        toast.warning(data?.message || 'No se pudo guardar el borrador');
+        toast.warning(data?.message || t('provider.requestDetail.draftNotSaved'));
       }
     } catch (err) {
       const status = err?.response?.status;
-      const msg = err?.response?.data?.message || 'Error al guardar borrador';
+      const msg = err?.response?.data?.message || t('provider.requestDetail.errorSavingDraft');
       if (status === 403) {
-        toast.error(msg || 'Requiere suscripción activa');
+        toast.error(msg || t('provider.requestDetail.requiresSubscription'));
         localStorage.setItem('upgrade_hint', '1');
-        setUpgrade({ show: true, message: msg || 'Tu plan actual no permite enviar propuestas.' });
+        setUpgrade({ show: true, message: msg || t('provider.requestDetail.planNotAllowed') });
       } else if (status === 429) {
-        toast.error(msg || 'Límite mensual de leads alcanzado');
+        toast.error(msg || t('provider.requestDetail.leadLimitReached'));
         localStorage.setItem('upgrade_hint', '1');
-        setUpgrade({ show: true, message: msg || 'Has alcanzado el límite mensual de leads.' });
+        setUpgrade({ show: true, message: msg || t('provider.requestDetail.leadLimitReached') });
       } else {
         toast.error(msg);
       }
@@ -230,12 +232,12 @@ export default function RequestDetail() {
       };
       const { data } = await api.put(`/provider/proposals/${draftId}`, payload);
       if (data?.success) {
-        toast.success('Borrador actualizado');
+        toast.success(t('toast.draftUpdated'));
       } else {
-        toast.warning(data?.message || 'No se pudo actualizar el borrador');
+        toast.warning(data?.message || t('provider.requestDetail.draftNotUpdated'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al actualizar borrador';
+      const msg = err?.response?.data?.message || t('provider.requestDetail.errorUpdatingDraft');
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -245,31 +247,31 @@ export default function RequestDetail() {
   const sendDraft = async () => {
     if (!draftId) return;
     if (context && !context.unlimited && context.remaining <= 0) {
-      setUpgrade({ show: true, message: 'Has alcanzado tu límite mensual de leads.' });
+      setUpgrade({ show: true, message: t('provider.requestDetail.leadLimitReached') });
       return;
     }
     setSubmitting(true);
     try {
       const { data } = await api.post(`/provider/proposals/${draftId}/send`, {});
       if (data?.success) {
-        toast.success('Propuesta enviada');
+        toast.success(t('toast.proposalSent'));
         navigate('/mensajes');
       } else {
-        toast.warning(data?.message || 'No se pudo enviar el borrador');
+        toast.warning(data?.message || t('provider.requestDetail.draftNotSent'));
       }
     } catch (err) {
       const status = err?.response?.status;
-      const msg = err?.response?.data?.message || 'Error al enviar';
+      const msg = err?.response?.data?.message || t('provider.requestDetail.errorSending');
       if (status === 403) {
-        toast.error(msg || 'Requiere suscripción activa');
+        toast.error(msg || t('provider.requestDetail.requiresSubscription'));
         localStorage.setItem('upgrade_hint', '1');
-        setUpgrade({ show: true, message: msg || 'Tu plan actual no permite enviar propuestas.' });
+        setUpgrade({ show: true, message: msg || t('provider.requestDetail.planNotAllowed') });
       } else if (status === 429) {
-        toast.error(msg || 'Límite mensual de leads alcanzado');
+        toast.error(msg || t('provider.requestDetail.leadLimitReached'));
         localStorage.setItem('upgrade_hint', '1');
-        setUpgrade({ show: true, message: msg || 'Has alcanzado el límite mensual de leads.' });
+        setUpgrade({ show: true, message: msg || t('provider.requestDetail.leadLimitReached') });
       } else if (status === 404) {
-        toast.error('El borrador ya no está disponible');
+        toast.error(t('provider.requestDetail.draftNotAvailable'));
       } else {
         toast.error(msg);
       }
@@ -284,13 +286,13 @@ export default function RequestDetail() {
     try {
       const { data } = await api.post(`/provider/proposals/${draftId}/cancel`, {});
       if (data?.success) {
-        toast.info('Propuesta cancelada');
+        toast.info(t('toast.proposalCancelled'));
         setDraftId('');
       } else {
-        toast.warning(data?.message || 'No se pudo cancelar la propuesta');
+        toast.warning(data?.message || t('provider.requestDetail.proposalNotCancelled'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al cancelar';
+      const msg = err?.response?.data?.message || t('provider.requestDetail.errorCancelling');
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -336,7 +338,7 @@ export default function RequestDetail() {
             <div className="w-8 h-8 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-colors">
               <HiArrowLeft className="w-5 h-5" />
             </div>
-            <span className="text-sm font-medium">Volver a empleos</span>
+            <span className="text-sm font-medium">{t('provider.requestDetail.backToJobs')}</span>
           </button>
 
           {request && (
@@ -345,7 +347,7 @@ export default function RequestDetail() {
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${getUrgencyStyle(request.basicInfo?.urgency)}`}>
                     <HiExclamation className="w-3.5 h-3.5" />
-                    {request.basicInfo?.urgency || 'Normal'}
+                    {request.basicInfo?.urgency || t('provider.requestDetail.normal')}
                   </span>
                   {request.basicInfo?.category && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm text-white">
@@ -355,7 +357,7 @@ export default function RequestDetail() {
                   )}
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
-                  {request.basicInfo?.title || 'Detalle de solicitud'}
+                  {request.basicInfo?.title || t('provider.requestDetail.requestDetail')}
                 </h1>
                 {/* Eliminar presupuesto del header, ya no es relevante */}
               </div>
@@ -370,9 +372,9 @@ export default function RequestDetail() {
                   </div>
                   <div className="text-left">
                     <div className="text-white font-semibold">
-                      {(request.media.photos?.length || 0) + (request.media.videos?.length || 0)} archivos
+                      {(request.media.photos?.length || 0) + (request.media.videos?.length || 0)} {t('provider.requestDetail.files')}
                     </div>
-                    <div className="text-white/70 text-sm">Ver multimedia</div>
+                    <div className="text-white/70 text-sm">{t('provider.requestDetail.viewMedia')}</div>
                   </div>
                 </button>
               )}
@@ -395,7 +397,7 @@ export default function RequestDetail() {
               <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center shadow-lg animate-pulse">
                 <Spinner size="lg" className="text-white" />
               </div>
-              <p className="text-gray-600 font-medium">Cargando solicitud...</p>
+              <p className="text-gray-600 font-medium">{t('provider.requestDetail.loading')}</p>
             </div>
           </div>
         )}
@@ -410,8 +412,8 @@ export default function RequestDetail() {
                     <HiSparkles className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-gray-900">Detalles de la solicitud</h2>
-                    <p className="text-sm text-gray-500">Información proporcionada por el cliente</p>
+                    <h2 className="text-lg font-bold text-gray-900">{t('provider.requestDetail.detailsTitle')}</h2>
+                    <p className="text-sm text-gray-500">{t('provider.requestDetail.detailsSubtitle')}</p>
                   </div>
                 </div>
                 
@@ -428,7 +430,7 @@ export default function RequestDetail() {
                         <HiTag className="w-5 h-5 text-brand-600" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">Subcategoría</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('provider.requestDetail.subcategory')}</div>
                         <div className="font-semibold text-gray-900">{request.basicInfo.subcategory}</div>
                       </div>
                     </div>
@@ -439,7 +441,7 @@ export default function RequestDetail() {
                         <HiLocationMarker className="w-5 h-5 text-cyan-600" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">Ubicación</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('provider.requestDetail.location')}</div>
                         <div className="font-semibold text-gray-900 truncate">{request.location.address}</div>
                       </div>
                     </div>
@@ -450,7 +452,7 @@ export default function RequestDetail() {
                         <HiCalendar className="w-5 h-5 text-purple-600" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">Fecha preferida</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('provider.requestDetail.preferredDate')}</div>
                         <div className="font-semibold text-gray-900">{new Date(request.scheduling.preferredDate).toLocaleDateString()}</div>
                       </div>
                     </div>
@@ -468,8 +470,8 @@ export default function RequestDetail() {
                     <HiPaperAirplane className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">Enviar propuesta</h3>
-                    <p className="text-sm text-gray-600">Destaca tu experiencia y gana este proyecto</p>
+                    <h3 className="text-lg font-bold text-gray-900">{t('provider.requestDetail.sendProposal')}</h3>
+                    <p className="text-sm text-gray-600">{t('provider.requestDetail.sendProposalSubtitle')}</p>
                   </div>
                 </div>
               </div>
@@ -479,7 +481,7 @@ export default function RequestDetail() {
                 {contextLoading && (
                   <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl mb-6 animate-pulse">
                     <Spinner size="sm" className="text-brand-600" />
-                    <span className="text-sm text-gray-600">Cargando información de tu plan...</span>
+                    <span className="text-sm text-gray-600">{t('provider.requestDetail.loadingPlan')}</span>
                   </div>
                 )}
                 
@@ -496,23 +498,23 @@ export default function RequestDetail() {
                             {context.subscriptionStatus === 'active' ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                                 <HiCheckCircle className="w-3.5 h-3.5" />
-                                Activo
+                                {t('provider.requestDetail.active')}
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
                                 <HiX className="w-3.5 h-3.5" />
-                                Inactivo
+                                {t('provider.requestDetail.inactive')}
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-gray-500">Comisión: {context.commissionRatePercent}%</div>
+                          <div className="text-xs text-gray-500">{t('provider.requestDetail.commission')}: {context.commissionRatePercent}%</div>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="flex items-center gap-2">
                           <HiLightningBolt className="w-4 h-4 text-amber-500" />
                           <span className="text-sm font-medium text-gray-700">
-                            {context.unlimited ? 'Leads ilimitados' : `${Math.max(context.remaining, 0)} leads restantes`}
+                            {context.unlimited ? t('provider.requestDetail.unlimitedLeads') : `${Math.max(context.remaining, 0)} ${t('provider.requestDetail.remainingLeads')}`}
                           </span>
                         </div>
                       </div>
@@ -521,7 +523,7 @@ export default function RequestDetail() {
                     {!context.unlimited && context.leadLimit > 0 && (
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs text-gray-600">
-                          <span>Leads utilizados</span>
+                          <span>{t('provider.requestDetail.leadsUsed')}</span>
                           <span>{context.leadsUsed} / {context.leadLimit}</span>
                         </div>
                         <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
@@ -536,7 +538,7 @@ export default function RequestDetail() {
                     {!context.unlimited && context.remaining <= 0 && (
                       <div className="mt-4 flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
                         <HiExclamation className="w-5 h-5 text-red-500 shrink-0" />
-                        <p className="text-sm text-red-700">Has alcanzado tu límite mensual. Mejora tu plan para continuar.</p>
+                        <p className="text-sm text-red-700">{t('provider.requestDetail.limitReachedUpgrade')}</p>
                       </div>
                     )}
                   </div>
@@ -548,7 +550,7 @@ export default function RequestDetail() {
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                       <HiCurrencyDollar className="w-4 h-4 text-gray-400" />
-                      Monto ofrecido (USD)
+                      {t('provider.requestDetail.amountLabel')}
                     </label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
@@ -573,13 +575,13 @@ export default function RequestDetail() {
                         <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
                           <HiChartBar className="w-4 h-4 text-amber-600" />
                           <span className="text-sm text-amber-800">
-                            Comisión: {Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(Number(form.amount) * context.commissionRateDecimal)}
+                            {t('provider.requestDetail.commission')}: {Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(Number(form.amount) * context.commissionRateDecimal)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
                           <HiTrendingUp className="w-4 h-4 text-green-600" />
                           <span className="text-sm text-green-800">
-                            Tu ingreso: {Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(Number(form.amount) * (1 - context.commissionRateDecimal))}
+                            {t('provider.requestDetail.yourIncome')}: {Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(Number(form.amount) * (1 - context.commissionRateDecimal))}
                           </span>
                         </div>
                       </div>
@@ -591,7 +593,7 @@ export default function RequestDetail() {
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                         <HiClock className="w-4 h-4 text-gray-400" />
-                        Horas estimadas
+                        {t('provider.requestDetail.estimatedHours')}
                       </label>
                       <input 
                         type="number" 
@@ -600,7 +602,7 @@ export default function RequestDetail() {
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all bg-gray-50 focus:bg-white" 
                         value={form.estimatedHours} 
                         onChange={(e) => setForm(f => ({ ...f, estimatedHours: e.target.value }))}
-                        placeholder="Ej: 4"
+                        placeholder={t('provider.requestDetail.hoursPlaceholder')}
                       />
                       {formErrors.estimatedHours && (
                         <p className="flex items-center gap-1.5 text-sm text-red-600">
@@ -612,7 +614,7 @@ export default function RequestDetail() {
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                         <HiCalendar className="w-4 h-4 text-gray-400" />
-                        Fecha de inicio
+                        {t('provider.requestDetail.startDate')}
                       </label>
                       <input 
                         type="date" 
@@ -636,8 +638,8 @@ export default function RequestDetail() {
                         <HiCube className={`w-5 h-5 ${form.materialsIncluded ? 'text-white' : 'text-gray-500'}`} />
                       </div>
                       <div className="flex-1">
-                        <div className={`font-medium ${form.materialsIncluded ? 'text-brand-700' : 'text-gray-700'}`}>Incluye materiales</div>
-                        <div className="text-xs text-gray-500">El precio incluye todos los materiales</div>
+                        <div className={`font-medium ${form.materialsIncluded ? 'text-brand-700' : 'text-gray-700'}`}>{t('provider.requestDetail.includesMaterials')}</div>
+                        <div className="text-xs text-gray-500">{t('provider.requestDetail.includesMaterialsDesc')}</div>
                       </div>
                       {form.materialsIncluded && <HiCheckCircle className="w-6 h-6 text-brand-500" />}
                     </label>
@@ -652,8 +654,8 @@ export default function RequestDetail() {
                         <HiSparkles className={`w-5 h-5 ${form.cleanupIncluded ? 'text-white' : 'text-gray-500'}`} />
                       </div>
                       <div className="flex-1">
-                        <div className={`font-medium ${form.cleanupIncluded ? 'text-cyan-700' : 'text-gray-700'}`}>Incluye limpieza</div>
-                        <div className="text-xs text-gray-500">Dejaré el área limpia al terminar</div>
+                        <div className={`font-medium ${form.cleanupIncluded ? 'text-cyan-700' : 'text-gray-700'}`}>{t('provider.requestDetail.includesCleanup')}</div>
+                        <div className="text-xs text-gray-500">{t('provider.requestDetail.includesCleanupDesc')}</div>
                       </div>
                       {form.cleanupIncluded && <HiCheckCircle className="w-6 h-6 text-cyan-500" />}
                     </label>
@@ -663,12 +665,12 @@ export default function RequestDetail() {
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                       <HiBadgeCheck className="w-4 h-4 text-gray-400" />
-                      Mensaje para el cliente
+                      {t('provider.requestDetail.messageLabel')}
                     </label>
                     <textarea 
                       rows={5} 
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all bg-gray-50 focus:bg-white resize-none" 
-                      placeholder="Describe tu propuesta, alcance, condiciones y por qué eres la mejor opción para este trabajo..."
+                      placeholder={t('provider.requestDetail.messagePlaceholder')}
                       value={form.message} 
                       onChange={(e) => setForm(f => ({ ...f, message: e.target.value }))}
                     ></textarea>
@@ -679,12 +681,12 @@ export default function RequestDetail() {
                       </p>
                     )}
                     <p className="text-xs text-gray-500">
-                      {form.message.length}/10 caracteres mínimos requeridos
+                      {form.message.length}/10 {t('provider.requestDetail.minChars')}
                     </p>
                   </div>
 
                   {context && context.subscriptionStatus !== 'active' && (
-                    <Alert type="warning">Tu suscripción está inactiva. Actívala para enviar propuestas.</Alert>
+                    <Alert type="warning">{t('provider.requestDetail.subscriptionInactive')}</Alert>
                   )}
 
                   {/* Action buttons */}
@@ -701,7 +703,7 @@ export default function RequestDetail() {
                         ) : (
                           <HiPaperAirplane className="w-5 h-5" />
                         )}
-                        {submitting ? 'Enviando...' : 'Enviar propuesta'}
+                        {submitting ? t('provider.requestDetail.sending') : t('provider.requestDetail.sendProposalBtn')}
                       </span>
                     </button>
                     
@@ -712,7 +714,7 @@ export default function RequestDetail() {
                       className="flex items-center gap-2 px-5 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <HiSave className="w-5 h-5" />
-                      Guardar borrador
+                      {t('provider.requestDetail.saveDraft')}
                     </button>
 
                     {draftId && (
@@ -724,7 +726,7 @@ export default function RequestDetail() {
                           className="flex items-center gap-2 px-4 py-3 bg-amber-100 text-amber-700 font-medium rounded-xl hover:bg-amber-200 transition-colors disabled:opacity-50"
                         >
                           <HiRefresh className="w-5 h-5" />
-                          Actualizar
+                          {t('provider.requestDetail.update')}
                         </button>
                         <button 
                           type="button" 
@@ -733,7 +735,7 @@ export default function RequestDetail() {
                           className="flex items-center gap-2 px-4 py-3 bg-green-100 text-green-700 font-medium rounded-xl hover:bg-green-200 transition-colors disabled:opacity-50"
                         >
                           <HiPaperAirplane className="w-5 h-5" />
-                          Enviar borrador
+                          {t('provider.requestDetail.sendDraft')}
                         </button>
                         <button 
                           type="button" 
@@ -742,7 +744,7 @@ export default function RequestDetail() {
                           className="flex items-center gap-2 px-4 py-3 text-gray-500 font-medium rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
                         >
                           <HiX className="w-5 h-5" />
-                          Descartar
+                          {t('provider.requestDetail.discard')}
                         </button>
                       </>
                     )}
@@ -752,7 +754,7 @@ export default function RequestDetail() {
                       onClick={() => navigate('/empleos')}
                       className="flex items-center gap-2 px-4 py-3 text-gray-500 font-medium rounded-xl hover:bg-gray-100 transition-colors"
                     >
-                      Cancelar
+                      {t('provider.requestDetail.cancel')}
                     </button>
 
                     {(context && (context.subscriptionStatus !== 'active' || (!context.unlimited && context.remaining <= 0))) && (
@@ -762,7 +764,7 @@ export default function RequestDetail() {
                         className="ml-auto flex items-center gap-2 px-5 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
                       >
                         <HiSparkles className="w-5 h-5" />
-                        Mejorar plan
+                        {t('provider.requestDetail.upgradePlan')}
                       </button>
                     )}
                   </div>
@@ -781,22 +783,22 @@ export default function RequestDetail() {
               ...(request.media.photos || []).map(photo => ({ ...photo, type: 'image' })),
               ...(request.media.videos || []).map(video => ({ ...video, type: 'video' }))
             ]}
-            providerName={request.client?.profile?.firstName ? `${request.client.profile.firstName} ${request.client.profile.lastName || ''}`.trim() : 'Cliente'}
+            providerName={request.client?.profile?.firstName ? `${request.client.profile.firstName} ${request.client.profile.lastName || ''}`.trim() : t('provider.requestDetail.client')}
           />
         )}
 
         <Modal
           open={upgrade.show}
-          title="Mejora tu plan para enviar propuestas"
+          title={t('provider.requestDetail.upgradeModalTitle')}
           onClose={() => setUpgrade({ show: false, message: '' })}
           actions={
             <div className="flex flex-col xs:flex-row gap-2 w-full xs:w-auto">
-              <Button variant="secondary" className="w-full xs:w-auto" onClick={() => { setUpgrade({ show: false, message: '' }); navigate('/mensajes?upgrade=1'); }}>Ver bandeja</Button>
-              <Button className="w-full xs:w-auto" onClick={() => { setUpgrade({ show: false, message: '' }); navigate('/plan'); }}>Ver planes</Button>
+              <Button variant="secondary" className="w-full xs:w-auto" onClick={() => { setUpgrade({ show: false, message: '' }); navigate('/mensajes?upgrade=1'); }}>{t('provider.requestDetail.viewInbox')}</Button>
+              <Button className="w-full xs:w-auto" onClick={() => { setUpgrade({ show: false, message: '' }); navigate('/plan'); }}>{t('provider.requestDetail.viewPlans')}</Button>
             </div>
           }
         >
-          <p className="text-sm text-gray-700 text-center xs:text-left px-1 xs:px-0">{upgrade.message || 'Para continuar, activa una suscripción o mejora tu plan y aumenta tu límite de leads.'}</p>
+          <p className="text-sm text-gray-700 text-center xs:text-left px-1 xs:px-0">{upgrade.message || t('provider.requestDetail.upgradeMessage')}</p>
         </Modal>
       </div>
     </div>

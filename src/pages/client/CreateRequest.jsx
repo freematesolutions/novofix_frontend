@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
@@ -12,11 +13,12 @@ import { compressImages, validateFiles } from '@/utils/fileCompression.js';
 import UploadProgress from '@/components/ui/UploadProgress.jsx';
 
 const URGENCY = [
-  { value: 'immediate', label: 'Inmediato' },
-  { value: 'scheduled', label: 'Programado' }
+  { value: 'immediate', label: 'client.createRequest.urgency.immediate' },
+  { value: 'scheduled', label: 'client.createRequest.urgency.scheduled' }
 ];
 
 export default function CreateRequest() {
+  const { t } = useTranslation();
   const { role, roles, viewRole, clearError, isAuthenticated } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -141,17 +143,17 @@ export default function CreateRequest() {
   }
 
   if (!isClientCapable) {
-    return <Alert type="warning">Esta sección es para clientes.</Alert>;
+    return <Alert type="warning">{t('client.requests.clientOnlySection')}</Alert>;
   }
 
   const validate = () => {
     const errs = {};
-    if (!form.title || form.title.trim().length < 4) errs.title = 'Título requerido (mínimo 4 caracteres)';
-    if (!form.description || form.description.trim().length < 10) errs.description = 'Descripción requerida (mínimo 10 caracteres)';
-    if (!form.category) errs.category = 'Categoría requerida';
-  if (!form.address || form.address.trim().length < 3) errs.address = 'Dirección requerida';
-  if (!coords || !Number.isFinite(coords.lat) || !Number.isFinite(coords.lng)) errs.coordinates = 'Selecciona una ubicación en el mapa';
-    if (!form.budgetAmount || Number(form.budgetAmount) <= 0) errs.budgetAmount = 'Presupuesto estimado requerido (> 0)';
+    if (!form.title || form.title.trim().length < 4) errs.title = t('client.createRequest.validation.titleRequired');
+    if (!form.description || form.description.trim().length < 10) errs.description = t('client.createRequest.validation.descriptionRequired');
+    if (!form.category) errs.category = t('client.createRequest.validation.categoryRequired');
+  if (!form.address || form.address.trim().length < 3) errs.address = t('client.createRequest.validation.addressRequired');
+  if (!coords || !Number.isFinite(coords.lat) || !Number.isFinite(coords.lng)) errs.coordinates = t('client.createRequest.validation.locationRequired');
+    if (!form.budgetAmount || Number(form.budgetAmount) <= 0) errs.budgetAmount = t('client.createRequest.validation.budgetRequired');
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -180,7 +182,7 @@ export default function CreateRequest() {
 
     // Validar selección de proveedores si no es "enviar a todos"
     if (!sendToAll && selectedProviders.length === 0) {
-      toast.error('Debes seleccionar al menos un proveedor o elegir "Enviar a todos"');
+      toast.error(t('client.createRequest.selectProviderError'));
       return;
     }
 
@@ -205,13 +207,13 @@ export default function CreateRequest() {
       };
       const { data } = await api.post('/client/requests', payload);
       if (data?.success) {
-        toast.success(`Solicitud creada y enviada a ${sendToAll ? 'todos los proveedores elegibles' : `${selectedProviders.length} proveedor(es)`}`);
+        toast.success(t('client.createRequest.createdSuccess', { count: sendToAll ? t('client.createRequest.allEligible') : selectedProviders.length }));
         navigate('/mis-solicitudes');
       } else {
-        toast.warning(data?.message || 'No se pudo crear la solicitud');
+        toast.warning(data?.message || t('client.createRequest.createError'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al crear la solicitud';
+      const msg = err?.response?.data?.message || t('client.createRequest.createError');
       setError(msg);
     } finally { setLoading(false); }
   };
@@ -238,13 +240,13 @@ export default function CreateRequest() {
       };
       const { data } = await api.post('/client/requests', payload);
       if (data?.success) {
-        toast.success('Borrador guardado');
+        toast.success(t('client.createRequest.draftSaved'));
         navigate('/mis-solicitudes');
       } else {
-        toast.warning(data?.message || 'No se pudo guardar el borrador');
+        toast.warning(data?.message || t('client.createRequest.draftError'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al guardar el borrador';
+      const msg = err?.response?.data?.message || t('client.createRequest.draftError');
       setError(msg);
     } finally { setLoading(false); }
   };
@@ -255,8 +257,8 @@ export default function CreateRequest() {
       <UploadProgress {...uploadProgress} />
 
       <div>
-        <h2 className="text-2xl font-semibold">Crear nueva solicitud</h2>
-        <p className="text-sm text-gray-600">Describe lo que necesitas y cuándo. Notificaremos a los proveedores adecuados.</p>
+        <h2 className="text-2xl font-semibold">{t('client.createRequest.title')}</h2>
+        <p className="text-sm text-gray-600">{t('client.createRequest.subtitle')}</p>
       </div>
 
       {error && <Alert type="error">{error}</Alert>}
@@ -265,15 +267,15 @@ export default function CreateRequest() {
         {/* Primero categoría y urgencia */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium">Categoría</label>
+            <label className="block text-sm font-medium">{t('client.createRequest.category')}</label>
             {loadingCategories ? (
               <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
                 <Spinner size="sm" />
-                Cargando categorías...
+                {t('client.createRequest.loadingCategories')}
               </div>
             ) : categories.length === 0 ? (
               <div className="mt-1 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
-                No hay categorías disponibles. No hay proveedores registrados aún.
+                {t('client.createRequest.noCategories')}
               </div>
             ) : (
               <select 
@@ -292,9 +294,9 @@ export default function CreateRequest() {
             {formErrors.category && <p className="text-xs text-red-600 mt-1">{formErrors.category}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium">Urgencia</label>
+            <label className="block text-sm font-medium">{t('client.createRequest.urgencyLabel')}</label>
             <select className="mt-1 w-full border rounded-md px-3 py-2" value={form.urgency} onChange={(e)=>setForm(f=>({...f, urgency: e.target.value}))}>
-              {URGENCY.map((u)=> <option key={u.value} value={u.value}>{u.label}</option>)}
+              {URGENCY.map((u)=> <option key={u.value} value={u.value}>{t(u.label)}</option>)}
             </select>
           </div>
         </div>
@@ -303,21 +305,21 @@ export default function CreateRequest() {
         <div className="p-3 rounded-md border bg-gray-50 text-sm">
           <div className="flex items-center justify-between mb-2">
             <div className="flex-1">
-              {eligibility.loading && <span>Calculando elegibilidad...</span>}
+              {eligibility.loading && <span>{t('client.createRequest.calculatingEligibility')}</span>}
               {!eligibility.loading && eligibility.count !== null && (
                 eligibility.count === 0
-                  ? <span className="text-red-600">No hay proveedores activos para esta categoría/urgencia en tu zona. Puedes guardar como borrador.</span>
-                  : <span className="text-green-700">{eligibility.count} proveedor(es) potencial(es) podrán recibir tu solicitud.</span>
+                  ? <span className="text-red-600">{t('client.createRequest.noProvidersEligibility')}</span>
+                  : <span className="text-green-700">{t('client.createRequest.eligibleProviders', { count: eligibility.count })}</span>
               )}
-              {!eligibility.loading && eligibility.count === null && <span>No se pudo obtener elegibilidad.</span>}
+              {!eligibility.loading && eligibility.count === null && <span>{t('client.createRequest.eligibilityError')}</span>}
             </div>
             <Button type="button" variant="secondary" onClick={fetchEligibility} disabled={eligibility.loading}>
-              Actualizar
+              {t('common.update')}
             </Button>
           </div>
           
           {lastEligibilityAt && (
-            <div className="text-xs text-gray-500 mb-2">Última actualización: {lastEligibilityAt.toLocaleTimeString()}</div>
+            <div className="text-xs text-gray-500 mb-2">{t('client.createRequest.lastUpdate')}: {lastEligibilityAt.toLocaleTimeString()}</div>
           )}
           
           {(!eligibility.loading && Array.isArray(eligibility.providers) && eligibility.providers.length > 0) && (
@@ -336,25 +338,25 @@ export default function CreateRequest() {
                         }}
                         className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                       />
-                      <span>Enviar a todos los proveedores elegibles</span>
+                      <span>{t('client.createRequest.sendToAllProviders')}</span>
                     </label>
                   </div>
                   {!sendToAll && (
                     <div className="flex items-center justify-between gap-2 pt-2 border-t border-blue-200">
                       <span className="text-xs text-gray-600">
-                        {selectedProviders.length} de {eligibility.providers.length} seleccionado(s)
+                        {t('client.createRequest.selectedCount', { selected: selectedProviders.length, total: eligibility.providers.length })}
                       </span>
                       <button
                         type="button"
                         onClick={toggleSelectAll}
                         className="text-xs text-blue-600 hover:text-blue-800 font-medium"
                       >
-                        {selectedProviders.length === eligibility.providers.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                        {selectedProviders.length === eligibility.providers.length ? t('client.createRequest.deselectAll') : t('client.createRequest.selectAll')}
                       </button>
                     </div>
                   )}
                 </div>
-                <div className="text-gray-900 mb-2 font-semibold text-sm">Proveedores disponibles ordenados por puntuación:</div>
+                <div className="text-gray-900 mb-2 font-semibold text-sm">{t('client.createRequest.providersSortedByScore')}</div>
                 <ul className="space-y-3 mt-2">
                   {eligibility.providers.map((p, idx) => (
                     <li key={p._id || idx} className={`text-gray-700 rounded-lg p-3 border shadow-sm ${
@@ -378,13 +380,13 @@ export default function CreateRequest() {
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="font-semibold text-gray-900 truncate">
-                            {p.businessName || p.profile?.firstName || 'Proveedor'}
+                            {p.businessName || p.profile?.firstName || t('client.proposals.provider')}
                           </div>
                           
                           <div className="flex flex-wrap items-center gap-2 mt-1.5 text-[10px]">
                             {p.canReceiveLeads === false && (
                               <span className="px-1.5 py-0.5 rounded bg-yellow-200 text-yellow-800 font-medium">
-                                Límite alcanzado
+                                {t('client.createRequest.limitReached')}
                               </span>
                             )}
                             {p.plan && (
@@ -430,18 +432,18 @@ export default function CreateRequest() {
                               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                               </svg>
-                              <span>Portafolio ({p.portfolio.length})</span>
+                              <span>{t('client.createRequest.portfolio')} ({p.portfolio.length})</span>
                             </button>
                           ) : (
                             <div className="px-2 py-1 bg-gray-100 text-gray-400 rounded text-[10px] font-medium">
-                              Sin portafolio
+                              {t('client.createRequest.noPortfolio')}
                             </div>
                           )}
                         </div>
                       </div>
                       {p.canReceiveLeads === false && (
                         <div className="mt-1 text-[10px] text-yellow-700 italic">
-                          Este proveedor ha alcanzado su límite mensual de solicitudes
+                          {t('client.createRequest.limitReachedDescription')}
                         </div>
                       )}
                     </li>
@@ -453,16 +455,16 @@ export default function CreateRequest() {
 
         {/* Resto de campos */}
         <div>
-          <label className="block text-sm font-medium">Título</label>
+          <label className="block text-sm font-medium">{t('client.createRequest.titleLabel')}</label>
           <input className="mt-1 w-full border rounded-md px-3 py-2" value={form.title} onChange={(e)=>setForm(f=>({...f, title: e.target.value}))} />
           {formErrors.title && <p className="text-xs text-red-600 mt-1">{formErrors.title}</p>}
         </div>
         {/* Adjuntos multimedia */}
         <div className="space-y-2">
-          <div className="text-sm font-medium">Adjuntar multimedia</div>
+          <div className="text-sm font-medium">{t('client.createRequest.attachMultimedia')}</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <MediaUploader
-              label="Fotos (se comprimirán automáticamente)"
+              label={t('client.createRequest.photosLabel')}
               accept="image/*"
               onUpload={async (files) => {
                 if (!files || files.length === 0) return;
@@ -486,7 +488,7 @@ export default function CreateRequest() {
                     show: true,
                     progress: 0,
                     fileName: '',
-                    message: 'Comprimiendo imágenes...',
+                    message: t('client.createRequest.compressingImages'),
                     totalFiles: validation.validFiles.length,
                     currentFile: 0,
                     status: 'compressing'
@@ -511,7 +513,7 @@ export default function CreateRequest() {
                   setUploadProgress(prev => ({
                     ...prev,
                     progress: 30,
-                    message: `Subiendo fotos (${totalSizeMB}MB)...`,
+                    message: t('client.createRequest.uploadingPhotos', { size: totalSizeMB }),
                     status: 'uploading',
                     fileName: compressedFiles[0]?.name || ''
                   }));
@@ -544,7 +546,7 @@ export default function CreateRequest() {
                   setUploadProgress(prev => ({
                     ...prev,
                     progress: 95,
-                    message: 'Procesando fotos en Cloudinary...',
+                    message: t('client.createRequest.processingPhotos'),
                     status: 'processing'
                   }));
                   
@@ -557,23 +559,23 @@ export default function CreateRequest() {
                     setUploadProgress({
                       show: true,
                       progress: 100,
-                      message: '¡Fotos subidas!',
+                      message: t('client.createRequest.photosUploaded'),
                       totalFiles: uploaded.length,
                       currentFile: uploaded.length,
                       status: 'success'
                     });
 
                     setTimeout(() => setUploadProgress(prev => ({ ...prev, show: false })), 2000);
-                    toast.success(`${uploaded.length} foto(s) subida(s) exitosamente`);
+                    toast.success(t('client.createRequest.photosUploadedSuccess', { count: uploaded.length }));
                   }
                 } catch (e) {
                   console.error('❌ Upload error:', e);
-                  const errorMsg = e?.response?.data?.message || 'No se pudieron subir las fotos';
+                  const errorMsg = e?.response?.data?.message || t('client.createRequest.photosUploadError');
                   
                   setUploadProgress({
                     show: true,
                     progress: 0,
-                    message: 'Error al subir fotos',
+                    message: t('client.createRequest.photoUploadErrorMessage'),
                     status: 'error'
                   });
                   setTimeout(() => setUploadProgress(prev => ({ ...prev, show: false })), 3000);
@@ -595,7 +597,7 @@ export default function CreateRequest() {
               )}
             </MediaUploader>
             <MediaUploader
-              label="Videos (máx. 200MB por archivo)"
+              label={t('client.createRequest.videosLabel')}
               accept="video/*"
               onUpload={async (files) => {
                 if (!files || files.length === 0) return;
@@ -621,7 +623,7 @@ export default function CreateRequest() {
                     show: true,
                     progress: 0,
                     fileName: validation.validFiles[0]?.name || '',
-                    message: `Subiendo videos (${totalSizeMB}MB)...`,
+                    message: t('client.createRequest.uploadingVideos', { size: totalSizeMB }),
                     totalFiles: validation.validFiles.length,
                     currentFile: 0,
                     status: 'uploading'
@@ -655,7 +657,7 @@ export default function CreateRequest() {
                   setUploadProgress(prev => ({
                     ...prev,
                     progress: 95,
-                    message: 'Procesando videos en Cloudinary...',
+                    message: t('client.createRequest.processingVideos'),
                     status: 'processing'
                   }));
                   
@@ -668,21 +670,21 @@ export default function CreateRequest() {
                     setUploadProgress({
                       show: true,
                       progress: 100,
-                      message: '¡Videos subidos!',
+                      message: t('client.createRequest.videosUploaded'),
                       totalFiles: uploaded.length,
                       currentFile: uploaded.length,
                       status: 'success'
                     });
 
                     setTimeout(() => setUploadProgress(prev => ({ ...prev, show: false })), 2000);
-                    toast.success(`${uploaded.length} video(s) subido(s) exitosamente`);
+                    toast.success(t('client.createRequest.videosUploadedSuccess', { count: uploaded.length }));
                   }
                 } catch (e) {
                   console.error('❌ Upload error:', e);
-                  let errorMsg = 'No se pudieron subir los videos';
+                  let errorMsg = t('client.createRequest.videosUploadError');
                   
                   if (e.code === 'ECONNABORTED' || e.message?.includes('timeout')) {
-                    errorMsg = 'El video es demasiado grande o la conexión es lenta. Por favor intenta con un archivo más pequeño.';
+                    errorMsg = t('client.createRequest.videoTooLarge');
                   } else if (e?.response?.data?.message) {
                     errorMsg = e.response.data.message;
                   }
@@ -690,7 +692,7 @@ export default function CreateRequest() {
                   setUploadProgress({
                     show: true,
                     progress: 0,
-                    message: 'Error al subir videos',
+                    message: t('client.createRequest.videoUploadErrorMessage'),
                     status: 'error'
                   });
                   setTimeout(() => setUploadProgress(prev => ({ ...prev, show: false })), 3000);
@@ -718,34 +720,34 @@ export default function CreateRequest() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span>Subiendo archivos... Los videos grandes pueden tardar varios minutos.</span>
+              <span>{t('client.createRequest.uploadingFiles')}</span>
             </div>
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium">Ubicación en el mapa</label>
+          <label className="block text-sm font-medium">{t('client.createRequest.mapLocation')}</label>
           <div className="mt-1">
             <MapPicker value={coords} onChange={setCoords} />
           </div>
           {formErrors.coordinates && <p className="text-xs text-red-600 mt-1">{formErrors.coordinates}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium">Descripción</label>
+          <label className="block text-sm font-medium">{t('client.createRequest.descriptionLabel')}</label>
           <textarea rows={5} className="mt-1 w-full border rounded-md px-3 py-2" value={form.description} onChange={(e)=>setForm(f=>({...f, description: e.target.value}))} />
           {formErrors.description && <p className="text-xs text-red-600 mt-1">{formErrors.description}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium">Dirección</label>
+          <label className="block text-sm font-medium">{t('client.createRequest.addressLabel')}</label>
           <input className="mt-1 w-full border rounded-md px-3 py-2" value={form.address} onChange={(e)=>setForm(f=>({...f, address: e.target.value}))} />
           {formErrors.address && <p className="text-xs text-red-600 mt-1">{formErrors.address}</p>}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium">Fecha preferida</label>
+            <label className="block text-sm font-medium">{t('client.createRequest.preferredDate')}</label>
             <input type="date" className="mt-1 w-full border rounded-md px-3 py-2" value={form.preferredDate} onChange={(e)=>setForm(f=>({...f, preferredDate: e.target.value}))} />
           </div>
           <div>
-            <label className="block text-sm font-medium">Presupuesto estimado ({form.currency})</label>
+            <label className="block text-sm font-medium">{t('client.createRequest.estimatedBudget')} ({form.currency})</label>
             <div className="mt-1 flex gap-2">
               <select className="border rounded-md px-3 py-2" value={form.currency} onChange={(e)=>setForm(f=>({...f, currency: e.target.value}))}>
                 <option value="USD">USD</option>
@@ -765,12 +767,12 @@ export default function CreateRequest() {
             const tooltipText = disabledPublish ? 'No hay proveedores disponibles para esta categoría/urgencia en tu zona' : undefined;
             return (
               <span className={disabledPublish ? 'inline-block' : ''} title={tooltipText}>
-                <Button type="submit" loading={loading} disabled={disabledPublish}>Publicar solicitud</Button>
+                <Button type="submit" loading={loading} disabled={disabledPublish}>{t('client.createRequest.publishRequest')}</Button>
               </span>
             );
           })()}
-          <Button type="button" variant="secondary" onClick={saveDraft} disabled={loading}>Guardar borrador</Button>
-          <Button type="button" variant="ghost" onClick={()=>navigate('/mis-solicitudes')}>Cancelar</Button>
+          <Button type="button" variant="secondary" onClick={saveDraft} disabled={loading}>{t('client.createRequest.saveDraft')}</Button>
+          <Button type="button" variant="ghost" onClick={()=>navigate('/mis-solicitudes')}>{t('common.cancel')}</Button>
         </div>
       </form>
 

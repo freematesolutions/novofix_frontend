@@ -399,7 +399,7 @@ function CategoryIconCarousel({
               }}
               role="option"
               aria-selected={pos.isCenter}
-              aria-label={`${service.category} - ${isDisabled ? 'Próximamente' : 'Click para ver proveedores'}`}
+              aria-label={`${service.category} - ${isDisabled ? t('home.comingSoon') : t('home.clickToViewProviders')}`}
               aria-disabled={isDisabled}
               tabIndex={isDisabled ? -1 : (pos.isCenter ? 0 : -1)}
             >
@@ -417,12 +417,12 @@ function CategoryIconCarousel({
                 {/* Badge de PRÓXIMAMENTE en la esquina superior derecha - SOLO para tarjetas deshabilitadas */}
                 {isDisabled && (
                   <div 
-                    className="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg z-10"
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg z-10 whitespace-nowrap"
                     style={{
                       boxShadow: '0 2px 8px rgba(245, 158, 11, 0.5)'
                     }}
                   >
-                    {t('comingSoon')}
+                    {t('home.comingSoon')}
                   </div>
                 )}
                 {/* Efecto de luz superior */}

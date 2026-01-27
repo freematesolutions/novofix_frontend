@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
@@ -16,6 +17,7 @@ import {
 } from 'react-icons/hi';
 
 export default function ClientRequestProposals() {
+  const { t } = useTranslation();
   const { role, roles, viewRole, clearError, isAuthenticated, user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -45,7 +47,7 @@ export default function ClientRequestProposals() {
       setProposals(list);
       setRequestMeta(d.request || null);
     } catch (err) {
-      setError(err?.response?.data?.message || 'No se pudieron cargar las propuestas');
+      setError(err?.response?.data?.message || t('client.proposals.loadError'));
     } finally { setLoading(false); }
   };
 
@@ -67,7 +69,7 @@ export default function ClientRequestProposals() {
   }
 
   if (!isClientCapable) {
-    return <Alert type="warning">Esta sección es para clientes.</Alert>;
+    return <Alert type="warning">{t('client.requests.clientOnlySection')}</Alert>;
   }
 
   const accept = async (proposalId) => {
@@ -75,13 +77,13 @@ export default function ClientRequestProposals() {
     try {
       const { data } = await api.post(`/client/proposals/${proposalId}/accept`);
       if (data?.success) {
-        toast.success('Propuesta aceptada. Hemos creado tu reserva.');
+        toast.success(t('client.proposals.acceptedSuccess'));
         navigate('/reservas'); // Redirigir a la sección de reservas del cliente
       } else {
-        toast.warning(data?.message || 'No se pudo aceptar la propuesta');
+        toast.warning(data?.message || t('client.proposals.acceptError'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al aceptar la propuesta';
+      const msg = err?.response?.data?.message || t('client.proposals.acceptError');
       toast.error(msg);
     } finally {
       setAccepting('');
@@ -93,13 +95,13 @@ export default function ClientRequestProposals() {
     try {
       const { data } = await api.post(`/client/proposals/${proposalId}/reject`);
       if (data?.success) {
-        toast.info('Propuesta rechazada');
+        toast.info(t('client.proposals.rejected'));
         await load();
       } else {
-        toast.warning(data?.message || 'No se pudo rechazar la propuesta');
+        toast.warning(data?.message || t('client.proposals.rejectError'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al rechazar la propuesta';
+      const msg = err?.response?.data?.message || t('client.proposals.rejectError');
       toast.error(msg);
     } finally {
       setRejecting('');
@@ -116,10 +118,10 @@ export default function ClientRequestProposals() {
         setActiveChat(data.data.chat);
         setChatModalOpen(true);
       } else {
-        toast.error(data?.message || 'No se pudo abrir el chat');
+        toast.error(data?.message || t('client.proposals.chatOpenError'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al abrir el chat';
+      const msg = err?.response?.data?.message || t('client.proposals.chatOpenError');
       toast.error(msg);
     } finally {
       setLoadingChat(false);
@@ -167,7 +169,7 @@ export default function ClientRequestProposals() {
             <div className="w-8 h-8 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-colors">
               <HiArrowLeft className="w-5 h-5" />
             </div>
-            <span className="text-sm font-medium">Volver a mis solicitudes</span>
+            <span className="text-sm font-medium">{t('client.proposals.backToRequests')}</span>
           </button>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -175,14 +177,14 @@ export default function ClientRequestProposals() {
               <div className="flex items-center gap-2 mb-2">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm text-white">
                   <HiSparkles className="w-4 h-4" />
-                  {proposals.length} propuesta{proposals.length !== 1 ? 's' : ''}
+                  {proposals.length} {t('client.proposals.proposalCount', { count: proposals.length })}
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
-                Propuestas recibidas
+                {t('client.proposals.title')}
               </h1>
               <p className="text-white/80 text-sm mt-1">
-                Solicitud: {requestMeta?.title || 'Cargando...'}
+                {t('client.proposals.request')}: {requestMeta?.title || t('common.loading')}
               </p>
             </div>
             {/* Stats card */}
@@ -193,9 +195,9 @@ export default function ClientRequestProposals() {
                 </div>
                 <div className="text-left">
                   <div className="text-white font-semibold">
-                    {proposals.length} profesionale{proposals.length !== 1 ? 's' : ''}
+                    {t('client.proposals.professionalsCount', { count: proposals.length })}
                   </div>
-                  <div className="text-white/70 text-sm">interesados en tu proyecto</div>
+                  <div className="text-white/70 text-sm">{t('client.proposals.interestedInProject')}</div>
                 </div>
               </div>
             )}
@@ -217,7 +219,7 @@ export default function ClientRequestProposals() {
               <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg animate-pulse">
                 <Spinner size="lg" className="text-white" />
               </div>
-              <p className="text-gray-600 font-medium">Cargando propuestas...</p>
+              <p className="text-gray-600 font-medium">{t('client.proposals.loading')}</p>
             </div>
           </div>
         )}
@@ -227,16 +229,16 @@ export default function ClientRequestProposals() {
             <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-6">
               <HiClock className="w-10 h-10 text-gray-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Aún no hay propuestas</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('client.proposals.noProposals')}</h3>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              Los proveedores están revisando tu solicitud. Te notificaremos cuando recibas propuestas.
+              {t('client.proposals.noProposalsDescription')}
             </p>
             <button
               onClick={() => navigate('/mis-solicitudes')}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-100 text-emerald-700 font-medium rounded-xl hover:bg-emerald-200 transition-colors"
             >
               <HiArrowLeft className="w-5 h-5" />
-              Volver a mis solicitudes
+              {t('client.proposals.backToRequests')}
             </button>
           </div>
         )}
@@ -246,7 +248,7 @@ export default function ClientRequestProposals() {
           {(Array.isArray(proposals) ? proposals : []).map((p) => {
             const amount = p?.pricing?.amount;
             const currency = p?.pricing?.currency || 'USD';
-            const providerName = p?.provider?.providerProfile?.businessName || 'Proveedor';
+            const providerName = p?.provider?.providerProfile?.businessName || t('client.proposals.provider');
             const score = p?.provider?.score?.total;
             const plan = p?.provider?.subscription?.plan;
             const avatar = p?.provider?.profile?.avatar;
@@ -313,7 +315,7 @@ export default function ClientRequestProposals() {
                       <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl">
                         <HiCurrencyDollar className="w-5 h-5 text-emerald-600" />
                         <span className="text-xl sm:text-2xl font-bold text-emerald-700">
-                          {amount ? Intl.NumberFormat('es-AR', { style: 'currency', currency }).format(amount) : 'Sin precio'}
+                          {amount ? Intl.NumberFormat('es-AR', { style: 'currency', currency }).format(amount) : t('client.proposals.noPrice')}
                         </span>
                       </div>
                     </div>
@@ -342,7 +344,7 @@ export default function ClientRequestProposals() {
                         ) : (
                           <HiCheckCircle className="w-5 h-5" />
                         )}
-                        {accepting === p._id ? 'Aceptando...' : 'Aceptar'}
+                        {accepting === p._id ? t('client.proposals.accepting') : t('client.proposals.accept')}
                       </span>
                     </button>
                     
@@ -356,7 +358,7 @@ export default function ClientRequestProposals() {
                       ) : (
                         <HiX className="w-5 h-5" />
                       )}
-                      Rechazar
+                      {t('client.proposals.reject')}
                     </button>
                     
                     <button
@@ -370,7 +372,7 @@ export default function ClientRequestProposals() {
                       ) : (
                         <HiChat className="w-5 h-5" />
                       )}
-                      Negociar
+                      {t('client.proposals.negotiate')}
                     </button>
                   </div>
                 </div>
@@ -387,10 +389,9 @@ export default function ClientRequestProposals() {
                 <HiShieldCheck className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h4 className="font-bold text-gray-900 mb-1">Consejos para elegir</h4>
+                <h4 className="font-bold text-gray-900 mb-1">{t('client.proposals.tipsTitle')}</h4>
                 <p className="text-sm text-gray-600">
-                  Revisa las puntuaciones y planes de los proveedores. Los proveedores verificados suelen ofrecer mejor servicio. 
-                  No dudes en contactar a varios antes de decidir.
+                  {t('client.proposals.tipsDescription')}
                 </p>
               </div>
             </div>
@@ -409,10 +410,10 @@ export default function ClientRequestProposals() {
               </div>
               <div>
                 <span className="text-lg font-semibold text-gray-900">
-                  Negociar con {activeProposal?.provider?.providerProfile?.businessName || 'Profesional'}
+                  {t('client.proposals.negotiateWith', { name: activeProposal?.provider?.providerProfile?.businessName || t('client.proposals.professional') })}
                 </span>
                 <p className="text-sm text-gray-500 font-normal">
-                  Propuesta: {activeProposal?.pricing?.amount 
+                  {t('client.proposals.proposal')}: {activeProposal?.pricing?.amount 
                     ? Intl.NumberFormat('es-AR', { style: 'currency', currency: activeProposal?.pricing?.currency || 'USD' }).format(activeProposal.pricing.amount)
                     : 'Sin precio'}
                 </p>
@@ -435,14 +436,14 @@ export default function ClientRequestProposals() {
           {/* Acciones rápidas del modal */}
           <div className="mt-4 pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-gray-500">
-              💡 Tip: Usa este chat para negociar el precio, fechas o detalles antes de aceptar la propuesta.
+              💡 {t('client.proposals.chatTip')}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={closeChatModal}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
               >
-                Cerrar
+                {t('common.close')}
               </button>
               <button
                 onClick={() => {
@@ -453,7 +454,7 @@ export default function ClientRequestProposals() {
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
               >
                 <HiCheckCircle className="w-4 h-4" />
-                Aceptar propuesta
+                {t('client.proposals.acceptProposal')}
               </button>
             </div>
           </div>

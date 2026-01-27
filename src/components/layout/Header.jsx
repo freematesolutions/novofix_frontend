@@ -1,4 +1,4 @@
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+﻿import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { getSocket, on as socketOn, emit as socketEmit, setGlobalUserId, getGlobalUserId } from '@/state/socketClient.js';
 import { useAuth } from '@/state/AuthContext.jsx';
@@ -547,7 +547,7 @@ function Header() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v6a1 1 0 001 1h6" />
                 </svg>}
-                label="Solicitudes"
+                label={t('header.requests')}
                 showLabel={isMobile}
                 badge={Number(counters?.client?.requestsOpen||0) > 0 && (
                   <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-emerald-500 to-teal-500 text-white min-w-5 shadow-lg shadow-emerald-500/40 ring-2 ring-white/30 animate-pulse-badge">
@@ -562,7 +562,7 @@ function Header() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l2 2 4-4" />
                 </svg>}
-                label="Reservas"
+                label={t('header.bookings')}
                 showLabel={isMobile}
                 badge={Number(counters?.client?.bookingsUpcoming||0) > 0 && (
                   <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-teal-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-teal-500/40 ring-2 ring-white/30">
@@ -576,7 +576,7 @@ function Header() {
                 icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>}
-                label="Mensajes"
+                label={t('header.messages')}
                 showLabel={isMobile}
                 badge={Number(counters?.client?.chatsUnread||0) > 0 && (
                   <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-violet-500 to-purple-500 text-white min-w-5 shadow-lg shadow-violet-500/40 ring-2 ring-white/30 animate-pulse-badge">
@@ -590,7 +590,7 @@ function Header() {
                 icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>}
-                label="Empleos"
+                label={t('header.jobs')}
                 showLabel={isMobile}
                 badge={Number(counters?.provider?.jobs||0) > 0 && (
                   <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30">
@@ -609,7 +609,7 @@ function Header() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v6a1 1 0 001 1h6" />
                 </svg>}
-                label="Solicitudes"
+                label={t('header.requests')}
                 showLabel={isMobile}
                 badge={Number(counters?.client?.requestsOpen||0) > 0 && (
                   <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-emerald-500 to-teal-500 text-white min-w-5 shadow-lg shadow-emerald-500/40 ring-2 ring-white/30 animate-pulse-badge">
@@ -624,7 +624,7 @@ function Header() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l2 2 4-4" />
                 </svg>}
-                label="Reservas"
+                label={t('header.bookings')}
                 showLabel={isMobile}
                 badge={Number(counters?.client?.bookingsUpcoming||0) > 0 && (
                   <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-teal-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-teal-500/40 ring-2 ring-white/30">
@@ -638,7 +638,7 @@ function Header() {
                 icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>}
-                label="Mensajes"
+                label={t('header.messages')}
                 showLabel={isMobile}
                 badge={Number(counters?.client?.chatsUnread||0) > 0 && (
                   <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-violet-500 to-purple-500 text-white min-w-5 shadow-lg shadow-violet-500/40 ring-2 ring-white/30 animate-pulse-badge">
@@ -653,7 +653,7 @@ function Header() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 14v3m0 0v3m0-3h3m-3 0h-3" opacity="0.5" />
                 </svg>}
-                label="Ser profesional"
+                label={t('header.becomeProfessional')}
                 showLabel={isMobile}
               />
             </>
@@ -668,7 +668,7 @@ function Header() {
             end
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
-            label="Empleos"
+            label={t('header.jobs')}
             showLabel={isMobile}
             badge={Number(counters?.provider?.jobs||0) > 0 && (
               <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/30 animate-pulse-badge">
@@ -680,7 +680,7 @@ function Header() {
             to="/mensajes"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>}
-            label="Solicitudes"
+            label={t('header.requests')}
             showLabel={isMobile}
             badge={Number(counters?.provider?.proposalsActive||0) > 0 && (
               <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-cyan-500 to-blue-500 text-white min-w-5 shadow-lg shadow-cyan-500/30">
@@ -692,21 +692,21 @@ function Header() {
             to="/portafolio"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
-            label="Portafolio"
+            label={t('header.portfolio')}
             showLabel={isMobile}
           />
           <NavLinkWithTooltip
             to="/plan"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>}
-            label="Plan"
+            label={t('header.plan')}
             showLabel={isMobile}
           />
           <NavLinkWithTooltip
             to="/servicios"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
-            label="Servicios"
+            label={t('header.services')}
             showLabel={isMobile}
             badge={Number(counters?.provider?.services||0) > 0 && (
               <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/30">
@@ -718,21 +718,21 @@ function Header() {
             to="/calendario"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
-            label="Calendario"
+            label={t('header.calendar')}
             showLabel={isMobile}
           />
           <NavLinkWithTooltip
             to="/referidos"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
-            label="Referidos"
+            label={t('header.referrals')}
             showLabel={isMobile}
           />
           <NavLinkWithTooltip
             to="/reservas"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>}
-            label="Reservas"
+            label={t('header.bookings')}
             showLabel={isMobile}
             badge={Number(counters?.provider?.bookingsUpcoming||0) > 0 && (
               <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-1.5 py-0.5 rounded-full bg-brand-500 text-white min-w-4.5 shadow-sm">
@@ -764,7 +764,7 @@ function Header() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </span>
-                <span className={isMobile ? '' : 'hidden lg:inline'}>Sistema</span>
+                <span className={isMobile ? '' : 'hidden lg:inline'}>{t('header.system')}</span>
               </>
             )}
           </NavLink>
@@ -791,7 +791,7 @@ function Header() {
                     </span>
                   )}
                 </span>
-                <span className={isMobile ? '' : 'hidden lg:inline'}>Alertas</span>
+                <span className={isMobile ? '' : 'hidden lg:inline'}>{t('header.alerts')}</span>
               </>
             )}
           </NavLink>
@@ -813,7 +813,7 @@ function Header() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </span>
-                <span className={isMobile ? '' : 'hidden lg:inline'}>Moderación</span>
+                <span className={isMobile ? '' : 'hidden lg:inline'}>{t('header.moderation')}</span>
               </>
             )}
           </NavLink>
@@ -1409,7 +1409,7 @@ function Header() {
             <div className="relative md:hidden shrink-0 ml-auto" ref={notifToggleRef}>
               <button
                 type="button"
-                aria-label="Notificaciones"
+                aria-label={t('header.notifications')}
                 className={`inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl border-2 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md ${accent.text600} ${accent.hoverText700} focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} ${accent.border200} hover:border-brand-300 transition-all duration-300 hover:scale-105`}
                 onClick={() => setNotifOpen(v => !v)}
               >
@@ -1423,7 +1423,7 @@ function Header() {
                 )}
               </button>
               {notifOpen && (
-                <div ref={notifMenuRef} className={`absolute right-0 mt-3 w-80 max-w-[95vw] rounded-2xl border bg-white/95 backdrop-blur-xl shadow-2xl py-2 z-50 ${accent.border200} ring-1 ring-black/5 animate-slide-down`} role="menu" aria-label="Notificaciones">
+                <div ref={notifMenuRef} className={`absolute right-0 mt-3 w-80 max-w-[95vw] rounded-2xl border bg-white/95 backdrop-blur-xl shadow-2xl py-2 z-50 ${accent.border200} ring-1 ring-black/5 animate-slide-down`} role="menu" aria-label={t('header.notifications')}>
                   <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-100 to-brand-50 flex items-center justify-center">
@@ -1437,14 +1437,14 @@ function Header() {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <button className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-2 py-1 rounded-lg transition-colors" onClick={markAll}>Marcar todas</button>
+                      <button className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-2 py-1 rounded-lg transition-colors" onClick={markAll}>{t('notifications.markAllRead')}</button>
                     </div>
                   </div>
                   <div className="max-h-80 overflow-auto">
                     {notifLoading && (
                       <div className="px-4 py-8 text-center">
                         <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                        <p className="text-sm text-gray-500">Cargando...</p>
+                        <p className="text-sm text-gray-500">{t('common.loading')}</p>
                       </div>
                     )}
                     {!notifLoading && notifications.length === 0 && (
@@ -1454,7 +1454,7 @@ function Header() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                           </svg>
                         </div>
-                        <p className="text-sm text-gray-500">Sin notificaciones</p>
+                        <p className="text-sm text-gray-500">{t('notifications.empty')}</p>
                       </div>
                     )}
                     {notifications.map((n, index) => {
@@ -1541,7 +1541,7 @@ function Header() {
               <>
                 {/* Role switch (md+), placed before bell and account */}
                 {roles?.includes('client') && roles?.includes('provider') && (
-                  <div className="hidden md:flex items-center bg-gray-100/80 backdrop-blur-sm rounded-xl p-1 text-xs whitespace-nowrap shadow-inner" role="tablist" aria-label="Cambiar modo">
+                  <div className="hidden md:flex items-center bg-gray-100/80 backdrop-blur-sm rounded-xl p-1 text-xs whitespace-nowrap shadow-inner" role="tablist" aria-label={t('header.switchMode', { mode: '' })}>
                     <button
                       type="button"
                       role="tab"
@@ -1553,7 +1553,7 @@ function Header() {
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        Cliente
+                        {t('header.client')}
                       </span>
                     </button>
                     <button
@@ -1567,15 +1567,15 @@ function Header() {
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        Profesional
+                        {t('header.professional')}
                       </span>
                     </button>
                     {isViewLocked && (
-                      <span className={`ml-1.5 inline-flex items-center gap-1 text-[10px] font-medium ${roleColorClass} bg-yellow-50 px-1.5 py-0.5 rounded-md ring-1 ring-yellow-200`} title="Modo fijado manualmente" aria-label="Modo fijado manualmente">
+                      <span className={`ml-1.5 inline-flex items-center gap-1 text-[10px] font-medium ${roleColorClass} bg-yellow-50 px-1.5 py-0.5 rounded-md ring-1 ring-yellow-200`} title={t('header.modeLocked')} aria-label={t('header.modeLocked')}>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3 text-yellow-600">
                           <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4z" clipRule="evenodd" />
                         </svg>
-                        Fijado
+                        {t('header.locked')}
                       </span>
                     )}
                   </div>
@@ -1585,7 +1585,7 @@ function Header() {
                 <div className="relative ml-2">
                   <button
                     type="button"
-                    aria-label="Notificaciones"
+                    aria-label={t('header.notifications')}
                     className={`group inline-flex items-center justify-center w-10 h-10 rounded-xl border-2 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md ${accent.text600} ${accent.hoverText700} focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} ${accent.border200} hover:border-brand-300 transition-all duration-300 hover:scale-105`}
                     onClick={() => setNotifOpen(v => !v)}
                   >
@@ -1599,7 +1599,7 @@ function Header() {
                     )}
                   </button>
                   {notifOpen && (
-                    <div ref={notifMenuRef} className={`absolute right-0 mt-3 w-96 max-w-[90vw] sm:max-w-[70vw] md:max-w-[60vw] rounded-2xl border bg-white/95 backdrop-blur-xl shadow-2xl py-2 z-50 ${accent.border200} ring-1 ring-black/5 animate-slide-down`} role="menu" aria-label="Notificaciones">
+                    <div ref={notifMenuRef} className={`absolute right-0 mt-3 w-96 max-w-[90vw] sm:max-w-[70vw] md:max-w-[60vw] rounded-2xl border bg-white/95 backdrop-blur-xl shadow-2xl py-2 z-50 ${accent.border200} ring-1 ring-black/5 animate-slide-down`} role="menu" aria-label={t('header.notifications')}>
                       <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-100 to-brand-50 flex items-center justify-center shadow-inner">
@@ -1622,7 +1622,7 @@ function Header() {
                         {notifLoading && (
                           <div className="px-4 py-10 text-center">
                             <div className="w-10 h-10 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                            <p className="text-sm text-gray-500">Cargando notificaciones...</p>
+                            <p className="text-sm text-gray-500">{t('common.loading')}</p>
                           </div>
                         )}
                         {!notifLoading && notifications.length === 0 && (
@@ -1632,8 +1632,8 @@ function Header() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                               </svg>
                             </div>
-                            <p className="text-sm font-medium text-gray-600">Sin notificaciones</p>
-                            <p className="text-xs text-gray-400 mt-1">Te avisaremos cuando tengas nuevas</p>
+                            <p className="text-sm font-medium text-gray-600">{t('notifications.empty')}</p>
+                            <p className="text-xs text-gray-400 mt-1">{t('notifications.willNotify', 'Te avisaremos cuando tengas nuevas')}</p>
                           </div>
                         )}
                         {notifications.map((n, index) => {
@@ -1763,7 +1763,7 @@ function Header() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
                         </div>
-                        <span className="font-medium">Mi Perfil</span>
+                        <span className="font-medium">{t('header.myProfile')}</span>
                       </Link>
                     {(viewRole === 'provider') && (
                       <>
@@ -1773,7 +1773,7 @@ function Header() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                           </div>
-                          <span className="font-medium">Mi Portafolio</span>
+                          <span className="font-medium">{t('header.myPortfolio')}</span>
                         </Link>
                         <Link to="/plan" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 group" onClick={()=>setAccountOpen(false)}>
                           <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-brand-50 transition-colors">
@@ -1781,7 +1781,7 @@ function Header() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                             </svg>
                           </div>
-                          <span className="font-medium">Pagos y Plan</span>
+                          <span className="font-medium">{t('header.paymentsAndPlan')}</span>
                         </Link>
                       </>
                     )}
@@ -1795,17 +1795,15 @@ function Header() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                             </svg>
                           </div>
-                          <span className="font-medium">Cambiar a modo {viewRole === 'client' ? 'Profesional' : 'Cliente'}</span>
-                                                  <span className="font-medium">{t('header.switchMode', { mode: viewRole === 'client' ? t('header.professional') : t('header.client') })}</span>
+                          <span className="font-medium">{t('header.switchToMode')} {viewRole === 'client' ? t('header.professional') : t('header.client')}</span>
                         </button>
-                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 group" onClick={()=>{ clearViewRoleLock(); toast.info('Modo automático restablecido'); setAccountOpen(false); }}>
+                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 group" onClick={()=>{ clearViewRoleLock(); toast.info(t('header.autoModeRestored')); setAccountOpen(false); }}>
                           <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-yellow-50 transition-colors">
                             <svg className="w-4 h-4 text-gray-500 group-hover:text-yellow-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
                           </div>
-                          <span className="font-medium">Modo automático</span>
-                                                  <span className="font-medium">{t('header.autoMode')}</span>
+                          <span className="font-medium">{t('header.autoMode')}</span>
                         </button>
                       </>
                     )}
@@ -1898,7 +1896,7 @@ function Header() {
           
           {/* Visible role switch for multi-role users (mobile) - Mejorado */}
           {roles?.includes('client') && roles?.includes('provider') && (
-            <div className="flex items-center gap-2 mb-3 p-1 bg-gray-100/80 rounded-xl" aria-label="Cambiar modo">
+            <div className="flex items-center gap-2 mb-3 p-1 bg-gray-100/80 rounded-xl" aria-label={t('header.switchMode', { mode: '' })}>
               <button
                 type="button"
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 ${viewRole === 'client' ? 'bg-white text-emerald-700 shadow-md ring-1 ring-emerald-200' : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50/50'}`}
@@ -1907,7 +1905,7 @@ function Header() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                Cliente
+                {t('header.client')}
               </button>
               <button
                 type="button"
@@ -1917,10 +1915,10 @@ function Header() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                Profesional
+                {t('header.professional')}
               </button>
               {isViewLocked && (
-                <span className={`ml-1 inline-flex items-center gap-1 text-[10px] font-medium ${roleColorClass} bg-yellow-50 px-2 py-1 rounded-lg`} title="Modo fijado manualmente" aria-label="Modo fijado manualmente">
+                <span className={`ml-1 inline-flex items-center gap-1 text-[10px] font-medium ${roleColorClass} bg-yellow-50 px-2 py-1 rounded-lg`} title={t('header.modeLocked')} aria-label={t('header.modeLocked')}>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3 text-yellow-600">
                     <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4z" clipRule="evenodd" />
                   </svg>
@@ -1959,7 +1957,7 @@ function Header() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
-                  <span className="font-medium">Mi Perfil</span>
+                  <span className="font-medium">{t('header.myProfile')}</span>
                 </Link>
                 {viewRole === 'provider' && (
                   <>
@@ -1969,7 +1967,7 @@ function Header() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
-                      <span className="font-medium">Mi Portafolio</span>
+                      <span className="font-medium">{t('header.myPortfolio')}</span>
                     </Link>
                     <Link to="/plan" onClick={closeMenu} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
                       <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-brand-50 transition-colors">
@@ -1977,7 +1975,7 @@ function Header() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                       </div>
-                      <span className="font-medium">Pagos y Plan</span>
+                      <span className="font-medium">{t('header.paymentsAndPlan')}</span>
                     </Link>
                   </>
                 )}
@@ -1990,15 +1988,15 @@ function Header() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
                       </div>
-                      <span className="font-medium">Cambiar a modo {viewRole === 'client' ? 'Profesional' : 'Cliente'}</span>
+                      <span className="font-medium">{t('header.switchToMode')} {viewRole === 'client' ? t('header.professional') : t('header.client')}</span>
                     </button>
-                    <button onClick={()=>{ clearViewRoleLock(); toast.info('Modo automático restablecido'); closeMenu(); }} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
+                    <button onClick={()=>{ clearViewRoleLock(); toast.info(t('header.autoModeRestored')); closeMenu(); }} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
                       <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-yellow-50 transition-colors">
                         <svg className="w-4 h-4 text-gray-500 group-hover:text-yellow-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                       </div>
-                      <span className="font-medium">Modo automático</span>
+                      <span className="font-medium">{t('header.autoMode')}</span>
                     </button>
                   </>
                 )}
@@ -2009,7 +2007,7 @@ function Header() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
                   </div>
-                  <span className="font-medium">Cerrar sesión</span>
+                  <span className="font-medium">{t('header.logout')}</span>
                 </button>
               </div>
             )}
@@ -2020,11 +2018,11 @@ function Header() {
       {/* Confirm logout modal */}
       <Modal
         open={confirmOut}
-        title="Confirmar cierre de sesión"
+        title={t('header.confirmLogout')}
         onClose={()=>setConfirmOut(false)}
         actions={
           <>
-            <Button variant="secondary" onClick={()=>setConfirmOut(false)}>Cancelar</Button>
+            <Button variant="secondary" onClick={()=>setConfirmOut(false)}>{t('header.cancel')}</Button>
             <Button onClick={()=>{ 
               // Importante: navegar ANTES de logout para evitar que las páginas de proveedor
               // muestren "Esta sección es para proveedores" durante la transición
@@ -2034,13 +2032,13 @@ function Header() {
               // Pequeño delay para permitir que la navegación complete antes de limpiar el estado
               setTimeout(() => {
                 logout();
-                toast.info('Sesión finalizada');
+                toast.info(t('header.sessionEnded'));
               }, 50);
-            }}>Cerrar sesión</Button>
+            }}>{t('header.logout')}</Button>
           </>
         }
       >
-        ¿Seguro que deseas finalizar la sesión?
+        {t('header.confirmLogoutMessage')}
       </Modal>
     </header>
     {isAuthenticated && viewRole==='provider' && upgradeHint.show && (
@@ -2054,8 +2052,8 @@ function Header() {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.6A1.75 1.75 0 0116.768 17H3.232a1.75 1.75 0 01-1.492-2.302l6.517-11.6zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-2a.75.75 0 01-.75-.75v-3.5a.75.75 0 011.5 0v3.5A.75.75 0 0110 12z" clipRule="evenodd"/></svg>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-amber-800 text-sm">¡Impulsa tu negocio!</p>
-                <p className="text-amber-700 text-xs leading-relaxed line-clamp-2">{upgradeHint.reason || 'Aumenta tu visibilidad y leads mejorando tu plan.'}</p>
+                <p className="font-semibold text-amber-800 text-sm">{t('header.boostBusiness')}</p>
+                <p className="text-amber-700 text-xs leading-relaxed line-clamp-2">{upgradeHint.reason || t('header.boostDefault')}</p>
               </div>
             </div>
             {/* Botones de acción: inline en móvil, shrink-0 en desktop */}
@@ -2064,13 +2062,13 @@ function Header() {
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
-                Ver planes
+                {t('header.viewPlans')}
               </Link>
               <button 
                 className="text-xs font-medium text-amber-700 hover:text-amber-800 hover:bg-amber-200/50 px-2 py-1.5 rounded-lg transition-colors whitespace-nowrap" 
                 onClick={()=>{ try { localStorage.removeItem('upgrade_hint'); } catch {/* ignore storage errors */}; setUpgradeHint({ show: false, reason: '' }); }}
               >
-                Ocultar
+                {t('header.hide')}
               </button>
             </div>
           </div>

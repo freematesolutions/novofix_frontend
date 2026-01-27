@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/state/AuthContext.jsx';
@@ -89,10 +90,10 @@ const Icons = {
 // PASSWORD REQUIREMENTS (idéntico a RegisterClient)
 // ============================================================================
 const PASSWORD_REQUIREMENTS = [
-  { id: 'length', label: '8+ caracteres', test: (p) => p.length >= 8 },
-  { id: 'upper', label: 'Una mayúscula', test: (p) => /[A-Z]/.test(p) },
-  { id: 'number', label: 'Un número', test: (p) => /\d/.test(p) },
-  { id: 'special', label: 'Un símbolo', test: (p) => /[^a-zA-Z0-9]/.test(p) }
+  { id: 'length', labelKey: 'ui.guestConversion.passwordRequirements.length', test: (p) => p.length >= 8 },
+  { id: 'upper', labelKey: 'ui.guestConversion.passwordRequirements.upper', test: (p) => /[A-Z]/.test(p) },
+  { id: 'number', labelKey: 'ui.guestConversion.passwordRequirements.number', test: (p) => /\d/.test(p) },
+  { id: 'special', labelKey: 'ui.guestConversion.passwordRequirements.special', test: (p) => /[^a-zA-Z0-9]/.test(p) }
 ];
 
 // ============================================================================
@@ -104,6 +105,7 @@ function GuestConversionModal({
   provider, 
   onConversionComplete 
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
   const { login, registerClient, error: authError, clearError } = useAuth();
@@ -183,15 +185,15 @@ function GuestConversionModal({
       return;
     }
 
-    setEmailValidation({ checking: true, message: 'Verificando...', isValid: null });
+    setEmailValidation({ checking: true, message: t('ui.guestConversion.emailValidation.checking'), isValid: null });
 
     emailCheckTimeoutRef.current = setTimeout(async () => {
       try {
         const response = await api.get(`/auth/check-email?email=${encodeURIComponent(registerForm.email)}`);
         if (response.data?.available) {
-          setEmailValidation({ checking: false, message: 'Email disponible', isValid: true });
+          setEmailValidation({ checking: false, message: t('ui.guestConversion.emailValidation.available'), isValid: true });
         } else {
-          setEmailValidation({ checking: false, message: 'Este email ya está registrado', isValid: false });
+          setEmailValidation({ checking: false, message: t('ui.guestConversion.emailValidation.alreadyRegistered'), isValid: false });
         }
       } catch {
         setEmailValidation({ checking: false, message: '', isValid: null });
@@ -226,13 +228,13 @@ function GuestConversionModal({
     let color = '';
     
     if (score <= 2) {
-      label = 'Débil';
+      label = t('ui.guestConversion.passwordStrength.weak');
       color = 'from-red-500 to-red-400';
     } else if (score <= 4) {
-      label = 'Media';
+      label = t('ui.guestConversion.passwordStrength.medium');
       color = 'from-amber-500 to-yellow-400';
     } else {
-      label = 'Fuerte';
+      label = t('ui.guestConversion.passwordStrength.strong');
       color = 'from-green-500 to-emerald-400';
     }
 
@@ -246,10 +248,10 @@ function GuestConversionModal({
     setTouched((t) => ({ ...t, [field]: true }));
     const rules = {
       email: [
-        (v) => required(v) ? undefined : 'El correo es obligatorio',
-        (v) => isEmail(v) ? undefined : 'Correo inválido'
+        (v) => required(v) ? undefined : t('ui.guestConversion.validation.emailRequired'),
+        (v) => isEmail(v) ? undefined : t('ui.guestConversion.validation.emailInvalid')
       ],
-      password: [(v) => required(v) ? undefined : 'La contraseña es obligatoria']
+      password: [(v) => required(v) ? undefined : t('ui.guestConversion.validation.passwordRequired')]
     };
     const fieldErr = validate(loginForm, { [field]: rules[field] });
     setErrors((prev) => ({ ...prev, ...fieldErr }));
@@ -260,10 +262,10 @@ function GuestConversionModal({
     
     const rules = {
       email: [
-        (v) => required(v) ? undefined : 'El correo es obligatorio',
-        (v) => isEmail(v) ? undefined : 'Correo inválido'
+        (v) => required(v) ? undefined : t('ui.guestConversion.validation.emailRequired'),
+        (v) => isEmail(v) ? undefined : t('ui.guestConversion.validation.emailInvalid')
       ],
-      password: [(v) => required(v) ? undefined : 'La contraseña es obligatoria']
+      password: [(v) => required(v) ? undefined : t('ui.guestConversion.validation.passwordRequired')]
     };
     
     const validationErrors = validate(loginForm, rules);
@@ -271,7 +273,7 @@ function GuestConversionModal({
     
     if (Object.keys(validationErrors).length > 0) {
       setTouched({ email: true, password: true });
-      toast.warning('Revisa los campos del formulario');
+      toast.warning(t('ui.guestConversion.validation.checkFields'));
       return;
     }
 
@@ -284,14 +286,14 @@ function GuestConversionModal({
       });
 
       if (result.ok) {
-        toast.success('¡Bienvenido de vuelta!');
+        toast.success(t('ui.guestConversion.login.welcomeBack'));
         onConversionComplete?.();
         onClose();
       } else {
-        toast.error('No se pudo iniciar sesión');
+        toast.error(t('ui.guestConversion.login.failed'));
       }
     } catch (err) {
-      toast.error(err?.message || 'Error al iniciar sesión');
+      toast.error(err?.message || t('ui.guestConversion.login.error'));
     } finally {
       setLoading(false);
     }
@@ -303,15 +305,15 @@ function GuestConversionModal({
   const handleRegisterBlur = (field) => () => {
     setTouched((t) => ({ ...t, [field]: true }));
     const partialRules = {
-      firstName: [(v) => required(v) ? undefined : 'El nombre es obligatorio'],
-      lastName: [(v) => required(v) ? undefined : 'El apellido es obligatorio'],
+      firstName: [(v) => required(v) ? undefined : t('ui.guestConversion.validation.firstNameRequired')],
+      lastName: [(v) => required(v) ? undefined : t('ui.guestConversion.validation.lastNameRequired')],
       email: [
-        (v) => required(v) ? undefined : 'El correo es obligatorio',
-        (v) => isEmail(v) ? undefined : 'Correo inválido'
+        (v) => required(v) ? undefined : t('ui.guestConversion.validation.emailRequired'),
+        (v) => isEmail(v) ? undefined : t('ui.guestConversion.validation.emailInvalid')
       ],
       password: [
-        (v) => required(v) ? undefined : 'La contraseña es obligatoria',
-        (v) => minLength(v, 6) ? undefined : 'Mínimo 6 caracteres'
+        (v) => required(v) ? undefined : t('ui.guestConversion.validation.passwordRequired'),
+        (v) => minLength(v, 6) ? undefined : t('ui.guestConversion.validation.passwordMinLength')
       ]
     };
     const fieldErr = validate(registerForm, { [field]: partialRules[field] });
@@ -322,29 +324,29 @@ function GuestConversionModal({
     e.preventDefault();
     
     const rules = {
-      firstName: [(v) => required(v) ? undefined : 'El nombre es obligatorio'],
-      lastName: [(v) => required(v) ? undefined : 'El apellido es obligatorio'],
+      firstName: [(v) => required(v) ? undefined : t('ui.guestConversion.validation.firstNameRequired')],
+      lastName: [(v) => required(v) ? undefined : t('ui.guestConversion.validation.lastNameRequired')],
       email: [
-        (v) => required(v) ? undefined : 'El correo es obligatorio',
-        (v) => isEmail(v) ? undefined : 'Correo inválido'
+        (v) => required(v) ? undefined : t('ui.guestConversion.validation.emailRequired'),
+        (v) => isEmail(v) ? undefined : t('ui.guestConversion.validation.emailInvalid')
       ],
       password: [
-        (v) => required(v) ? undefined : 'La contraseña es obligatoria',
-        (v) => minLength(v, 6) ? undefined : 'Mínimo 6 caracteres'
+        (v) => required(v) ? undefined : t('ui.guestConversion.validation.passwordRequired'),
+        (v) => minLength(v, 6) ? undefined : t('ui.guestConversion.validation.passwordMinLength')
       ]
     };
     
     const validationErrors = validate(registerForm, rules);
     
     if (emailValidation.isValid === false) {
-      validationErrors.email = 'Este email ya está registrado';
+      validationErrors.email = t('ui.guestConversion.emailValidation.alreadyRegistered');
     }
     
     setErrors(validationErrors);
     
     if (Object.keys(validationErrors).length > 0) {
       setTouched({ firstName: true, lastName: true, email: true, password: true });
-      toast.warning('Revisa los campos del formulario');
+      toast.warning(t('ui.guestConversion.validation.checkFields'));
       return;
     }
 
@@ -367,7 +369,7 @@ function GuestConversionModal({
           }));
         } catch { /* intentionally empty */ }
         
-        toast.success('¡Registro exitoso! Por favor verifica tu email para activar tu cuenta.');
+        toast.success(t('ui.guestConversion.register.verifyEmail'));
         onClose();
         navigate('/verificar-email', { 
           replace: true,
@@ -378,14 +380,14 @@ function GuestConversionModal({
           }
         });
       } else if (result.ok) {
-        toast.success('¡Bienvenido! Te has registrado exitosamente');
+        toast.success(t('ui.guestConversion.register.success'));
         onConversionComplete?.();
         onClose();
       } else {
-        toast.error('Error en el registro. Por favor intenta de nuevo.');
+        toast.error(t('ui.guestConversion.register.failed'));
       }
     } catch (err) {
-      toast.error(err?.message || 'Error al registrarse');
+      toast.error(err?.message || t('ui.guestConversion.register.error'));
     } finally {
       setLoading(false);
     }
@@ -393,7 +395,7 @@ function GuestConversionModal({
 
   if (!isOpen) return null;
 
-  const providerName = provider?.providerProfile?.businessName || provider?.profile?.firstName || 'este profesional';
+  const providerName = provider?.providerProfile?.businessName || provider?.profile?.firstName || t('ui.guestConversion.thisProfessional');
   const providerAvatar = provider?.profile?.avatar;
   const providerRating = provider?.providerProfile?.rating?.average || 0;
 
@@ -446,7 +448,7 @@ function GuestConversionModal({
                       <Icons.User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
                   )}
-                  <h2 className="text-base sm:text-lg font-bold text-white mb-0.5">Contactar a {providerName}</h2>
+                  <h2 className="text-base sm:text-lg font-bold text-white mb-0.5">{t('ui.guestConversion.contactProvider', { name: providerName })}</h2>
                   {providerRating > 0 && (
                     <div className="flex items-center gap-1">
                       <Icons.Star className="w-4 h-4 text-yellow-300" />
@@ -461,22 +463,22 @@ function GuestConversionModal({
                 <div className="text-center mb-4 sm:mb-5">
                   <Icons.Shield className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-brand-500 mb-2 sm:mb-3" />
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                    Para contactar proveedores necesitas una cuenta
+                    {t('ui.guestConversion.accountRequired')}
                   </h3>
                   <p className="text-sm text-gray-500 mt-1">
-                    Es gratis y solo toma un minuto
+                    {t('ui.guestConversion.freeAndQuick')}
                   </p>
                 </div>
 
                 {/* Benefits */}
                 <div className="bg-gray-50 rounded-xl p-3 sm:p-4 mb-4 sm:mb-5">
-                  <p className="text-xs font-medium text-gray-500 uppercase mb-2 sm:mb-3">Beneficios de registrarte</p>
+                  <p className="text-xs font-medium text-gray-500 uppercase mb-2 sm:mb-3">{t('ui.guestConversion.benefitsTitle')}</p>
                   <ul className="space-y-1.5 sm:space-y-2">
                     {[
-                      'Contacta proveedores verificados',
-                      'Recibe propuestas y cotizaciones',
-                      'Historial de tus solicitudes',
-                      'Chat directo con profesionales'
+                      t('ui.guestConversion.benefits.contactProviders'),
+                      t('ui.guestConversion.benefits.receiveProposals'),
+                      t('ui.guestConversion.benefits.requestHistory'),
+                      t('ui.guestConversion.benefits.directChat')
                     ].map((benefit, i) => (
                       <li key={i} className="flex items-center gap-2 text-sm text-gray-700">
                         <div className="w-4 h-4 sm:w-5 sm:h-5 bg-green-100 rounded-full flex items-center justify-center shrink-0">
@@ -494,7 +496,7 @@ function GuestConversionModal({
                   className="w-full flex items-center justify-center gap-2 sm:gap-3 px-4 py-3 sm:py-3.5 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/25"
                 >
                   <Icons.UserPlus className="w-5 h-5" />
-                  <span>Crear cuenta gratis</span>
+                  <span>{t('ui.guestConversion.createFreeAccount')}</span>
                   <Icons.ArrowRight className="w-5 h-5" />
                 </button>
 
@@ -503,7 +505,7 @@ function GuestConversionModal({
                   className="w-full flex items-center justify-center gap-2 sm:gap-3 px-4 py-2.5 sm:py-3 mt-3 border-2 border-gray-200 hover:border-brand-300 hover:bg-brand-50 text-gray-700 font-medium rounded-xl transition-colors"
                 >
                   <Icons.Login className="w-5 h-5" />
-                  <span>Ya tengo una cuenta</span>
+                  <span>{t('ui.guestConversion.alreadyHaveAccount')}</span>
                 </button>
               </div>
 
@@ -512,11 +514,11 @@ function GuestConversionModal({
                 <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
                   <span className="flex items-center gap-1">
                     <Icons.Shield className="w-4 h-4 text-green-500" />
-                    Conexión segura
+                    {t('ui.guestConversion.secureConnection')}
                   </span>
                   <span className="flex items-center gap-1">
                     <Icons.Sparkles className="w-4 h-4 text-amber-500" />
-                    100% confiable
+                    {t('ui.guestConversion.reliable')}
                   </span>
                 </div>
               </div>
@@ -548,10 +550,10 @@ function GuestConversionModal({
                 </div>
                 
                 <h1 className="relative text-base sm:text-xl font-bold text-white mb-0.5">
-                  ¡Bienvenido de nuevo!
+                  {t('ui.guestConversion.login.title')}
                 </h1>
                 <p className="relative text-white/80 text-xs sm:text-sm">
-                  Ingresa a tu cuenta para continuar
+                  {t('ui.guestConversion.login.subtitle')}
                 </p>
               </div>
 
@@ -564,7 +566,7 @@ function GuestConversionModal({
                   className="flex items-center gap-1 text-sm text-gray-500 hover:text-brand-600 mb-2 sm:mb-3"
                 >
                   <Icons.ChevronLeft className="w-4 h-4" />
-                  Volver
+                  {t('ui.guestConversion.back')}
                 </button>
 
                 <form onSubmit={handleLogin} className="space-y-3 sm:space-y-5">
@@ -572,7 +574,7 @@ function GuestConversionModal({
                   <div>
                     <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                       <Icons.Mail className="w-4 h-4 text-brand-500" />
-                      Correo electrónico
+                      {t('ui.guestConversion.emailLabel')}
                     </label>
                     <input
                       type="email"
@@ -603,7 +605,7 @@ function GuestConversionModal({
                   <div>
                     <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                       <Icons.Lock className="w-4 h-4 text-brand-500" />
-                      Contraseña
+                      {t('ui.guestConversion.passwordLabel')}
                     </label>
                     <div className="relative">
                       <input
@@ -658,14 +660,14 @@ function GuestConversionModal({
                         </div>
                       </div>
                       <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
-                        Recordarme
+                        {t('ui.guestConversion.rememberMe')}
                       </span>
                     </label>
                     <a 
                       href="/olvide-contrasena" 
                       className="text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors"
                     >
-                      ¿Olvidaste tu contraseña?
+                      {t('ui.guestConversion.forgotPassword')}
                     </a>
                   </div>
 
@@ -682,11 +684,11 @@ function GuestConversionModal({
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Ingresando...
+                        {t('ui.guestConversion.login.loggingIn')}
                       </span>
                     ) : (
                       <span className="flex items-center justify-center gap-2">
-                        Iniciar Sesión
+                        {t('ui.guestConversion.login.button')}
                         <Icons.ArrowRight className="w-5 h-5" />
                       </span>
                     )}
@@ -699,7 +701,7 @@ function GuestConversionModal({
                     <div className="w-full border-t border-gray-200" />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="bg-white px-4 text-sm text-gray-500">¿Nuevo aquí?</span>
+                    <span className="bg-white px-4 text-sm text-gray-500">{t('ui.guestConversion.newHere')}</span>
                   </div>
                 </div>
 
@@ -709,7 +711,7 @@ function GuestConversionModal({
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-all"
                 >
                   <Icons.UserPlus className="w-5 h-5" />
-                  <span className="text-sm">Registrarse gratis</span>
+                  <span className="text-sm">{t('ui.guestConversion.registerFree')}</span>
                 </button>
               </div>
 

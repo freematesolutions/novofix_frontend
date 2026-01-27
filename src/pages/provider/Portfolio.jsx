@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import PortfolioManager from '@/components/account/PortfolioManager.jsx';
 import Spinner from '@/components/ui/Spinner.jsx';
 import api from '@/state/apiClient.js';
@@ -7,6 +8,7 @@ import { useAuth } from '@/state/AuthContext.jsx';
 
 export default function Portfolio() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const [portfolio, setPortfolio] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,8 +70,8 @@ export default function Portfolio() {
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Mi Portafolio</h1>
-            <p className="text-sm sm:text-base text-brand-100">Muestra imágenes y videos de tus mejores trabajos para atraer más clientes</p>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">{t('provider.portfolio.title')}</h1>
+            <p className="text-sm sm:text-base text-brand-100">{t('provider.portfolio.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -84,7 +86,7 @@ export default function Portfolio() {
                 <svg className="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
               </div>
               <div className="text-3xl font-bold bg-linear-to-r from-brand-600 to-cyan-600 bg-clip-text text-transparent mb-1">{portfolio.length}</div>
-              <div className="text-sm text-gray-600">Total elementos</div>
+              <div className="text-sm text-gray-600">{t('provider.portfolio.totalItems')}</div>
             </div>
           </div>
           
@@ -95,7 +97,7 @@ export default function Portfolio() {
                 <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               </div>
               <div className="text-3xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-1">{portfolio.filter(item => item.type === 'image').length}</div>
-              <div className="text-sm text-gray-600">Fotos</div>
+              <div className="text-sm text-gray-600">{t('provider.portfolio.photos')}</div>
             </div>
           </div>
           
@@ -106,7 +108,7 @@ export default function Portfolio() {
                 <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
               </div>
               <div className="text-3xl font-bold bg-linear-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-1">{portfolio.filter(item => item.type === 'video').length}</div>
-              <div className="text-sm text-gray-600">Videos</div>
+              <div className="text-sm text-gray-600">{t('provider.portfolio.videos')}</div>
             </div>
           </div>
           
@@ -117,7 +119,7 @@ export default function Portfolio() {
                 <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
               </div>
               <div className="text-3xl font-bold bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-1">{new Set(portfolio.map(item => item.category).filter(Boolean)).size}</div>
-              <div className="text-sm text-gray-600">Categorías</div>
+              <div className="text-sm text-gray-600">{t('provider.portfolio.categories')}</div>
             </div>
           </div>
         </div>
@@ -139,17 +141,17 @@ export default function Portfolio() {
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
             </div>
-            <h3 className="text-lg font-bold text-gray-900">Consejos para un portafolio atractivo</h3>
+            <h3 className="text-lg font-bold text-gray-900">{t('provider.portfolio.tipsTitle')}</h3>
           </div>
           
           <div className="grid sm:grid-cols-2 gap-3">
             {[
-              { icon: '✨', title: 'Calidad sobre cantidad', desc: 'Sube imágenes nítidas y bien iluminadas de tus mejores trabajos' },
-              { icon: '🎯', title: 'Variedad de servicios', desc: 'Incluye ejemplos de diferentes tipos de trabajos que realizas' },
-              { icon: '📝', title: 'Descripciones útiles', desc: 'Agrega contexto sobre cada trabajo (materiales, tiempo, desafíos)' },
-              { icon: '🎬', title: 'Videos demostrativos', desc: 'Los videos cortos de proceso o resultados generan confianza' },
-              { icon: '🔄', title: 'Actualiza regularmente', desc: 'Mantén tu portafolio fresco con trabajos recientes' },
-              { icon: '🏆', title: 'Destaca lo mejor', desc: 'Pon tus mejores trabajos primero para causar buena impresión' },
+              { icon: '✨', title: t('provider.portfolio.tip1Title'), desc: t('provider.portfolio.tip1Desc') },
+              { icon: '🎯', title: t('provider.portfolio.tip2Title'), desc: t('provider.portfolio.tip2Desc') },
+              { icon: '📝', title: t('provider.portfolio.tip3Title'), desc: t('provider.portfolio.tip3Desc') },
+              { icon: '🎬', title: t('provider.portfolio.tip4Title'), desc: t('provider.portfolio.tip4Desc') },
+              { icon: '🔄', title: t('provider.portfolio.tip5Title'), desc: t('provider.portfolio.tip5Desc') },
+              { icon: '🏆', title: t('provider.portfolio.tip6Title'), desc: t('provider.portfolio.tip6Desc') },
             ].map((tip, idx) => (
               <div key={idx} className="flex items-start gap-3 p-4 rounded-xl bg-white/80 border border-blue-100/50 hover:border-blue-200 transition-all">
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-blue-100 to-cyan-100 text-lg shrink-0">

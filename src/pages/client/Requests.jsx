@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
@@ -11,6 +12,7 @@ import Modal from '@/components/ui/Modal.jsx';
 import { getSocket } from '@/state/socketClient.js';
 
 export default function ClientRequests() {
+  const { t } = useTranslation();
   const { role, roles, viewRole, clearError, isAuthenticated } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ export default function ClientRequests() {
       const list = getArray(data, [['data','requests'], ['requests']]);
       setRequests(list);
     } catch (err) {
-      setError(err?.response?.data?.message || 'No se pudieron cargar tus solicitudes');
+      setError(err?.response?.data?.message || t('client.requests.loadError'));
     } finally { setLoading(false); }
   }, []);
 
@@ -61,7 +63,7 @@ export default function ClientRequests() {
             ? { ...r, metadata: { ...r.metadata, proposalCount: (r.metadata?.proposalCount || 0) + 1 } }
             : r
         ));
-        toast.info(`Nueva propuesta recibida para "${data.requestTitle || 'tu solicitud'}"`);
+        toast.info(t('client.requests.newProposalReceived', { title: data.requestTitle || t('client.requests.yourRequest') }));
       }
     };
 
@@ -79,13 +81,13 @@ export default function ClientRequests() {
       if (!url) return;
       const { data } = await api.put(url, {});
       if (data?.success) {
-        toast.success(`Acción realizada: ${action}`);
+        toast.success(t('client.requests.actionSuccess', { action }));
         await load();
       } else {
-        toast.warning(data?.message || 'Acción no completada');
+        toast.warning(data?.message || t('client.requests.actionNotCompleted'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error en la acción';
+      const msg = err?.response?.data?.message || t('client.requests.actionError');
       toast.error(msg);
     } finally {
       setBusyId('');
@@ -142,15 +144,15 @@ export default function ClientRequests() {
         reason: 'Eliminada por el usuario' 
       });
       if (data?.success) {
-        toast.success('Solicitud eliminada correctamente');
+        toast.success(t('client.requests.deleteSuccess'));
         setDeleteConfirmOpen(false);
         setDeleteTarget(null);
         await load(); // Recargar lista
       } else {
-        toast.warning(data?.message || 'No se pudo eliminar la solicitud');
+        toast.warning(data?.message || t('client.requests.deleteError'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al eliminar la solicitud';
+      const msg = err?.response?.data?.message || t('client.requests.deleteError');
       toast.error(msg);
     } finally {
       setDeleting(false);
@@ -160,19 +162,19 @@ export default function ClientRequests() {
   const sendInvites = async () => {
     if (!inviteTarget) return;
     const ids = Object.entries(selected).filter(([,v])=>v).map(([k])=>k);
-    if (ids.length === 0) { toast.info('Selecciona al menos un proveedor'); return; }
+    if (ids.length === 0) { toast.info(t('client.requests.selectProviderFirst')); return; }
     setBusyId(inviteTarget._id);
     try {
       const { data } = await api.post(`/client/requests/${inviteTarget._id}/notify-providers`, { providerIds: ids });
       if (data?.success) {
-        toast.success('Proveedores invitados');
+        toast.success(t('client.requests.providersInvited'));
         setInviteOpen(false);
         setInviteTarget(null);
       } else {
-        toast.warning(data?.message || 'No se pudieron enviar invitaciones');
+        toast.warning(data?.message || t('client.requests.inviteError'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al invitar proveedores';
+      const msg = err?.response?.data?.message || t('client.requests.inviteError');
       toast.error(msg);
     } finally { setBusyId(''); }
   };
@@ -180,7 +182,7 @@ export default function ClientRequests() {
   // Mapeo de estados con estilos premium
   const statusConfig = {
     published: { 
-      label: 'Publicada', 
+      label: t('client.requests.status.published'), 
       icon: (
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -189,7 +191,7 @@ export default function ClientRequests() {
       className: 'bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25' 
     },
     draft: { 
-      label: 'Borrador', 
+      label: t('client.requests.status.draft'), 
       icon: (
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -198,7 +200,7 @@ export default function ClientRequests() {
       className: 'bg-linear-to-r from-gray-400 to-gray-500 text-white shadow-lg shadow-gray-400/25' 
     },
     active: { 
-      label: 'Activa', 
+      label: t('client.requests.status.active'), 
       icon: (
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -207,7 +209,7 @@ export default function ClientRequests() {
       className: 'bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25' 
     },
     archived: { 
-      label: 'Archivada', 
+      label: t('client.requests.status.archived'), 
       icon: (
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
@@ -231,7 +233,7 @@ export default function ClientRequests() {
   }
 
   if (!isClientCapable) {
-    return <Alert type="warning">Esta sección es para clientes.</Alert>;
+    return <Alert type="warning">{t('client.requests.clientOnlySection')}</Alert>;
   }
 
   return (
@@ -257,9 +259,9 @@ export default function ClientRequests() {
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold">Mis Solicitudes</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold">{t('client.requests.title')}</h1>
                   <p className="text-sm text-brand-100 mt-0.5">
-                    Gestiona y da seguimiento a tus solicitudes de servicio
+                    {t('client.requests.subtitle')}
                   </p>
                 </div>
               </div>
@@ -269,12 +271,12 @@ export default function ClientRequests() {
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-white">{requests.length}</div>
-                <div className="text-xs text-white/80 font-medium">Total</div>
+                <div className="text-xs text-white/80 font-medium">{t('client.requests.total')}</div>
               </div>
               <div className="w-px h-8 bg-white/30"></div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-white">{requests.filter(r => r.status === 'published').length}</div>
-                <div className="text-xs text-white/80 font-medium">Activas</div>
+                <div className="text-xs text-white/80 font-medium">{t('client.requests.active')}</div>
               </div>
             </div>
           </div>
@@ -291,7 +293,7 @@ export default function ClientRequests() {
                 <div className="w-8 h-8 rounded-full bg-emerald-500/20"></div>
               </div>
             </div>
-            <p className="mt-4 text-gray-600 font-medium">Cargando solicitudes...</p>
+            <p className="mt-4 text-gray-600 font-medium">{t('client.requests.loading')}</p>
           </div>
         )}
 
@@ -305,9 +307,9 @@ export default function ClientRequests() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Sin solicitudes aún</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('client.requests.noRequests')}</h3>
               <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                Busca profesionales desde el inicio y crea tu primera solicitud para recibir propuestas de expertos.
+                {t('client.requests.noRequestsDescription')}
               </p>
               <button 
                 onClick={() => navigate('/')}
@@ -316,7 +318,7 @@ export default function ClientRequests() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Buscar profesionales
+                {t('client.requests.searchProfessionals')}
               </button>
             </div>
           </div>
@@ -348,7 +350,7 @@ export default function ClientRequests() {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                           <h3 className="text-lg font-semibold text-gray-900 truncate">
-                            {r.basicInfo?.title || 'Solicitud sin título'}
+                            {r.basicInfo?.title || t('client.requests.untitledRequest')}
                           </h3>
                           {/* Badge de estado premium */}
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.className}`}>
@@ -361,7 +363,7 @@ export default function ClientRequests() {
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                               </svg>
-                              Dirigida
+                              {t('client.requests.directed')}
                             </span>
                           )}
                         </div>
@@ -382,9 +384,9 @@ export default function ClientRequests() {
                               )}
                             </div>
                             <span className="text-gray-600">
-                              Enviada a{' '}
+                              {t('client.requests.sentTo')}{' '}
                               <span className="font-medium text-gray-800">
-                                {r.selectedProviders.map(p => p.providerProfile?.businessName || `${p.providerProfile?.firstName || ''} ${p.providerProfile?.lastName || ''}`.trim() || 'Profesional').slice(0, 2).join(', ')}
+                                {r.selectedProviders.map(p => p.providerProfile?.businessName || `${p.providerProfile?.firstName || ''} ${p.providerProfile?.lastName || ''}`.trim() || t('client.proposals.professional')).slice(0, 2).join(', ')}
                                 {r.selectedProviders.length > 2 && ` y ${r.selectedProviders.length - 2} más`}
                               </span>
                             </span>
@@ -410,9 +412,9 @@ export default function ClientRequests() {
                               )}
                             </div>
                             <span className="text-gray-600">
-                              Visible para{' '}
+                              {t('client.requests.visibleFor')}{' '}
                               <span className="font-medium text-gray-800">
-                                {r.eligibleProviders.filter(ep => ep.notified && ep.provider).map(ep => ep.provider.providerProfile?.businessName || `${ep.provider.providerProfile?.firstName || ''} ${ep.provider.providerProfile?.lastName || ''}`.trim() || 'Profesional').slice(0, 2).join(', ')}
+                                {r.eligibleProviders.filter(ep => ep.notified && ep.provider).map(ep => ep.provider.providerProfile?.businessName || `${ep.provider.providerProfile?.firstName || ''} ${ep.provider.providerProfile?.lastName || ''}`.trim() || t('client.proposals.professional')).slice(0, 2).join(', ')}
                                 {r.eligibleProviders.filter(ep => ep.notified && ep.provider).length > 2 && ` y ${r.eligibleProviders.filter(ep => ep.notified && ep.provider).length - 2} más`}
                               </span>
                             </span>
@@ -458,7 +460,7 @@ export default function ClientRequests() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
-                          Ver propuestas
+                          {t('client.requests.viewProposals')}
                           {(r.metadata?.proposalCount > 0) && (
                             <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-emerald-700 bg-white rounded-full min-w-5 animate-pulse">
                               {r.metadata.proposalCount}
@@ -476,10 +478,10 @@ export default function ClientRequests() {
                               setRequests(prev => prev.map(req => 
                                 req._id === r._id ? { ...req, _eligibleCount: c } : req
                               ));
-                              if (c === 0) toast.warning('Sin proveedores elegibles actualmente. Prueba invitar manualmente.');
-                              else toast.info(`${c} profesional(es) pueden ver y responder tu solicitud`);
+                              if (c === 0) toast.warning(t('client.requests.noEligibleProviders'));
+                              else toast.info(t('client.requests.eligibleProvidersCount', { count: c }));
                             } catch {
-                              toast.error('No se pudo obtener elegibilidad');
+                              toast.error(t('client.requests.eligibilityError'));
                             } finally {
                               setBusyId('');
                             }
@@ -491,7 +493,7 @@ export default function ClientRequests() {
                           <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                           </svg>
-                          Elegibles
+                          {t('client.requests.eligible')}
                           {r._eligibleCount > 0 && (
                             <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-white bg-teal-500 rounded-full min-w-5">
                               {r._eligibleCount}
@@ -514,7 +516,7 @@ export default function ClientRequests() {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                               </svg>
                             )}
-                            Publicar
+                            {t('client.requests.publish')}
                           </button>
                         )}
                         
@@ -529,7 +531,7 @@ export default function ClientRequests() {
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                               </svg>
-                              Archivar
+                              {t('client.requests.archive')}
                             </button>
                             <button
                               onClick={() => openInvite(r)}
@@ -539,7 +541,7 @@ export default function ClientRequests() {
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                               </svg>
-                              Invitar
+                              {t('client.requests.invite')}
                             </button>
                           </>
                         )}
@@ -557,7 +559,7 @@ export default function ClientRequests() {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                               </svg>
                             )}
-                            Republicar
+                            {t('client.requests.republish')}
                           </button>
                         )}
                         
@@ -572,7 +574,7 @@ export default function ClientRequests() {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                            Eliminar
+                            {t('common.delete')}
                           </button>
                         )}
                       </div>
@@ -596,8 +598,8 @@ export default function ClientRequests() {
                 </svg>
               </div>
               <div>
-                <span className="text-lg font-semibold text-gray-900">Invitar profesionales</span>
-                <p className="text-sm text-gray-500 font-normal">Envía invitaciones directas a expertos</p>
+                <span className="text-lg font-semibold text-gray-900">{t('client.requests.inviteModal.title')}</span>
+                <p className="text-sm text-gray-500 font-normal">{t('client.requests.inviteModal.subtitle')}</p>
               </div>
             </div>
           }
@@ -607,7 +609,7 @@ export default function ClientRequests() {
                 onClick={() => setInviteOpen(false)}
                 className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-300"
               >
-                Cancelar
+                {t('common.cancel')}
               </button>
               <button
                 onClick={sendInvites}
@@ -621,7 +623,7 @@ export default function ClientRequests() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
                 )}
-                Enviar invitaciones
+                {t('client.requests.inviteModal.sendInvitations')}
               </button>
             </div>
           }
@@ -653,7 +655,7 @@ export default function ClientRequests() {
                 </div>
                 <input
                   className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-300"
-                  placeholder="Buscar por nombre o negocio..."
+                  placeholder={t('client.requests.inviteModal.searchPlaceholder')}
                   value={searchQ}
                   onChange={(e) => setSearchQ(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') runSearch(); }}
@@ -672,7 +674,7 @@ export default function ClientRequests() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 )}
-                Buscar
+                {t('common.search')}
               </button>
             </div>
 
@@ -685,7 +687,7 @@ export default function ClientRequests() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                   </div>
-                  <p className="text-sm text-gray-500">Usa la búsqueda para encontrar profesionales en tu zona.</p>
+                  <p className="text-sm text-gray-500">{t('client.requests.inviteModal.searchHint')}</p>
                 </div>
               )}
               {(Array.isArray(searchRes) ? searchRes : []).map((p) => {
@@ -718,7 +720,7 @@ export default function ClientRequests() {
                               {Number(rating).toFixed(1)}
                             </span>
                           )}
-                          {rating == null && <span className="text-gray-400">Sin rating</span>}
+                          {rating == null && <span className="text-gray-400">{t('client.requests.noRating')}</span>}
                         </div>
                       </div>
                     </div>
@@ -760,8 +762,8 @@ export default function ClientRequests() {
                 </svg>
               </div>
               <div>
-                <span className="text-lg font-semibold text-gray-900">Eliminar solicitud</span>
-                <p className="text-sm text-gray-500 font-normal">Esta acción no se puede deshacer</p>
+                <span className="text-lg font-semibold text-gray-900">{t('client.requests.deleteModal.title')}</span>
+                <p className="text-sm text-gray-500 font-normal">{t('client.requests.deleteModal.subtitle')}</p>
               </div>
             </div>
           }
@@ -772,7 +774,7 @@ export default function ClientRequests() {
                 disabled={deleting}
                 className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-300 disabled:opacity-50"
               >
-                Cancelar
+                {t('common.cancel')}
               </button>
               <button
                 onClick={confirmDelete}
@@ -786,7 +788,7 @@ export default function ClientRequests() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 )}
-                {deleting ? 'Eliminando...' : 'Sí, eliminar'}
+                {deleting ? t('client.requests.deleteModal.deleting') : t('client.requests.deleteModal.confirmDelete')}
               </button>
             </div>
           }
@@ -813,11 +815,11 @@ export default function ClientRequests() {
             </div>
 
             <div className="text-sm text-gray-600 space-y-2">
-              <p>¿Estás seguro de que deseas eliminar esta solicitud?</p>
+              <p>{t('client.requests.deleteModal.confirmQuestion')}</p>
               <ul className="list-disc list-inside text-gray-500 space-y-1">
-                <li>Se eliminarán todas las propuestas recibidas</li>
-                <li>Se notificará a los profesionales involucrados</li>
-                <li>Las imágenes adjuntas serán eliminadas</li>
+                <li>{t('client.requests.deleteModal.warning1')}</li>
+                <li>{t('client.requests.deleteModal.warning2')}</li>
+                <li>{t('client.requests.deleteModal.warning3')}</li>
               </ul>
             </div>
           </div>

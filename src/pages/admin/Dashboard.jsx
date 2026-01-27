@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
@@ -7,6 +8,7 @@ import Spinner from '@/components/ui/Spinner.jsx';
 import { HiChartBar, HiUsers, HiUserGroup, HiBriefcase, HiClipboardList, HiCalendar, HiShieldCheck, HiCurrencyDollar, HiTrendingUp, HiClock, HiCheckCircle, HiRefresh } from 'react-icons/hi';
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -20,7 +22,7 @@ export default function AdminDashboard() {
       const { data } = await api.get('/admin/dashboard');
       setData(data?.data || null);
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudo cargar el dashboard');
+      setError(e?.response?.data?.message || t('admin.dashboard.loadError'));
     } finally { setLoading(false); }
   };
 
@@ -40,7 +42,7 @@ export default function AdminDashboard() {
     return null;
   }
 
-  if (role !== 'admin') return <Alert type="warning">Solo administradores.</Alert>;
+  if (role !== 'admin') return <Alert type="warning">{t('admin.dashboard.adminOnly')}</Alert>;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -54,8 +56,8 @@ export default function AdminDashboard() {
               <HiChartBar className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold mb-1">Panel de Administración</h1>
-              <p className="text-indigo-200 text-sm">Vista general del sistema y métricas clave</p>
+              <h1 className="text-2xl font-bold mb-1">{t('admin.dashboard.title')}</h1>
+              <p className="text-indigo-200 text-sm">{t('admin.dashboard.subtitle')}</p>
             </div>
           </div>
           <button
@@ -64,7 +66,7 @@ export default function AdminDashboard() {
             className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl text-sm font-medium transition-all disabled:opacity-50"
           >
             <HiRefresh className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Actualizar
+            {t('admin.dashboard.refresh')}
           </button>
         </div>
       </div>
@@ -75,7 +77,7 @@ export default function AdminDashboard() {
           <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center animate-pulse">
             <Spinner size="sm" className="text-white" />
           </div>
-          <span className="text-gray-600 font-medium">Cargando dashboard...</span>
+          <span className="text-gray-600 font-medium">{t('admin.dashboard.loading')}</span>
         </div>
       )}
 
@@ -89,37 +91,37 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <StatCard
               icon={<HiUsers className="w-6 h-6" />}
-              label="Total Usuarios"
+              label={t('admin.dashboard.stats.totalUsers')}
               value={data.overview?.totalUsers}
               gradient="from-blue-500 to-indigo-500"
             />
             <StatCard
               icon={<HiBriefcase className="w-6 h-6" />}
-              label="Proveedores"
+              label={t('admin.dashboard.stats.providers')}
               value={data.overview?.totalProviders}
               gradient="from-brand-500 to-cyan-500"
             />
             <StatCard
               icon={<HiUserGroup className="w-6 h-6" />}
-              label="Clientes"
+              label={t('admin.dashboard.stats.clients')}
               value={data.overview?.totalClients}
               gradient="from-emerald-500 to-teal-500"
             />
             <StatCard
               icon={<HiClipboardList className="w-6 h-6" />}
-              label="Solicitudes"
+              label={t('admin.dashboard.stats.requests')}
               value={data.overview?.totalServiceRequests}
               gradient="from-amber-500 to-orange-500"
             />
             <StatCard
               icon={<HiCalendar className="w-6 h-6" />}
-              label="Reservas"
+              label={t('admin.dashboard.stats.bookings')}
               value={data.overview?.totalBookings}
               gradient="from-pink-500 to-rose-500"
             />
             <StatCard
               icon={<HiShieldCheck className="w-6 h-6" />}
-              label="En Moderación"
+              label={t('admin.dashboard.stats.pendingModeration')}
               value={data.overview?.pendingModeration}
               gradient="from-red-500 to-pink-500"
               highlight={data.overview?.pendingModeration > 0}
@@ -134,32 +136,35 @@ export default function AdminDashboard() {
                   <HiCurrencyDollar className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Ingresos</h2>
-                  <p className="text-sm text-gray-500">Resumen financiero del sistema</p>
+                  <h2 className="text-lg font-bold text-gray-900">{t('admin.dashboard.revenue.title')}</h2>
+                  <p className="text-sm text-gray-500">{t('admin.dashboard.revenue.subtitle')}</p>
                 </div>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-100">
               <RevenueCard
-                title="Mes Actual"
+                title={t('admin.dashboard.revenue.currentMonth')}
                 total={data.revenue?.currentMonth?.total}
                 commission={data.revenue?.currentMonth?.commission}
                 icon={<HiTrendingUp className="w-5 h-5" />}
                 gradient="from-emerald-500 to-teal-500"
+                t={t}
               />
               <RevenueCard
-                title="Mes Anterior"
+                title={t('admin.dashboard.revenue.lastMonth')}
                 total={data.revenue?.lastMonth?.total}
                 commission={data.revenue?.lastMonth?.commission}
                 icon={<HiClock className="w-5 h-5" />}
                 gradient="from-blue-500 to-indigo-500"
+                t={t}
               />
               <RevenueCard
-                title="Histórico Total"
+                title={t('admin.dashboard.revenue.allTime')}
                 total={data.revenue?.allTime?.total}
                 commission={data.revenue?.allTime?.commission}
                 icon={<HiCheckCircle className="w-5 h-5" />}
                 gradient="from-purple-500 to-pink-500"
+                t={t}
               />
             </div>
           </div>
@@ -173,12 +178,12 @@ export default function AdminDashboard() {
                     <HiClock className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-gray-900">Actividad Reciente</h2>
-                    <p className="text-sm text-gray-500">Últimas reservas del sistema</p>
+                    <h2 className="text-lg font-bold text-gray-900">{t('admin.dashboard.recentActivity.title')}</h2>
+                    <p className="text-sm text-gray-500">{t('admin.dashboard.recentActivity.subtitle')}</p>
                   </div>
                 </div>
                 <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">
-                  {data.recentActivity?.length || 0} registros
+                  {data.recentActivity?.length || 0} {t('admin.dashboard.recentActivity.records')}
                 </span>
               </div>
             </div>
@@ -192,7 +197,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="min-w-0">
                         <p className="font-medium text-gray-900 truncate">
-                          {b?.serviceRequest?.basicInfo?.title || 'Reserva'}
+                          {b?.serviceRequest?.basicInfo?.title || t('admin.dashboard.recentActivity.booking')}
                         </p>
                         <p className="text-sm text-gray-500">
                           {new Date(b.createdAt).toLocaleString('es-AR', { 
@@ -205,7 +210,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <span className={`px-2.5 py-1 text-xs font-semibold rounded-full shrink-0 ${getStatusStyle(b.status).badge}`}>
-                      {getStatusLabel(b.status)}
+                      {t(`admin.dashboard.status.${b.status}`)}
                     </span>
                   </div>
                 </div>
@@ -215,8 +220,8 @@ export default function AdminDashboard() {
                   <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
                     <HiClock className="w-8 h-8 text-gray-400" />
                   </div>
-                  <p className="text-gray-500 font-medium">Sin actividad reciente</p>
-                  <p className="text-sm text-gray-400 mt-1">Las nuevas reservas aparecerán aquí</p>
+                  <p className="text-gray-500 font-medium">{t('admin.dashboard.recentActivity.empty')}</p>
+                  <p className="text-sm text-gray-400 mt-1">{t('admin.dashboard.recentActivity.emptyHint')}</p>
                 </div>
               )}
             </div>
@@ -230,8 +235,8 @@ export default function AdminDashboard() {
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
             <HiChartBar className="w-8 h-8 text-white" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">Sin datos disponibles</h3>
-          <p className="text-gray-500 text-sm">No se pudieron cargar las estadísticas del dashboard.</p>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">{t('admin.dashboard.noData.title')}</h3>
+          <p className="text-gray-500 text-sm">{t('admin.dashboard.noData.subtitle')}</p>
         </div>
       )}
     </div>
@@ -250,7 +255,7 @@ function StatCard({ icon, label, value, gradient, highlight }) {
   );
 }
 
-function RevenueCard({ title, total, commission, icon, gradient }) {
+function RevenueCard({ title, total, commission, icon, gradient, t }) {
   return (
     <div className="p-6">
       <div className="flex items-center gap-2 mb-4">
@@ -261,13 +266,13 @@ function RevenueCard({ title, total, commission, icon, gradient }) {
       </div>
       <div className="space-y-3">
         <div>
-          <p className="text-xs text-gray-500 mb-1">Ingresos totales</p>
+          <p className="text-xs text-gray-500 mb-1">{t('admin.dashboard.revenue.totalRevenue')}</p>
           <p className="text-2xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
             {fmtCurrency(total)}
           </p>
         </div>
         <div className="pt-3 border-t border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Comisión plataforma</p>
+          <p className="text-xs text-gray-500 mb-1">{t('admin.dashboard.revenue.platformCommission')}</p>
           <p className="text-lg font-semibold text-emerald-600">{fmtCurrency(commission)}</p>
         </div>
       </div>
@@ -283,16 +288,6 @@ function getStatusStyle(status) {
     cancelled: { bg: 'bg-red-100', text: 'text-red-600', badge: 'bg-red-100 text-red-700' },
   };
   return styles[status] || { bg: 'bg-gray-100', text: 'text-gray-600', badge: 'bg-gray-100 text-gray-700' };
-}
-
-function getStatusLabel(status) {
-  const labels = {
-    completed: 'Completado',
-    confirmed: 'Confirmado',
-    in_progress: 'En progreso',
-    cancelled: 'Cancelado',
-  };
-  return labels[status] || status;
 }
 
 function fmtCurrency(v) {

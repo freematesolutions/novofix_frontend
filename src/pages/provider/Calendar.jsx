@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
@@ -7,6 +8,7 @@ import { useAuth } from '@/state/AuthContext.jsx';
 
 export default function Calendar() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { viewRole, clearError, isAuthenticated, isRoleSwitching } = useAuth();
   const [date, setDate] = useState(() => new Date().toISOString().slice(0,10));
   const [loading, setLoading] = useState(false);
@@ -22,7 +24,7 @@ export default function Calendar() {
   const { data } = await api.get('/provider/services/availability/slots', { params: { date: d } });
       setSlots(data?.data?.slots || []);
     } catch (err) {
-      setError(err?.response?.data?.message || 'No se pudieron cargar los horarios');
+      setError(err?.response?.data?.message || t('provider.calendar.errorLoading'));
     } finally { setLoading(false); }
   }, [isAuthenticated]);
 
@@ -45,7 +47,7 @@ export default function Calendar() {
   }
 
   if (viewRole !== 'provider') {
-    return <Alert type="warning">Esta sección es para proveedores.</Alert>;
+    return <Alert type="warning">{t('provider.calendar.providerOnly')}</Alert>;
   }
 
   return (
@@ -63,8 +65,8 @@ export default function Calendar() {
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Calendario de disponibilidad</h1>
-            <p className="text-sm sm:text-base text-brand-100">Consulta tus horarios disponibles por fecha</p>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">{t('provider.calendar.title')}</h1>
+            <p className="text-sm sm:text-base text-brand-100">{t('provider.calendar.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -79,7 +81,7 @@ export default function Calendar() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900">Seleccionar fecha</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('provider.calendar.selectDate')}</h3>
         </div>
         
         <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
@@ -88,7 +90,7 @@ export default function Calendar() {
               <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Fecha
+              {t('provider.calendar.date')}
             </label>
             <input 
               type="date" 
@@ -106,12 +108,12 @@ export default function Calendar() {
             {loading ? (
               <>
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                Cargando...
+                {t('provider.calendar.loading')}
               </>
             ) : (
               <>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                Cargar horarios
+                {t('provider.calendar.loadSlots')}
               </>
             )}
           </button>
@@ -128,9 +130,9 @@ export default function Calendar() {
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Horarios disponibles</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('provider.calendar.availableSlots')}</h3>
               {slots.length > 0 && (
-                <p className="text-sm text-gray-500">{slots.length} horario{slots.length !== 1 ? 's' : ''} disponible{slots.length !== 1 ? 's' : ''}</p>
+                <p className="text-sm text-gray-500">{t('provider.calendar.slotsCount', { count: slots.length })}</p>
               )}
             </div>
           </div>
@@ -138,7 +140,7 @@ export default function Calendar() {
           {slots.length > 0 && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-100">
               <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span className="text-xs font-medium text-emerald-700">Disponible</span>
+              <span className="text-xs font-medium text-emerald-700">{t('provider.calendar.available')}</span>
             </div>
           )}
         </div>
@@ -147,7 +149,7 @@ export default function Calendar() {
           <div className="flex items-center justify-center py-12">
             <div className="flex flex-col items-center gap-3">
               <div className="w-10 h-10 rounded-full border-4 border-brand-100 border-t-brand-500 animate-spin" />
-              <p className="text-sm text-gray-500">Cargando horarios...</p>
+              <p className="text-sm text-gray-500">{t('provider.calendar.loadingSlots')}</p>
             </div>
           </div>
         ) : slots.length === 0 ? (
@@ -157,9 +159,9 @@ export default function Calendar() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h4 className="text-lg font-medium text-gray-900 mb-1">Sin horarios disponibles</h4>
+            <h4 className="text-lg font-medium text-gray-900 mb-1">{t('provider.calendar.noSlots')}</h4>
             <p className="text-sm text-gray-500 text-center max-w-sm">
-              No hay horarios disponibles para la fecha seleccionada. Prueba con otra fecha.
+              {t('provider.calendar.noSlotsDescription')}
             </p>
           </div>
         ) : (

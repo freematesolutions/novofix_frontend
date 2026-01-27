@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useProviderOnboarding } from '@/state/ProviderOnboardingContext.jsx';
 import IdentityStep from './steps/IdentityStep.jsx';
 import OfferingStep from './steps/OfferingStep.jsx';
@@ -73,42 +74,43 @@ const Icons = {
   )
 };
 
-const STEPS = [
+const getSteps = (t) => [
   { 
     id: 'identity', 
-    title: 'Identidad',
-    fullTitle: 'Identidad profesional',
-    description: 'Información básica de tu negocio',
+    title: t('onboarding.steps.identity.title'),
+    fullTitle: t('onboarding.steps.identity.fullTitle'),
+    description: t('onboarding.steps.identity.description'),
     icon: Icons.User,
     component: IdentityStep 
   },
   { 
     id: 'offering', 
-    title: 'Servicios',
-    fullTitle: 'Tu oferta de servicios',
-    description: 'Qué ofreces a tus clientes',
+    title: t('onboarding.steps.offering.title'),
+    fullTitle: t('onboarding.steps.offering.fullTitle'),
+    description: t('onboarding.steps.offering.description'),
     icon: Icons.Briefcase,
     component: OfferingStep 
   },
   { 
     id: 'coverage', 
-    title: 'Cobertura',
-    fullTitle: 'Zona de cobertura',
-    description: 'Zona de servicio y disponibilidad',
+    title: t('onboarding.steps.coverage.title'),
+    fullTitle: t('onboarding.steps.coverage.fullTitle'),
+    description: t('onboarding.steps.coverage.description'),
     icon: Icons.MapPin,
     component: CoverageStep 
   },
   { 
     id: 'review', 
-    title: 'Revisión',
-    fullTitle: 'Revisión final',
-    description: 'Confirma y activa tu perfil',
+    title: t('onboarding.steps.review.title'),
+    fullTitle: t('onboarding.steps.review.fullTitle'),
+    description: t('onboarding.steps.review.description'),
     icon: Icons.CheckCircle,
     component: ReviewStep 
   }
 ];
 
 export default function ProviderOnboardingWizard() {
+  const { t } = useTranslation();
   const { 
     currentStep, 
     completedSteps, 
@@ -118,6 +120,7 @@ export default function ProviderOnboardingWizard() {
     goToStep
   } = useProviderOnboarding();
 
+  const STEPS = getSteps(t);
   const currentStepData = STEPS[currentStep];
   const StepComponent = currentStepData?.component;
   const StepIcon = currentStepData?.icon;
@@ -136,10 +139,10 @@ export default function ProviderOnboardingWizard() {
     if (canAccess) {
       goToStep(targetIndex);
     } else {
-      const previousStepTitle = STEPS[targetIndex - 1]?.title || 'paso anterior';
+      const previousStepTitle = STEPS[targetIndex - 1]?.title || t('onboarding.previousStep');
       setToast({
         show: true,
-        message: `Debes completar "${previousStepTitle}" antes de continuar`,
+        message: t('onboarding.completeStepFirst', { step: previousStepTitle }),
         type: 'error'
       });
       setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
@@ -175,7 +178,7 @@ export default function ProviderOnboardingWizard() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">
-                  Paso {currentStep + 1} de {STEPS.length}
+                  {t('onboarding.stepProgress', { current: currentStep + 1, total: STEPS.length })}
                 </h3>
                 <p className="text-xs text-gray-500">{currentStepData.fullTitle}</p>
               </div>
@@ -237,10 +240,10 @@ export default function ProviderOnboardingWizard() {
                       focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                     `}
                     title={
-                      isCurrent ? `Paso actual: ${step.title}` :
-                      isCompleted ? `Completado: ${step.title}` :
-                      canNavigate ? `Ir a: ${step.title}` :
-                      `Completa el paso anterior para acceder a: ${step.title}`
+                      isCurrent ? t('onboarding.tooltip.currentStep', { step: step.title }) :
+                      isCompleted ? t('onboarding.tooltip.completed', { step: step.title }) :
+                      canNavigate ? t('onboarding.tooltip.goTo', { step: step.title }) :
+                      t('onboarding.tooltip.completeFirst', { step: step.title })
                     }
                   >
                     {isCompleted ? (
@@ -272,12 +275,12 @@ export default function ProviderOnboardingWizard() {
           </div>
           
           <h1 className="text-3xl font-bold bg-linear-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-2">
-            {isExistingClient ? 'Activa tu perfil de proveedor' : 'Únete como profesional'}
+            {isExistingClient ? t('onboarding.activateProviderProfile') : t('onboarding.joinAsProfessional')}
           </h1>
           <p className="text-gray-600 max-w-md mx-auto">
             {isExistingClient 
-              ? 'Completa tu información para empezar a recibir solicitudes'
-              : 'Crea tu perfil profesional y conecta con clientes'
+              ? t('onboarding.completeInfoToReceiveRequests')
+              : t('onboarding.createProfileAndConnect')
             }
           </p>
           
@@ -285,7 +288,7 @@ export default function ProviderOnboardingWizard() {
           <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full">
             <Icons.Clock className="w-4 h-4 text-amber-600" />
             <span className="text-sm font-medium text-amber-700">
-              ~{estimatedMinutes} {estimatedMinutes === 1 ? 'minuto' : 'minutos'} restantes
+              {t('onboarding.estimatedTimeRemaining', { count: estimatedMinutes })}
             </span>
           </div>
         </div>
@@ -329,9 +332,9 @@ export default function ProviderOnboardingWizard() {
               <Icons.Save className="w-4 h-4 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-blue-800">Guardado automático</p>
+              <p className="text-sm font-medium text-blue-800">{t('onboarding.autoSave.title')}</p>
               <p className="text-xs text-blue-600 mt-0.5">
-                Tu progreso se guarda automáticamente. Puedes continuar después.
+                {t('onboarding.autoSave.description')}
               </p>
             </div>
           </div>
@@ -344,9 +347,9 @@ export default function ProviderOnboardingWizard() {
               <Icons.Help className="w-4 h-4 text-gray-600 group-hover:text-brand-600 transition-colors" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-800">¿Necesitas ayuda?</p>
+              <p className="text-sm font-medium text-gray-800">{t('onboarding.help.title')}</p>
               <p className="text-xs text-gray-600 mt-0.5">
-                Contáctanos si tienes alguna duda
+                {t('onboarding.help.description')}
               </p>
             </div>
           </a>
@@ -356,15 +359,15 @@ export default function ProviderOnboardingWizard() {
         <div className="mt-6 flex items-center justify-center gap-6 flex-wrap">
           <div className="flex items-center gap-2 text-gray-500">
             <Icons.Shield className="w-4 h-4" />
-            <span className="text-xs">Datos protegidos</span>
+            <span className="text-xs">{t('onboarding.badges.dataProtected')}</span>
           </div>
           <div className="flex items-center gap-2 text-gray-500">
             <Icons.CheckCircle className="w-4 h-4" />
-            <span className="text-xs">Verificación rápida</span>
+            <span className="text-xs">{t('onboarding.badges.fastVerification')}</span>
           </div>
           <div className="flex items-center gap-2 text-gray-500">
             <Icons.Sparkles className="w-4 h-4" />
-            <span className="text-xs">100% gratuito</span>
+            <span className="text-xs">{t('onboarding.badges.free')}</span>
           </div>
         </div>
       </div>

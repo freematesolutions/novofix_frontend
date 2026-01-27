@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
@@ -11,22 +12,23 @@ import { compressImages, validateFiles } from '@/utils/fileCompression.js';
 import UploadProgress from '@/components/ui/UploadProgress.jsx';
 
 const PROVIDER_STATUSES = [
-  { value: 'provider_en_route', label: 'En camino' },
-  { value: 'in_progress', label: 'En progreso' },
-  { value: 'completed', label: 'Completado' },
-  { value: 'cancelled', label: 'Cancelado' }
+  { value: 'provider_en_route', labelKey: 'shared.bookings.status.providerEnRoute' },
+  { value: 'in_progress', labelKey: 'shared.bookings.status.inProgress' },
+  { value: 'completed', labelKey: 'shared.bookings.status.completed' },
+  { value: 'cancelled', labelKey: 'shared.bookings.status.cancelled' }
 ];
 
 // Mapa de transiciones válidas y botón principal según estado actual
 const STATUS_FLOW = {
-  confirmed: { next: 'provider_en_route', label: 'Estoy en camino', icon: '🚗' },
-  provider_en_route: { next: 'in_progress', label: 'Iniciar servicio', icon: '🔧' },
-  in_progress: { next: 'completed', label: 'Marcar completado', icon: '✅' },
+  confirmed: { next: 'provider_en_route', labelKey: 'shared.bookings.actions.onMyWay', icon: '🚗' },
+  provider_en_route: { next: 'in_progress', labelKey: 'shared.bookings.actions.startService', icon: '🔧' },
+  in_progress: { next: 'completed', labelKey: 'shared.bookings.actions.markCompleted', icon: '✅' },
   completed: null,
   cancelled: null
 };
 
 export default function Bookings() {
+  const { t } = useTranslation();
   const { viewRole, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
@@ -140,7 +142,7 @@ export default function Bookings() {
         });
       }
     } catch (err) {
-      setError(err?.response?.data?.message || 'No se pudieron cargar las reservas');
+      setError(err?.response?.data?.message || t('shared.bookings.errors.loadFailed'));
     } finally { setLoading(false); }
   };
   const openResponse = (review) => {
@@ -159,17 +161,17 @@ export default function Bookings() {
 
   const handleSubmitResponse = async () => {
     if (!responseReview || !responseComment.trim()) {
-      toast.warning('Escribe una respuesta');
+      toast.warning(t('shared.bookings.validation.writeResponse'));
       return;
     }
     setResponseLoading(true);
     try {
       if (responseMode === 'edit') {
         await api.patch(`/reviews/${responseReview._id}/response`, { comment: responseComment });
-        toast.success('Respuesta actualizada');
+        toast.success(t('shared.bookings.success.responseUpdated'));
       } else {
         await api.put(`/reviews/${responseReview._id}/response`, { comment: responseComment });
-        toast.success('Respuesta publicada');
+        toast.success(t('shared.bookings.success.responsePublished'));
       }
       // Actualizar en memoria
       const bookingId = responseReview.booking;
@@ -184,7 +186,7 @@ export default function Bookings() {
   try { await loadSingleReview(bookingId); } catch { /* noop */ }
       setResponseOpen(false);
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'No se pudo publicar la respuesta');
+      toast.error(err?.response?.data?.message || t('shared.bookings.errors.responsePublishFailed'));
     } finally {
       setResponseLoading(false);
     }
@@ -192,7 +194,7 @@ export default function Bookings() {
 
   const handleDeleteResponse = async (review) => {
     if (!review) return;
-    if (!window.confirm('¿Eliminar tu respuesta?')) return;
+    if (!window.confirm(t('shared.bookings.confirm.deleteResponse'))) return;
     try {
       await api.delete(`/reviews/${review._id}/response`);
       const bookingId = review.booking;
@@ -203,11 +205,11 @@ export default function Bookings() {
           providerResponse: undefined
         }
       }));
-      toast.success('Respuesta eliminada');
+      toast.success(t('shared.bookings.success.responseDeleted'));
       // Refrescar estado de la review
   try { await loadSingleReview(bookingId); } catch { /* noop */ }
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'No se pudo eliminar');
+      toast.error(err?.response?.data?.message || t('shared.bookings.errors.deleteFailed'));
     }
   };
 
@@ -333,7 +335,7 @@ export default function Bookings() {
   const handleUploadEvidence = async () => {
     if (!evidenceBooking) return;
     if (!evidenceFiles || evidenceFiles.length === 0) {
-      toast.warning('Selecciona al menos un archivo');
+      toast.warning(t('shared.bookings.validation.selectFile'));
       return;
     }
     
@@ -351,7 +353,7 @@ export default function Bookings() {
           show: true,
           progress: 0,
           fileName: '',
-          message: 'Comprimiendo imágenes...',
+          message: t('shared.bookings.progress.compressing'),
           totalFiles,
           currentFile: 0,
           status: 'compressing'
@@ -386,7 +388,7 @@ export default function Bookings() {
           show: true,
           progress: 0,
           fileName: processedFiles[0]?.name || '',
-          message: 'Preparando subida de videos...',
+          message: t('shared.bookings.progress.preparingVideos'),
           totalFiles,
           currentFile: 0,
           status: 'uploading'
@@ -397,7 +399,7 @@ export default function Bookings() {
       setEvidenceProgress(prev => ({
         ...prev,
         progress: 20,
-        message: hasVideos ? 'Subiendo archivos (videos pueden tardar más)...' : 'Subiendo archivos...',
+        message: hasVideos ? t('shared.bookings.progress.uploadingWithVideos') : t('shared.bookings.progress.uploading'),
         status: 'uploading',
         fileName: processedFiles[0]?.name || ''
       }));
@@ -420,20 +422,20 @@ export default function Bookings() {
           setEvidenceProgress(prev => ({
             ...prev,
             progress: Math.min(adjustedProgress, 90),
-            message: hasVideos ? 'Subiendo archivos...' : 'Subiendo imágenes...'
+            message: hasVideos ? t('shared.bookings.progress.uploading') : t('shared.bookings.progress.uploadingImages')
           }));
         }
       });
 
       const uploaded = upRes?.data?.data?.files || upRes?.data?.files || [];
       const urls = uploaded.map((u) => u.secureUrl || u.url).filter(Boolean);
-      if (urls.length === 0) throw new Error('No se obtuvieron URLs de evidencia');
+      if (urls.length === 0) throw new Error(t('shared.bookings.errors.noEvidenceUrls'));
 
       // 3. Registrar evidencia en el booking
       setEvidenceProgress(prev => ({
         ...prev,
         progress: 95,
-        message: 'Guardando evidencia...',
+        message: t('shared.bookings.progress.saving'),
         status: 'processing'
       }));
 
@@ -448,7 +450,7 @@ export default function Bookings() {
         show: true,
         progress: 100,
         fileName: '',
-        message: '¡Evidencia subida correctamente!',
+        message: t('shared.bookings.success.evidenceUploaded'),
         totalFiles,
         currentFile: totalFiles,
         status: 'success'
@@ -457,7 +459,7 @@ export default function Bookings() {
       setTimeout(() => {
         setEvidenceProgress(prev => ({ ...prev, show: false }));
         setEvidenceOpen(false);
-        toast.success(`${urls.length} archivo(s) de evidencia subido(s)`);
+        toast.success(t('shared.bookings.success.filesUploaded', { count: urls.length }));
         load();
       }, 1500);
       
@@ -466,12 +468,12 @@ export default function Bookings() {
         show: true,
         progress: 0,
         fileName: '',
-        message: 'Error al subir evidencia',
+        message: t('shared.bookings.errors.evidenceUploadFailed'),
         totalFiles,
         currentFile: 0,
         status: 'error'
       });
-      toast.error(err?.response?.data?.message || err?.message || 'Error al subir evidencia');
+      toast.error(err?.response?.data?.message || err?.message || t('shared.bookings.errors.evidenceUploadFailed'));
       setTimeout(() => {
         setEvidenceProgress(prev => ({ ...prev, show: false }));
       }, 3000);
@@ -493,7 +495,7 @@ export default function Bookings() {
   const handleSubmitReview = async () => {
     if (!reviewBooking) return;
     if (!reviewComment.trim()) {
-      toast.warning('El comentario es obligatorio');
+      toast.warning(t('shared.bookings.validation.commentRequired'));
       return;
     }
     setReviewLoading(true);
@@ -553,7 +555,7 @@ export default function Bookings() {
         photos
       };
       await api.post(`/bookings/${reviewBooking._id}/reviews`, payload);
-      toast.success('¡Gracias por tu reseña!');
+      toast.success(t('shared.bookings.success.reviewThanks'));
       setReviewOpen(false);
       // Ocultar CTA para este booking en esta sesión
       setReviewedIds((prev)=> new Set(prev).add(reviewBooking._id));
@@ -566,7 +568,7 @@ export default function Bookings() {
         }
   } catch { /* noop */ }
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || 'No se pudo crear la reseña';
+      const msg = err?.response?.data?.message || err?.message || t('shared.bookings.errors.reviewFailed');
       toast.error(msg);
     } finally {
       setReviewLoading(false);
@@ -585,7 +587,7 @@ export default function Bookings() {
   }
 
   if (!isProvider && !isClient) {
-    return <Alert type="warning">Esta sección es para clientes y proveedores.</Alert>;
+    return <Alert type="warning">{t('shared.bookings.errors.roleRequired')}</Alert>;
   }
 
   const updateStatus = async (bookingId, status) => {
@@ -594,13 +596,13 @@ export default function Bookings() {
     try {
       const { data } = await api.put(`/provider/proposals/bookings/${bookingId}/status`, { status });
       if (data?.success) {
-        toast.success('Estado actualizado');
+        toast.success(t('shared.bookings.success.statusUpdated'));
         load();
       } else {
-        toast.warning(data?.message || 'No se pudo actualizar');
+        toast.warning(data?.message || t('shared.bookings.errors.updateFailed'));
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Error al actualizar estado');
+      toast.error(err?.response?.data?.message || t('shared.bookings.errors.updateStatusError'));
     } finally { setUpdating(''); }
   };
 
@@ -610,13 +612,13 @@ export default function Bookings() {
     try {
       const { data } = await api.post(`/client/bookings/${bookingId}/confirm-completion`);
       if (data?.success) {
-        toast.success('Servicio confirmado. ¡Gracias!');
+        toast.success(t('shared.bookings.success.serviceConfirmed'));
         load();
       } else {
-        toast.warning(data?.message || 'No se pudo confirmar');
+        toast.warning(data?.message || t('shared.bookings.errors.confirmFailed'));
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Error al confirmar');
+      toast.error(err?.response?.data?.message || t('shared.bookings.errors.confirmError'));
     } finally { setUpdating(''); }
   };
 
@@ -652,12 +654,12 @@ export default function Bookings() {
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold">
-                  {isProvider ? 'Mis Reservas' : 'Servicios Reservados'}
+                  {isProvider ? t('shared.bookings.title.provider') : t('shared.bookings.title.client')}
                 </h1>
                 <p className={`text-sm mt-0.5 ${isProvider ? 'text-brand-100' : 'text-emerald-100'}`}>
                   {isProvider 
-                    ? 'Gestiona el estado de tus trabajos programados' 
-                    : 'Revisa el progreso y confirma la finalización de tus servicios contratados'}
+                    ? t('shared.bookings.subtitle.provider') 
+                    : t('shared.bookings.subtitle.client')}
                 </p>
               </div>
             </div>
@@ -666,7 +668,7 @@ export default function Bookings() {
             <div className="hidden sm:flex items-center gap-4 sm:gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-white">{filtered.length}</div>
-                <div className="text-xs text-white/80 font-medium">Total</div>
+                <div className="text-xs text-white/80 font-medium">{t('shared.bookings.stats.total')}</div>
               </div>
               <div className="w-px h-8 bg-white/30"></div>
               <div className="text-center">
@@ -677,7 +679,7 @@ export default function Bookings() {
                   }
                 </div>
                 <div className="text-xs text-white/80 font-medium">
-                  {isProvider ? 'Pendientes' : 'Completadas'}
+                  {isProvider ? t('shared.bookings.stats.pending') : t('shared.bookings.stats.completed')}
                 </div>
               </div>
             </div>
@@ -693,19 +695,19 @@ export default function Bookings() {
                 <svg className="w-3.5 h-3.5 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Estado
+                {t('shared.bookings.filters.status')}
               </label>
               <select 
                 className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300 min-w-45" 
                 value={statusFilter} 
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <option value="">Todos los estados</option>
-                <option value="confirmed">✓ Confirmado</option>
-                <option value="provider_en_route">🚗 En camino</option>
-                <option value="in_progress">⚡ En progreso</option>
-                <option value="completed">✅ Completado</option>
-                <option value="cancelled">❌ Cancelado</option>
+                <option value="">{t('shared.bookings.filters.allStatuses')}</option>
+                <option value="confirmed">✓ {t('shared.bookings.status.confirmed')}</option>
+                <option value="provider_en_route">🚗 {t('shared.bookings.status.providerEnRoute')}</option>
+                <option value="in_progress">⚡ {t('shared.bookings.status.inProgress')}</option>
+                <option value="completed">✅ {t('shared.bookings.status.completed')}</option>
+                <option value="cancelled">❌ {t('shared.bookings.status.cancelled')}</option>
               </select>
             </div>
             
@@ -716,7 +718,7 @@ export default function Bookings() {
                   <svg className="w-3.5 h-3.5 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  Desde
+                  {t('shared.bookings.filters.from')}
                 </label>
                 <input 
                   type="date" 
@@ -726,7 +728,7 @@ export default function Bookings() {
                 />
               </div>
               <div className="flex flex-col flex-1 sm:flex-initial">
-                <label className="text-xs font-medium text-gray-600 mb-1.5">Hasta</label>
+                <label className="text-xs font-medium text-gray-600 mb-1.5">{t('shared.bookings.filters.to')}</label>
                 <input 
                   type="date" 
                   className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300" 
@@ -742,12 +744,12 @@ export default function Bookings() {
                 <svg className="w-3.5 h-3.5 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Buscar
+                {t('shared.bookings.filters.search')}
               </label>
               <div className="relative">
                 <input 
                   type="text" 
-                  placeholder="Servicio, cliente o proveedor..." 
+                  placeholder={t('shared.bookings.filters.searchPlaceholder')} 
                   className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300" 
                   value={search} 
                   onChange={(e) => setSearch(e.target.value)} 
@@ -767,7 +769,7 @@ export default function Bookings() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Limpiar
+                {t('shared.bookings.filters.clear')}
               </button>
             )}
           </div>
@@ -784,7 +786,7 @@ export default function Bookings() {
                 <div className="w-8 h-8 rounded-full bg-teal-500/20"></div>
               </div>
             </div>
-            <p className="mt-4 text-gray-600 font-medium">Cargando reservas...</p>
+            <p className="mt-4 text-gray-600 font-medium">{t('shared.bookings.loading')}</p>
           </div>
         )}
 
@@ -798,11 +800,11 @@ export default function Bookings() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Sin reservas</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('shared.bookings.empty.title')}</h3>
               <p className="text-gray-500 max-w-md mx-auto mb-4">
                 {bookings.length === 0 
-                  ? 'No tienes reservas aún.'
-                  : 'No hay reservas que coincidan con los filtros seleccionados. Prueba ajustando los criterios de búsqueda.'}
+                  ? t('shared.bookings.empty.noBookings')
+                  : t('shared.bookings.empty.noResults')}
               </p>
             </div>
           </div>
@@ -810,11 +812,11 @@ export default function Bookings() {
         {filtered.map((b) => {
           // Status configuration for premium badges
           const statusConfig = {
-            pending: { color: 'from-amber-500 to-orange-500', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: '⏳', label: 'Pendiente' },
-            confirmed: { color: 'from-blue-500 to-cyan-500', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: '✓', label: 'Confirmada' },
-            in_progress: { color: 'from-indigo-500 to-purple-500', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', icon: '🔄', label: 'En progreso' },
-            completed: { color: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: '✅', label: 'Completada' },
-            cancelled: { color: 'from-red-500 to-rose-500', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: '✗', label: 'Cancelada' },
+            pending: { color: 'from-amber-500 to-orange-500', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: '⏳', labelKey: 'shared.bookings.status.pending' },
+            confirmed: { color: 'from-blue-500 to-cyan-500', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: '✓', labelKey: 'shared.bookings.status.confirmed' },
+            in_progress: { color: 'from-indigo-500 to-purple-500', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', icon: '🔄', labelKey: 'shared.bookings.status.inProgress' },
+            completed: { color: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: '✅', labelKey: 'shared.bookings.status.completed' },
+            cancelled: { color: 'from-red-500 to-rose-500', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: '✗', labelKey: 'shared.bookings.status.cancelled' },
           };
           const currentStatus = statusConfig[b.status] || statusConfig.pending;
           
@@ -838,7 +840,7 @@ export default function Bookings() {
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${currentStatus.bg} ${currentStatus.text} ${currentStatus.border} border`}>
                           <span>{currentStatus.icon}</span>
-                          {currentStatus.label}
+                          {t(currentStatus.labelKey)}
                         </span>
                       </div>
                     </div>
@@ -876,12 +878,12 @@ export default function Bookings() {
                         <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        Evidencias del servicio
+                        {t('shared.bookings.evidence.title')}
                       </div>
                       {['before','during','after'].map((section)=>{
                         const items = b.serviceEvidence?.[section] || [];
                         if (!items.length) return null;
-                        const label = section === 'before' ? 'Antes' : section === 'during' ? 'Durante' : 'Después';
+                        const label = section === 'before' ? t('shared.bookings.evidence.before') : section === 'during' ? t('shared.bookings.evidence.during') : t('shared.bookings.evidence.after');
                         const sectionColor = section === 'before' ? 'amber' : section === 'during' ? 'blue' : 'emerald';
                         return (
                           <div key={section}>
@@ -930,7 +932,7 @@ export default function Bookings() {
                 <div className="lg:col-span-4 space-y-4">
                   {/* Pricing card */}
                   <div className="p-4 rounded-xl bg-linear-to-br from-emerald-50/80 via-teal-50/50 to-cyan-50/30 border border-emerald-100/50">
-                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Monto total</div>
+                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">{t('shared.bookings.pricing.totalAmount')}</div>
                     <div className="text-2xl font-bold bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                       {b.proposal?.pricing?.amount ? Intl.NumberFormat('es-AR',{style:'currency', currency: b.proposal?.pricing?.currency || 'USD'}).format(b.proposal.pricing.amount) : '—'}
                     </div>
@@ -943,7 +945,7 @@ export default function Bookings() {
                         {(b.provider?.providerProfile?.businessName || '?')[0].toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs text-gray-500">Proveedor</div>
+                        <div className="text-xs text-gray-500">{t('shared.bookings.participants.provider')}</div>
                         <div className="text-sm font-medium text-gray-900 truncate">{b.provider?.providerProfile?.businessName || '—'}</div>
                       </div>
                     </div>
@@ -952,7 +954,7 @@ export default function Bookings() {
                         {(b.client?.profile?.firstName || b.client?.email || '?')[0].toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs text-gray-500">Cliente</div>
+                        <div className="text-xs text-gray-500">{t('shared.bookings.participants.client')}</div>
                         <div className="text-sm font-medium text-gray-900 truncate">{b.client?.profile?.firstName || b.client?.email || '—'}</div>
                       </div>
                     </div>
@@ -964,14 +966,14 @@ export default function Bookings() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                          <span className="text-sm font-medium text-gray-700">Reseña del servicio</span>
+                          <span className="text-sm font-medium text-gray-700">{t('shared.bookings.review.serviceReview')}</span>
                         </div>
                         {reviewsByBooking[b._id].status === 'flagged' && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">En moderación</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">{t('shared.bookings.review.inModeration')}</span>
                         )}
                       </div>
                       {reviewsByBooking[b._id].status === 'flagged' && (
-                        <div className="text-[11px] text-amber-600 mb-2 p-2 rounded-lg bg-amber-100/50">Esta reseña está en moderación.</div>
+                        <div className="text-[11px] text-amber-600 mb-2 p-2 rounded-lg bg-amber-100/50">{t('shared.bookings.review.moderationNote')}</div>
                       )}
                       <div className="flex items-center gap-1 text-lg font-bold text-amber-600 mb-1">
                         {reviewsByBooking[b._id].rating?.overall || '—'}
@@ -982,20 +984,20 @@ export default function Bookings() {
                       )}
                       {reviewsByBooking[b._id].providerResponse?.comment ? (
                         <div className="mt-3 p-3 rounded-lg bg-white/80 border border-gray-100">
-                          <div className="text-xs font-medium text-gray-500 mb-1">Respuesta del proveedor</div>
+                          <div className="text-xs font-medium text-gray-500 mb-1">{t('shared.bookings.review.providerResponse')}</div>
                           <p className="text-xs text-gray-700">{reviewsByBooking[b._id].providerResponse.comment}</p>
                           <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-400">
                             {reviewsByBooking[b._id].providerResponse.respondedAt && (
                               <span>{new Date(reviewsByBooking[b._id].providerResponse.respondedAt).toLocaleDateString()}</span>
                             )}
                             {reviewsByBooking[b._id].providerResponse.editedAt && (
-                              <span className="italic">(editado)</span>
+                              <span className="italic">({t('shared.bookings.review.edited')})</span>
                             )}
                           </div>
                           {isProvider && (
                             <div className="mt-2 flex items-center gap-2">
-                              <button onClick={()=> openEditResponse(reviewsByBooking[b._id])} className="text-xs text-teal-600 hover:text-teal-700 font-medium hover:underline">Editar</button>
-                              <button onClick={()=> handleDeleteResponse(reviewsByBooking[b._id])} className="text-xs text-red-500 hover:text-red-600 font-medium hover:underline">Eliminar</button>
+                              <button onClick={()=> openEditResponse(reviewsByBooking[b._id])} className="text-xs text-teal-600 hover:text-teal-700 font-medium hover:underline">{t('shared.bookings.actions.edit')}</button>
+                              <button onClick={()=> handleDeleteResponse(reviewsByBooking[b._id])} className="text-xs text-red-500 hover:text-red-600 font-medium hover:underline">{t('shared.bookings.actions.delete')}</button>
                             </div>
                           )}
                         </div>
@@ -1003,10 +1005,10 @@ export default function Bookings() {
                         isProvider && (
                           <button onClick={()=> openResponse(reviewsByBooking[b._id])} className="mt-2 text-xs text-teal-600 hover:text-teal-700 font-medium hover:underline flex items-center gap-1">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                            Responder reseña
+                            {t('shared.bookings.actions.respondReview')}
                           </button>
                         )
-                      )}
+                      )}}
                     </div>
                   )}
                   
@@ -1019,7 +1021,7 @@ export default function Bookings() {
                       ) : (
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
                       )}
-                      Mostrar reseña
+                      {t('shared.bookings.actions.showReview')}
                     </button>
                   )}
                   
@@ -1030,9 +1032,9 @@ export default function Bookings() {
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
-                        <span>El cliente aún no ha dejado una reseña</span>
+                        <span>{t('shared.bookings.review.noClientReview')}</span>
                       </div>
-                      <p className="text-xs text-gray-400 mt-1">Las reseñas aparecerán aquí cuando el cliente las publique</p>
+                      <p className="text-xs text-gray-400 mt-1">{t('shared.bookings.review.willAppearHere')}</p>
                     </div>
                   )}
                   
@@ -1043,7 +1045,7 @@ export default function Bookings() {
                       {reviewsByBooking[b._id] === undefined && reviewLoadingMap[b._id] && (
                         <div className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-500 font-medium flex items-center justify-center gap-2">
                           <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                          Verificando...
+                          {t('shared.bookings.review.verifying')}
                         </div>
                       )}
                       
@@ -1054,7 +1056,7 @@ export default function Bookings() {
                           className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
                         >
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                          ⭐ Dejar reseña
+                          ⭐ {t('shared.bookings.actions.leaveReview')}
                         </button>
                       )}
                       
@@ -1065,7 +1067,7 @@ export default function Bookings() {
                           className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
                         >
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                          ⭐ Dejar reseña
+                          ⭐ {t('shared.bookings.actions.leaveReview')}
                         </button>
                       )}
                       
@@ -1073,7 +1075,7 @@ export default function Bookings() {
                       {reviewedIds.has(b._id) && (
                         <div className="w-full px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium flex items-center justify-center gap-2">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                          ✓ Reseña enviada
+                          ✓ {t('shared.bookings.review.reviewSent')}
                         </div>
                       )}
                     </>
@@ -1102,7 +1104,7 @@ export default function Bookings() {
                           ) : (
                             <span className="text-base">{STATUS_FLOW[b.status].icon}</span>
                           )}
-                          {STATUS_FLOW[b.status].label}
+                          {t(STATUS_FLOW[b.status].labelKey)}
                         </button>
                       )}
                       
@@ -1110,7 +1112,7 @@ export default function Bookings() {
                       {b.status === 'completed' && (
                         <div className="w-full px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium flex items-center justify-center gap-2">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          Servicio completado
+                          {t('shared.bookings.status.serviceCompleted')}
                         </div>
                       )}
                       
@@ -1123,7 +1125,7 @@ export default function Bookings() {
                             onChange={(e)=> updateStatus(b._id, e.target.value)} 
                             disabled={updating === b._id}
                           >
-                            <option value="" disabled>Cambiar estado…</option>
+                            <option value="" disabled>{t('shared.bookings.actions.changeStatus')}</option>
                             {PROVIDER_STATUSES.filter(s => {
                               // Filtrar solo transiciones válidas desde el estado actual
                               const validTransitions = {
@@ -1133,7 +1135,7 @@ export default function Bookings() {
                               };
                               return validTransitions[b.status]?.includes(s.value);
                             }).map((s)=> (
-                              <option key={s.value} value={s.value}>{s.label}</option>
+                              <option key={s.value} value={s.value}>{t(s.labelKey)}</option>
                             ))}
                           </select>
                           <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -1146,7 +1148,7 @@ export default function Bookings() {
                         className="w-full px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm font-medium text-gray-700 transition-all flex items-center justify-center gap-2"
                       >
                         <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        Subir evidencia
+                        {t('shared.bookings.actions.uploadEvidence')}
                       </button>
                     </>
                   )}
@@ -1157,14 +1159,14 @@ export default function Bookings() {
                         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
                           <div className="flex items-center gap-2 text-amber-700 text-sm font-medium mb-2">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            Pago pendiente
+                            {t('shared.bookings.payment.pending')}
                           </div>
                           {b?.payment?.stripePaymentIntentId && (
                             <button 
                               onClick={()=> navigate(`/payment/${b.payment.stripePaymentIntentId}`)} 
                               className="w-full px-4 py-2 rounded-lg bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all"
                             >
-                              Pagar ahora
+                              {t('shared.bookings.payment.payNow')}
                             </button>
                           )}
                         </div>
@@ -1182,7 +1184,7 @@ export default function Bookings() {
                           ) : (
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           )}
-                          Confirmar finalización
+                          {t('shared.bookings.actions.confirmCompletion')}
                         </button>
                       )}
                     </>
@@ -1203,13 +1205,13 @@ export default function Bookings() {
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-teal-300 hover:bg-teal-50/30 text-sm font-medium text-gray-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            Anterior
+            {t('shared.bookings.pagination.previous')}
           </button>
           
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-100">
-            <span className="text-sm text-gray-600">Página</span>
+            <span className="text-sm text-gray-600">{t('shared.bookings.pagination.page')}</span>
             <span className="text-sm font-bold bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{page}</span>
-            <span className="text-sm text-gray-600">de</span>
+            <span className="text-sm text-gray-600">{t('shared.bookings.pagination.of')}</span>
             <span className="text-sm font-medium text-gray-700">{pages}</span>
           </div>
           
@@ -1218,14 +1220,14 @@ export default function Bookings() {
             onClick={()=> setPage((p)=> Math.min(pages, p + 1))}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-teal-300 hover:bg-teal-50/30 text-sm font-medium text-gray-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200"
           >
-            Siguiente
+            {t('shared.bookings.pagination.next')}
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
       )}
 
       {/* Modal evidencia - Versión mejorada con previews y progreso */}
-      <Modal open={evidenceOpen} onClose={()=> !evidenceLoading && setEvidenceOpen(false)} title="Subir evidencia del servicio" size="lg">
+      <Modal open={evidenceOpen} onClose={()=> !evidenceLoading && setEvidenceOpen(false)} title={t('shared.bookings.modal.evidenceTitle')} size="lg">
         <div className="space-y-5">
           {/* Indicador de progreso */}
           <UploadProgress {...evidenceProgress} />
@@ -1238,8 +1240,8 @@ export default function Bookings() {
               </svg>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900">Documenta tu trabajo</h4>
-              <p className="text-sm text-gray-500">Sube fotos o videos como evidencia del servicio (máx. 10 archivos, hasta 200MB c/u)</p>
+              <h4 className="font-semibold text-gray-900">{t('shared.bookings.modal.documentWork')}</h4>
+              <p className="text-sm text-gray-500">{t('shared.bookings.modal.evidenceSubtitle')}</p>
             </div>
           </div>
           
@@ -1249,13 +1251,13 @@ export default function Bookings() {
               <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
-              Etapa del servicio
+              {t('shared.bookings.modal.serviceStage')}
             </label>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { value: 'before', label: 'Antes', icon: '🏠', bgActive: 'bg-amber-50', borderActive: 'border-amber-400', textActive: 'text-amber-700', shadow: 'shadow-amber-500/10' },
-                { value: 'during', label: 'Durante', icon: '🔧', bgActive: 'bg-blue-50', borderActive: 'border-blue-400', textActive: 'text-blue-700', shadow: 'shadow-blue-500/10' },
-                { value: 'after', label: 'Después', icon: '✨', bgActive: 'bg-emerald-50', borderActive: 'border-emerald-400', textActive: 'text-emerald-700', shadow: 'shadow-emerald-500/10' }
+                { value: 'before', labelKey: 'shared.bookings.evidence.before', icon: '🏠', bgActive: 'bg-amber-50', borderActive: 'border-amber-400', textActive: 'text-amber-700', shadow: 'shadow-amber-500/10' },
+                { value: 'during', labelKey: 'shared.bookings.evidence.during', icon: '🔧', bgActive: 'bg-blue-50', borderActive: 'border-blue-400', textActive: 'text-blue-700', shadow: 'shadow-blue-500/10' },
+                { value: 'after', labelKey: 'shared.bookings.evidence.after', icon: '✨', bgActive: 'bg-emerald-50', borderActive: 'border-emerald-400', textActive: 'text-emerald-700', shadow: 'shadow-emerald-500/10' }
               ].map((opt) => (
                 <button
                   key={opt.value}
@@ -1269,7 +1271,7 @@ export default function Bookings() {
                   } disabled:opacity-50`}
                 >
                   <div className="text-2xl mb-1">{opt.icon}</div>
-                  <div className={`text-sm font-medium ${evidenceType === opt.value ? opt.textActive : 'text-gray-700'}`}>{opt.label}</div>
+                  <div className={`text-sm font-medium ${evidenceType === opt.value ? opt.textActive : 'text-gray-700'}`}>{t(opt.labelKey)}</div>
                 </button>
               ))}
             </div>
@@ -1281,7 +1283,7 @@ export default function Bookings() {
               <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              Archivos (imágenes o videos)
+              {t('shared.bookings.modal.filesLabel')}
             </label>
             
             {/* Área de drop con estilo mejorado */}
@@ -1307,10 +1309,10 @@ export default function Bookings() {
                 </div>
                 <p className="text-sm font-medium text-gray-700 mb-1">
                   {evidencePreviews.length > 0 
-                    ? `${evidencePreviews.length} archivo(s) seleccionado(s)` 
-                    : 'Arrastra archivos aquí o haz clic para seleccionar'}
+                    ? t('shared.bookings.modal.filesSelected', { count: evidencePreviews.length })
+                    : t('shared.bookings.modal.dragDropFiles')}
                 </p>
-                <p className="text-xs text-gray-500">Imágenes: JPG, PNG, WebP • Videos: MP4, WebM</p>
+                <p className="text-xs text-gray-500">{t('shared.bookings.modal.acceptedFormats')}</p>
               </div>
             </div>
           </div>
@@ -1319,7 +1321,7 @@ export default function Bookings() {
           {evidencePreviews.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">Vista previa</label>
+                <label className="text-sm font-medium text-gray-700">{t('shared.bookings.modal.preview')}</label>
                 <button 
                   onClick={() => {
                     evidencePreviews.forEach(p => URL.revokeObjectURL(p.url));
@@ -1332,7 +1334,7 @@ export default function Bookings() {
                   disabled={evidenceLoading}
                   className="text-xs text-red-500 hover:text-red-600 font-medium disabled:opacity-50"
                 >
-                  Limpiar todo
+                  {t('shared.bookings.modal.clearAll')}
                 </button>
               </div>
               
@@ -1370,7 +1372,7 @@ export default function Bookings() {
                           ? 'bg-purple-500 text-white' 
                           : 'bg-teal-500 text-white'
                       }`}>
-                        {preview.type === 'video' ? '🎬 Video' : '📷 Imagen'}
+                        {preview.type === 'video' ? `🎬 ${t('shared.bookings.modal.video')}` : `📷 ${t('shared.bookings.modal.image')}`}
                       </div>
                       
                       {/* Botón eliminar */}
@@ -1388,7 +1390,7 @@ export default function Bookings() {
                     {/* Input de descripción */}
                     <input
                       type="text"
-                      placeholder="Descripción (opcional)"
+                      placeholder={t('shared.bookings.modal.descriptionPlaceholder')}
                       value={evidenceCaptions[idx] || ''}
                       onChange={(e) => updateEvidenceCaption(idx, e.target.value)}
                       disabled={evidenceLoading}
@@ -1407,7 +1409,7 @@ export default function Bookings() {
               disabled={evidenceLoading}
               className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all disabled:opacity-50"
             >
-              Cancelar
+              {t('shared.bookings.modal.cancel')}
             </button>
             <button 
               onClick={handleUploadEvidence} 
@@ -1417,12 +1419,12 @@ export default function Bookings() {
               {evidenceLoading ? (
                 <>
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                  Subiendo...
+                  {t('shared.bookings.modal.uploading')}
                 </>
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                  Subir {evidenceFiles.length > 0 ? `${evidenceFiles.length} archivo(s)` : 'evidencia'}
+                  {evidenceFiles.length > 0 ? t('shared.bookings.modal.uploadFiles', { count: evidenceFiles.length }) : t('shared.bookings.modal.uploadEvidence')}
                 </>
               )}
             </button>
@@ -1431,7 +1433,7 @@ export default function Bookings() {
       </Modal>
 
       {/* Modal reseña */}
-      <Modal open={reviewOpen} onClose={()=> setReviewOpen(false)} title="Dejar una reseña">
+      <Modal open={reviewOpen} onClose={()=> setReviewOpen(false)} title={t('shared.bookings.modal.reviewTitle')}>
         <div className="space-y-5">
           {/* Header decorativo */}
           <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-amber-50 via-yellow-50 to-orange-50 border border-amber-100/50">
@@ -1441,8 +1443,8 @@ export default function Bookings() {
               </svg>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900">Comparte tu experiencia</h4>
-              <p className="text-sm text-gray-500">Tu opinión ayuda a otros clientes</p>
+              <h4 className="font-semibold text-gray-900">{t('shared.bookings.modal.shareExperience')}</h4>
+              <p className="text-sm text-gray-500">{t('shared.bookings.modal.helpOthers')}</p>
             </div>
           </div>
           
@@ -1450,13 +1452,13 @@ export default function Bookings() {
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
               <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              Calificaciones
+              {t('shared.bookings.modal.ratings')}
             </label>
             
             {/* Calificación general destacada */}
             <div className="p-4 rounded-xl bg-linear-to-br from-amber-50 to-yellow-50 border border-amber-100">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Calificación general</span>
+                <span className="text-sm font-medium text-gray-700">{t('shared.bookings.modal.overallRating')}</span>
                 <div className="flex items-center gap-1">
                   {[5,4,3,2,1].map(n => (
                     <button 
@@ -1479,16 +1481,16 @@ export default function Bookings() {
             {/* Categorías específicas */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { key: 'professionalism', label: 'Profesionalismo', icon: '💼' },
-                { key: 'quality', label: 'Calidad', icon: '⭐' },
-                { key: 'punctuality', label: 'Puntualidad', icon: '⏰' },
-                { key: 'communication', label: 'Comunicación', icon: '💬' },
-                { key: 'value', label: 'Precio/Valor', icon: '💰' }
+                { key: 'professionalism', labelKey: 'shared.bookings.modal.professionalism', icon: '💼' },
+                { key: 'quality', labelKey: 'shared.bookings.modal.quality', icon: '⭐' },
+                { key: 'punctuality', labelKey: 'shared.bookings.modal.punctuality', icon: '⏰' },
+                { key: 'communication', labelKey: 'shared.bookings.modal.communication', icon: '💬' },
+                { key: 'value', labelKey: 'shared.bookings.modal.value', icon: '💰' }
               ].map((cat)=> (
                 <div key={cat.key} className="p-3 rounded-xl bg-gray-50 border border-gray-100">
                   <div className="flex items-center gap-1.5 mb-2">
                     <span className="text-sm">{cat.icon}</span>
-                    <span className="text-xs font-medium text-gray-600">{cat.label}</span>
+                    <span className="text-xs font-medium text-gray-600">{t(cat.labelKey)}</span>
                   </div>
                   <select 
                     className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-300 transition-all" 
@@ -1508,13 +1510,13 @@ export default function Bookings() {
               <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
               </svg>
-              Título (opcional)
+              {t('shared.bookings.modal.titleOptional')}
             </label>
             <input 
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-300 transition-all" 
               value={reviewTitle} 
               onChange={(e)=> setReviewTitle(e.target.value)} 
-              placeholder="Ej: Excelente servicio profesional"
+              placeholder={t('shared.bookings.modal.titlePlaceholder')}
             />
           </div>
           
@@ -1524,14 +1526,14 @@ export default function Bookings() {
               <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
               </svg>
-              Comentario
+              {t('shared.bookings.modal.comment')}
             </label>
             <textarea 
               rows={4} 
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-300 resize-none transition-all" 
               value={reviewComment} 
               onChange={(e)=> setReviewComment(e.target.value)} 
-              placeholder="Cuéntanos tu experiencia con este servicio..." 
+              placeholder={t('shared.bookings.modal.commentPlaceholder')} 
             />
           </div>
           
@@ -1541,7 +1543,7 @@ export default function Bookings() {
               <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Fotos (opcional)
+              {t('shared.bookings.modal.photosOptional')}
             </label>
             <input 
               type="file" 
@@ -1558,7 +1560,7 @@ export default function Bookings() {
               onClick={()=> setReviewOpen(false)} 
               className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all"
             >
-              Cancelar
+              {t('shared.bookings.modal.cancel')}
             </button>
             <button 
               onClick={handleSubmitReview} 
@@ -1570,14 +1572,14 @@ export default function Bookings() {
               ) : (
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
               )}
-              Enviar reseña
+              {t('shared.bookings.modal.submitReview')}
             </button>
           </div>
         </div>
       </Modal>
 
       {/* Lightbox imágenes evidencia */}
-      <Modal open={lightboxOpen} onClose={()=> setLightboxOpen(false)} title={`Evidencia (${lightboxIndex+1}/${lightboxItems.length})`}>
+      <Modal open={lightboxOpen} onClose={()=> setLightboxOpen(false)} title={t('shared.bookings.modal.evidenceViewer', { current: lightboxIndex+1, total: lightboxItems.length })}>
         <div className="flex flex-col items-center gap-4">
           {/* Media viewer */}
           <div className="relative w-full flex items-center justify-center bg-gray-900/5 rounded-2xl overflow-hidden min-h-75">
@@ -1598,7 +1600,7 @@ export default function Bookings() {
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-all"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                Anterior
+                {t('shared.bookings.pagination.previous')}
               </button>
               
               {/* Dots indicator */}
@@ -1619,7 +1621,7 @@ export default function Bookings() {
                 onClick={nextLightbox} 
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-all"
               >
-                Siguiente
+                {t('shared.bookings.pagination.next')}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
@@ -1628,7 +1630,7 @@ export default function Bookings() {
       </Modal>
 
       {/* Modal responder reseña (proveedor) */}
-      <Modal open={responseOpen} onClose={()=> setResponseOpen(false)} title={responseMode === 'edit' ? 'Editar respuesta' : 'Responder reseña'}>
+      <Modal open={responseOpen} onClose={()=> setResponseOpen(false)} title={responseMode === 'edit' ? t('shared.bookings.modal.editResponse') : t('shared.bookings.modal.respondReviewTitle')}>
         <div className="space-y-5">
           {/* Header decorativo */}
           <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-teal-50 via-cyan-50 to-emerald-50 border border-teal-100/50">
@@ -1638,8 +1640,8 @@ export default function Bookings() {
               </svg>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900">{responseMode === 'edit' ? 'Editar respuesta' : 'Responder al cliente'}</h4>
-              <p className="text-sm text-gray-500">Tu respuesta será visible públicamente</p>
+              <h4 className="font-semibold text-gray-900">{responseMode === 'edit' ? t('shared.bookings.modal.editResponse') : t('shared.bookings.modal.respondToClient')}</h4>
+              <p className="text-sm text-gray-500">{t('shared.bookings.modal.responsePublic')}</p>
             </div>
           </div>
           
@@ -1648,7 +1650,7 @@ export default function Bookings() {
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                 <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                Comentario del cliente
+                {t('shared.bookings.modal.clientComment')}
               </label>
               <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-100 text-sm text-gray-700 italic">
                 "{responseReview.review.comment}"
@@ -1663,8 +1665,8 @@ export default function Bookings() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <div>
-                <p className="text-sm font-medium text-amber-800">Reseña en moderación</p>
-                <p className="text-xs text-amber-700 mt-1">La visibilidad pública de tu respuesta puede demorar hasta que el equipo revise esta reseña.</p>
+                <p className="text-sm font-medium text-amber-800">{t('shared.bookings.modal.reviewInModeration')}</p>
+                <p className="text-xs text-amber-700 mt-1">{t('shared.bookings.modal.moderationDelay')}</p>
               </div>
             </div>
           )}
@@ -1675,7 +1677,7 @@ export default function Bookings() {
               <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
               </svg>
-              Tu respuesta
+              {t('shared.bookings.modal.yourResponse')}
             </label>
             <textarea 
               rows={4} 
@@ -1683,12 +1685,12 @@ export default function Bookings() {
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 resize-none transition-all" 
               value={responseComment} 
               onChange={(e)=> setResponseComment(e.target.value)} 
-              placeholder="Escribe una respuesta profesional y cordial..."
+              placeholder={t('shared.bookings.modal.responsePlaceholder')}
             />
             <div className="flex items-center justify-between">
               <p className="text-xs text-gray-500 flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                Evita lenguaje ofensivo o datos personales
+                {t('shared.bookings.modal.responseHint')}
               </p>
               <span className={`text-xs font-medium ${responseComment.length > 700 ? 'text-amber-600' : 'text-gray-400'}`}>{responseComment.length}/800</span>
             </div>
@@ -1700,7 +1702,7 @@ export default function Bookings() {
               onClick={()=> setResponseOpen(false)} 
               className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all"
             >
-              Cancelar
+              {t('shared.bookings.modal.cancel')}
             </button>
             <button 
               onClick={handleSubmitResponse} 
@@ -1712,7 +1714,7 @@ export default function Bookings() {
               ) : (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
               )}
-              {responseMode === 'edit' ? 'Actualizar' : 'Publicar respuesta'}
+              {responseMode === 'edit' ? t('shared.bookings.modal.update') : t('shared.bookings.modal.publishResponse')}
             </button>
           </div>
         </div>

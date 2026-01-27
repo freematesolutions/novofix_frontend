@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
@@ -39,7 +40,7 @@ const StatCard = ({ icon, label, value, subvalue, trend, gradient, className = '
       {(trend !== undefined && trend !== null) && (
         <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${trend >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
           {trend >= 0 ? <HiTrendingUp className="w-3.5 h-3.5" /> : <HiTrendingDown className="w-3.5 h-3.5" />}
-          <span>{trend >= 0 ? '+' : ''}{trend}% vs mes anterior</span>
+          <span>{trend >= 0 ? '+' : ''}{trend}% vs previous month</span>
         </div>
       )}
       {subvalue && <div className="text-xs text-gray-400 mt-1">{subvalue}</div>}
@@ -48,17 +49,18 @@ const StatCard = ({ icon, label, value, subvalue, trend, gradient, className = '
 );
 
 // Category Score Bar
-const CategoryScoreBar = ({ category, score, average }) => {
+const CategoryScoreBar = ({ category, score, average, t }) => {
   const config = CATEGORY_CONFIG[category];
   const percentage = (score / 5) * 100;
   const diff = score - average;
+  const label = t(`provider.reviews.categories.${category}`);
   
   return (
     <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
       <div className="text-2xl w-8">{config?.icon}</div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-sm font-medium text-gray-900">{config?.label}</span>
+          <span className="text-sm font-medium text-gray-900">{label}</span>
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-gray-900">{score?.toFixed(1) || '0.0'}</span>
             {diff !== 0 && (
@@ -82,7 +84,7 @@ const CategoryScoreBar = ({ category, score, average }) => {
 };
 
 // Review Insights Component
-const ReviewInsights = ({ stats, reviewsWithoutResponse }) => {
+const ReviewInsights = ({ stats, reviewsWithoutResponse, t }) => {
   const insights = useMemo(() => {
     const list = [];
     
@@ -91,8 +93,8 @@ const ReviewInsights = ({ stats, reviewsWithoutResponse }) => {
       list.push({
         type: 'warning',
         icon: <HiChat className="w-5 h-5" />,
-        title: `${reviewsWithoutResponse} reseña${reviewsWithoutResponse > 1 ? 's' : ''} sin responder`,
-        description: 'Responder reseñas mejora tu visibilidad y confianza'
+        title: t('provider.reviews.reviewsWithoutResponse', { count: reviewsWithoutResponse }),
+        description: t('provider.reviews.respondToImprove')
       });
     }
     
@@ -103,8 +105,8 @@ const ReviewInsights = ({ stats, reviewsWithoutResponse }) => {
         list.push({
           type: 'improvement',
           icon: <HiTrendingUp className="w-5 h-5" />,
-          title: `Mejora tu ${CATEGORY_CONFIG[key]?.label.toLowerCase()}`,
-          description: `Tu puntuación de ${value.toFixed(1)} está por debajo del promedio`
+          title: t('provider.reviews.improveCategory', { category: t(`provider.reviews.categories.${key}`).toLowerCase() }),
+          description: t('provider.reviews.scoreBelowAverage', { score: value.toFixed(1) })
         });
       }
     });
@@ -114,13 +116,13 @@ const ReviewInsights = ({ stats, reviewsWithoutResponse }) => {
       list.push({
         type: 'success',
         icon: <HiStar className="w-5 h-5" />,
-        title: '¡Excelente reputación!',
-        description: 'Tu calificación te posiciona entre los mejores proveedores'
+        title: t('provider.reviews.excellentReputation'),
+        description: t('provider.reviews.excellentReputationDesc')
       });
     }
     
     return list.slice(0, 3); // Max 3 insights
-  }, [stats, reviewsWithoutResponse]);
+  }, [stats, reviewsWithoutResponse, t]);
   
   if (insights.length === 0) return null;
   
@@ -128,7 +130,7 @@ const ReviewInsights = ({ stats, reviewsWithoutResponse }) => {
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
       <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
         <HiChartBar className="w-5 h-5 text-brand-500" />
-        Insights y recomendaciones
+        {t('provider.reviews.insightsTitle')}
       </h3>
       <div className="space-y-3">
         {insights.map((insight, idx) => (
@@ -159,6 +161,7 @@ const ReviewInsights = ({ stats, reviewsWithoutResponse }) => {
 };
 
 export default function ProviderReviews() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, viewRole, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -187,7 +190,7 @@ export default function ProviderReviews() {
       setReviewsWithoutResponse(withoutResponse);
     } catch (err) {
       console.error('Error loading review stats:', err);
-      setError(err?.response?.data?.message || 'Error al cargar estadísticas');
+      setError(err?.response?.data?.message || t('provider.reviews.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -207,7 +210,7 @@ export default function ProviderReviews() {
   if (!isAuthenticated) return null;
   
   if (viewRole !== 'provider') {
-    return <Alert type="warning">Esta sección es solo para proveedores.</Alert>;
+    return <Alert type="warning">{t('provider.reviews.providerOnly')}</Alert>;
   }
 
   const averageRating = stats?.averageRating || 0;
@@ -227,8 +230,8 @@ export default function ProviderReviews() {
               <HiStar className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold mb-1">Mis Reseñas</h1>
-              <p className="text-amber-100 text-sm">Gestiona y responde las reseñas de tus clientes</p>
+              <h1 className="text-2xl font-bold mb-1">{t('provider.reviews.title')}</h1>
+              <p className="text-amber-100 text-sm">{t('provider.reviews.subtitle')}</p>
             </div>
           </div>
           
@@ -238,7 +241,7 @@ export default function ProviderReviews() {
             className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl text-sm font-medium transition-all disabled:opacity-50"
           >
             <HiRefresh className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Actualizar
+            {t('provider.reviews.refresh')}
           </button>
         </div>
       </div>
@@ -251,7 +254,7 @@ export default function ProviderReviews() {
         <div className="flex items-center justify-center py-16">
           <div className="text-center">
             <Spinner size="lg" className="text-amber-500 mx-auto mb-3" />
-            <p className="text-gray-600">Cargando estadísticas...</p>
+            <p className="text-gray-600">{t('provider.reviews.loading')}</p>
           </div>
         </div>
       )}
@@ -263,30 +266,30 @@ export default function ProviderReviews() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               icon={<HiStar className="w-5 h-5" />}
-              label="Calificación promedio"
+              label={t('provider.reviews.averageRating')}
               value={averageRating.toFixed(1)}
-              subvalue="de 5.0 estrellas"
+              subvalue={t('provider.reviews.outOfStars')}
               gradient="from-amber-500 to-orange-500"
             />
             <StatCard
               icon={<HiChat className="w-5 h-5" />}
-              label="Total reseñas"
+              label={t('provider.reviews.totalReviews')}
               value={totalReviews}
-              subvalue={totalReviews === 1 ? 'reseña recibida' : 'reseñas recibidas'}
+              subvalue={totalReviews === 1 ? t('provider.reviews.reviewReceived') : t('provider.reviews.reviewsReceived')}
               gradient="from-blue-500 to-indigo-500"
             />
             <StatCard
               icon={<HiCheckCircle className="w-5 h-5" />}
-              label="Respondidas"
+              label={t('provider.reviews.responded')}
               value={totalReviews - reviewsWithoutResponse}
-              subvalue={`${totalReviews > 0 ? Math.round(((totalReviews - reviewsWithoutResponse) / totalReviews) * 100) : 0}% de respuesta`}
+              subvalue={`${totalReviews > 0 ? Math.round(((totalReviews - reviewsWithoutResponse) / totalReviews) * 100) : 0}% ${t('provider.reviews.responseRate')}`}
               gradient="from-emerald-500 to-teal-500"
             />
             <StatCard
               icon={<HiExclamation className="w-5 h-5" />}
-              label="Sin responder"
+              label={t('provider.reviews.unanswered')}
               value={reviewsWithoutResponse}
-              subvalue="esperando tu respuesta"
+              subvalue={t('provider.reviews.waitingResponse')}
               gradient="from-rose-500 to-pink-500"
             />
           </div>
@@ -301,7 +304,7 @@ export default function ProviderReviews() {
                   <div className="w-8 h-8 rounded-lg bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white">
                     <HiChartBar className="w-4 h-4" />
                   </div>
-                  Puntuación por categoría
+                  {t('provider.reviews.categoryScores')}
                 </h3>
                 
                 <div className="space-y-3">
@@ -311,6 +314,7 @@ export default function ProviderReviews() {
                       category={key}
                       score={categories[key] || 0}
                       average={averageRating}
+                      t={t}
                     />
                   ))}
                 </div>
@@ -319,13 +323,14 @@ export default function ProviderReviews() {
               {/* Insights */}
               <ReviewInsights 
                 stats={stats} 
-                reviewsWithoutResponse={reviewsWithoutResponse} 
+                reviewsWithoutResponse={reviewsWithoutResponse}
+                t={t}
               />
 
               {/* Rating Distribution Mini */}
               {stats?.breakdown && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                  <h3 className="font-bold text-gray-900 mb-4">Distribución de calificaciones</h3>
+                  <h3 className="font-bold text-gray-900 mb-4">{t('provider.reviews.ratingDistribution')}</h3>
                   <div className="space-y-2">
                     {[5, 4, 3, 2, 1].map(stars => {
                       const count = stats.breakdown[stars] || 0;
@@ -355,7 +360,7 @@ export default function ProviderReviews() {
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <HiChat className="w-5 h-5 text-brand-500" />
-                  Todas las reseñas
+                  {t('provider.reviews.allReviews')}
                 </h3>
                 
                 {providerId ? (
@@ -368,7 +373,7 @@ export default function ProviderReviews() {
                   />
                 ) : (
                   <div className="text-center py-8 text-gray-500">
-                    <p>No se pudo cargar el ID del proveedor</p>
+                    <p>{t('provider.reviews.errorLoadingId')}</p>
                   </div>
                 )}
               </div>

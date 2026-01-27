@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useProviderOnboarding } from '@/state/ProviderOnboardingContext.jsx';
 import Button from '@/components/ui/Button.jsx';
 import Alert from '@/components/ui/Alert.jsx';
 import MapPicker from '@/components/ui/MapPicker.jsx';
 
 export default function CoverageStep() {
+  const { t } = useTranslation();
   const { 
     formData, 
     updateFormData, 
@@ -93,7 +95,7 @@ export default function CoverageStep() {
       {/* Modalidad de servicio */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">
-          Modalidad de servicio <span className="text-red-500">*</span>
+          {t('onboarding.coverage.serviceModeLabel')} <span className="text-red-500">*</span>
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <button
@@ -108,9 +110,9 @@ export default function CoverageStep() {
             `}
           >
             <div className="text-2xl mb-2">🏠</div>
-            <div className="font-medium">Presencial</div>
+            <div className="font-medium">{t('onboarding.coverage.modeOnsite')}</div>
             <div className="text-xs text-gray-600 mt-1">
-              Visito al cliente
+              {t('onboarding.coverage.modeOnsiteDesc')}
             </div>
           </button>
 
@@ -126,9 +128,9 @@ export default function CoverageStep() {
             `}
           >
             <div className="text-2xl mb-2">💻</div>
-            <div className="font-medium">Online</div>
+            <div className="font-medium">{t('onboarding.coverage.modeRemote')}</div>
             <div className="text-xs text-gray-600 mt-1">
-              Servicio remoto
+              {t('onboarding.coverage.modeRemoteDesc')}
             </div>
           </button>
 
@@ -144,9 +146,9 @@ export default function CoverageStep() {
             `}
           >
             <div className="text-2xl mb-2">🌐</div>
-            <div className="font-medium">Ambas</div>
+            <div className="font-medium">{t('onboarding.coverage.modeBoth')}</div>
             <div className="text-xs text-gray-600 mt-1">
-              Presencial y online
+              {t('onboarding.coverage.modeBothDesc')}
             </div>
           </button>
         </div>
@@ -155,10 +157,10 @@ export default function CoverageStep() {
       {/* Ubicación en el mapa */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Ubicación base <span className="text-gray-400">(opcional)</span>
+          {t('onboarding.coverage.locationLabel')} <span className="text-gray-400">({t('onboarding.identity.optional')})</span>
         </label>
         <p className="text-sm text-gray-600 mb-3">
-          Marca tu ubicación o zona central de trabajo en el mapa. Ayuda a los clientes a encontrarte.
+          {t('onboarding.coverage.locationHint')}
         </p>
         
         <MapPicker
@@ -174,19 +176,19 @@ export default function CoverageStep() {
               <span className="text-green-600">📍</span>
               <div className="flex-1">
                 {geocodingLoading ? (
-                  <p className="text-sm text-gray-600">Detectando ubicación...</p>
+                  <p className="text-sm text-gray-600">{t('onboarding.coverage.detecting')}</p>
                 ) : geocodingLocation ? (
                   <>
-                    <p className="text-sm font-medium text-green-900">Ubicación seleccionada:</p>
+                    <p className="text-sm font-medium text-green-900">{t('onboarding.coverage.locationDetected')}:</p>
                     <p className="text-sm text-green-700">{geocodingLocation}</p>
                     {!serviceAreaZone && (
                       <p className="text-xs text-green-600 mt-1">
-                        ✓ Se completará automáticamente el campo "Zona de servicio"
+                        ✓ {t('onboarding.coverage.autoCompleteHint')}
                       </p>
                     )}
                   </>
                 ) : (
-                  <p className="text-sm text-green-700">Ubicación marcada en el mapa</p>
+                  <p className="text-sm text-green-700">{t('onboarding.coverage.locationMarked')}</p>
                 )}
               </div>
             </div>
@@ -198,25 +200,25 @@ export default function CoverageStep() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Zona de servicio <span className="text-red-500">*</span>
+            {t('onboarding.coverage.serviceAreaLabel')} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={serviceAreaZone}
             onChange={(e) => setServiceAreaZone(e.target.value)}
             className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-            placeholder="Ej: Centro, Palermo, CABA"
+            placeholder={t('onboarding.coverage.serviceAreaPlaceholder')}
             required
             minLength={2}
           />
           <p className="text-xs text-gray-500 mt-1">
-            Nombre de la zona o barrio donde ofreces tus servicios
+            {t('onboarding.coverage.serviceAreaHint')}
           </p>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Radio de cobertura (millas) <span className="text-red-500">*</span>
+            {t('onboarding.coverage.radiusLabel')} <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
@@ -228,7 +230,7 @@ export default function CoverageStep() {
             required
           />
           <p className="text-xs text-gray-500 mt-1">
-            Distancia máxima que cubres desde tu ubicación base
+            {t('onboarding.coverage.radiusHint')}
           </p>
         </div>
       </div>
@@ -236,7 +238,7 @@ export default function CoverageStep() {
       {/* Tip */}
       <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
         <p className="text-sm text-blue-800">
-          ℹ️ Los clientes podrán filtrar proveedores por zona. Asegúrate de especificar correctamente tu área de cobertura.
+          ℹ️ {t('onboarding.coverage.tipText')}
         </p>
       </div>
 
@@ -250,13 +252,13 @@ export default function CoverageStep() {
           variant="secondary" 
           onClick={prevStep}
         >
-          Atrás
+          {t('common.back')}
         </Button>
         <div className="text-sm text-gray-500">
-          Paso 3 de 4
+          {t('onboarding.coverage.stepOf', { current: 3, total: 4 })}
         </div>
         <Button type="submit" loading={loading}>
-          {loading ? 'Guardando...' : 'Continuar'}
+          {loading ? t('common.saving') : t('common.continue')}
         </Button>
       </div>
     </form>

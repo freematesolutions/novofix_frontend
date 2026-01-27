@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Button from '@/components/ui/Button.jsx';
 import Alert from '@/components/ui/Alert.jsx';
@@ -15,6 +16,7 @@ import {
 } from 'react-icons/hi';
 
 export default function Profile() {
+  const { t } = useTranslation();
   const { user, role, roles, viewRole, changeViewRole, clearError } = useAuth();
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -83,7 +85,7 @@ export default function Profile() {
     try {
       // Incluir avatar en el payload aunque no haya cambiado
       await api.put('/auth/profile', { profile: { ...form, avatar } });
-      toast.success('Perfil actualizado');
+      toast.success(t('account.profile.profileUpdated'));
     } catch (err) {
       setError(err?.response?.data?.message || 'No se pudo guardar');
     } finally { setSaving(false); }
@@ -95,7 +97,7 @@ export default function Profile() {
 
     // Validar tipo
     if (!file.type.startsWith('image/')) {
-      toast.error('Solo se permiten imágenes');
+      toast.error(t('account.profile.onlyImagesAllowed'));
       return;
     }
 
@@ -156,13 +158,13 @@ export default function Profile() {
         if (typeof window !== 'undefined' && window.dispatchEvent) {
           window.dispatchEvent(new Event('auth:refresh'));
         }
-        toast.success('Avatar actualizado');
+        toast.success(t('account.profile.avatarUpdated'));
         setAvatarProgress(100);
         setTimeout(() => setAvatarProgress(0), 1000);
       }
     } catch (err) {
       console.error('Avatar upload error:', err);
-      toast.error(err?.response?.data?.message || 'No se pudo subir el avatar');
+      toast.error(err?.response?.data?.message || t('account.profile.avatarUploadError'));
       setAvatarProgress(0);
     } finally {
       setUploadingAvatar(false);
@@ -174,7 +176,7 @@ export default function Profile() {
     try {
       personalRef.current?.requestSubmit?.();
       await providerRef.current?.submit?.();
-      toast.success('Cambios guardados');
+      toast.success(t('account.profile.changesSaved'));
     } catch { /* ignore, los formularios ya muestran errores */ }
   };
 
@@ -321,12 +323,12 @@ export default function Profile() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm`}>
                   <HiSparkles className="w-4 h-4" />
-                  {viewRole === 'admin' ? 'Administrador' : viewRole === 'provider' ? 'Proveedor' : 'Cliente'}
+                  {viewRole === 'admin' ? t('account.profile.roles.admin') : viewRole === 'provider' ? t('account.profile.roles.provider') : t('account.profile.roles.client')}
                 </span>
                 {hasProvider && viewRole === 'provider' && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm">
                     <HiShieldCheck className="w-4 h-4" />
-                    Verificado
+                    {t('account.profile.verified')}
                   </span>
                 )}
               </div>
@@ -340,7 +342,7 @@ export default function Profile() {
                   className="group flex items-center gap-2 px-5 py-2.5 bg-white text-gray-800 font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
                 >
                   <HiSave className="w-5 h-5 text-gray-600 group-hover:text-gray-800" />
-                  Guardar todo
+                  {t('account.profile.saveAll')}
                 </button>
               </div>
             )}
@@ -361,7 +363,7 @@ export default function Profile() {
               onClick={() => setActiveTab('personal')}
             >
               <HiUser className="w-5 h-5" />
-              Datos personales
+              {t('account.profile.tabs.personal')}
             </button>
             {showProviderTab && (
               <button
@@ -372,7 +374,7 @@ export default function Profile() {
                 onClick={() => setActiveTab('provider')}
               >
                 <HiBriefcase className="w-5 h-5" />
-                Proveedor
+                {t('account.profile.tabs.provider')}
               </button>
             )}
             <div className="ml-auto flex items-center gap-3 pr-2">
@@ -380,17 +382,17 @@ export default function Profile() {
                 <>
                   <a href="/servicios" className={`flex items-center gap-1.5 text-sm font-medium ${accent.text} hover:underline`}>
                     <HiCollection className="w-4 h-4" />
-                    Servicios
+                    {t('account.profile.links.services')}
                   </a>
                   <a href="/plan" className={`flex items-center gap-1.5 text-sm font-medium ${accent.text} hover:underline`}>
                     <HiCurrencyDollar className="w-4 h-4" />
-                    Plan
+                    {t('account.profile.links.plan')}
                   </a>
                 </>
               )}
               <a href="/notificaciones" className={`flex items-center gap-1.5 text-sm font-medium ${accent.text} hover:underline`}>
                 <HiCog className="w-4 h-4" />
-                Preferencias
+                {t('account.profile.links.preferences')}
               </a>
             </div>
           </div>
@@ -405,13 +407,13 @@ export default function Profile() {
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                       <HiUser className="w-4 h-4 text-gray-400" />
-                      Nombre
+                      {t('account.profile.form.firstName')}
                     </label>
                     <input 
                       name="firstName" 
                       value={form.firstName} 
                       onChange={onChange} 
-                      placeholder="Tu nombre"
+                      placeholder={t('account.profile.form.firstNamePlaceholder')}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-offset-0 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white placeholder:text-gray-400"
                       style={{ '--tw-ring-color': viewRole === 'admin' ? '#6366f1' : viewRole === 'provider' ? '#0ea5e9' : '#10b981' }}
                     />
@@ -419,13 +421,13 @@ export default function Profile() {
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                       <HiUser className="w-4 h-4 text-gray-400" />
-                      Apellido
+                      {t('account.profile.form.lastName')}
                     </label>
                     <input 
                       name="lastName" 
                       value={form.lastName} 
                       onChange={onChange}
-                      placeholder="Tu apellido" 
+                      placeholder={t('account.profile.form.lastNamePlaceholder')} 
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-offset-0 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white placeholder:text-gray-400"
                       style={{ '--tw-ring-color': viewRole === 'admin' ? '#6366f1' : viewRole === 'provider' ? '#0ea5e9' : '#10b981' }}
                     />
@@ -434,13 +436,13 @@ export default function Profile() {
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <HiPhone className="w-4 h-4 text-gray-400" />
-                    Teléfono
+                    {t('account.profile.form.phone')}
                   </label>
                   <input 
                     name="phone" 
                     value={form.phone} 
                     onChange={onChange}
-                    placeholder="+54 9 11 1234-5678" 
+                    placeholder={t('account.profile.form.phonePlaceholder')} 
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-offset-0 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white placeholder:text-gray-400"
                     style={{ '--tw-ring-color': viewRole === 'admin' ? '#6366f1' : viewRole === 'provider' ? '#0ea5e9' : '#10b981' }}
                   />
@@ -462,12 +464,12 @@ export default function Profile() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                           </svg>
-                          Guardando...
+                          {t('account.profile.saving')}
                         </>
                       ) : (
                         <>
                           <HiCheckCircle className="w-5 h-5" />
-                          Guardar cambios
+                          {t('account.profile.saveChanges')}
                         </>
                       )}
                     </span>
@@ -489,7 +491,7 @@ export default function Profile() {
                         <HiSparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
                       </div>
                       <p className="text-sm text-amber-800 leading-relaxed">
-                        Estás en modo Cliente. Para una experiencia completa, cambia a modo Proveedor.
+                        {t('account.profile.clientModeWarning')}
                       </p>
                     </div>
                     {/* Botón de acción */}
@@ -498,7 +500,7 @@ export default function Profile() {
                       className="px-3 sm:px-4 py-2 bg-amber-600 text-white font-medium rounded-lg hover:bg-amber-700 transition-colors text-xs sm:text-sm whitespace-nowrap shrink-0 self-end sm:self-center"
                       onClick={() => changeViewRole('provider')}
                     >
-                      Cambiar modo
+                      {t('account.profile.switchMode')}
                     </button>
                   </div>
                 </div>
@@ -515,7 +517,7 @@ export default function Profile() {
                   }`}
                 >
                   <HiCog className="w-5 h-5" />
-                  Perfil de negocio
+                  {t('account.profile.subTabs.businessProfile')}
                 </button>
                 <button
                   onClick={() => setProviderSubTab('portfolio')}
@@ -526,7 +528,7 @@ export default function Profile() {
                   }`}
                 >
                   <HiPhotograph className="w-5 h-5" />
-                  Portafolio de trabajos
+                  {t('account.profile.subTabs.portfolio')}
                 </button>
               </div>
 
@@ -539,8 +541,8 @@ export default function Profile() {
                         <HiBriefcase className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">Configuración de proveedor</h3>
-                        <p className="text-sm text-gray-600 mt-1">Completa tu información comercial y tu zona de servicio para aparecer en las búsquedas.</p>
+                        <h3 className="font-semibold text-gray-900">{t('account.profile.providerConfig.title')}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{t('account.profile.providerConfig.description')}</p>
                       </div>
                     </div>
                   </div>
@@ -569,8 +571,8 @@ export default function Profile() {
                         <HiPhotograph className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">Portafolio de trabajos</h3>
-                        <p className="text-sm text-gray-600 mt-1">Muestra tus mejores trabajos para atraer más clientes y destacar tu experiencia.</p>
+                        <h3 className="font-semibold text-gray-900">{t('account.profile.portfolioSection.title')}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{t('account.profile.portfolioSection.description')}</p>
                       </div>
                     </div>
                   </div>

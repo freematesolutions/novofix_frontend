@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient';
 import Button from '@/components/ui/Button.jsx';
@@ -9,6 +10,7 @@ import { HiGift, HiUsers, HiCalendar, HiShieldCheck, HiClipboardCopy, HiMail, Hi
 
 export default function Referrals() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { viewRole, clearError, isAuthenticated, isRoleSwitching } = useAuth();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,7 @@ export default function Referrals() {
       const months = u?.referral?.discountMonths || 0;
       setData({ code, referralsCount: count, discountMonths: months });
     } catch (err) {
-      setError(err?.response?.data?.message || 'No se pudo cargar la información de referidos');
+      setError(err?.response?.data?.message || t('provider.referrals.errorLoading'));
     } finally { setLoading(false); }
   }, [isAuthenticated]);
 
@@ -42,19 +44,19 @@ export default function Referrals() {
     try {
       await navigator.clipboard.writeText(referralLink);
       setCopied(true);
-      toast.success('Enlace copiado al portapapeles');
+      toast.success(t('toast.linkCopied'));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      setError('No se pudo copiar el enlace');
+      setError(t('provider.referrals.copyError'));
     }
   };
 
   const copyCode = async () => {
     try {
       await navigator.clipboard.writeText(data.code);
-      toast.success('Código copiado');
+      toast.success(t('toast.codeCopied'));
     } catch {
-      setError('No se pudo copiar el código');
+      setError(t('provider.referrals.copyCodeError'));
     }
   };
 
@@ -83,7 +85,7 @@ export default function Referrals() {
   if (viewRole !== 'provider') {
     return (
       <div className="max-w-xl mx-auto">
-        <Alert type="warning">Esta sección es para proveedores.</Alert>
+        <Alert type="warning">{t('provider.referrals.providerOnly')}</Alert>
       </div>
     );
   }
@@ -102,21 +104,21 @@ export default function Referrals() {
               <HiGift className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold mb-1">Programa de Referidos</h1>
+              <h1 className="text-2xl font-bold mb-1">{t('provider.referrals.title')}</h1>
               <p className="text-brand-100 text-sm max-w-md">
-                Invita a otros profesionales y obtén hasta <strong className="text-white">50% de descuento</strong> en tu plan por hasta 3 meses
+                {t('provider.referrals.subtitle')}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-center px-4">
               <p className="text-3xl font-bold">{data.referralsCount}</p>
-              <p className="text-xs text-brand-200">Referidos</p>
+              <p className="text-xs text-brand-200">{t('provider.referrals.referrals')}</p>
             </div>
             <div className="w-px h-10 bg-white/20"></div>
             <div className="text-center px-4">
               <p className="text-3xl font-bold">{data.discountMonths}<span className="text-lg">/3</span></p>
-              <p className="text-xs text-brand-200">Meses ganados</p>
+              <p className="text-xs text-brand-200">{t('provider.referrals.monthsEarned')}</p>
             </div>
           </div>
         </div>
@@ -135,8 +137,8 @@ export default function Referrals() {
                 <HiShare className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Tu código de referencia</h2>
-                <p className="text-sm text-gray-500">Comparte este código con otros profesionales</p>
+                <h2 className="text-lg font-bold text-gray-900">{t('provider.referrals.yourCode')}</h2>
+                <p className="text-sm text-gray-500">{t('provider.referrals.shareCode')}</p>
               </div>
             </div>
             
@@ -145,14 +147,14 @@ export default function Referrals() {
               <div className="flex-1 relative">
                 <div className="px-5 py-4 bg-linear-to-r from-gray-50 to-brand-50/30 rounded-xl border-2 border-dashed border-brand-200">
                   <p className="text-2xl font-mono font-bold text-gray-900 tracking-wider text-center">
-                    {data.code || 'Cargando...'}
+                    {data.code || t('provider.referrals.loading')}
                   </p>
                 </div>
               </div>
               <button
                 onClick={copyCode}
                 className="p-4 bg-linear-to-br from-brand-500 to-cyan-500 text-white rounded-xl hover:from-brand-600 hover:to-cyan-600 transition-all shadow-lg hover:shadow-xl"
-                title="Copiar código"
+                title={t('provider.referrals.copyCode')}
               >
                 <HiClipboardCopy className="w-6 h-6" />
               </button>
@@ -160,7 +162,7 @@ export default function Referrals() {
 
             {/* Referral Link */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Tu enlace de referencia</label>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">{t('provider.referrals.yourLink')}</label>
               <div className="flex items-center gap-2">
                 <input 
                   className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all" 
@@ -178,12 +180,12 @@ export default function Referrals() {
                   {copied ? (
                     <>
                       <HiCheckCircle className="w-5 h-5" />
-                      Copiado
+                      {t('provider.referrals.copied')}
                     </>
                   ) : (
                     <>
                       <HiClipboardCopy className="w-5 h-5" />
-                      Copiar
+                      {t('provider.referrals.copy')}
                     </>
                   )}
                 </button>
@@ -210,7 +212,7 @@ export default function Referrals() {
               <span className="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Total</span>
             </div>
             <p className="text-3xl font-bold text-gray-900 mb-1">{data.referralsCount}</p>
-            <p className="text-sm text-gray-500">Profesionales referidos</p>
+            <p className="text-sm text-gray-500">{t('provider.referrals.referredProfessionals')}</p>
           </div>
 
           {/* Discount Months */}
@@ -221,8 +223,8 @@ export default function Referrals() {
               </div>
               <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">50% OFF</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{data.discountMonths} <span className="text-lg text-gray-400 font-normal">meses</span></p>
-            <p className="text-sm text-gray-500">Descuento acumulado</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{data.discountMonths} <span className="text-lg text-gray-400 font-normal">{t('provider.referrals.months')}</span></p>
+            <p className="text-sm text-gray-500">{t('provider.referrals.accumulatedDiscount')}</p>
             {/* Progress bar */}
             <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
               <div 
@@ -230,7 +232,7 @@ export default function Referrals() {
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1">{data.discountMonths} de 3 meses máximo</p>
+            <p className="text-xs text-gray-400 mt-1">{t('provider.referrals.maxMonths', { current: data.discountMonths })}</p>
           </div>
 
           {/* Limit Info */}
@@ -239,10 +241,10 @@ export default function Referrals() {
               <div className="w-12 h-12 rounded-xl bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center">
                 <HiShieldCheck className="w-6 h-6 text-white" />
               </div>
-              <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">Máximo</span>
+              <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">{t('provider.referrals.maximum')}</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">3 <span className="text-lg text-gray-400 font-normal">meses</span></p>
-            <p className="text-sm text-gray-500">Límite de descuento</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">3 <span className="text-lg text-gray-400 font-normal">{t('provider.referrals.months')}</span></p>
+            <p className="text-sm text-gray-500">{t('provider.referrals.discountLimit')}</p>
           </div>
         </div>
 
@@ -250,7 +252,7 @@ export default function Referrals() {
         <div className="bg-linear-to-r from-gray-50 to-brand-50/30 rounded-2xl border border-gray-200 p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <HiSparkles className="w-5 h-5 text-brand-500" />
-            ¿Cómo funciona?
+            {t('provider.referrals.howItWorks')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-start gap-3">
@@ -258,8 +260,8 @@ export default function Referrals() {
                 <span className="text-white font-bold text-sm">1</span>
               </div>
               <div>
-                <p className="font-semibold text-gray-900 text-sm mb-1">Comparte tu enlace</p>
-                <p className="text-xs text-gray-500">Envía tu enlace de referencia a otros profesionales</p>
+                <p className="font-semibold text-gray-900 text-sm mb-1">{t('provider.referrals.step1Title')}</p>
+                <p className="text-xs text-gray-500">{t('provider.referrals.step1Desc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -267,8 +269,8 @@ export default function Referrals() {
                 <span className="text-white font-bold text-sm">2</span>
               </div>
               <div>
-                <p className="font-semibold text-gray-900 text-sm mb-1">Ellos se registran</p>
-                <p className="text-xs text-gray-500">Cuando usan tu enlace para registrarse en FixNow</p>
+                <p className="font-semibold text-gray-900 text-sm mb-1">{t('provider.referrals.step2Title')}</p>
+                <p className="text-xs text-gray-500">{t('provider.referrals.step2Desc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -276,8 +278,8 @@ export default function Referrals() {
                 <span className="text-white font-bold text-sm">3</span>
               </div>
               <div>
-                <p className="font-semibold text-gray-900 text-sm mb-1">Ganas descuento</p>
-                <p className="text-xs text-gray-500">Recibes 50% OFF en tu plan por 1 mes (máx. 3)</p>
+                <p className="font-semibold text-gray-900 text-sm mb-1">{t('provider.referrals.step3Title')}</p>
+                <p className="text-xs text-gray-500">{t('provider.referrals.step3Desc')}</p>
               </div>
             </div>
           </div>

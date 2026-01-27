@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect, memo } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import StarRating from './StarRating.jsx';
 import Button from './Button.jsx';
 import Spinner from './Spinner.jsx';
@@ -17,11 +18,11 @@ import api from '@/state/apiClient.js';
  */
 
 const CATEGORIES = [
-  { key: 'professionalism', label: 'Profesionalismo', icon: '👔', description: 'Presentación y comportamiento profesional' },
-  { key: 'quality', label: 'Calidad del trabajo', icon: '⭐', description: 'Calidad del resultado final' },
-  { key: 'punctuality', label: 'Puntualidad', icon: '⏰', description: 'Llegó y completó a tiempo' },
-  { key: 'communication', label: 'Comunicación', icon: '💬', description: 'Claridad y disponibilidad' },
-  { key: 'value', label: 'Relación calidad-precio', icon: '💰', description: 'Valor por el dinero pagado' }
+  { key: 'professionalism', labelKey: 'professionalism', icon: '👔', descKey: 'professionalismDesc' },
+  { key: 'quality', labelKey: 'quality', icon: '⭐', descKey: 'qualityDesc' },
+  { key: 'punctuality', labelKey: 'punctuality', icon: '⏰', descKey: 'punctualityDesc' },
+  { key: 'communication', labelKey: 'communication', icon: '💬', descKey: 'communicationDesc' },
+  { key: 'value', labelKey: 'value', icon: '💰', descKey: 'valueDesc' }
 ];
 
 const MAX_TITLE_LENGTH = 100;
@@ -63,11 +64,13 @@ function ReviewForm({
   isOpen, 
   onClose, 
   booking,
-  providerName = 'el proveedor',
+  providerName,
   onSuccess 
 }) {
+  const { t } = useTranslation();
   const toast = useToast();
   const fileInputRef = useRef(null);
+  const displayProviderName = providerName || t('ui.reviewForm.defaultProvider');
 
   // Form state
   const [overall, setOverall] = useState(5);
@@ -131,17 +134,17 @@ function ReviewForm({
 
     const remainingSlots = MAX_PHOTOS - photos.length;
     if (remainingSlots <= 0) {
-      toast.warning(`Máximo ${MAX_PHOTOS} fotos permitidas`);
+      toast.warning(t('ui.reviewForm.maxPhotosWarning', { max: MAX_PHOTOS }));
       return;
     }
 
     const validFiles = files.slice(0, remainingSlots).filter(file => {
       if (!file.type.startsWith('image/')) {
-        toast.warning('Solo se permiten imágenes');
+        toast.warning(t('ui.reviewForm.onlyImagesAllowed'));
         return false;
       }
       if (file.size > MAX_PHOTO_SIZE) {
-        toast.warning(`${file.name} excede el límite de 5MB`);
+        toast.warning(t('ui.reviewForm.fileTooLarge', { name: file.name }));
         return false;
       }
       return true;
@@ -171,15 +174,15 @@ function ReviewForm({
   const handleSubmit = async () => {
     // Validaciones
     if (overall < 1) {
-      toast.warning('Selecciona una calificación general');
+      toast.warning(t('ui.reviewForm.selectRating'));
       return;
     }
     if (!comment.trim()) {
-      toast.warning('Por favor escribe un comentario');
+      toast.warning(t('ui.reviewForm.writeComment'));
       return;
     }
     if (comment.trim().length < 10) {
-      toast.warning('El comentario debe tener al menos 10 caracteres');
+      toast.warning(t('ui.reviewForm.commentMinLength'));
       return;
     }
 
@@ -232,14 +235,14 @@ function ReviewForm({
       }
 
       if (response?.data?.success) {
-        toast.success('¡Gracias por tu reseña!');
+        toast.success(t('ui.reviewForm.thankYou'));
         onSuccess?.(response.data.data?.review);
         onClose();
       } else {
-        throw new Error(response?.data?.message || 'Error desconocido');
+        throw new Error(response?.data?.message || t('ui.reviewForm.unknownError'));
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || 'No se pudo crear la reseña';
+      const msg = err?.response?.data?.message || err?.message || t('ui.reviewForm.createError');
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -280,8 +283,8 @@ function ReviewForm({
                 <Icons.Sparkles className="w-7 h-7" />
               </div>
               <div>
-                <h2 className="text-xl font-bold">Deja tu reseña</h2>
-                <p className="text-amber-100 text-sm">Comparte tu experiencia con {providerName}</p>
+                <h2 className="text-xl font-bold">{t('ui.reviewForm.title')}</h2>
+                <p className="text-amber-100 text-sm">{t('ui.reviewForm.subtitle', { provider: displayProviderName })}</p>
               </div>
             </div>
           </div>
@@ -290,7 +293,7 @@ function ReviewForm({
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Overall Rating */}
             <div className="text-center space-y-3">
-              <h3 className="text-lg font-semibold text-gray-900">¿Cómo fue tu experiencia?</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('ui.reviewForm.howWasExperience')}</h3>
               <div className="flex justify-center">
                 <StarRating
                   value={overall}
@@ -298,6 +301,16 @@ function ReviewForm({
                   size="2xl"
                   gap="md"
                   animated
+                />
+              </div>
+              <p className="text-sm text-gray-500">
+                {overall === 5 ? t('ui.reviewForm.rating5') : 
+                 overall === 4 ? t('ui.reviewForm.rating4') :
+                 overall === 3 ? t('ui.reviewForm.rating3') :
+                 overall === 2 ? t('ui.reviewForm.rating2') :
+                 overall === 1 ? t('ui.reviewForm.rating1') : t('ui.reviewForm.selectARating')}
+              </p>
+            </div>
                 />
               </div>
               <p className="text-sm text-gray-500">
@@ -318,8 +331,8 @@ function ReviewForm({
               >
                 <div className="flex items-center gap-3">
                   <span className="text-lg">📊</span>
-                  <span className="font-medium text-gray-900">Calificar por categoría</span>
-                  <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">Opcional</span>
+                  <span className="font-medium text-gray-900">{t('ui.reviewForm.rateByCategory')}</span>
+                  <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">{t('ui.reviewForm.optional')}</span>
                 </div>
                 <svg 
                   className={`w-5 h-5 text-gray-400 transition-transform ${showCategories ? 'rotate-180' : ''}`}
@@ -339,8 +352,8 @@ function ReviewForm({
                       <div className="flex items-center gap-3">
                         <span className="text-xl">{cat.icon}</span>
                         <div>
-                          <span className="font-medium text-gray-900 text-sm">{cat.label}</span>
-                          <p className="text-xs text-gray-500">{cat.description}</p>
+                          <span className="font-medium text-gray-900 text-sm">{t(`ui.reviewForm.categories.${cat.labelKey}`)}</span>
+                          <p className="text-xs text-gray-500">{t(`ui.reviewForm.categories.${cat.descKey}`)}</p>
                         </div>
                       </div>
                       <StarRating
@@ -355,7 +368,7 @@ function ReviewForm({
                   
                   {/* Average category score */}
                   <div className="flex items-center justify-end gap-2 pt-2 text-sm text-gray-500">
-                    <span>Promedio de categorías:</span>
+                    <span>{t('ui.reviewForm.categoryAverage')}:</span>
                     <span className="font-semibold text-amber-600">{averageCategory.toFixed(1)}</span>
                   </div>
                 </div>
@@ -365,14 +378,14 @@ function ReviewForm({
             {/* Title */}
             <div className="space-y-2">
               <label className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Título (opcional)</span>
+                <span className="text-sm font-medium text-gray-700">{t('ui.reviewForm.titleLabel')}</span>
                 <span className="text-xs text-gray-400">{title.length}/{MAX_TITLE_LENGTH}</span>
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value.slice(0, MAX_TITLE_LENGTH))}
-                placeholder="Ej: Excelente servicio, muy profesional"
+                placeholder={t('ui.reviewForm.titlePlaceholder')}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 focus:bg-white transition-all"
               />
             </div>
@@ -380,7 +393,7 @@ function ReviewForm({
             {/* Comment */}
             <div className="space-y-2">
               <label className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Tu comentario *</span>
+                <span className="text-sm font-medium text-gray-700">{t('ui.reviewForm.commentLabel')}</span>
                 <span className={`text-xs ${comment.length > MAX_COMMENT_LENGTH * 0.9 ? 'text-amber-600' : 'text-gray-400'}`}>
                   {comment.length}/{MAX_COMMENT_LENGTH}
                 </span>
@@ -388,19 +401,19 @@ function ReviewForm({
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value.slice(0, MAX_COMMENT_LENGTH))}
-                placeholder="Cuéntanos tu experiencia con el servicio..."
+                placeholder={t('ui.reviewForm.commentPlaceholder')}
                 rows={4}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 focus:bg-white transition-all resize-none"
               />
               {comment.length < 10 && comment.length > 0 && (
-                <p className="text-xs text-amber-600">Mínimo 10 caracteres</p>
+                <p className="text-xs text-amber-600">{t('ui.reviewForm.minChars')}</p>
               )}
             </div>
 
             {/* Photos */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">Fotos (opcional)</label>
+                <label className="text-sm font-medium text-gray-700">{t('ui.reviewForm.photosLabel')}</label>
                 <span className="text-xs text-gray-400">{photos.length}/{MAX_PHOTOS}</span>
               </div>
 
@@ -410,7 +423,7 @@ function ReviewForm({
                   <div key={idx} className="relative group">
                     <img
                       src={photo.preview}
-                      alt={`Foto ${idx + 1}`}
+                      alt={t('ui.reviewForm.photoAlt', { num: idx + 1 })}
                       className="w-20 h-20 object-cover rounded-xl border-2 border-gray-200"
                     />
                     <button
@@ -431,7 +444,7 @@ function ReviewForm({
                     className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 hover:border-amber-400 hover:bg-amber-50/50 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-amber-500 transition-all"
                   >
                     <Icons.Camera className="w-6 h-6" />
-                    <span className="text-[10px]">Agregar</span>
+                    <span className="text-[10px]">{t('ui.reviewForm.addPhoto')}</span>
                   </button>
                 )}
 
@@ -444,7 +457,7 @@ function ReviewForm({
                   className="hidden"
                 />
               </div>
-              <p className="text-xs text-gray-400">Máximo 5 fotos de hasta 5MB cada una</p>
+              <p className="text-xs text-gray-400">{t('ui.reviewForm.photoLimits')}</p>
             </div>
           </div>
 
@@ -456,7 +469,7 @@ function ReviewForm({
               disabled={loading}
               className="px-5 py-2.5 text-gray-600 hover:text-gray-800 font-medium transition-colors disabled:opacity-50"
             >
-              Cancelar
+              {t('ui.reviewForm.cancel')}
             </button>
 
             <button
@@ -468,12 +481,12 @@ function ReviewForm({
               {loading ? (
                 <>
                   <Spinner size="sm" className="text-white" />
-                  Enviando...
+                  {t('ui.reviewForm.sending')}
                 </>
               ) : (
                 <>
                   <Icons.Check className="w-5 h-5" />
-                  Publicar reseña
+                  {t('ui.reviewForm.publish')}
                 </>
               )}
             </button>

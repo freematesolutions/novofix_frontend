@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient.js';
 import Spinner from '@/components/ui/Spinner.jsx';
 import Button from '@/components/ui/Button.jsx';
@@ -44,8 +45,8 @@ const getNotificationStyle = (type, title, message) => {
   return { icon: HiBell, bgColor: 'bg-brand-100', iconColor: 'text-brand-600', borderColor: 'border-brand-200' };
 };
 
-// Función para formatear tiempo relativo
-const getRelativeTime = (date) => {
+// Función para formatear tiempo relativo - se traducirá en el componente
+const getRelativeTime = (date, t) => {
   if (!date) return '';
   const d = new Date(date);
   const now = new Date();
@@ -54,16 +55,17 @@ const getRelativeTime = (date) => {
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
   
-  if (diffMins < 1) return 'Ahora mismo';
-  if (diffMins < 60) return `Hace ${diffMins} min`;
-  if (diffHours < 24) return `Hace ${diffHours}h`;
-  if (diffDays < 7) return `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+  if (diffMins < 1) return t('shared.notifications.time.now');
+  if (diffMins < 60) return t('shared.notifications.time.minutesAgo', { count: diffMins });
+  if (diffHours < 24) return t('shared.notifications.time.hoursAgo', { count: diffHours });
+  if (diffDays < 7) return t('shared.notifications.time.daysAgo', { count: diffDays });
   
   const pad = (v) => String(v).padStart(2,'0');
   return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
 };
 
 export default function Notifications() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [items, setItems] = useState([]);
@@ -85,9 +87,9 @@ export default function Notifications() {
       setPages(pg?.pages || 1);
       setUnreadCount(data?.data?.unreadCount || 0);
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudieron cargar las notificaciones');
+      setError(e?.response?.data?.message || t('shared.notifications.errors.loadFailed'));
     } finally { setLoading(false); }
-  }, [page, limit]);
+  }, [page, limit, t]);
 
   const loadPrefs = useCallback(async () => {
     try {
@@ -146,11 +148,11 @@ export default function Notifications() {
                 <HiBell className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Mis Notificaciones</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">{t('shared.notifications.title')}</h1>
                 <p className="text-brand-100 mt-1">
                   {unreadCount > 0 
-                    ? `Tienes ${unreadCount} notificación${unreadCount > 1 ? 'es' : ''} sin leer`
-                    : 'Estás al día con todas tus notificaciones'
+                    ? t('shared.notifications.unreadCount', { count: unreadCount })
+                    : t('shared.notifications.allRead')
                   }
                 </p>
               </div>
@@ -161,7 +163,7 @@ export default function Notifications() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
                 </span>
-                <span className="text-white font-medium">{unreadCount} nuevas</span>
+                <span className="text-white font-medium">{t('shared.notifications.newCount', { count: unreadCount })}</span>
               </div>
             )}
           </div>
@@ -181,7 +183,7 @@ export default function Notifications() {
         {loading && (
           <div className="flex items-center justify-center gap-3 py-8 text-gray-600">
             <Spinner size="sm"/>
-            <span className="text-sm font-medium">Cargando notificaciones...</span>
+            <span className="text-sm font-medium">{t('shared.notifications.loading')}</span>
           </div>
         )}
 
@@ -191,7 +193,7 @@ export default function Notifications() {
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/50">
             <div className="flex items-center gap-2">
               <HiSparkles className="w-5 h-5 text-brand-500" />
-              <span className="font-medium text-gray-700">Actividad reciente</span>
+              <span className="font-medium text-gray-700">{t('shared.notifications.recentActivity')}</span>
             </div>
             {items.length > 0 && unreadCount > 0 && (
               <button
@@ -200,7 +202,7 @@ export default function Notifications() {
                 className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <HiCheckCircle className="w-4 h-4" />
-                {markingAll ? 'Marcando...' : 'Marcar todas como leídas'}
+                {markingAll ? t('shared.notifications.markingAll') : t('shared.notifications.markAllRead')}
               </button>
             )}
           </div>
@@ -228,7 +230,7 @@ export default function Notifications() {
                   {/* Contenido */}
                   <div className="flex-1 min-w-0">
                     <h4 className={`text-sm sm:text-base font-medium truncate ${!n.read ? 'text-gray-900' : 'text-gray-700'}`}>
-                      {n.title || 'Notificación'}
+                      {n.title || t('shared.notifications.notification')}
                     </h4>
                     <p className={`text-sm mt-0.5 ${!n.read ? 'text-gray-700' : 'text-gray-500'} wrap-break-word`}>
                       {n.message || n.body || '—'}
@@ -236,12 +238,12 @@ export default function Notifications() {
                     <div className="flex items-center gap-3 mt-2 flex-wrap">
                       <span className="text-xs text-gray-400 flex items-center gap-1">
                         <HiCalendar className="w-3.5 h-3.5" />
-                        {getRelativeTime(n.createdAt)}
+                        {getRelativeTime(n.createdAt, t)}
                       </span>
                       {!n.read && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-100 text-brand-700 text-xs font-medium rounded-full">
                           <span className="w-1.5 h-1.5 bg-brand-500 rounded-full animate-pulse"></span>
-                          Nueva
+                          {t('shared.notifications.new')}
                         </span>
                       )}
                     </div>
@@ -255,7 +257,7 @@ export default function Notifications() {
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200"
                       >
                         <HiEye className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Marcar leída</span>
+                        <span className="hidden sm:inline">{t('shared.notifications.markRead')}</span>
                       </button>
                     )}
                     {(() => {
@@ -268,10 +270,10 @@ export default function Notifications() {
                           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg transition-all duration-200"
                         >
                           <HiExternalLink className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Abrir</span>
+                          <span className="hidden sm:inline">{t('shared.notifications.open')}</span>
                         </Link>
                       );
-                    })()}
+                    })()}}
                     {n.read && !n?.data?.actionUrl && (
                       <div className="p-1">
                         <HiCheck className="w-4 h-4 text-gray-300" />
@@ -288,9 +290,9 @@ export default function Notifications() {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
                   <HiBell className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-700 mb-2">Sin notificaciones</h3>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">{t('shared.notifications.empty')}</h3>
                 <p className="text-sm text-gray-500">
-                  Aquí verás las actualizaciones de tu actividad
+                  {t('shared.notifications.emptyDescription')}
                 </p>
               </div>
             )}
@@ -305,7 +307,7 @@ export default function Notifications() {
                 className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
               >
                 <HiChevronLeft className="w-4 h-4" />
-                Anterior
+                {t('shared.notifications.previous')}
               </button>
               <div className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg">
                 <span className="text-sm font-medium text-brand-600">{page}</span>
@@ -317,7 +319,7 @@ export default function Notifications() {
                 disabled={page >= pages}
                 className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
               >
-                Siguiente
+                {t('shared.notifications.next')}
                 <HiChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -331,8 +333,8 @@ export default function Notifications() {
               <HiCog className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Preferencias de notificación</h3>
-              <p className="text-sm text-gray-500">Elige cómo quieres recibir tus notificaciones</p>
+              <h3 className="font-semibold text-gray-900">{t('shared.notifications.preferences.title')}</h3>
+              <p className="text-sm text-gray-500">{t('shared.notifications.preferences.subtitle')}</p>
             </div>
           </div>
 
@@ -357,9 +359,9 @@ export default function Notifications() {
                 </div>
                 <div className="flex-1">
                   <span className={`block font-medium transition-colors duration-200 ${prefs.email ? 'text-brand-700' : 'text-gray-700'}`}>
-                    Email
+                    {t('shared.notifications.preferences.email')}
                   </span>
-                  <span className="text-xs text-gray-500">Correo electrónico</span>
+                  <span className="text-xs text-gray-500">{t('shared.notifications.preferences.emailDesc')}</span>
                 </div>
                 {prefs.email && (
                   <div className="absolute top-2 right-2">
@@ -368,7 +370,7 @@ export default function Notifications() {
                 )}
               </label>
 
-              {/* Push */}
+              {/* Push */}}
               <label className={`
                 relative flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
                 ${prefs.push 
@@ -387,9 +389,9 @@ export default function Notifications() {
                 </div>
                 <div className="flex-1">
                   <span className={`block font-medium transition-colors duration-200 ${prefs.push ? 'text-brand-700' : 'text-gray-700'}`}>
-                    Push
+                    {t('shared.notifications.preferences.push')}
                   </span>
-                  <span className="text-xs text-gray-500">Navegador web</span>
+                  <span className="text-xs text-gray-500">{t('shared.notifications.preferences.pushDesc')}</span>
                 </div>
                 {prefs.push && (
                   <div className="absolute top-2 right-2">
@@ -398,7 +400,7 @@ export default function Notifications() {
                 )}
               </label>
 
-              {/* SMS */}
+              {/* SMS */}}
               <label className={`
                 relative flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
                 ${prefs.sms 
@@ -417,9 +419,9 @@ export default function Notifications() {
                 </div>
                 <div className="flex-1">
                   <span className={`block font-medium transition-colors duration-200 ${prefs.sms ? 'text-brand-700' : 'text-gray-700'}`}>
-                    SMS
+                    {t('shared.notifications.preferences.sms')}
                   </span>
-                  <span className="text-xs text-gray-500">Mensajes de texto</span>
+                  <span className="text-xs text-gray-500">{t('shared.notifications.preferences.smsDesc')}</span>
                 </div>
                 {prefs.sms && (
                   <div className="absolute top-2 right-2">
@@ -438,12 +440,12 @@ export default function Notifications() {
                 {savingPrefs ? (
                   <>
                     <Spinner size="sm" />
-                    Guardando...
+                    {t('shared.notifications.preferences.saving')}
                   </>
                 ) : (
                   <>
                     <HiCheck className="w-4 h-4" />
-                    Guardar preferencias
+                    {t('shared.notifications.preferences.save')}
                   </>
                 )}
               </button>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
 import Spinner from '@/components/ui/Spinner.jsx';
@@ -10,6 +11,7 @@ import { HiSparkles, HiLightningBolt, HiStar, HiCheck, HiCreditCard, HiCalendar,
 
 export default function Plan() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { viewRole, clearError, isAuthenticated, isRoleSwitching } = useAuth();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ export default function Plan() {
       if (plansRes.data?.success) setPlans(plansRes.data.data.plans || []);
       if (statusRes.data?.success) setStatus(statusRes.data.data);
     } catch (err) {
-      toast.error('No se pudo cargar información de planes');
+      toast.error(t('toast.errorLoadingPlans'));
     } finally {
       setLoading(false);
     }
@@ -45,13 +47,13 @@ export default function Plan() {
     try {
       const { data } = await api.post('/provider/subscription/change', { planName: name });
       if (data?.success) {
-        toast.success('Plan actualizado');
+        toast.success(t('toast.planUpdated'));
         await load();
       } else {
-        toast.warning(data?.message || 'No se pudo cambiar el plan');
+        toast.warning(data?.message || t('toast.couldNotChangePlan'));
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Error al cambiar el plan');
+      toast.error(err?.response?.data?.message || t('toast.errorChangingPlan'));
     } finally {
       setChanging(false);
     }
@@ -63,14 +65,14 @@ export default function Plan() {
     try {
       const { data } = await api.post('/provider/subscription/apply-referral', { code: referralCode.trim() });
       if (data?.success) {
-        toast.success('Código aplicado');
+        toast.success(t('toast.codeApplied'));
         setReferralCode('');
         await load();
       } else {
-        toast.warning(data?.message || 'No se pudo aplicar el código');
+        toast.warning(data?.message || t('toast.couldNotApplyCode'));
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Error al aplicar código');
+      toast.error(err?.response?.data?.message || t('toast.errorApplyingCode'));
     } finally {
       setReferralLoading(false);
     }
@@ -93,6 +95,26 @@ export default function Plan() {
     return 'from-gray-400 to-gray-500';
   };
 
+  // Translate plan name from API (backend returns Spanish names)
+  const translatePlanName = (displayName, planName) => {
+    const name = displayName || planName || '';
+    const normalized = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    // Map Spanish plan names to translation keys
+    const planKeyMap = {
+      'gratis': 'free',
+      'free': 'free',
+      'basico': 'basic',
+      'basic': 'basic',
+      'starter': 'starterMonthly',
+      'pro': 'pro',
+      'profesional': 'professional',
+      'professional': 'professional',
+      'premium': 'premium'
+    };
+    const key = planKeyMap[normalized];
+    return key ? t(`provider.plan.planNames.${key}`) : name;
+  };
+
   // Redirigir al inicio si no está autenticado
   useEffect(() => {
     if (!isAuthenticated) {
@@ -112,7 +134,7 @@ export default function Plan() {
   if (viewRole !== 'provider') {
     return (
       <div className="max-w-xl mx-auto">
-        <Alert type="warning">Esta sección es para proveedores.</Alert>
+        <Alert type="warning">{t('provider.plan.providerOnly')}</Alert>
       </div>
     );
   }
@@ -129,8 +151,8 @@ export default function Plan() {
               <HiCreditCard className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Planes y Suscripción</h1>
-              <p className="text-brand-100 text-sm">Gestiona tu plan y maximiza tu potencial</p>
+              <h1 className="text-2xl font-bold">{t('provider.plan.title')}</h1>
+              <p className="text-brand-100 text-sm">{t('provider.plan.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -142,7 +164,7 @@ export default function Plan() {
           <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center animate-pulse">
             <Spinner size="sm" className="text-white" />
           </div>
-          <span className="text-gray-600 font-medium">Cargando información de planes...</span>
+          <span className="text-gray-600 font-medium">{t('provider.plan.loading')}</span>
         </div>
       )}
 
@@ -157,23 +179,23 @@ export default function Plan() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-xl font-bold text-gray-900 capitalize">{status.plan.displayName || status.plan.name}</h3>
+                    <h3 className="text-xl font-bold text-gray-900 capitalize">{translatePlanName(status.plan.displayName, status.plan.name)}</h3>
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${status.subscription.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {status.subscription.status === 'active' ? 'Activo' : status.subscription.status}
+                      {status.subscription.status === 'active' ? t('provider.plan.active') : status.subscription.status}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-0.5">Tu plan actual</p>
+                  <p className="text-sm text-gray-500 mt-0.5">{t('provider.plan.yourCurrentPlan')}</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold bg-linear-to-r from-brand-600 to-cyan-600 bg-clip-text text-transparent">
                   {Intl.NumberFormat('es-AR', { style: 'currency', currency: status.monthlyCharge.currency }).format(status.monthlyCharge.total)}
-                  <span className="text-sm font-normal text-gray-500">/mes</span>
+                  <span className="text-sm font-normal text-gray-500">{t('provider.plan.perMonth')}</span>
                 </p>
                 {status.monthlyCharge.discount > 0 && (
                   <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
                     <HiGift className="w-3.5 h-3.5" />
-                    Descuento aplicado
+                    {t('provider.plan.discountApplied')}
                   </span>
                 )}
               </div>
@@ -186,7 +208,7 @@ export default function Plan() {
             <div className="p-5">
               <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                 <HiChartBar className="w-4 h-4" />
-                Leads Usados
+                {t('provider.plan.leadsUsed')}
               </div>
               <p className="text-lg font-bold text-gray-900">
                 {status.subscription.leadsUsed}
@@ -206,34 +228,34 @@ export default function Plan() {
             <div className="p-5">
               <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                 <HiTicket className="w-4 h-4" />
-                Comisión
+                {t('provider.plan.commission')}
               </div>
               <p className="text-lg font-bold text-gray-900">{status.plan.features.commissionRate}%</p>
-              <p className="text-xs text-gray-500 mt-1">Por transacción</p>
+              <p className="text-xs text-gray-500 mt-1">{t('provider.plan.perTransaction')}</p>
             </div>
 
             {/* Visibility */}
             <div className="p-5">
               <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                 <HiBadgeCheck className="w-4 h-4" />
-                Visibilidad
+                {t('provider.plan.visibility')}
               </div>
               <p className="text-lg font-bold text-gray-900">x{status.plan.features.visibilityMultiplier}</p>
-              <p className="text-xs text-gray-500 mt-1">Multiplicador</p>
+              <p className="text-xs text-gray-500 mt-1">{t('provider.plan.multiplier')}</p>
             </div>
 
             {/* Next Period */}
             <div className="p-5">
               <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
                 <HiCalendar className="w-4 h-4" />
-                Próximo Período
+                {t('provider.plan.nextPeriod')}
               </div>
               <p className="text-lg font-bold text-gray-900">
                 {status.subscription.currentPeriodEnd 
                   ? new Date(status.subscription.currentPeriodEnd).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) 
                   : '—'}
               </p>
-              <p className="text-xs text-gray-500 mt-1">Renovación</p>
+              <p className="text-xs text-gray-500 mt-1">{t('provider.plan.renewal')}</p>
             </div>
           </div>
 
@@ -244,12 +266,12 @@ export default function Plan() {
                 <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center">
                   <HiGift className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-sm font-medium">¿Tienes un código de referido?</span>
+                <span className="text-sm font-medium">{t('provider.plan.haveReferralCode')}</span>
               </div>
               <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
                 <input
                   type="text"
-                  placeholder="Ingresa el código"
+                  placeholder={t('provider.plan.enterCode')}
                   className="flex-1 sm:max-w-50 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all placeholder:text-gray-400"
                   value={referralCode}
                   onChange={(e) => setReferralCode(e.target.value)}
@@ -262,8 +284,8 @@ export default function Plan() {
                   className="px-5! py-2.5! bg-linear-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white rounded-xl font-medium shadow-sm"
                 >
                   {referralLoading ? (
-                    <span className="flex items-center gap-2"><Spinner size="xs" /> Aplicando</span>
-                  ) : 'Aplicar'}
+                    <span className="flex items-center gap-2"><Spinner size="xs" /> {t('provider.plan.applying')}</span>
+                  ) : t('provider.plan.apply')}
                 </Button>
               </div>
             </div>
@@ -274,7 +296,7 @@ export default function Plan() {
       {/* Plans Grid */}
       {!loading && plans.length > 0 && (
         <div>
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Planes Disponibles</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">{t('provider.plan.availablePlans')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {plans.map(p => {
               const active = status?.plan?.name === p.name;
@@ -295,7 +317,7 @@ export default function Plan() {
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <span className="inline-flex items-center gap-1 px-3 py-1 bg-linear-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-full shadow-lg">
                         <HiSparkles className="w-3.5 h-3.5" />
-                        Más Popular
+                        {t('provider.plan.mostPopular')}
                       </span>
                     </div>
                   )}
@@ -305,7 +327,7 @@ export default function Plan() {
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <span className="inline-flex items-center gap-1 px-3 py-1 bg-linear-to-r from-brand-500 to-cyan-500 text-white text-xs font-bold rounded-full shadow-lg">
                         <HiCheck className="w-3.5 h-3.5" />
-                        Plan Actual
+                        {t('provider.plan.currentPlan')}
                       </span>
                     </div>
                   )}
@@ -315,7 +337,7 @@ export default function Plan() {
                     <div className={`w-14 h-14 mx-auto mb-4 rounded-xl bg-linear-to-br ${getPlanGradient(p.name, active)} flex items-center justify-center text-white shadow-lg`}>
                       {getPlanIcon(p.name)}
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 capitalize mb-1">{p.displayName}</h3>
+                    <h3 className="text-xl font-bold text-gray-900 capitalize mb-1">{translatePlanName(p.displayName, p.name)}</h3>
                     <p className="text-sm text-gray-500">{p.metadata?.description}</p>
                   </div>
 
@@ -323,7 +345,7 @@ export default function Plan() {
                   <div className="p-6 text-center border-b border-gray-100">
                     <p className="text-4xl font-bold text-gray-900">
                       {p.price.monthly === 0 ? (
-                        <span className="text-emerald-600">Gratis</span>
+                        <span className="text-emerald-600">{t('provider.plan.free')}</span>
                       ) : (
                         <>
                           {Intl.NumberFormat('es-AR', { style: 'currency', currency: p.price.currency }).format(p.price.monthly)}
@@ -331,7 +353,7 @@ export default function Plan() {
                       )}
                     </p>
                     {p.price.monthly > 0 && (
-                      <span className="text-sm text-gray-500">/mes</span>
+                      <span className="text-sm text-gray-500">{t('provider.plan.perMonth')}</span>
                     )}
                   </div>
 
@@ -342,19 +364,19 @@ export default function Plan() {
                         <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                           <HiCheck className="w-3 h-3 text-emerald-600" />
                         </span>
-                        <span><strong>{p.features.leadLimit < 0 ? 'Ilimitados' : p.features.leadLimit}</strong> leads/mes</span>
+                        <span><strong>{p.features.leadLimit < 0 ? t('provider.plan.unlimited') : p.features.leadLimit}</strong> {t('provider.plan.leadsMonth')}</span>
                       </li>
                       <li className="flex items-center gap-3 text-sm text-gray-700">
                         <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                           <HiCheck className="w-3 h-3 text-emerald-600" />
                         </span>
-                        <span>Comisión <strong>{p.features.commissionRate}%</strong></span>
+                        <span>{t('provider.plan.commission')} <strong>{p.features.commissionRate}%</strong></span>
                       </li>
                       <li className="flex items-center gap-3 text-sm text-gray-700">
                         <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                           <HiCheck className="w-3 h-3 text-emerald-600" />
                         </span>
-                        <span>Visibilidad <strong>x{p.features.visibilityMultiplier}</strong></span>
+                        <span>{t('provider.plan.visibility')} <strong>x{p.features.visibilityMultiplier}</strong></span>
                       </li>
                       {Array.isArray(p.features.benefits) && p.features.benefits.slice(0, 3).map(b => (
                         <li key={b} className="flex items-center gap-3 text-sm text-gray-700">
@@ -374,7 +396,7 @@ export default function Plan() {
                         disabled 
                         className="w-full py-3 px-4 rounded-xl bg-gray-100 text-gray-500 font-medium cursor-not-allowed"
                       >
-                        Tu plan actual
+                        {t('provider.plan.yourCurrentPlan')}
                       </button>
                     ) : (
                       <button 
@@ -389,10 +411,10 @@ export default function Plan() {
                         {changing ? (
                           <span className="flex items-center justify-center gap-2">
                             <Spinner size="xs" />
-                            Procesando...
+                            {t('provider.plan.processing')}
                           </span>
                         ) : (
-                          p.price.monthly === 0 ? 'Cambiar a Gratis' : `Cambiar a ${p.displayName}`
+                          p.price.monthly === 0 ? t('provider.plan.changeToFree') : t('provider.plan.changeTo', { plan: p.displayName })
                         )}
                       </button>
                     )}
@@ -410,8 +432,8 @@ export default function Plan() {
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center">
             <HiCreditCard className="w-8 h-8 text-white" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">No hay planes disponibles</h3>
-          <p className="text-gray-500 text-sm">Los planes estarán disponibles pronto.</p>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">{t('provider.plan.noPlansAvailable')}</h3>
+          <p className="text-gray-500 text-sm">{t('provider.plan.plansComingSoon')}</p>
         </div>
       )}
     </div>

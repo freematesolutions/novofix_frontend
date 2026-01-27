@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, useElements, useStripe, PaymentElement } from '@stripe/react-stripe-js';
 import api from '@/state/apiClient';
@@ -18,6 +19,7 @@ import {
 } from 'react-icons/hi';
 
 function PaymentInner({ amount, currency }) {
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
@@ -37,10 +39,10 @@ function PaymentInner({ amount, currency }) {
         confirmParams: { return_url: `${window.location.origin}/reservas` }
       });
       if (err) {
-        setError(err.message || 'No se pudo confirmar el pago');
+        setError(err.message || t('payment.confirmError'));
       }
     } catch (e) {
-      setError(e?.message || 'No se pudo procesar el pago');
+      setError(e?.message || t('payment.processError'));
     } finally {
       setSubmitting(false);
     }
@@ -54,8 +56,8 @@ function PaymentInner({ amount, currency }) {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/30 mb-4">
             <HiCreditCard className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Finalizar pago</h1>
-          <p className="text-gray-500 mt-2">Completa tu información de pago de forma segura</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('payment.title')}</h1>
+          <p className="text-gray-500 mt-2">{t('payment.subtitle')}</p>
         </div>
 
         {/* Card principal */}
@@ -66,7 +68,7 @@ function PaymentInner({ amount, currency }) {
             {/* Resumen del monto */}
             {formattedAmount && (
               <div className="bg-linear-to-r from-emerald-500 to-teal-600 p-6 text-center">
-                <p className="text-emerald-100 text-sm mb-1">Total a pagar</p>
+                <p className="text-emerald-100 text-sm mb-1">{t('payment.totalToPay')}</p>
                 <p className="text-3xl font-bold text-white">{formattedAmount}</p>
               </div>
             )}
@@ -94,12 +96,12 @@ function PaymentInner({ amount, currency }) {
               <div className="flex items-center justify-center gap-4 pt-2">
                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
                   <HiLockClosed className="w-4 h-4 text-emerald-500" />
-                  <span>Encriptado SSL</span>
+                  <span>{t('payment.security.ssl')}</span>
                 </div>
                 <div className="w-px h-4 bg-gray-300"></div>
                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
                   <HiShieldCheck className="w-4 h-4 text-emerald-500" />
-                  <span>Pago seguro</span>
+                  <span>{t('payment.security.secure')}</span>
                 </div>
               </div>
 
@@ -117,12 +119,12 @@ function PaymentInner({ amount, currency }) {
                   {submitting ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                      <span>Procesando...</span>
+                      <span>{t('payment.processing')}</span>
                     </>
                   ) : (
                     <>
                       <HiCheckCircle className="w-5 h-5" />
-                      <span>Confirmar pago</span>
+                      <span>{t('payment.confirmPayment')}</span>
                     </>
                   )}
                 </button>
@@ -132,7 +134,7 @@ function PaymentInner({ amount, currency }) {
                   className="flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-all duration-200"
                 >
                   <HiArrowLeft className="w-4 h-4" />
-                  <span>Cancelar</span>
+                  <span>{t('payment.cancel')}</span>
                 </button>
               </div>
             </div>
@@ -143,22 +145,22 @@ function PaymentInner({ amount, currency }) {
         <div className="mt-8 grid grid-cols-3 gap-3">
           <div className="flex flex-col items-center text-center p-4 bg-white/70 rounded-xl border border-gray-100 shadow-sm">
             <HiShieldCheck className="w-6 h-6 text-emerald-500 mb-2" />
-            <span className="text-xs font-medium text-gray-700">100% Seguro</span>
+            <span className="text-xs font-medium text-gray-700">{t('payment.badges.secure')}</span>
           </div>
           <div className="flex flex-col items-center text-center p-4 bg-white/70 rounded-xl border border-gray-100 shadow-sm">
             <HiLightningBolt className="w-6 h-6 text-emerald-500 mb-2" />
-            <span className="text-xs font-medium text-gray-700">Pago instantáneo</span>
+            <span className="text-xs font-medium text-gray-700">{t('payment.badges.instant')}</span>
           </div>
           <div className="flex flex-col items-center text-center p-4 bg-white/70 rounded-xl border border-gray-100 shadow-sm">
             <HiCurrencyDollar className="w-6 h-6 text-emerald-500 mb-2" />
-            <span className="text-xs font-medium text-gray-700">Sin cargos extra</span>
+            <span className="text-xs font-medium text-gray-700">{t('payment.badges.noExtra')}</span>
           </div>
         </div>
 
         {/* Powered by Stripe */}
         <div className="text-center mt-6">
           <p className="text-xs text-gray-400">
-            Procesado de forma segura por{' '}
+            {t('payment.poweredBy')}{' '}
             <span className="font-semibold text-gray-500">Stripe</span>
           </p>
         </div>
@@ -168,6 +170,7 @@ function PaymentInner({ amount, currency }) {
 }
 
 export default function Payment() {
+  const { t } = useTranslation();
   const { intentId } = useParams();
   const [clientSecret, setClientSecret] = useState('');
   const [amount, setAmount] = useState(0);
@@ -216,9 +219,9 @@ export default function Payment() {
             <div className="inline-flex items-center justify-center w-14 h-14 bg-amber-100 rounded-full mb-4">
               <HiExclamation className="w-7 h-7 text-amber-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Configuración pendiente</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('payment.configPending.title')}</h2>
             <p className="text-sm text-gray-600">
-              Falta configurar la clave de Stripe para procesar pagos.
+              {t('payment.configPending.message')}
             </p>
           </div>
         </div>
@@ -234,7 +237,7 @@ export default function Payment() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
             <Spinner size="md" className="text-emerald-600" />
           </div>
-          <p className="text-gray-600 font-medium">Preparando pago seguro...</p>
+          <p className="text-gray-600 font-medium">{t('payment.loading')}</p>
         </div>
       </div>
     );
@@ -249,13 +252,13 @@ export default function Payment() {
             <div className="inline-flex items-center justify-center w-14 h-14 bg-red-100 rounded-full mb-4">
               <HiExclamation className="w-7 h-7 text-red-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Error al iniciar el pago</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('payment.error.title')}</h2>
             <p className="text-sm text-gray-600 mb-6">{error}</p>
             <button
               onClick={() => window.location.reload()}
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-all duration-200"
             >
-              Intentar nuevamente
+              {t('payment.error.retry')}
             </button>
           </div>
         </div>

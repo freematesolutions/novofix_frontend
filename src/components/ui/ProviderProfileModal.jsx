@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import RequestWizardModal from './RequestWizardModal.jsx';
 import GuestConversionModal from './GuestConversionModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
@@ -121,13 +122,14 @@ const planConfig = {
 
 // Tab configuration
 const TABS = [
-  { id: 'about', label: 'Acerca de', icon: '👤' },
-  { id: 'services', label: 'Servicios', icon: '🛠️' },
-  { id: 'portfolio', label: 'Portafolio', icon: '📸' },
-  { id: 'reviews', label: 'Reseñas', icon: '⭐' }
+  { id: 'about', labelKey: 'about', icon: '👤' },
+  { id: 'services', labelKey: 'services', icon: '🛠️' },
+  { id: 'portfolio', labelKey: 'portfolio', icon: '📸' },
+  { id: 'reviews', labelKey: 'reviews', icon: '⭐' }
 ];
 
 function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
+  const { t } = useTranslation();
   const { isAuthenticated, viewRole } = useAuth();
   const toast = useToast();
   const [activeTab, setActiveTab] = useState(initialTab || 'about');
@@ -218,7 +220,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
   }, [isOpen]);
 
   // Extract provider data
-  const businessName = provider?.providerProfile?.businessName || provider?.profile?.firstName || 'Profesional';
+  const businessName = provider?.providerProfile?.businessName || provider?.profile?.firstName || t('ui.providerProfile.professional');
   const description = provider?.providerProfile?.description || provider?.providerProfile?.businessDescription || '';
   const rating = provider?.providerProfile?.rating?.average || 0;
   const reviewCount = provider?.providerProfile?.rating?.count || 0;
@@ -297,7 +299,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
     }
     // Si está autenticado pero no es cliente, mostrar mensaje
     if (viewRole !== 'client') {
-      toast.warning('Solo los clientes pueden enviar solicitudes a proveedores');
+      toast.warning(t('ui.providerProfile.onlyClientsCanRequest'));
       return;
     }
     setShowRequestWizard(true);
@@ -396,7 +398,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
                 )}
                 
                 <span className="hidden sm:inline text-white/70">•</span>
-                <span className="hidden sm:inline"><b>{completedJobs}</b> trabajos</span>
+                <span className="hidden sm:inline"><b>{completedJobs}</b> {t('ui.providerProfile.jobs')}</span>
               </div>
             </div>
 
@@ -407,14 +409,14 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
                 className="flex items-center gap-1.5 bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-all shadow"
               >
                 <Icons.Message className="w-4 h-4" />
-                Enviar Solicitud
+                {t('ui.providerProfile.sendRequest')}
               </button>
               <button
                 onClick={() => {/* TODO: Implement quote request */}}
                 className="flex items-center gap-1.5 bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-all border border-white/30"
               >
                 <Icons.Quote className="w-4 h-4" />
-                Estimado
+                {t('ui.providerProfile.estimate')}
               </button>
             </div>
           </div>
@@ -434,7 +436,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
                 }`}
               >
                 <span>{tab.icon}</span>
-                <span>{tab.label}</span>
+                <span>{t(`ui.providerProfile.tabs.${tab.labelKey}`)}</span>
                 {tab.id === 'reviews' && reviewCount > 0 && (
                   <span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
                     {reviewCount}
@@ -458,15 +460,15 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
             <section ref={sectionRefs.about} id="about" className="pt-1">
               <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-gray-900 mb-4">
                 <span className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">👤</span>
-                Acerca de
+                {t('ui.providerProfile.tabs.about')}
               </h2>
               
               <div className="grid lg:grid-cols-3 gap-4">
                 {/* Description */}
                 <div className="lg:col-span-2 bg-gray-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2 text-sm">Descripción</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2 text-sm">{t('ui.providerProfile.description')}</h3>
                   <p className="text-gray-600 leading-relaxed text-sm">
-                    {description || 'Este profesional aún no ha agregado una descripción de sus servicios.'}
+                    {description || t('ui.providerProfile.noDescription')}
                   </p>
                 </div>
 
@@ -478,14 +480,14 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                         <Icons.Location className="w-4 h-4 text-blue-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900 text-sm">Ubicación</h3>
+                      <h3 className="font-semibold text-gray-900 text-sm">{t('ui.providerProfile.location')}</h3>
                     </div>
                     <p className="text-gray-600 text-sm">
-                      {serviceArea.zones?.join(', ') || 'Área de servicio no especificada'}
+                      {serviceArea.zones?.join(', ') || t('ui.providerProfile.serviceAreaNotSpecified')}
                     </p>
                     {serviceArea.radius && (
                       <p className="text-xs text-gray-500 mt-1">
-                        Radio de cobertura: {serviceArea.radius} km
+                        {t('ui.providerProfile.coverageRadius', { radius: serviceArea.radius })}
                       </p>
                     )}
                   </div>
@@ -497,14 +499,14 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
                       className="flex items-center justify-center gap-2 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow"
                     >
                       <Icons.Message className="w-4 h-4" />
-                      Enviar Solicitud
+                      {t('ui.providerProfile.sendRequest')}
                     </button>
                     <button
                       onClick={() => {/* TODO: Implement quote request */}}
                       className="flex items-center justify-center gap-2 bg-white text-gray-700 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-all border border-gray-200"
                     >
                       <Icons.Quote className="w-4 h-4" />
-                      Solicitar Estimado
+                      {t('ui.providerProfile.requestEstimate')}
                     </button>
                   </div>
                 </div>
@@ -515,7 +517,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
             <section ref={sectionRefs.services} id="services" className="pt-1">
               <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-gray-900 mb-4">
                 <span className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center text-sm">🛠️</span>
-                Servicios Ofrecidos
+                {t('ui.providerProfile.servicesOffered')}
               </h2>
 
               {services.length > 0 ? (
@@ -533,7 +535,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
                         <div>
                           <h3 className="font-bold text-gray-900 text-sm">{service.category}</h3>
                           {service.experience && (
-                            <p className="text-xs text-gray-500">{service.experience} años exp.</p>
+                            <p className="text-xs text-gray-500">{t('ui.providerProfile.yearsExp', { years: service.experience })}</p>
                           )}
                         </div>
                       </div>
@@ -579,7 +581,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
               ) : (
                 <div className="text-center py-8 bg-gray-50 rounded-xl">
                   <Icons.Briefcase className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500 text-sm">Este profesional aún no ha listado sus servicios</p>
+                  <p className="text-gray-500 text-sm">{t('ui.providerProfile.noServicesListed')}</p>
                 </div>
               )}
             </section>
@@ -588,10 +590,10 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
             <section ref={sectionRefs.portfolio} id="portfolio" className="pt-2">
               <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-bold text-gray-900 mb-6">
                 <span className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">📸</span>
-                Portafolio
+                {t('ui.providerProfile.portfolio')}
                 {portfolio.length > 0 && (
                   <span className="text-sm font-normal text-gray-500">
-                    ({portfolio.length} {portfolio.length === 1 ? 'trabajo' : 'trabajos'})
+                    ({t('ui.providerProfile.works', { count: portfolio.length })})
                   </span>
                 )}
               </h2>
@@ -610,7 +612,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
                       {item.type === 'image' ? (
                         <img 
                           src={item.url} 
-                          alt={item.caption || 'Trabajo del portafolio'}
+                          alt={item.caption || t('ui.providerProfile.portfolioWork')}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                         />
                       ) : (
@@ -641,7 +643,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
                             ? 'bg-red-500 text-white' 
                             : 'bg-white/90 text-gray-700'
                         }`}>
-                          {item.type === 'video' ? '📹 Video' : '📷 Imagen'}
+                          {item.type === 'video' ? t('ui.providerProfile.videoType') : t('ui.providerProfile.imageType')}
                         </span>
                       </div>
                     </div>
@@ -650,7 +652,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
               ) : (
                 <div className="text-center py-8 bg-gray-50 rounded-xl">
                   <Icons.Image className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500">Este profesional aún no ha subido trabajos a su portafolio</p>
+                  <p className="text-gray-500">{t('ui.providerProfile.noPortfolioWorks')}</p>
                 </div>
               )}
             </section>
@@ -659,7 +661,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
             <section ref={sectionRefs.reviews} id="reviews" className="pt-2">
               <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-bold text-gray-900 mb-6">
                 <span className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">⭐</span>
-                Reseñas y Calificaciones
+                {t('ui.providerProfile.reviewsAndRatings')}
               </h2>
 
               {/* Rating Summary */}
@@ -669,30 +671,30 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
                   <div className="text-5xl font-bold text-gray-900 mb-1">{rating.toFixed(1)}</div>
                   <StarRating value={rating} size="lg" />
                   <p className="text-gray-600 mt-2">
-                    Basado en {reviewCount} {reviewCount === 1 ? 'reseña' : 'reseñas'}
+                    {t('ui.providerProfile.basedOnReviews', { count: reviewCount })}
                   </p>
                 </div>
 
                 {/* Rating breakdown */}
                 <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                  <h3 className="font-semibold text-gray-900 mb-3">Desglose de calificaciones</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">{t('ui.providerProfile.ratingsBreakdown')}</h3>
                   <RatingBar 
-                    label="Calidad" 
+                    label={t('ui.providerProfile.quality')} 
                     value={ratingBreakdown.quality || 0} 
                     icon="🎯" 
                   />
                   <RatingBar 
-                    label="Profesionalismo" 
+                    label={t('ui.providerProfile.professionalism')} 
                     value={ratingBreakdown.professionalism || 0} 
                     icon="💼" 
                   />
                   <RatingBar 
-                    label="Respuesta" 
+                    label={t('ui.providerProfile.communication')} 
                     value={ratingBreakdown.communication || 0} 
                     icon="💬" 
                   />
                   <RatingBar 
-                    label="Puntualidad" 
+                    label={t('ui.providerProfile.punctuality')} 
                     value={ratingBreakdown.punctuality || 0} 
                     icon="⏰" 
                   />
@@ -714,12 +716,12 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
                           <div className="flex items-center justify-between gap-2 mb-2">
                             <div>
                               <h4 className="font-semibold text-gray-900">
-                                {review.clientName || 'Cliente verificado'}
+                                {review.clientName || t('ui.providerProfile.verifiedClient')}
                               </h4>
                               <StarRating value={review.rating?.overall || 5} size="sm" />
                             </div>
                             <span className="text-sm text-gray-500">
-                              {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Reciente'}
+                              {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : t('ui.providerProfile.recent')}
                             </span>
                           </div>
                           
@@ -729,7 +731,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
                           <div className="flex items-center gap-4 mt-4">
                             <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-brand-600 transition-colors">
                               <Icons.ThumbUp className="w-4 h-4" />
-                              <span>Útil</span>
+                              <span>{t('ui.providerProfile.helpful')}</span>
                             </button>
                           </div>
                         </div>
@@ -740,8 +742,8 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
               ) : (
                 <div className="text-center py-8 bg-gray-50 rounded-xl">
                   <span className="text-3xl mb-2 block">💬</span>
-                  <p className="text-gray-500">Este profesional aún no tiene reseñas</p>
-                  <p className="text-sm text-gray-400 mt-1">¡Sé el primero en dejar una opinión!</p>
+                  <p className="text-gray-500">{t('ui.providerProfile.noReviews')}</p>
+                  <p className="text-sm text-gray-400 mt-1">{t('ui.providerProfile.beFirstToReview')}</p>
                 </div>
               )}
             </section>
@@ -756,14 +758,14 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
             className="flex-1 flex items-center justify-center gap-2 bg-brand-600 text-white px-4 py-3 rounded-xl font-semibold"
           >
             <Icons.Message className="w-5 h-5" />
-            Enviar Solicitud
+            {t('ui.providerProfile.sendRequest')}
           </button>
           <button
             onClick={() => {/* TODO */}}
             className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-semibold"
           >
             <Icons.Quote className="w-5 h-5" />
-            Estimado
+            {t('ui.providerProfile.quote')}
           </button>
         </div>
       </div>

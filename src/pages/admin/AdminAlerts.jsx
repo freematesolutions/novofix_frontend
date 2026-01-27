@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient.js';
 import { useAuth } from '@/state/AuthContext.jsx';
 import Alert from '@/components/ui/Alert.jsx';
@@ -8,6 +9,7 @@ import Button from '@/components/ui/Button.jsx';
 import { HiBell, HiCheckCircle, HiMail, HiDeviceMobile, HiChat, HiCog, HiCheck, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 export default function AdminAlerts() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -31,7 +33,7 @@ export default function AdminAlerts() {
       setPages(pg?.pages || 1);
       setUnreadCount(data?.data?.unreadCount || 0);
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudieron cargar las notificaciones');
+      setError(e?.response?.data?.message || t('admin.alerts.loadError'));
     } finally { setLoading(false); }
   };
 
@@ -81,7 +83,7 @@ export default function AdminAlerts() {
     return null;
   }
 
-  if (role !== 'admin') return <Alert type="warning">Solo administradores.</Alert>;
+  if (role !== 'admin') return <Alert type="warning">{t('admin.alerts.adminOnly')}</Alert>;
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -95,21 +97,21 @@ export default function AdminAlerts() {
               <HiBell className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold mb-1">Alertas Administrativas</h1>
-              <p className="text-indigo-200 text-sm">Centro de notificaciones del sistema</p>
+              <h1 className="text-2xl font-bold mb-1">{t('admin.alerts.title')}</h1>
+              <p className="text-indigo-200 text-sm">{t('admin.alerts.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl">
               <p className="text-2xl font-bold">{unreadCount}</p>
-              <p className="text-xs text-indigo-200">Sin leer</p>
+              <p className="text-xs text-indigo-200">{t('admin.alerts.unread')}</p>
             </div>
             <button
               onClick={markAll}
               className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl text-sm font-medium transition-all"
             >
               <HiCheckCircle className="w-4 h-4" />
-              Marcar todas
+              {t('admin.alerts.markAll')}
             </button>
           </div>
         </div>
@@ -121,7 +123,7 @@ export default function AdminAlerts() {
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-100 bg-gray-50/50">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Notificaciones</span>
+            <span className="text-sm font-medium text-gray-700">{t('admin.alerts.notifications')}</span>
             {loading && <Spinner size="sm" />}
           </div>
         </div>
@@ -138,7 +140,7 @@ export default function AdminAlerts() {
                   </div>
                   <div className="min-w-0">
                     <p className={`font-medium ${n.read ? 'text-gray-700' : 'text-gray-900'}`}>
-                      {n.title || 'Notificación'}
+                      {n.title || t('admin.alerts.notification')}
                     </p>
                     <p className="text-sm text-gray-600 mt-0.5">{n.message || n.body || '—'}</p>
                     <p className="text-xs text-gray-400 mt-2">
@@ -158,7 +160,7 @@ export default function AdminAlerts() {
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-100 hover:bg-indigo-200 rounded-lg transition-colors shrink-0"
                   >
                     <HiCheck className="w-3.5 h-3.5" />
-                    Leída
+                    {t('admin.alerts.markRead')}
                   </button>
                 )}
               </div>
@@ -169,8 +171,8 @@ export default function AdminAlerts() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
                 <HiBell className="w-8 h-8 text-gray-400" />
               </div>
-              <p className="text-gray-500 font-medium">Sin notificaciones</p>
-              <p className="text-sm text-gray-400 mt-1">Las alertas del sistema aparecerán aquí</p>
+              <p className="text-gray-500 font-medium">{t('admin.alerts.empty.title')}</p>
+              <p className="text-sm text-gray-400 mt-1">{t('admin.alerts.empty.subtitle')}</p>
             </div>
           )}
         </div>
@@ -185,7 +187,7 @@ export default function AdminAlerts() {
                 className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <HiChevronLeft className="w-4 h-4" />
-                Anterior
+                {t('admin.alerts.pagination.previous')}
               </button>
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, pages) }, (_, i) => {
@@ -210,7 +212,7 @@ export default function AdminAlerts() {
                 onClick={() => setPage(p => Math.min(pages, p + 1))}
                 className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Siguiente
+                {t('admin.alerts.pagination.next')}
                 <HiChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -226,8 +228,8 @@ export default function AdminAlerts() {
               <HiCog className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Preferencias de Notificación</h2>
-              <p className="text-sm text-gray-500">Configura cómo recibir alertas</p>
+              <h2 className="text-lg font-bold text-gray-900">{t('admin.alerts.preferences.title')}</h2>
+              <p className="text-sm text-gray-500">{t('admin.alerts.preferences.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -235,22 +237,22 @@ export default function AdminAlerts() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <PreferenceToggle
               icon={<HiMail className="w-5 h-5" />}
-              label="Email"
-              description="Recibir por correo"
+              label={t('admin.alerts.preferences.email.label')}
+              description={t('admin.alerts.preferences.email.description')}
               checked={prefs.email}
               onChange={(checked) => setPrefs(p => ({ ...p, email: checked }))}
             />
             <PreferenceToggle
               icon={<HiDeviceMobile className="w-5 h-5" />}
-              label="Push"
-              description="Notificaciones push"
+              label={t('admin.alerts.preferences.push.label')}
+              description={t('admin.alerts.preferences.push.description')}
               checked={prefs.push}
               onChange={(checked) => setPrefs(p => ({ ...p, push: checked }))}
             />
             <PreferenceToggle
               icon={<HiChat className="w-5 h-5" />}
-              label="SMS"
-              description="Mensajes de texto"
+              label={t('admin.alerts.preferences.sms.label')}
+              description={t('admin.alerts.preferences.sms.description')}
               checked={prefs.sms}
               onChange={(checked) => setPrefs(p => ({ ...p, sms: checked }))}
             />
@@ -261,7 +263,7 @@ export default function AdminAlerts() {
               loading={savingPrefs}
               className="bg-linear-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white"
             >
-              Guardar preferencias
+              {t('admin.alerts.preferences.save')}
             </Button>
           </div>
         </div>

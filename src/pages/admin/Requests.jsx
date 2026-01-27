@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
@@ -8,6 +9,7 @@ import Button from '@/components/ui/Button.jsx';
 import { HiClipboardList, HiFilter, HiClock, HiCheck, HiX, HiUser, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 export default function AdminRequests() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -31,7 +33,7 @@ export default function AdminRequests() {
       setItems(requests);
       setPages(pg?.pages || 1);
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudieron cargar las solicitudes');
+      setError(e?.response?.data?.message || t('admin.requests.loadError'));
     } finally { setLoading(false); }
   };
 
@@ -39,10 +41,10 @@ export default function AdminRequests() {
 
   const getStatusInfo = (status) => {
     const info = {
-      open: { label: 'Abierta', color: 'bg-blue-100 text-blue-700', icon: <HiClock className="w-4 h-4" /> },
-      assigned: { label: 'Asignada', color: 'bg-amber-100 text-amber-700', icon: <HiUser className="w-4 h-4" /> },
-      closed: { label: 'Cerrada', color: 'bg-emerald-100 text-emerald-700', icon: <HiCheck className="w-4 h-4" /> },
-      cancelled: { label: 'Cancelada', color: 'bg-red-100 text-red-700', icon: <HiX className="w-4 h-4" /> },
+      open: { label: t('admin.requests.status.open'), color: 'bg-blue-100 text-blue-700', icon: <HiClock className="w-4 h-4" /> },
+      assigned: { label: t('admin.requests.status.assigned'), color: 'bg-amber-100 text-amber-700', icon: <HiUser className="w-4 h-4" /> },
+      closed: { label: t('admin.requests.status.closed'), color: 'bg-emerald-100 text-emerald-700', icon: <HiCheck className="w-4 h-4" /> },
+      cancelled: { label: t('admin.requests.status.cancelled'), color: 'bg-red-100 text-red-700', icon: <HiX className="w-4 h-4" /> },
     };
     return info[status] || { label: status, color: 'bg-gray-100 text-gray-700', icon: null };
   };
@@ -58,7 +60,7 @@ export default function AdminRequests() {
     return null;
   }
 
-  if (role !== 'admin') return <Alert type="warning">Solo administradores.</Alert>;
+  if (role !== 'admin') return <Alert type="warning">{t('admin.requests.adminOnly')}</Alert>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -82,14 +84,14 @@ export default function AdminRequests() {
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <HiFilter className="w-5 h-5 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Estado:</span>
+            <span className="text-sm font-medium text-gray-700">{t('admin.requests.filters.status')}:</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {[
-              { value: '', label: 'Todos' },
-              { value: 'open', label: 'Abiertas' },
-              { value: 'assigned', label: 'Asignadas' },
-              { value: 'closed', label: 'Cerradas' },
+              { value: '', label: t('admin.requests.filters.all') },
+              { value: 'open', label: t('admin.requests.filters.open') },
+              { value: 'assigned', label: t('admin.requests.filters.assigned') },
+              { value: 'closed', label: t('admin.requests.filters.closed') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -113,7 +115,7 @@ export default function AdminRequests() {
       {loading && (
         <div className="flex items-center justify-center gap-3 py-12">
           <Spinner size="sm" />
-          <span className="text-gray-600">Cargando solicitudes...</span>
+          <span className="text-gray-600">{t('admin.requests.loading')}</span>
         </div>
       )}
 
@@ -139,13 +141,13 @@ export default function AdminRequests() {
                         }`} />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-bold text-gray-900">{r?.basicInfo?.title || 'Solicitud sin título'}</h3>
+                        <h3 className="font-bold text-gray-900">{r?.basicInfo?.title || t('admin.requests.noTitle')}</h3>
                         <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
                           <HiUser className="w-4 h-4" />
-                          <span>Cliente: {r?.client?.profile?.firstName || '—'}</span>
+                          <span>{t('admin.requests.client')}: {r?.client?.profile?.firstName || '—'}</span>
                         </div>
                         <p className="text-xs text-gray-400 mt-2">
-                          Creada: {new Date(r.createdAt).toLocaleString('es-AR', {
+                          {t('admin.requests.created')}: {new Date(r.createdAt).toLocaleString('es-AR', {
                             day: 'numeric',
                             month: 'short',
                             year: 'numeric',
@@ -168,8 +170,8 @@ export default function AdminRequests() {
                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
                   <HiClipboardList className="w-8 h-8 text-gray-400" />
                 </div>
-                <p className="text-gray-500 font-medium">Sin solicitudes</p>
-                <p className="text-sm text-gray-400 mt-1">No se encontraron resultados</p>
+                <p className="text-gray-500 font-medium">{t('admin.requests.empty.title')}</p>
+                <p className="text-sm text-gray-400 mt-1">{t('admin.requests.empty.subtitle')}</p>
               </div>
             )}
           </div>
@@ -184,17 +186,17 @@ export default function AdminRequests() {
                   className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <HiChevronLeft className="w-4 h-4" />
-                  Anterior
+                  {t('admin.requests.pagination.previous')}
                 </button>
                 <span className="px-4 py-2 text-sm text-gray-600">
-                  Página {page} de {pages}
+                  {t('admin.requests.pagination.page')} {page} {t('admin.requests.pagination.of')} {pages}
                 </span>
                 <button
                   disabled={page >= pages}
                   onClick={() => setPage(p => Math.min(pages, p + 1))}
                   className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Siguiente
+                  {t('admin.requests.pagination.next')}
                   <HiChevronRight className="w-4 h-4" />
                 </button>
               </div>

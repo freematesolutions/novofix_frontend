@@ -5,6 +5,7 @@ import Alert from '@/components/ui/Alert.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { isEmail, required, validate } from '@/utils/validation.js';
 import api from '@/state/apiClient.js';
+import { useTranslation } from 'react-i18next';
 import { 
   HiMail, 
   HiArrowLeft, 
@@ -16,6 +17,7 @@ import {
 } from 'react-icons/hi';
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const toast = useToast();
   const [email, setEmail] = useState('');
   const [touched, setTouched] = useState({});
@@ -34,8 +36,8 @@ export default function ForgotPassword() {
   const runValidation = () => {
     const rules = {
       email: [
-        (v)=> required(v) ? undefined : 'El correo es obligatorio',
-        (v)=> isEmail(v) ? undefined : 'Correo inválido'
+        (v)=> required(v) ? undefined : t('auth.validation.emailRequired'),
+        (v)=> isEmail(v) ? undefined : t('auth.validation.emailInvalid')
       ]
     };
     const errs = validate({ email }, rules);
@@ -58,7 +60,7 @@ export default function ForgotPassword() {
     } finally {
       setLoading(false);
       setSubmitted(true);
-      toast.info('Si tu correo está registrado, recibirás instrucciones para restablecer la contraseña.');
+      toast.info(t('toast.passwordResetSent'));
     }
   };
 
@@ -80,9 +82,9 @@ export default function ForgotPassword() {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-4">
                   <HiLockClosed className="w-8 h-8 text-white" />
                 </div>
-                <h1 className="text-2xl font-bold text-white">¿Olvidaste tu contraseña?</h1>
+                <h1 className="text-2xl font-bold text-white">{t('auth.forgotPassword')}</h1>
                 <p className="text-brand-100 mt-2 text-sm">
-                  No te preocupes, te enviaremos instrucciones para recuperarla
+                  {t('auth.resetPasswordSubtitle')}
                 </p>
               </div>
             </div>
@@ -94,7 +96,7 @@ export default function ForgotPassword() {
                   {/* Campo de email */}
                   <div className="space-y-2">
                     <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700">
-                      Correo electrónico
+                      {t('auth.email')}
                     </label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -107,11 +109,11 @@ export default function ForgotPassword() {
                         type="email"
                         value={email}
                         onChange={(e)=>{ setEmail(e.target.value); if (touched.email) setErrors((prev)=>({ ...prev, email: undefined })); }}
-                        onBlur={()=>{ setTouched((t)=>({ ...t, email: true })); setErrors((prev)=>({ ...prev, ...validate({ email }, { email: [ (v)=> required(v) ? undefined : 'El correo es obligatorio', (v)=> isEmail(v) ? undefined : 'Correo inválido' ] }) })); }}
+                        onBlur={()=>{ setTouched((t)=>({ ...t, email: true })); setErrors((prev)=>({ ...prev, ...validate({ email }, { email: [ (v)=> required(v) ? undefined : t('auth.validation.emailRequired'), (v)=> isEmail(v) ? undefined : t('auth.validation.emailInvalid') ] }) })); }}
                         aria-invalid={Boolean(touched.email && errors.email)}
                         autoComplete="email"
                         inputMode="email"
-                        placeholder="tu@email.com"
+                        placeholder={t('auth.emailPlaceholder')}
                         className={`
                           w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-all duration-200
                           placeholder:text-gray-400 text-gray-900
@@ -138,7 +140,7 @@ export default function ForgotPassword() {
                     loading={loading} 
                     className="w-full bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white py-3 rounded-xl font-medium shadow-lg shadow-brand-500/25 transition-all duration-200 hover:shadow-xl hover:shadow-brand-500/30 hover:-translate-y-0.5"
                   >
-                    {loading ? 'Enviando...' : 'Enviar instrucciones'}
+                    {loading ? t('auth.sendingResetLink') : t('auth.sendResetLink')}
                   </Button>
 
                   {/* Link de regreso */}
@@ -148,7 +150,7 @@ export default function ForgotPassword() {
                       className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-brand-600 transition-colors duration-200"
                     >
                       <HiArrowLeft className="w-4 h-4" />
-                      Volver a iniciar sesión
+                      {t('auth.signInHere')}
                     </Link>
                   </div>
                 </form>
@@ -158,15 +160,14 @@ export default function ForgotPassword() {
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
                     <HiCheckCircle className="w-8 h-8 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">¡Revisa tu correo!</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('auth.checkYourEmail', '¡Revisa tu correo!')}</h3>
                   <p className="text-sm text-gray-600 mb-6">
-                    Si <span className="font-medium text-gray-900">{email}</span> está registrado, 
-                    recibirás un enlace para restablecer tu contraseña.
+                    {t('auth.resetEmailSentTo', { email, defaultValue: `Si ${email} está registrado, recibirás un enlace para restablecer tu contraseña.` })}
                   </p>
                   
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
                     <p className="text-xs text-amber-700">
-                      💡 Revisa también tu carpeta de spam si no lo encuentras en unos minutos.
+                      💡 {t('auth.checkSpamFolder', 'Revisa también tu carpeta de spam si no lo encuentras en unos minutos.')}
                     </p>
                   </div>
 
@@ -175,7 +176,7 @@ export default function ForgotPassword() {
                     className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-all duration-200"
                   >
                     <HiArrowLeft className="w-4 h-4" />
-                    Volver a iniciar sesión
+                    {t('auth.signInHere')}
                   </Link>
                 </div>
               )}
@@ -187,11 +188,11 @@ export default function ForgotPassword() {
         <div className="mt-6 grid grid-cols-3 gap-3">
           <div className="flex flex-col items-center text-center p-3 bg-white/50 rounded-xl border border-gray-100">
             <HiShieldCheck className="w-5 h-5 text-brand-500 mb-1" />
-            <span className="text-xs text-gray-600">Seguro</span>
+            <span className="text-xs text-gray-600">{t('common.secureConnection')}</span>
           </div>
           <div className="flex flex-col items-center text-center p-3 bg-white/50 rounded-xl border border-gray-100">
             <HiLightningBolt className="w-5 h-5 text-brand-500 mb-1" />
-            <span className="text-xs text-gray-600">Rápido</span>
+            <span className="text-xs text-gray-600">{t('common.fast', 'Rápido')}</span>
           </div>
           <div className="flex flex-col items-center text-center p-3 bg-white/50 rounded-xl border border-gray-100">
             <HiClock className="w-5 h-5 text-brand-500 mb-1" />

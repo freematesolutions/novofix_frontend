@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
@@ -131,6 +132,7 @@ function DonutChart({ data, size = 120, className = '' }) {
 }
 
 export default function AdminReports() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -145,17 +147,17 @@ export default function AdminReports() {
       const { data } = await api.get(`/admin/reports?period=${period}`);
       setData(data?.data || null);
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudieron cargar los reportes');
+      setError(e?.response?.data?.message || t('admin.reports.loadError'));
     } finally { setLoading(false); }
   };
 
   useEffect(()=>{ load(); /* eslint-disable-line */ }, [isAuthenticated, role, period]);
 
   const periodLabels = {
-    week: 'Esta Semana',
-    month: 'Este Mes',
-    quarter: 'Este Trimestre',
-    year: 'Este Año'
+    week: t('admin.reports.periods.week'),
+    month: t('admin.reports.periods.month'),
+    quarter: t('admin.reports.periods.quarter'),
+    year: t('admin.reports.periods.year')
   };
 
   // Redirigir al inicio si no está autenticado
@@ -169,7 +171,7 @@ export default function AdminReports() {
     return null;
   }
 
-  if (role !== 'admin') return <Alert type="warning">Solo administradores.</Alert>;
+  if (role !== 'admin') return <Alert type="warning">{t('admin.reports.adminOnly')}</Alert>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -183,8 +185,8 @@ export default function AdminReports() {
               <HiDocumentReport className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold mb-1">Reportes y Métricas</h1>
-              <p className="text-indigo-200 text-sm">Análisis de rendimiento del sistema</p>
+              <h1 className="text-2xl font-bold mb-1">{t('admin.reports.title')}</h1>
+              <p className="text-indigo-200 text-sm">{t('admin.reports.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -193,10 +195,10 @@ export default function AdminReports() {
               onChange={(e) => setPeriod(e.target.value)} 
               className="px-4 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm border-0 rounded-xl text-sm font-medium text-white cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-white/30"
             >
-              <option value="week" className="text-gray-900">Semana</option>
-              <option value="month" className="text-gray-900">Mes</option>
-              <option value="quarter" className="text-gray-900">Trimestre</option>
-              <option value="year" className="text-gray-900">Año</option>
+              <option value="week" className="text-gray-900">{t('admin.reports.periodOptions.week')}</option>
+              <option value="month" className="text-gray-900">{t('admin.reports.periodOptions.month')}</option>
+              <option value="quarter" className="text-gray-900">{t('admin.reports.periodOptions.quarter')}</option>
+              <option value="year" className="text-gray-900">{t('admin.reports.periodOptions.year')}</option>
             </select>
             <button 
               onClick={load}
@@ -215,7 +217,7 @@ export default function AdminReports() {
           <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center animate-pulse">
             <Spinner size="sm" className="text-white" />
           </div>
-          <span className="text-gray-600 font-medium">Cargando reportes...</span>
+          <span className="text-gray-600 font-medium">{t('admin.reports.loading')}</span>
         </div>
       )}
 
@@ -244,7 +246,7 @@ export default function AdminReports() {
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <HiDownload className="w-4 h-4" />
-              Exportar Datos
+              {t('admin.reports.exportData')}
             </button>
           </div>
 
@@ -252,25 +254,25 @@ export default function AdminReports() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <MetricCard
               icon={<HiUserAdd className="w-6 h-6" />}
-              label="Nuevos Usuarios"
+              label={t('admin.reports.metrics.newUsers')}
               value={data.metrics?.newUsers || 0}
               gradient="from-blue-500 to-indigo-500"
             />
             <MetricCard
               icon={<HiClipboardList className="w-6 h-6" />}
-              label="Nuevas Solicitudes"
+              label={t('admin.reports.metrics.newRequests')}
               value={data.metrics?.newServiceRequests || 0}
               gradient="from-amber-500 to-orange-500"
             />
             <MetricCard
               icon={<HiCheckCircle className="w-6 h-6" />}
-              label="Reservas Completadas"
+              label={t('admin.reports.metrics.completedBookings')}
               value={data.metrics?.completedBookings || 0}
               gradient="from-emerald-500 to-teal-500"
             />
             <MetricCard
               icon={<HiCurrencyDollar className="w-6 h-6" />}
-              label="Ingresos"
+              label={t('admin.reports.metrics.revenue')}
               value={fmtCurrency(data.metrics?.revenue)}
               gradient="from-purple-500 to-pink-500"
               isText
@@ -287,8 +289,8 @@ export default function AdminReports() {
                     <HiTrendingUp className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">Tendencia de Actividad</h3>
-                    <p className="text-xs text-gray-500">Evolución de métricas clave</p>
+                    <h3 className="font-bold text-gray-900">{t('admin.reports.charts.activityTrend.title')}</h3>
+                    <p className="text-xs text-gray-500">{t('admin.reports.charts.activityTrend.subtitle')}</p>
                   </div>
                 </div>
               </div>
@@ -305,7 +307,7 @@ export default function AdminReports() {
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                     <HiTrendingUp className="w-12 h-12 mb-2 opacity-30" />
-                    <p className="text-sm">Sin datos de tendencia</p>
+                    <p className="text-sm">{t('admin.reports.charts.noTrendData')}</p>
                   </div>
                 )}
               </div>
@@ -319,8 +321,8 @@ export default function AdminReports() {
                     <HiChartBar className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">Distribución por Estado</h3>
-                    <p className="text-xs text-gray-500">Reservas por estado actual</p>
+                    <h3 className="font-bold text-gray-900">{t('admin.reports.charts.distribution.title')}</h3>
+                    <p className="text-xs text-gray-500">{t('admin.reports.charts.distribution.subtitle')}</p>
                   </div>
                 </div>
               </div>
@@ -347,7 +349,7 @@ export default function AdminReports() {
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                     <HiChartBar className="w-12 h-12 mb-2 opacity-30" />
-                    <p className="text-sm">Sin datos de distribución</p>
+                    <p className="text-sm">{t('admin.reports.charts.noDistributionData')}</p>
                   </div>
                 )}
               </div>
@@ -363,8 +365,8 @@ export default function AdminReports() {
                     <HiChartBar className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">Comparación Semanal</h3>
-                    <p className="text-xs text-gray-500">Actividad por día de la semana</p>
+                    <h3 className="font-bold text-gray-900">{t('admin.reports.charts.weeklyComparison.title')}</h3>
+                    <p className="text-xs text-gray-500">{t('admin.reports.charts.weeklyComparison.subtitle')}</p>
                   </div>
                 </div>
               </div>
@@ -388,8 +390,8 @@ export default function AdminReports() {
                   <HiBriefcase className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Métricas por Proveedores</h2>
-                  <p className="text-sm text-gray-500">Rendimiento por plan de suscripción</p>
+                  <h2 className="text-lg font-bold text-gray-900">{t('admin.reports.providerMetrics.title')}</h2>
+                  <p className="text-sm text-gray-500">{t('admin.reports.providerMetrics.subtitle')}</p>
                 </div>
               </div>
             </div>
@@ -403,9 +405,9 @@ export default function AdminReports() {
                     >
                       <div className="flex items-center justify-between mb-3">
                         <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full capitalize">
-                          {m._id || 'Sin plan'}
+                          {m._id || t('admin.reports.providerMetrics.noPlan')}
                         </span>
-                        <span className="text-xs text-gray-500">{m.count} proveedores</span>
+                        <span className="text-xs text-gray-500">{m.count} {t('admin.reports.providerMetrics.providers')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
@@ -414,7 +416,7 @@ export default function AdminReports() {
                             {Math.round((m.avgRating || 0) * 10) / 10}
                           </span>
                         </div>
-                        <span className="text-sm text-gray-500">rating promedio</span>
+                        <span className="text-sm text-gray-500">{t('admin.reports.providerMetrics.avgRating')}</span>
                       </div>
                     </div>
                   ))}
@@ -424,7 +426,7 @@ export default function AdminReports() {
                   <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gray-100 flex items-center justify-center">
                     <HiBriefcase className="w-6 h-6 text-gray-400" />
                   </div>
-                  <p className="text-gray-500 text-sm">Sin datos de proveedores</p>
+                  <p className="text-gray-500 text-sm">{t('admin.reports.providerMetrics.noData')}</p>
                 </div>
               )}
             </div>
@@ -438,8 +440,8 @@ export default function AdminReports() {
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
             <HiDocumentReport className="w-8 h-8 text-white" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">Sin datos disponibles</h3>
-          <p className="text-gray-500 text-sm">No hay reportes para el período seleccionado</p>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">{t('admin.reports.noData.title')}</h3>
+          <p className="text-gray-500 text-sm">{t('admin.reports.noData.subtitle')}</p>
         </div>
       )}
     </div>

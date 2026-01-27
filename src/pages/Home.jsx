@@ -42,9 +42,9 @@ function Home() {
   // Generar datos de categorías con traducción reactiva
   const allCategoriesWithProviders = useMemo(() => {
     const all = SERVICE_CATEGORIES_WITH_DESCRIPTION.map((cat, idx) => {
-      const name = t([`categories.${cat.value}`, cat.value]);
+      const name = t(`home.categories.${cat.value}`, cat.value);
       // Fallback: si no hay traducción, usa descripción estática solo como último recurso
-      const descKey = `categoryDescriptions.${cat.value}`;
+      const descKey = `home.categoryDescriptions.${cat.value}`;
       let desc = t(descKey);
       if (desc === descKey) desc = cat.description;
       return {
@@ -93,8 +93,8 @@ function Home() {
     SERVICE_CATEGORIES_WITH_DESCRIPTION.forEach((cat, idx) => {
       const providerCount = providerCountByCategory[cat.value] || 0;
       const hasProviders = dataLoaded ? providerCount > 0 : true;
-      const name = t([`categories.${cat.value}`, cat.value]);
-      const descKey = `categoryDescriptions.${cat.value}`;
+      const name = t(`home.categories.${cat.value}`, cat.value);
+      const descKey = `home.categoryDescriptions.${cat.value}`;
       let desc = t(descKey);
       if (desc === descKey) desc = cat.description;
       const card = {
@@ -400,7 +400,7 @@ useEffect(() => {
                         }}
                         aria-hidden={index !== currentServiceIndex}
                       >
-                        <span className="truncate max-w-full">{t([`categories.${service.category}`, service.category])}</span>
+                        <span className="truncate max-w-full">{t(`home.categories.${service.category}`, service.category)}</span>
                       </span>
                     ))}
                   </div>
@@ -546,7 +546,7 @@ useEffect(() => {
       {isSearching && (
         <div className="text-center py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
-          <p className="mt-2 text-gray-600">Buscando profesionales...</p>
+          <p className="mt-2 text-gray-600">{t('home.searchingProfessionals')}</p>
         </div>
       )}
 
@@ -573,8 +573,7 @@ useEffect(() => {
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="hidden sm:inline">Volver a Inicio</span>
-                              <span className="hidden sm:inline">{t('home.backToHome')}</span>
+                <span className="hidden sm:inline">{t('home.backToHome')}</span>
               </button>
             </div>
             {searchResults.length > 0 ? (
@@ -593,7 +592,7 @@ useEffect(() => {
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <p className="mt-4 text-gray-600">No encontramos profesionales con esos criterios</p>
+                <p className="mt-4 text-gray-600">{t('home.noProfessionalsCriteria')}</p>
                 <p className="mt-2 text-sm text-gray-500">{t('home.tryOtherSearch')}</p>
               </div>
             )}
@@ -658,6 +657,7 @@ useEffect(() => {
                       category={service.category}
                       translatedName={service.translatedName}
                       translatedDescription={service.translatedDescription}
+                      translatedComingSoon={t('home.comingSoon')}
                       providerCount={service.providerCount}
                       onClick={handleCategoryClick}
                       showComingSoon={!service.hasProviders}
@@ -691,8 +691,7 @@ useEffect(() => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
               </svg>
-              <span>Desliza para ver más</span>
-                          <span>{t('home.swipeToSeeMore')}</span>
+              <span>{t('home.swipeToSeeMore')}</span>
             </div>
           </div>
 
@@ -822,8 +821,7 @@ useEffect(() => {
             <div className="relative z-10">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold mb-0 text-white drop-shadow-lg">
-                  {categoryProviders.length} {categoryProviders.length === 1 ? t('home.oneProfessionalFound') : t('home.manyProfessionalsFound')} {t('home.inCategory')} <span className="capitalize text-brand-200">{selectedCategory}</span>
-                                <span className="hidden sm:inline">{t('home.backToHome')}</span>
+                  {categoryProviders.length} {categoryProviders.length === 1 ? t('home.oneProfessionalFound') : t('home.manyProfessionalsFound')} {t('home.inCategory')} <span className="capitalize text-brand-200">{t(`home.categories.${selectedCategory}`, selectedCategory)}</span>
                 </h2>
                 <button
                   onClick={() => {
@@ -838,14 +836,14 @@ useEffect(() => {
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
-                  <span className="hidden sm:inline">Volver a Inicio</span>
+                  <span className="hidden sm:inline">{t('home.backToHome')}</span>
                 </button>
               </div>
 
               {loadingProviders && (
                 <div className="text-center py-12">
                   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
-                  <p className="mt-4 text-gray-100">Cargando profesionales...</p>
+                  <p className="mt-4 text-gray-100">{t('home.searchingProfessionals')}</p>
                 </div>
               )}
 
@@ -854,7 +852,7 @@ useEffect(() => {
                   <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
-                  <p className="mt-4 text-gray-700 font-semibold text-lg">No hay profesionales disponibles</p>
+                  <p className="mt-4 text-gray-700 font-semibold text-lg">{t('home.noProfessionalsAvailable')}</p>
                   <p className="mt-2 text-gray-500 text-sm">{t('home.tryOtherCategory')}</p>
                 </div>
               )}

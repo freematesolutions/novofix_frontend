@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
@@ -8,6 +9,7 @@ import Button from '@/components/ui/Button.jsx';
 import { HiCalendar, HiFilter, HiClock, HiCheck, HiX, HiPlay, HiUser, HiBriefcase, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 export default function AdminBookings() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -31,7 +33,7 @@ export default function AdminBookings() {
       setItems(bookings);
       setPages(pg?.pages || 1);
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudieron cargar las reservas');
+      setError(e?.response?.data?.message || t('admin.bookings.loadError'));
     } finally { setLoading(false); }
   };
 
@@ -39,10 +41,10 @@ export default function AdminBookings() {
 
   const getStatusInfo = (status) => {
     const info = {
-      confirmed: { label: 'Confirmado', color: 'bg-blue-100 text-blue-700', icon: <HiCheck className="w-4 h-4" /> },
-      in_progress: { label: 'En Progreso', color: 'bg-amber-100 text-amber-700', icon: <HiPlay className="w-4 h-4" /> },
-      completed: { label: 'Completado', color: 'bg-emerald-100 text-emerald-700', icon: <HiCheck className="w-4 h-4" /> },
-      cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-700', icon: <HiX className="w-4 h-4" /> },
+      confirmed: { label: t('admin.bookings.status.confirmed'), color: 'bg-blue-100 text-blue-700', icon: <HiCheck className="w-4 h-4" /> },
+      in_progress: { label: t('admin.bookings.status.inProgress'), color: 'bg-amber-100 text-amber-700', icon: <HiPlay className="w-4 h-4" /> },
+      completed: { label: t('admin.bookings.status.completed'), color: 'bg-emerald-100 text-emerald-700', icon: <HiCheck className="w-4 h-4" /> },
+      cancelled: { label: t('admin.bookings.status.cancelled'), color: 'bg-red-100 text-red-700', icon: <HiX className="w-4 h-4" /> },
     };
     return info[status] || { label: status, color: 'bg-gray-100 text-gray-700', icon: <HiClock className="w-4 h-4" /> };
   };
@@ -58,7 +60,7 @@ export default function AdminBookings() {
     return null;
   }
 
-  if (role !== 'admin') return <Alert type="warning">Solo administradores.</Alert>;
+  if (role !== 'admin') return <Alert type="warning">{t('admin.bookings.adminOnly')}</Alert>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -82,15 +84,15 @@ export default function AdminBookings() {
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <HiFilter className="w-5 h-5 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Estado:</span>
+            <span className="text-sm font-medium text-gray-700">{t('admin.bookings.filters.status')}:</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {[
-              { value: '', label: 'Todos' },
-              { value: 'confirmed', label: 'Confirmados' },
-              { value: 'in_progress', label: 'En Progreso' },
-              { value: 'completed', label: 'Completados' },
-              { value: 'cancelled', label: 'Cancelados' },
+              { value: '', label: t('admin.bookings.filters.all') },
+              { value: 'confirmed', label: t('admin.bookings.filters.confirmed') },
+              { value: 'in_progress', label: t('admin.bookings.filters.inProgress') },
+              { value: 'completed', label: t('admin.bookings.filters.completed') },
+              { value: 'cancelled', label: t('admin.bookings.filters.cancelled') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -114,7 +116,7 @@ export default function AdminBookings() {
       {loading && (
         <div className="flex items-center justify-center gap-3 py-12">
           <Spinner size="sm" />
-          <span className="text-gray-600">Cargando reservas...</span>
+          <span className="text-gray-600">{t('admin.bookings.loading')}</span>
         </div>
       )}
 
@@ -179,8 +181,8 @@ export default function AdminBookings() {
                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
                   <HiCalendar className="w-8 h-8 text-gray-400" />
                 </div>
-                <p className="text-gray-500 font-medium">Sin reservas</p>
-                <p className="text-sm text-gray-400 mt-1">No se encontraron resultados</p>
+                <p className="text-gray-500 font-medium">{t('admin.bookings.empty.title')}</p>
+                <p className="text-sm text-gray-400 mt-1">{t('admin.bookings.empty.subtitle')}</p>
               </div>
             )}
           </div>
@@ -195,17 +197,17 @@ export default function AdminBookings() {
                   className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <HiChevronLeft className="w-4 h-4" />
-                  Anterior
+                  {t('admin.bookings.pagination.previous')}
                 </button>
                 <span className="px-4 py-2 text-sm text-gray-600">
-                  Página {page} de {pages}
+                  {t('admin.bookings.pagination.page')} {page} {t('admin.bookings.pagination.of')} {pages}
                 </span>
                 <button
                   disabled={page >= pages}
                   onClick={() => setPage(p => Math.min(pages, p + 1))}
                   className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Siguiente
+                  {t('admin.bookings.pagination.next')}
                   <HiChevronRight className="w-4 h-4" />
                 </button>
               </div>

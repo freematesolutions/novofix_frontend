@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
@@ -8,6 +9,7 @@ import Button from '@/components/ui/Button.jsx';
 import { HiShieldCheck, HiFilter, HiCheck, HiX, HiExclamation, HiStar, HiUser, HiBriefcase, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 export default function AdminModeration() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { role, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,7 @@ export default function AdminModeration() {
       setItems(reviews);
       setPages(pg?.pages || 1);
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudieron cargar las reviews');
+      setError(e?.response?.data?.message || t('admin.moderation.loadError'));
     } finally { setLoading(false); }
   };
 
@@ -44,15 +46,15 @@ export default function AdminModeration() {
       await api.put(`/admin/reviews/${r._id}/moderate`, { action, reason: action });
       await load();
     } catch (e) {
-      setError(e?.response?.data?.message || 'No se pudo moderar');
+      setError(e?.response?.data?.message || t('admin.moderation.moderateError'));
     } finally { setActing(''); }
   };
 
   const getStatusInfo = (status) => {
     const info = {
-      flagged: { label: 'En Moderación', color: 'bg-amber-100 text-amber-700', icon: <HiExclamation className="w-4 h-4" /> },
-      active: { label: 'Activa', color: 'bg-emerald-100 text-emerald-700', icon: <HiCheck className="w-4 h-4" /> },
-      removed: { label: 'Removida', color: 'bg-red-100 text-red-700', icon: <HiX className="w-4 h-4" /> },
+      flagged: { label: t('admin.moderation.status.flagged'), color: 'bg-amber-100 text-amber-700', icon: <HiExclamation className="w-4 h-4" /> },
+      active: { label: t('admin.moderation.status.active'), color: 'bg-emerald-100 text-emerald-700', icon: <HiCheck className="w-4 h-4" /> },
+      removed: { label: t('admin.moderation.status.removed'), color: 'bg-red-100 text-red-700', icon: <HiX className="w-4 h-4" /> },
     };
     return info[status] || { label: status, color: 'bg-gray-100 text-gray-700', icon: null };
   };
@@ -68,7 +70,7 @@ export default function AdminModeration() {
     return null;
   }
 
-  if (role !== 'admin') return <Alert type="warning">Solo administradores.</Alert>;
+  if (role !== 'admin') return <Alert type="warning">{t('admin.moderation.adminOnly')}</Alert>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -82,12 +84,12 @@ export default function AdminModeration() {
               <HiShieldCheck className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold mb-1">Moderación de Reseñas</h1>
-              <p className="text-indigo-200 text-sm">Revisa y modera el contenido generado por usuarios</p>
+              <h1 className="text-2xl font-bold mb-1">{t('admin.moderation.title')}</h1>
+              <p className="text-indigo-200 text-sm">{t('admin.moderation.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl">
-            <span className="text-indigo-200 text-sm">Pendientes:</span>
+            <span className="text-indigo-200 text-sm">{t('admin.moderation.pending')}:</span>
             <span className="text-xl font-bold">{items.filter(i => i.status === 'flagged').length}</span>
           </div>
         </div>
@@ -98,14 +100,14 @@ export default function AdminModeration() {
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <HiFilter className="w-5 h-5 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Filtrar por:</span>
+            <span className="text-sm font-medium text-gray-700">{t('admin.moderation.filters.label')}:</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {[
-              { value: '', label: 'Todos' },
-              { value: 'flagged', label: 'En Moderación' },
-              { value: 'active', label: 'Activas' },
-              { value: 'removed', label: 'Removidas' },
+              { value: '', label: t('admin.moderation.filters.all') },
+              { value: 'flagged', label: t('admin.moderation.filters.flagged') },
+              { value: 'active', label: t('admin.moderation.filters.active') },
+              { value: 'removed', label: t('admin.moderation.filters.removed') },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -129,7 +131,7 @@ export default function AdminModeration() {
       {loading && (
         <div className="flex items-center justify-center gap-3 py-12">
           <Spinner size="sm" />
-          <span className="text-gray-600">Cargando reseñas...</span>
+          <span className="text-gray-600">{t('admin.moderation.loading')}</span>
         </div>
       )}
 
@@ -157,7 +159,7 @@ export default function AdminModeration() {
                         }`} />
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-900">{r?.review?.title || 'Reseña sin título'}</h3>
+                        <h3 className="font-bold text-gray-900">{r?.review?.title || t('admin.moderation.noTitle')}</h3>
                         <div className="flex items-center gap-1 mt-1">
                           {[...Array(5)].map((_, i) => (
                             <HiStar 
@@ -179,7 +181,7 @@ export default function AdminModeration() {
                 {/* Review Content */}
                 <div className="p-5 bg-gray-50/50">
                   <p className="text-gray-700 text-sm leading-relaxed">
-                    "{r?.review?.comment || 'Sin comentario'}"
+                    "{r?.review?.comment || t('admin.moderation.noComment')}"
                   </p>
                 </div>
 
@@ -189,11 +191,11 @@ export default function AdminModeration() {
                     <div className="flex flex-wrap items-center gap-4 text-sm">
                       <div className="flex items-center gap-2 text-gray-600">
                         <HiUser className="w-4 h-4" />
-                        <span>Cliente: <strong className="text-gray-900">{r?.client?.profile?.firstName || '—'}</strong></span>
+                        <span>{t('admin.moderation.client')}: <strong className="text-gray-900">{r?.client?.profile?.firstName || '—'}</strong></span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600">
                         <HiBriefcase className="w-4 h-4" />
-                        <span>Proveedor: <strong className="text-gray-900">{r?.provider?.providerProfile?.businessName || '—'}</strong></span>
+                        <span>{t('admin.moderation.provider')}: <strong className="text-gray-900">{r?.provider?.providerProfile?.businessName || '—'}</strong></span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -204,7 +206,7 @@ export default function AdminModeration() {
                           className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50 shadow-sm"
                         >
                           {acting === r._id ? <Spinner size="xs" /> : <HiCheck className="w-4 h-4" />}
-                          Aprobar
+                          {t('admin.moderation.actions.approve')}
                         </button>
                       )}
                       {r.status !== 'removed' && (
@@ -214,7 +216,7 @@ export default function AdminModeration() {
                           className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-red-100 text-gray-700 hover:text-red-700 text-sm font-medium rounded-xl transition-all disabled:opacity-50"
                         >
                           {acting === r._id ? <Spinner size="xs" /> : <HiX className="w-4 h-4" />}
-                          Remover
+                          {t('admin.moderation.actions.remove')}
                         </button>
                       )}
                     </div>
@@ -230,8 +232,8 @@ export default function AdminModeration() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
                 <HiShieldCheck className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Sin reseñas pendientes</h3>
-              <p className="text-gray-500 text-sm">No hay contenido que requiera moderación</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{t('admin.moderation.empty.title')}</h3>
+              <p className="text-gray-500 text-sm">{t('admin.moderation.empty.subtitle')}</p>
             </div>
           )}
         </div>
@@ -246,17 +248,17 @@ export default function AdminModeration() {
             className="flex items-center gap-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <HiChevronLeft className="w-4 h-4" />
-            Anterior
+            {t('admin.moderation.pagination.previous')}
           </button>
           <div className="px-4 py-2 text-sm font-medium text-gray-600">
-            Página {page} de {pages}
+            {t('admin.moderation.pagination.page')} {page} {t('admin.moderation.pagination.of')} {pages}
           </div>
           <button
             disabled={page >= pages}
             onClick={() => setPage(p => Math.min(pages, p + 1))}
             className="flex items-center gap-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            Siguiente
+            {t('admin.moderation.pagination.next')}
             <HiChevronRight className="w-4 h-4" />
           </button>
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import ChatRoom from '@/components/ui/ChatRoom.jsx';
@@ -13,6 +14,7 @@ import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketCli
  * Usa el componente ChatRoom modular para chat en tiempo real
  */
 export default function Messages() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { viewRole, clearError, user, isAuthenticated } = useAuth();
@@ -62,7 +64,7 @@ export default function Messages() {
       });
       setUnreadCounts(counts);
     } catch (err) {
-      setError(err?.response?.data?.message || 'No se pudieron cargar las conversaciones');
+      setError(err?.response?.data?.message || t('client.messages.loadError'));
     } finally {
       setLoading(false);
     }
@@ -154,20 +156,20 @@ export default function Messages() {
 
   // Nombre del otro participante
   const getParticipantName = (chat) => {
-    if (!chat) return 'Chat';
+    if (!chat) return t('client.messages.chat');
     // Para cliente, mostrar el nombre del proveedor
     // participants es un objeto { client, provider }, no un array
     const provider = chat.participants?.provider;
     return provider?.providerProfile?.businessName || 
            provider?.profile?.firstName ||
            chat.booking?.basicInfo?.title || 
-           'Proveedor';
+           t('client.messages.provider');
   };
 
   if (!isAuthenticated) return null;
 
   if (viewRole !== 'client') {
-    return <Alert type="warning">Esta sección es para clientes.</Alert>;
+    return <Alert type="warning">{t('client.requests.clientOnlySection')}</Alert>;
   }
 
   const totalUnread = Object.values(unreadCounts).reduce((sum, n) => sum + n, 0);
@@ -188,15 +190,15 @@ export default function Messages() {
           </div>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl sm:text-3xl font-bold">Mis Mensajes</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold">{t('client.messages.title')}</h1>
               {totalUnread > 0 && (
                 <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-bold rounded-full bg-white text-brand-600 shadow-lg">
-                  {totalUnread > 99 ? '99+' : totalUnread} nuevo{totalUnread !== 1 ? 's' : ''}
+                  {totalUnread > 99 ? '99+' : totalUnread} {t('client.messages.new', { count: totalUnread })}
                 </span>
               )}
             </div>
             <p className="text-sm sm:text-base text-brand-100 mt-1">
-              Conversa con los proveedores sobre tus servicios
+              {t('client.messages.subtitle')}
             </p>
           </div>
         </div>
@@ -217,7 +219,7 @@ export default function Messages() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
               </svg>
             </div>
-            <span className="font-semibold text-gray-900">Conversaciones</span>
+            <span className="font-semibold text-gray-900">{t('client.messages.conversations')}</span>
             <span className="text-sm text-gray-500 ml-auto">{chats.length}</span>
           </div>
 
@@ -275,7 +277,7 @@ export default function Messages() {
                         <p className={`text-sm truncate mt-0.5 ${
                           unread > 0 ? 'text-gray-700 font-medium' : 'text-gray-500'
                         }`}>
-                          {lastMsg || 'Sin mensajes'}
+                          {lastMsg || t('client.messages.noMessages')}
                         </p>
                         {lastTime && (
                           <p className="text-xs text-gray-400 mt-1">
@@ -299,9 +301,9 @@ export default function Messages() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 </div>
-                <h4 className="text-lg font-medium text-gray-900 mb-1">Sin conversaciones</h4>
+                <h4 className="text-lg font-medium text-gray-900 mb-1">{t('client.messages.noConversations')}</h4>
                 <p className="text-sm text-gray-500 text-center">
-                  Las conversaciones con proveedores aparecerán aquí
+                  {t('client.messages.noConversationsDescription')}
                 </p>
               </div>
             )}
@@ -347,10 +349,10 @@ export default function Messages() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                Selecciona una conversación
+                {t('client.messages.selectConversation')}
               </h3>
               <p className="text-sm text-gray-500 text-center max-w-sm">
-                Elige una conversación de la lista para comenzar a chatear con el proveedor
+                {t('client.messages.selectConversationDescription')}
               </p>
             </div>
           )}

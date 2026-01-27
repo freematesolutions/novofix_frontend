@@ -7,6 +7,7 @@ import Alert from '@/components/ui/Alert.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { isEmail, required, minLength, validate } from '@/utils/validation.js';
 import api from '@/state/apiClient.js';
+import { useTranslation } from 'react-i18next';
 
 // ============================================================================
 // ICONS - Iconos SVG modernos (mantener igual)
@@ -65,14 +66,15 @@ const Icons = {
 };
 
 const PASSWORD_REQUIREMENTS = [
-  { id: 'length', label: '8+ caracteres', test: (p) => p.length >= 8 },
-  { id: 'upper', label: 'Una mayúscula', test: (p) => /[A-Z]/.test(p) },
-  { id: 'number', label: 'Un número', test: (p) => /\d/.test(p) },
-  { id: 'special', label: 'Un símbolo', test: (p) => /[^a-zA-Z0-9]/.test(p) }
+  { id: 'length', labelKey: 'auth.passwordRequirements.length', test: (p) => p.length >= 8 },
+  { id: 'upper', labelKey: 'auth.passwordRequirements.uppercase', test: (p) => /[A-Z]/.test(p) },
+  { id: 'number', labelKey: 'auth.passwordRequirements.number', test: (p) => /\d/.test(p) },
+  { id: 'special', labelKey: 'auth.passwordRequirements.special', test: (p) => /[^a-zA-Z0-9]/.test(p) }
 ];
 
 function RegisterClient() {
   const { registerClient, error, clearError } = useAuth();
+  const { t } = useTranslation();
   useEffect(() => { clearError(); }, [clearError]);
   const toast = useToast();
   const navigate = useNavigate();
@@ -100,7 +102,7 @@ function RegisterClient() {
         return;
       }
 
-      setEmailValidation({ checking: true, message: 'Verificando...', isValid: null });
+      setEmailValidation({ checking: true, message: t('auth.validation.checkingEmail'), isValid: null });
 
       emailCheckTimeoutRef.current = setTimeout(async () => {
         try {
@@ -108,13 +110,13 @@ function RegisterClient() {
           if (response.data?.available) {
             setEmailValidation({ 
               checking: false, 
-              message: 'Email disponible', 
+              message: t('auth.validation.emailAvailable'), 
               isValid: true 
             });
           } else {
             setEmailValidation({ 
               checking: false, 
-              message: 'Este email ya está registrado', 
+              message: t('auth.validation.emailInUse'), 
               isValid: false 
             });
           }
@@ -124,7 +126,7 @@ function RegisterClient() {
           } else {
             setEmailValidation({ 
               checking: false, 
-              message: 'Error al verificar email', 
+              message: t('toast.validationError'), 
               isValid: false 
             });
           }
@@ -162,13 +164,13 @@ function RegisterClient() {
     let color = '';
     
     if (score <= 2) {
-      label = 'Débil';
+      label = t('auth.passwordStrength.weak');
       color = 'from-red-500 to-red-400';
     } else if (score <= 4) {
-      label = 'Media';
+      label = t('auth.passwordStrength.fair');
       color = 'from-amber-500 to-yellow-400';
     } else {
-      label = 'Fuerte';
+      label = t('auth.passwordStrength.strong');
       color = 'from-green-500 to-emerald-400';
     }
 
@@ -179,15 +181,15 @@ function RegisterClient() {
 
   const runValidation = async () => {
     const rules = {
-      firstName: [(v)=> required(v) ? undefined : 'El nombre es obligatorio'],
-      lastName: [(v)=> required(v) ? undefined : 'El apellido es obligatorio'],
+      firstName: [(v)=> required(v) ? undefined : t('auth.validation.firstNameRequired')],
+      lastName: [(v)=> required(v) ? undefined : t('auth.validation.lastNameRequired')],
       email: [
-        (v)=> required(v) ? undefined : 'El correo es obligatorio',
-        (v)=> isEmail(v) ? undefined : 'Correo inválido'
+        (v)=> required(v) ? undefined : t('auth.validation.emailRequired'),
+        (v)=> isEmail(v) ? undefined : t('auth.validation.emailInvalid')
       ],
       password: [
-        (v)=> required(v) ? undefined : 'La contraseña es obligatoria',
-        (v)=> minLength(v, 6) ? undefined : 'Mínimo 6 caracteres'
+        (v)=> required(v) ? undefined : t('auth.validation.passwordRequired'),
+        (v)=> minLength(v, 6) ? undefined : t('auth.validation.passwordMinLength')
       ]
     };
     const errs = validate(form, rules);
@@ -196,7 +198,7 @@ function RegisterClient() {
       try {
         const response = await api.get(`/auth/check-email?email=${encodeURIComponent(form.email)}`);
         if (!response.data?.available) {
-          errs.email = 'Este email ya está registrado';
+          errs.email = t('auth.validation.emailInUse');
         }
       } catch (err) {
         if (err?.response?.status !== 404) {
@@ -212,10 +214,10 @@ function RegisterClient() {
   const handleBlur = (field) => () => {
     setTouched((t)=>({ ...t, [field]: true }));
     const partialRules = {
-      firstName: [(v)=> required(v) ? undefined : 'El nombre es obligatorio'],
-      lastName: [(v)=> required(v) ? undefined : 'El apellido es obligatorio'],
-      email: [ (v)=> required(v) ? undefined : 'El correo es obligatorio', (v)=> isEmail(v) ? undefined : 'Correo inválido' ],
-      password: [ (v)=> required(v) ? undefined : 'La contraseña es obligatoria', (v)=> minLength(v, 6) ? undefined : 'Mínimo 6 caracteres' ]
+      firstName: [(v)=> required(v) ? undefined : t('auth.validation.firstNameRequired')],
+      lastName: [(v)=> required(v) ? undefined : t('auth.validation.lastNameRequired')],
+      email: [ (v)=> required(v) ? undefined : t('auth.validation.emailRequired'), (v)=> isEmail(v) ? undefined : t('auth.validation.emailInvalid') ],
+      password: [ (v)=> required(v) ? undefined : t('auth.validation.passwordRequired'), (v)=> minLength(v, 6) ? undefined : t('auth.validation.passwordMinLength') ]
     };
     const fieldErr = validate(form, { [field]: partialRules[field] });
     setErrors((prev)=>({ ...prev, ...fieldErr }));
@@ -227,7 +229,7 @@ function RegisterClient() {
     const errs = await runValidation();
     if (Object.keys(errs).length) {
       setTouched({ firstName: true, lastName: true, email: true, password: true });
-      toast.warning('Revisa los campos del formulario');
+      toast.warning(t('auth.validation.checkFormFields'));
       setLocalLoading(false);
       return;
     }
@@ -237,7 +239,7 @@ function RegisterClient() {
     if (result.pending) {
       // Registro exitoso, pendiente de verificación
       // En modo demo, verificationUrl viene incluida para mostrar en la UI
-      toast.success('¡Registro exitoso! Por favor verifica tu email para activar tu cuenta.');
+      toast.success(t('toast.verifyEmailPending'));
       navigate('/verificar-email', { 
         replace: true,
         state: { 
@@ -248,11 +250,11 @@ function RegisterClient() {
       });
     } else if (result.ok) {
       // Registro exitoso y ya verificado (caso raro)
-      toast.success('¡Bienvenido! Te has registrado como cliente');
+      toast.success(t('toast.welcomeClient'));
       navigate('/mis-solicitudes', { replace: true });
     } else {
       // Error en el registro
-      toast.error('Error en el registro. Por favor intenta de nuevo.');
+      toast.error(t('toast.registerError') + '. ' + t('toast.tryAgain'));
     }
     
     setLocalLoading(false);
@@ -273,18 +275,18 @@ function RegisterClient() {
             </div>
             
             <h1 className="relative text-2xl font-bold text-white mb-1">
-              ¡Crea tu cuenta gratis!
+              {t('auth.clientRegisterTitle')}
             </h1>
             <p className="relative text-white/80 text-sm">
-              Encuentra los mejores profesionales en minutos
+              {t('auth.clientRegisterSubtitle')}
             </p>
 
             <div className="relative flex items-center justify-center gap-3 mt-4 flex-wrap">
               <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs text-white">
-                <Icons.Gift className="w-3.5 h-3.5" /> 100% Gratis
+                <Icons.Gift className="w-3.5 h-3.5" /> {t('common.free', '100% Gratis')}
               </span>
               <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs text-white">
-                <Icons.Shield className="w-3.5 h-3.5" /> Seguro
+                <Icons.Shield className="w-3.5 h-3.5" /> {t('common.secureConnection')}
               </span>
             </div>
           </div>
@@ -294,7 +296,7 @@ function RegisterClient() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="client-firstName" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                    <span className="text-base">👤</span> Nombre
+                    <span className="text-base">👤</span> {t('auth.firstName')}
                   </label>
                   <input
                     name="firstName"
@@ -319,7 +321,7 @@ function RegisterClient() {
                 </div>
                 <div>
                   <label htmlFor="client-lastName" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                    <span className="text-base">👥</span> Apellido
+                    <span className="text-base">👥</span> {t('auth.lastName')}
                   </label>
                   <input
                     name="lastName"
@@ -346,7 +348,7 @@ function RegisterClient() {
 
               <div>
                 <label htmlFor="client-email" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                  <Icons.Mail className="w-4 h-4 text-emerald-500" /> Correo electrónico
+                  <Icons.Mail className="w-4 h-4 text-emerald-500" /> {t('auth.email')}
                 </label>
                 <div className="relative">
                   <input
@@ -359,7 +361,7 @@ function RegisterClient() {
                     autoComplete="email"
                     inputMode="email"
                     id="client-email"
-                    placeholder="tu@email.com"
+                    placeholder={t('auth.emailPlaceholder')}
                     className={`
                       w-full border-2 rounded-xl px-4 py-2.5 pr-10 text-gray-900 placeholder:text-gray-400
                       transition-all duration-200 focus:outline-none
@@ -400,8 +402,8 @@ function RegisterClient() {
 
               <div>
                 <label htmlFor="client-phone" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                  <Icons.Phone className="w-4 h-4 text-emerald-500" /> Teléfono
-                  <span className="text-gray-400 text-xs">(opcional)</span>
+                  <Icons.Phone className="w-4 h-4 text-emerald-500" /> {t('auth.phone')}
+                  <span className="text-gray-400 text-xs">({t('common.optional')})</span>
                 </label>
                 <input 
                   name="phone" 
@@ -410,14 +412,14 @@ function RegisterClient() {
                   autoComplete="tel" 
                   inputMode="tel" 
                   id="client-phone" 
-                  placeholder="+1 234 567 8900"
+                  placeholder={t('auth.phonePlaceholder')}
                   className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all" 
                 />
               </div>
 
               <div>
                 <label htmlFor="client-password" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                  <Icons.Lock className="w-4 h-4 text-emerald-500" /> Contraseña
+                  <Icons.Lock className="w-4 h-4 text-emerald-500" /> {t('auth.password')}
                 </label>
                 <div className="relative">
                   <input
@@ -486,7 +488,7 @@ function RegisterClient() {
                             ) : (
                               <div className="w-4 h-4 border border-gray-300 rounded-full" />
                             )}
-                            {req.label}
+                            {t(req.labelKey)}
                           </div>
                         );
                       })}
@@ -504,11 +506,11 @@ function RegisterClient() {
                 {localLoading ? (
                   <span className="flex items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creando cuenta...
+                    {t('auth.creatingAccount')}
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
-                    Crear mi cuenta gratis
+                    {t('auth.createAccount')}
                     <Icons.ArrowRight className="w-5 h-5" />
                   </span>
                 )}
@@ -520,7 +522,7 @@ function RegisterClient() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-white px-4 text-sm text-gray-500">¿Ya tienes cuenta?</span>
+                <span className="bg-white px-4 text-sm text-gray-500">{t('auth.alreadyHaveAccount')}</span>
               </div>
             </div>
 
@@ -530,28 +532,28 @@ function RegisterClient() {
                 className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all"
               >
                 <Icons.User className="w-4 h-4" />
-                <span className="text-sm">Iniciar sesión</span>
+                <span className="text-sm">{t('auth.login')}</span>
               </Link>
             </div>
           </div>
 
           {/* Registro profesional separado */}
           <div className="flex flex-col items-center mt-6 mb-4">
-            <span className="text-sm text-gray-500 mb-2">¿Eres profesional?</span>
+            <span className="text-sm text-gray-500 mb-2">{t('auth.areYouProfessional', '¿Eres profesional?')}</span>
             <Link
               to="/registro-proveedor"
               className="flex items-center gap-2 px-4 py-2.5 bg-brand-50 text-brand-700 rounded-xl font-medium hover:bg-brand-100 transition-all"
             >
               <Icons.Briefcase className="w-4 h-4" />
-              <span className="text-sm">Registrarme como profesional</span>
+              <span className="text-sm">{t('auth.registerAsProvider')}</span>
             </Link>
           </div>
 
           <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
             <p className="text-center text-xs text-gray-500">
-              Al registrarte, aceptas nuestros{' '}
-              <a href="/terminos" className="text-emerald-600 hover:underline">Términos</a> y{' '}
-              <a href="/privacidad" className="text-emerald-600 hover:underline">Privacidad</a>
+              {t('auth.termsAgree')}{' '}
+              <a href="/terminos" className="text-emerald-600 hover:underline">{t('footer.terms')}</a> {t('common.and')}{' '}
+              <a href="/privacidad" className="text-emerald-600 hover:underline">{t('footer.privacy')}</a>
             </p>
           </div>
         </div>

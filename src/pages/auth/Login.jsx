@@ -6,6 +6,7 @@ import PasswordToggle from '@/components/ui/PasswordToggle.jsx';
 import Alert from '@/components/ui/Alert.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { isEmail, required, validate } from '@/utils/validation.js';
+import { useTranslation } from 'react-i18next';
 
 // ============================================================================
 // ICONS - Iconos SVG modernos
@@ -50,6 +51,7 @@ const Icons = {
 
 function Login() {
   const { login, loading, error, clearError, role, viewRole } = useAuth();
+  const { t } = useTranslation();
   useEffect(()=>{ clearError(); }, [clearError]);
   const toast = useToast();
   const navigate = useNavigate();
@@ -99,10 +101,10 @@ function Login() {
   const runValidation = () => {
     const rules = {
       email: [
-        (v)=> required(v) ? undefined : 'El correo es obligatorio',
-        (v)=> isEmail(v) ? undefined : 'Correo inválido'
+        (v)=> required(v) ? undefined : t('auth.validation.emailRequired'),
+        (v)=> isEmail(v) ? undefined : t('auth.validation.emailInvalid')
       ],
-      password: [ (v)=> required(v) ? undefined : 'La contraseña es obligatoria' ]
+      password: [ (v)=> required(v) ? undefined : t('auth.validation.passwordRequired') ]
     };
     const errs = validate({ email, password }, rules);
     setErrors(errs);
@@ -114,7 +116,7 @@ function Login() {
     const errs = runValidation();
     if (Object.keys(errs).length) {
       setTouched({ email: true, password: true });
-      toast.warning('Revisa los campos del formulario');
+      toast.warning(t('auth.validation.checkFormFields'));
       return;
     }
     const result = await login({ email, password, remember });
@@ -123,13 +125,13 @@ function Login() {
         if (remember) localStorage.setItem('remembered_email', email);
         else localStorage.removeItem('remembered_email');
       } catch { /* ignore */ }
-      toast.success('Inicio de sesión exitoso');
+      toast.success(t('toast.loginSuccess'));
       const r = String(result.user?.role || '').toLowerCase();
       if (r === 'admin') navigate('/admin');
       else if (r === 'provider') navigate('/empleos');
       else navigate('/');
     } else {
-      toast.error('No se pudo iniciar sesión');
+      toast.error(t('toast.loginError'));
     }
   };
 
@@ -137,8 +139,8 @@ function Login() {
     setTouched((t)=>({ ...t, [field]: true }));
     setErrors((prev)=>({ ...prev, ...validate({ email, password }, {
       [field]: field === 'email'
-        ? [ (v)=> required(v) ? undefined : 'El correo es obligatorio', (v)=> isEmail(v) ? undefined : 'Correo inválido' ]
-        : [ (v)=> required(v) ? undefined : 'La contraseña es obligatoria' ]
+        ? [ (v)=> required(v) ? undefined : t('auth.validation.emailRequired'), (v)=> isEmail(v) ? undefined : t('auth.validation.emailInvalid') ]
+        : [ (v)=> required(v) ? undefined : t('auth.validation.passwordRequired') ]
     }) }));
   };
 
@@ -161,10 +163,10 @@ function Login() {
             </div>
             
             <h1 className="relative text-2xl font-bold text-white mb-1">
-              ¡Bienvenido de nuevo!
+              {t('auth.welcomeBack')}
             </h1>
             <p className="relative text-white/80 text-sm">
-              Ingresa a tu cuenta para continuar
+              {t('auth.loginSubtitle')}
             </p>
           </div>
 
@@ -175,7 +177,7 @@ function Login() {
               <div>
                 <label htmlFor="login-email" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   <Icons.Mail className="w-4 h-4 text-brand-500" />
-                  Correo electrónico
+                  {t('auth.email')}
                 </label>
                 <div className="relative">
                   <input
@@ -188,7 +190,7 @@ function Login() {
                     autoComplete="email"
                     inputMode="email"
                     list="email-options-login"
-                    placeholder="tu@email.com"
+                    placeholder={t('auth.emailPlaceholder')}
                     className={`
                       w-full border-2 rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400
                       transition-all duration-200 focus:outline-none
@@ -214,7 +216,7 @@ function Login() {
               <div>
                 <label htmlFor="login-password" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   <Icons.Lock className="w-4 h-4 text-brand-500" />
-                  Contraseña
+                  {t('auth.password')}
                 </label>
                 <div className="relative">
                   <input
@@ -269,14 +271,14 @@ function Login() {
                     </div>
                   </div>
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
-                    Recordarme
+                    {t('auth.rememberMe')}
                   </span>
                 </label>
                 <Link 
                   to="/olvide-contrasena" 
                   className="text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors"
                 >
-                  ¿Olvidaste tu contraseña?
+                  {t('auth.forgotPassword')}
                 </Link>
               </div>
 
@@ -293,11 +295,11 @@ function Login() {
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Ingresando...
+                    {t('auth.loggingIn')}
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
-                    Iniciar Sesión
+                    {t('auth.login')}
                     <Icons.ArrowRight className="w-5 h-5" />
                   </span>
                 )}
@@ -310,7 +312,7 @@ function Login() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-white px-4 text-sm text-gray-500">¿Nuevo aquí?</span>
+                <span className="bg-white px-4 text-sm text-gray-500">{t('auth.dontHaveAccount')}</span>
               </div>
             </div>
 
@@ -321,7 +323,7 @@ function Login() {
                 className="flex items-center gap-2 px-4 py-3 bg-emerald-50 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-all group"
               >
                 <Icons.User className="w-5 h-5" />
-                <span className="text-sm">Registrarse gratis</span>
+                <span className="text-sm">{t('header.registerFree')}</span>
               </Link>
             </div>
           </div>
@@ -331,11 +333,11 @@ function Login() {
             <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
               <span className="flex items-center gap-1">
                 <Icons.Shield className="w-4 h-4 text-green-500" />
-                Conexión segura
+                {t('common.secureConnection', 'Conexión segura')}
               </span>
               <span className="flex items-center gap-1">
                 <Icons.Sparkles className="w-4 h-4 text-amber-500" />
-                100% confiable
+                {t('common.trusted', '100% confiable')}
               </span>
             </div>
           </div>

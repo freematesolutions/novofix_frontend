@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import Button from './Button.jsx';
@@ -17,6 +18,7 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 export default function MapPicker({ value, onChange, height = 280, className = '' }) {
+  const { t } = useTranslation();
   const [coords, setCoords] = useState(value || null);
   const [ready, setReady] = useState(false);
   const [tileError, setTileError] = useState(false);
@@ -245,36 +247,36 @@ export default function MapPicker({ value, onChange, height = 280, className = '
   return (
     <div className={`relative ${className}`}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-        <div className="text-xs text-gray-600">{coords ? `📍 Ubicación marcada` : 'Haz clic en el mapa para seleccionar ubicación'}</div>
+        <div className="text-xs text-gray-600">{coords ? `📍 ${t('ui.mapPicker.locationMarked') || 'Ubicación marcada'}` : t('ui.mapPicker.clickToSelect') || 'Haz clic en el mapa para seleccionar ubicación'}</div>
         <div className="flex flex-wrap items-center gap-2">
           <select
             className="text-xs border rounded-md px-2 py-1"
             value={providerSelect}
             onChange={(e)=>setProviderSelect(e.target.value)}
-            title="Proveedor de mapas"
+            title={t('ui.mapPicker.mapProvider') || 'Proveedor de mapas'}
           >
-            <option value="auto">Auto (fallback)</option>
+            <option value="auto">{t('ui.mapPicker.auto')}</option>
             <option value="osm">OSM</option>
             <option value="osmfr">OSM France</option>
             <option value="carto">Carto Positron</option>
-            <option value="basic">Básico (sin tiles)</option>
+            <option value="basic">{t('ui.mapPicker.basic')}</option>
           </select>
-          <Button type="button" variant="secondary" onClick={useMyLocation}>Usar mi ubicación</Button>
-          <Button type="button" variant="secondary" onClick={()=>{ try { mapRef.current && mapRef.current.invalidateSize(); } catch { /* noop */ } }}>Refrescar mapa</Button>
+          <Button type="button" variant="secondary" onClick={useMyLocation}>{t('ui.mapPicker.useMyLocation')}</Button>
+          <Button type="button" variant="secondary" onClick={()=>{ try { mapRef.current && mapRef.current.invalidateSize(); } catch { /* noop */ } }}>{t('ui.mapPicker.refreshMap')}</Button>
         </div>
       </div>
       {geoDenied && (
         <div className="mb-2 text-xs p-2 rounded-md border border-amber-200 bg-amber-50 text-amber-800 flex flex-col gap-2">
-          <span>Permiso de ubicación bloqueado. Selecciona un punto manualmente o habilita la ubicación.</span>
+          <span>{t('ui.mapPicker.locationBlocked')}</span>
           <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={useMyLocation}>Reintentar ubicación</Button>
-            <Button type="button" variant="secondary" onClick={()=>setShowGeoHelp(true)}>¿Cómo habilitar?</Button>
+            <Button type="button" variant="secondary" onClick={useMyLocation}>{t('ui.mapPicker.retryLocation')}</Button>
+            <Button type="button" variant="secondary" onClick={()=>setShowGeoHelp(true)}>{t('ui.mapPicker.howToEnable')}</Button>
           </div>
         </div>
       )}
       {tileError && (
         <div className="mb-2 text-xs p-2 rounded-md border border-red-200 bg-red-50 text-red-700 flex items-center justify-between">
-          <span>No pudimos cargar los mapas. Revisa tu conexión o bloqueadores (DNS/AdBlock).</span>
+          <span>{t('ui.mapPicker.mapLoadError')}</span>
           <Button
             type="button"
             variant="secondary"
@@ -292,7 +294,7 @@ export default function MapPicker({ value, onChange, height = 280, className = '
                 installProviderRef.current && installProviderRef.current(0);
               }
             }}
-          >Reintentar</Button>
+          >{t('ui.mapPicker.retry')}</Button>
         </div>
       )}
       {ready && (
@@ -306,21 +308,21 @@ export default function MapPicker({ value, onChange, height = 280, className = '
       )}
       <Modal
         open={showGeoHelp}
-        title="Habilitar ubicación"
+        title={t('ui.mapPicker.enableLocationTitle')}
         onClose={()=>setShowGeoHelp(false)}
-        actions={<Button variant="secondary" onClick={()=>setShowGeoHelp(false)}>Cerrar</Button>}
+        actions={<Button variant="secondary" onClick={()=>setShowGeoHelp(false)}>{t('ui.mapPicker.close')}</Button>}
       >
         <div className="space-y-3 text-xs leading-relaxed">
-          <p>Tu navegador ha bloqueado la geolocalización tras varios rechazos. Sigue los pasos según tu plataforma y luego recarga:</p>
+          <p>{t('ui.mapPicker.enableLocationIntro')}</p>
           <ul className="list-disc pl-4 space-y-1">
-            <li><strong>Chrome (Escritorio):</strong> Click en el icono de ajustes (candado/tune) a la izquierda de la URL → Permisos del sitio → Ubicación → Permitir. Recarga.</li>
-            <li><strong>Chrome (Android):</strong> Icono de candado/tune → Permisos → Ubicación → Cambiar a Permitir. Si sigue bloqueado, en Ajustes → Apps → Chrome → Permisos → Ubicación. Recarga.</li>
-            <li><strong>Edge:</strong> Icono de candado → Permisos del sitio → Ubicación → Permitir. Recarga.</li>
-            <li><strong>Safari (iOS):</strong> Ajustes del sistema → Safari → Ubicación → Preguntar o Permitir. Luego abre la página y acepta el prompt.</li>
-            <li><strong>Firefox:</strong> Icono de candado → Permisos → Ubicación → Permitir.</li>
-            <li><strong>Reset general Chrome:</strong> chrome://settings/content/location → Limpiar bloqueos y añadir tu dominio en “Permitidos”.</li>
+            <li><strong>Chrome (Desktop):</strong> {t('ui.mapPicker.chromeDesktop')}</li>
+            <li><strong>Chrome (Android):</strong> {t('ui.mapPicker.chromeAndroid')}</li>
+            <li><strong>Edge:</strong> {t('ui.mapPicker.edge')}</li>
+            <li><strong>Safari (iOS):</strong> {t('ui.mapPicker.safariIos')}</li>
+            <li><strong>Firefox:</strong> {t('ui.mapPicker.firefox')}</li>
+            <li><strong>Chrome Reset:</strong> {t('ui.mapPicker.chromeReset')}</li>
           </ul>
-          <p>Después de habilitar el permiso puedes usar “Usar mi ubicación” o recargar para centrar el mapa automáticamente.</p>
+          <p>{t('ui.mapPicker.afterEnabling')}</p>
         </div>
       </Modal>
     </div>
