@@ -36,6 +36,14 @@
     "tip": "Tip",
     "continue": "Continue"
   },
+  "urgency": {
+    "baja": "Low",
+    "media": "Medium",
+    "alta": "High",
+    "urgente": "Urgent",
+    "scheduled": "Scheduled",
+    "flexible": "Flexible"
+  },
   "language": {
     "language": "Language",
     "selectLanguage": "Select language",
@@ -254,7 +262,15 @@
     "notifications": "Notifications",
     "mainMenu": "Main menu",
     "modeLocked": "Mode manually locked",
-    "locked": "Locked"
+    "locked": "Locked",
+    "mode": "Mode",
+    "modeClient": "Client Mode",
+    "modeProfessional": "Professional Mode",
+    "modeAdmin": "Admin Mode",
+    "modeUser": "User Mode",
+    "subscriptionInactive": "Your subscription is inactive. Activate it to get more leads.",
+    "leadLimitReached": "You've reached your monthly lead limit. Upgrade your plan to continue.",
+    "upgradeRequired": "Upgrade your plan to continue."
   },
   "home": {
     "title1": "Find the professional",
@@ -365,7 +381,15 @@
       "soon": "Soon (this week)",
       "flexible": "Flexible",
       "clearFilters": "Clear all filters",
-      "tip": "💡 Tip: Describe your need in natural language. Example: 'I need a plumber to fix a leak'"
+      "tip": "💡 Tip: Describe your need in natural language. Example: 'I need a plumber to fix a leak'",
+      "placeholders": [
+        "I need an urgent plumber...",
+        "Looking for certified electrician...",
+        "Repair air conditioning...",
+        "Deep cleaning service...",
+        "Paint my apartment...",
+        "Ceramic tile installation..."
+      ]
     }
   },
   "client": {
@@ -400,6 +424,21 @@
       "delete": "Delete",
       "professional": "Professional",
       "untitledRequest": "Untitled request",
+      "loading": "Loading requests...",
+      "sentTo": "Sent to",
+      "visibleFor": "Visible for",
+      "directed": "Directed",
+      "status": {
+        "published": "Published",
+        "draft": "Draft",
+        "active": "Active",
+        "archived": "Archived"
+      },
+      "selectProviderFirst": "Select at least one provider",
+      "providersInvited": "Providers invited successfully",
+      "noEligibleProviders": "No eligible providers for this request",
+      "eligibleProvidersCount": "{{count}} eligible providers",
+      "eligibilityError": "Error checking eligibility",
       "inviteModal": {
         "title": "Invite professionals",
         "subtitle": "Search and select professionals to invite",
@@ -495,7 +534,17 @@
       "noRequests": "No requests available",
       "noRequestsDescription": "When there are requests that match your services, they will appear here",
       "sendProposal": "Send proposal",
-      "viewDetails": "View details"
+      "viewDetails": "View details",
+      "requestsService": "is requesting a service",
+      "notified": "Notified",
+      "directed": "Directed to you",
+      "view": "View",
+      "propose": "Propose",
+      "proposalSent": "Proposal sent",
+      "serviceRequest": "Service request",
+      "providerOnly": "This section is for providers only",
+      "errorLoading": "Error loading jobs",
+      "loading": "Loading jobs..."
     },
     "portfolio": {
       "title": "My Portfolio",
@@ -1437,6 +1486,8 @@
     "providerCard": {
       "professional": "Professional",
       "onlyClientsCanRequest": "Only clients can send requests",
+      "viewReviews": "View reviews",
+      "enlargeImage": "Enlarge image",
       "reviewsCount": "{{count}} reviews",
       "hires": "hires",
       "response": "response",

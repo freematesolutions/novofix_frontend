@@ -36,6 +36,14 @@
     "tip": "Consejo",
     "continue": "Continuar"
   },
+  "urgency": {
+    "baja": "Baja",
+    "media": "Media",
+    "alta": "Alta",
+    "urgente": "Urgente",
+    "scheduled": "Programado",
+    "flexible": "Flexible"
+  },
   "language": {
     "language": "Idioma",
     "selectLanguage": "Seleccionar idioma",
@@ -254,7 +262,15 @@
     "notifications": "Notificaciones",
     "mainMenu": "Menú principal",
     "modeLocked": "Modo fijado manualmente",
-    "locked": "Fijado"
+    "locked": "Fijado",
+    "mode": "Modo",
+    "modeClient": "Modo Cliente",
+    "modeProfessional": "Modo Profesional",
+    "modeAdmin": "Modo Admin",
+    "modeUser": "Modo Usuario",
+    "subscriptionInactive": "Tu suscripción está inactiva. Actívala para obtener más leads.",
+    "leadLimitReached": "Has alcanzado tu límite mensual de leads. Mejora tu plan para continuar.",
+    "upgradeRequired": "Mejora tu plan para continuar."
   },
   "home": {
     "title1": "Encuentra el profesional",
@@ -365,7 +381,15 @@
       "soon": "Pronto (esta semana)",
       "flexible": "Flexible",
       "clearFilters": "Limpiar todos los filtros",
-      "tip": "💡 Tip: Describe tu necesidad en lenguaje natural. Ejemplo: 'Necesito un plomero para reparar una fuga'"
+      "tip": "💡 Tip: Describe tu necesidad en lenguaje natural. Ejemplo: 'Necesito un plomero para reparar una fuga'",
+      "placeholders": [
+        "Necesito un plomero urgente...",
+        "Busco electricista certificado...",
+        "Reparar aire acondicionado...",
+        "Servicio de limpieza profunda...",
+        "Pintar mi departamento...",
+        "Instalación de cerámica..."
+      ]
     }
   },
   "client": {
@@ -400,6 +424,21 @@
       "delete": "Eliminar",
       "professional": "Profesional",
       "untitledRequest": "Solicitud sin título",
+      "loading": "Cargando solicitudes...",
+      "sentTo": "Enviado a",
+      "visibleFor": "Visible para",
+      "directed": "Dirigida",
+      "status": {
+        "published": "Publicada",
+        "draft": "Borrador",
+        "active": "Activa",
+        "archived": "Archivada"
+      },
+      "selectProviderFirst": "Selecciona al menos un proveedor",
+      "providersInvited": "Proveedores invitados correctamente",
+      "noEligibleProviders": "No hay proveedores elegibles para esta solicitud",
+      "eligibleProvidersCount": "{{count}} proveedores elegibles",
+      "eligibilityError": "Error al consultar elegibilidad",
       "inviteModal": {
         "title": "Invitar profesionales",
         "subtitle": "Busca y selecciona profesionales para invitar",
@@ -495,7 +534,17 @@
       "noRequests": "Sin solicitudes disponibles",
       "noRequestsDescription": "Cuando haya solicitudes que coincidan con tus servicios, aparecerán aquí",
       "sendProposal": "Enviar propuesta",
-      "viewDetails": "Ver detalles"
+      "viewDetails": "Ver detalles",
+      "requestsService": "solicita un servicio",
+      "notified": "Notificado",
+      "directed": "Dirigido a ti",
+      "view": "Ver",
+      "propose": "Proponer",
+      "proposalSent": "Propuesta enviada",
+      "serviceRequest": "Solicitud de servicio",
+      "providerOnly": "Esta sección es solo para proveedores",
+      "errorLoading": "Error al cargar empleos",
+      "loading": "Cargando empleos..."
     },
     "portfolio": {
       "title": "Mi Portafolio",
@@ -1437,6 +1486,8 @@
     "providerCard": {
       "professional": "Profesional",
       "onlyClientsCanRequest": "Solo los clientes pueden enviar solicitudes",
+      "viewReviews": "Ver reseñas",
+      "enlargeImage": "Ampliar imagen",
       "reviewsCount": "{{count}} reseñas",
       "hires": "contrataciones",
       "response": "respuesta",

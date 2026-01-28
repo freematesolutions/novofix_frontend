@@ -107,7 +107,7 @@ export default function OfferingStep() {
                 key={cat}
                 className="inline-flex items-center gap-1 px-3 py-1 bg-brand-100 text-brand-800 rounded-full text-sm"
               >
-                {cat}
+                {t(`home.categories.${cat}`, cat)}
                 <button
                   type="button"
                   onClick={() => toggleCategory(cat)}

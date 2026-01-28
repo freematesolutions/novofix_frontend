@@ -139,7 +139,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
             <div 
               data-nav-section="reviews"
               className="shrink-0 flex items-center gap-1 bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg cursor-pointer hover:bg-emerald-100 transition-colors"
-              title="Ver reseñas"
+              title={t('ui.providerCard.viewReviews')}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-nav-section="reviews">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" data-nav-section="reviews" />
@@ -148,11 +148,11 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
             </div>
           )}
           {/* Plan badge */}
-          <div 
-            data-nav-section="reviews"
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-full shadow-lg cursor-pointer hover:scale-105 transition-transform ${planInfo.gradient}`}
-            title="Ver reseñas"
-          >
+            <div 
+              data-nav-section="reviews"
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full shadow-lg cursor-pointer hover:scale-105 transition-transform ${planInfo.gradient}`}
+              title={t('ui.providerCard.viewReviews')}
+            >
             <span className="text-xs">{planInfo.icon}</span>
             <span className={`text-xs font-bold ${plan === 'free' ? '' : 'text-white'}`}>{planInfo.label}</span>
           </div>
@@ -174,7 +174,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                     alt={businessName}
                     data-avatar-img
                     className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-2 ${planInfo.ring} ring-offset-2 transition-transform duration-300 group-hover:scale-105 cursor-zoom-in`}
-                    title="Ampliar imagen"
+                    title={t('ui.providerCard.enlargeImage')}
                   />
                 ) : (
                   <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold ring-2 ${planInfo.ring} ring-offset-2 transition-transform duration-300 group-hover:scale-105`}>
@@ -269,9 +269,9 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                       key={idx}
                       data-nav-section="services"
                       className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700 border border-brand-100 cursor-pointer hover:bg-brand-100 transition-colors"
-                      title="Ver todos los servicios"
+                      title={t('ui.providerCard.viewAllServices')}
                     >
-                      {service.category}
+                      {t(`home.categories.${service.category}`, service.category)}
                     </span>
                   ))}
                   {services.length > 2 && (

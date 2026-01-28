@@ -176,13 +176,13 @@ export default function Jobs() {
                     {r.basicInfo?.category && (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-linear-to-r from-brand-50 to-cyan-50 border border-brand-100 text-sm font-medium text-gray-700">
                         <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                        {r.basicInfo.category}
+                        {t(`home.categories.${r.basicInfo.category}`, r.basicInfo.category)}
                       </span>
                     )}
                     {r.basicInfo?.urgency && (
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${currentUrgency.bg} ${currentUrgency.text} ${currentUrgency.border} border text-sm font-medium`}>
                         <span>{currentUrgency.icon}</span>
-                        {r.basicInfo.urgency}
+                        {t(`urgency.${r.basicInfo.urgency.toLowerCase()}`, r.basicInfo.urgency)}
                       </span>
                     )}
                   </div>

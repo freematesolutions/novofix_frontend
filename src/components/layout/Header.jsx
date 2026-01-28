@@ -1252,9 +1252,9 @@ function Header() {
         const { sub, plan } = subscriptionCacheRef.current.payload;
         const localHint = localStorage.getItem('upgrade_hint') === '1';
         let show = false; let reason = '';
-        if (!sub || sub.status !== 'active') { show = true; reason = 'Tu suscripción está inactiva. Actívala para obtener más leads.'; }
-        if (plan?.features?.leadLimit >= 0 && sub?.leadsUsed >= plan.features.leadLimit) { show = true; reason = 'Has alcanzado tu límite mensual de leads. Mejora tu plan para continuar.'; }
-        if (localHint) { show = true; reason = reason || 'Mejora tu plan para continuar.'; }
+        if (!sub || sub.status !== 'active') { show = true; reason = t('header.subscriptionInactive'); }
+        if (plan?.features?.leadLimit >= 0 && sub?.leadsUsed >= plan.features.leadLimit) { show = true; reason = t('header.leadLimitReached'); }
+        if (localHint) { show = true; reason = reason || t('header.upgradeRequired'); }
         if (mounted) setUpgradeHint({ show, reason });
         return;
       }
@@ -1267,9 +1267,9 @@ function Header() {
         subscriptionCacheRef.current = { ts: Date.now(), payload: { sub, plan } };
         const localHint = localStorage.getItem('upgrade_hint') === '1';
         let show = false; let reason = '';
-        if (!sub || sub.status !== 'active') { show = true; reason = 'Tu suscripción está inactiva. Actívala para obtener más leads.'; }
-        if (plan?.features?.leadLimit >= 0 && sub?.leadsUsed >= plan.features.leadLimit) { show = true; reason = 'Has alcanzado tu límite mensual de leads. Mejora tu plan para continuar.'; }
-        if (localHint) { show = true; reason = reason || 'Mejora tu plan para continuar.'; }
+        if (!sub || sub.status !== 'active') { show = true; reason = t('header.subscriptionInactive'); }
+        if (plan?.features?.leadLimit >= 0 && sub?.leadsUsed >= plan.features.leadLimit) { show = true; reason = t('header.leadLimitReached'); }
+        if (localHint) { show = true; reason = reason || t('header.upgradeRequired'); }
         if (mounted) setUpgradeHint({ show, reason });
       } catch {
         // Si el servidor rate-limitea (429) mantener último estado sin spamear
@@ -1703,7 +1703,7 @@ function Header() {
                     {/* Chip de modo actual inline */}
                     {role !== 'guest' && (
                       <span className={`text-[10px] font-medium ${viewRole === 'provider' ? 'text-brand-600' : viewRole === 'client' ? 'text-emerald-600' : viewRole === 'admin' ? 'text-indigo-600' : 'text-gray-500'}`}>
-                        Modo {viewRole === 'provider' ? 'Profesional' : viewRole === 'client' ? 'Cliente' : viewRole === 'admin' ? 'Admin' : 'Usuario'}
+                        {viewRole === 'provider' ? t('header.modeProfessional') : viewRole === 'client' ? t('header.modeClient') : viewRole === 'admin' ? t('header.modeAdmin') : t('header.modeUser')}
                       </span>
                     )}
                   </div>
@@ -1737,7 +1737,7 @@ function Header() {
                                 if (raw) lockedRole = (JSON.parse(raw)?.role || '').toLowerCase();
                               } catch { /* ignore */ }
                               const isLocked = lockedRole && lockedRole === viewRole;
-                              const chipLabel = viewRole === 'provider' ? 'Profesional' : viewRole === 'client' ? 'Cliente' : viewRole === 'admin' ? 'Admin' : 'Modo';
+                              const chipLabel = viewRole === 'provider' ? t('header.professional') : viewRole === 'client' ? t('header.client') : viewRole === 'admin' ? 'Admin' : t('header.mode');
                               return (
                                 <span
                                   className={`inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 text-[10px] font-medium rounded-full ${viewRole === 'provider' ? 'bg-brand-100 text-brand-700' : viewRole === 'client' ? 'bg-emerald-100 text-emerald-700' : viewRole === 'admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600'} ${isLocked ? 'ring-1 ring-yellow-400' : ''}`}
@@ -1874,7 +1874,7 @@ function Header() {
                         if (raw) lockedRole = (JSON.parse(raw)?.role || '').toLowerCase();
                       } catch { /* ignore */ }
                       const isLocked = lockedRole && lockedRole === viewRole;
-                      const chipLabel = viewRole==='provider' ? 'Profesional' : viewRole==='client' ? 'Cliente' : viewRole==='admin' ? 'Admin' : 'Usuario';
+                      const chipLabel = viewRole==='provider' ? t('header.professional') : viewRole==='client' ? t('header.client') : viewRole==='admin' ? 'Admin' : t('header.mode');
                       return (
                         <span
                           className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full shadow-sm ${viewRole==='provider' ? 'bg-linear-to-r from-brand-500 to-brand-600 text-white' : viewRole==='client' ? 'bg-linear-to-r from-emerald-500 to-emerald-600 text-white' : viewRole==='admin' ? 'bg-linear-to-r from-indigo-500 to-indigo-600 text-white' : 'bg-gray-200 text-gray-700'} ${isLocked ? 'ring-2 ring-yellow-300 ring-offset-1' : ''}`}

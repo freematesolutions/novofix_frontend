@@ -15,15 +15,11 @@ function SearchBar({ onSearch, variant = 'default' }) {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
 
-  // Placeholders dinámicos internacionalizados
-  const placeholders = [
-    t('home.searchBar.placeholders.0', t('home.placeholders.0', 'Necesito un plomero urgente...')),
-    t('home.searchBar.placeholders.1', t('home.placeholders.1', 'Busco electricista certificado...')),
-    t('home.searchBar.placeholders.2', t('home.placeholders.2', 'Reparar aire acondicionado...')),
-    t('home.searchBar.placeholders.3', t('home.placeholders.3', 'Servicio de limpieza profunda...')),
-    t('home.searchBar.placeholders.4', t('home.placeholders.4', 'Pintar mi departamento...')),
-    t('home.searchBar.placeholders.5', t('home.placeholders.5', 'Instalación de cerámica...'))
-  ];
+  // Placeholders dinámicos internacionalizados - Obtener del array de traducciones
+  const placeholdersFromTranslation = t('home.searchBar.placeholders', { returnObjects: true });
+  const placeholders = Array.isArray(placeholdersFromTranslation) 
+    ? placeholdersFromTranslation 
+    : [t('home.searchBar.placeholder')];
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
   // Rotar placeholders y reiniciar al cambiar idioma
