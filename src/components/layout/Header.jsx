@@ -16,18 +16,100 @@ import api from '@/state/apiClient.js';
 import LanguageSelector from '@/components/ui/LanguageSelector.jsx';
 import { useTranslation } from 'react-i18next';
 
-function NotificationDropdownItem({ notification: n, index, onMarkRead, onNavigate, actionUrl, message, isLongMessage, compact = false }) {
+// Función helper para traducir notificaciones dinámicamente basándose en el tipo
+function getTranslatedNotification(notification, t, i18n) {
+  const type = notification.type || 'DEFAULT';
+  const data = notification.data || {};
+  
+  // Construir datos de interpolación
+  const interpolationData = {
+    ...data,
+    name: data.name || data.businessName || data.providerName || data.clientName || '',
+    category: data.category || '',
+    location: data.location || '',
+    title: data.title || data.serviceTitle || '',
+    amount: data.amount || '',
+    providerName: data.providerName || '',
+    clientName: data.clientName || '',
+    status: data.status || '',
+    notes: data.notes || ''
+  };
+  
+  // Claves de traducción
+  const titleKey = `notifications.types.${type}.title`;
+  const messageKey = `notifications.types.${type}.message`;
+  const messageDefaultKey = `notifications.types.${type}.messageDefault`;
+  const defaultTitleKey = 'notifications.types.DEFAULT.title';
+  const defaultMessageKey = 'notifications.types.DEFAULT.message';
+  
+  // Verificar si existen las traducciones usando i18n.exists()
+  const titleExists = i18n?.exists?.(titleKey) ?? false;
+  const messageExists = i18n?.exists?.(messageKey) ?? false;
+  const messageDefaultExists = i18n?.exists?.(messageDefaultKey) ?? false;
+  
+  // Obtener título traducido o usar fallback
+  let title;
+  if (titleExists) {
+    title = t(titleKey, interpolationData);
+  } else {
+    title = notification.title || t(defaultTitleKey);
+  }
+  
+  // Obtener mensaje traducido o usar fallback
+  let message;
+  if (messageExists) {
+    message = t(messageKey, interpolationData);
+  } else if (messageDefaultExists) {
+    // Usar messageDefault si existe (para casos como NEW_PROPOSAL sin providerName)
+    message = t(messageDefaultKey, interpolationData);
+  } else {
+    // Fallback al mensaje original de la notificación o al default
+    message = notification.message || notification.body || t(defaultMessageKey);
+  }
+  
+  return { title, message };
+}
+
+function NotificationDropdownItem({ notification: n, index, onMarkRead, onNavigate, actionUrl, message: originalMessage, isLongMessage: originalIsLongMessage, compact = false }) {
   const [expanded, setExpanded] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  
+  // Obtener título y mensaje traducidos
+  const { title: translatedTitle, message: translatedMessage } = getTranslatedNotification(n, t, i18n);
+  
+  // Recalcular si el mensaje es largo con la traducción
+  const isLongMessage = translatedMessage.length > (compact ? 60 : 80);
   const displayMessage = isLongMessage && !expanded 
-    ? message.substring(0, compact ? 60 : 80) + '...'
-    : message;
+    ? translatedMessage.substring(0, compact ? 60 : 80) + '...'
+    : translatedMessage;
+  
+  // Handler para click en toda la notificación
+  const handleNotificationClick = () => {
+    if (actionUrl) {
+      if (!n.read) {
+        onMarkRead();
+      }
+      onNavigate(actionUrl);
+    }
+  };
+  
   return (
-    <div className={`px-4 py-3 text-sm transition-all duration-200 hover:bg-gray-50 ${!n.read ? 'bg-brand-50/50 border-l-3 border-l-brand-500' : ''} ${index > 0 ? 'border-t border-gray-100' : ''}`}>
+    <div 
+      className={`px-4 py-3 text-sm transition-all duration-200 hover:bg-gray-50 ${!n.read ? 'bg-brand-50/50 border-l-3 border-l-brand-500' : ''} ${index > 0 ? 'border-t border-gray-100' : ''} ${actionUrl ? 'cursor-pointer' : ''}`}
+      onClick={handleNotificationClick}
+      role={actionUrl ? 'button' : undefined}
+      tabIndex={actionUrl ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (actionUrl && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          handleNotificationClick();
+        }
+      }}
+    >
       <div className="flex items-start gap-3">
         <div className={`${compact ? 'w-2 h-2 mt-2' : 'w-2.5 h-2.5 mt-1.5'} rounded-full shrink-0 transition-all duration-300 ${n.read ? 'bg-gray-300' : `bg-brand-500 ${compact ? 'animate-pulse' : 'ring-4 ring-brand-100 animate-pulse'}`}`}></div>
         <div className="flex-1 min-w-0">
-          <div className={`${compact ? 'font-medium truncate' : 'font-semibold'} text-gray-900`}>{n.title || t('header.notification')}</div>
+          <div className={`${compact ? 'font-medium truncate' : 'font-semibold'} text-gray-900`}>{translatedTitle}</div>
           <div className="text-gray-600 mt-0.5">
             {displayMessage}
             {isLongMessage && (
@@ -1431,9 +1513,9 @@ function Header() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
                       </div>
-                      <span className="font-semibold text-gray-900">Notificaciones</span>
+                      <span className="font-semibold text-gray-900">{t('notifications.title')}</span>
                       {unreadCount > 0 && (
-                        <span className="text-xs text-gray-500">({unreadCount} nuevas)</span>
+                        <span className="text-xs text-gray-500">({t('notifications.unreadCount', { count: unreadCount })})</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -1483,7 +1565,7 @@ function Header() {
                       className="flex items-center justify-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 py-2 rounded-lg transition-colors" 
                       onClick={()=> setNotifOpen(false)}
                     >
-                      Ver todas las notificaciones
+                      {t('notifications.viewAll')}
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
@@ -1608,14 +1690,14 @@ function Header() {
                             </svg>
                           </div>
                           <div>
-                            <span className="font-semibold text-gray-900">Notificaciones</span>
+                            <span className="font-semibold text-gray-900">{t('notifications.title')}</span>
                             {unreadCount > 0 && (
-                              <p className="text-xs text-gray-500">{unreadCount} sin leer</p>
+                              <p className="text-xs text-gray-500">{t('notifications.unreadCount', { count: unreadCount })}</p>
                             )}
                           </div>
                         </div>
                         <button className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-1.5 rounded-lg transition-colors" onClick={markAll}>
-                          Marcar todas leídas
+                          {t('notifications.markAllAsRead')}
                         </button>
                       </div>
                       <div className="max-h-96 overflow-auto">
@@ -1633,7 +1715,7 @@ function Header() {
                               </svg>
                             </div>
                             <p className="text-sm font-medium text-gray-600">{t('notifications.empty')}</p>
-                            <p className="text-xs text-gray-400 mt-1">{t('notifications.willNotify', 'Te avisaremos cuando tengas nuevas')}</p>
+                            <p className="text-xs text-gray-400 mt-1">{t('notifications.willNotify')}</p>
                           </div>
                         )}
                         {notifications.map((n, index) => {
@@ -1662,7 +1744,7 @@ function Header() {
                           className="flex items-center justify-center gap-2 text-sm font-semibold text-brand-600 hover:text-brand-700 hover:bg-brand-50 py-2.5 rounded-xl transition-all duration-200 group" 
                           onClick={()=> setNotifOpen(false)}
                         >
-                          Ver todas las notificaciones
+                          {t('notifications.viewAll')}
                           <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>

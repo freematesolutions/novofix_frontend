@@ -34,7 +34,7 @@ export default function LanguageSelector({ className = '', variant = 'default' }
   
   const change = (lng) => {
     i18n.changeLanguage(lng);
-    try { localStorage.setItem('i18nextLng', lng); } catch {}
+    try { localStorage.setItem('i18nextLng', lng); } catch { /* ignore storage errors */ }
     setIsOpen(false);
   };
 
@@ -136,7 +136,7 @@ export default function LanguageSelector({ className = '', variant = 'default' }
       {/* Dropdown menu */}
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fade-in origin-top-right"
+          className="absolute right-0 left-2 sm:left-auto sm:right-0 mt-2 w-48 max-w-[90vw] bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-9999 animate-fade-in origin-top-right overflow-visible"
           role="listbox"
           aria-label={t('language.availableLanguages', 'Idiomas disponibles')}
         >

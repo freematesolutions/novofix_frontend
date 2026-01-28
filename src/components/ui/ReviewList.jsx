@@ -6,6 +6,7 @@ import Spinner from './Spinner.jsx';
 import api from '@/state/apiClient.js';
 import { useToast } from './Toast.jsx';
 import ReviewResponseModal from './ReviewResponseModal.jsx';
+import { getTranslatedReviewInfo, useCurrentLanguage } from '@/utils/translations.js';
 
 /**
  * ReviewList Component - Lista de reseñas con diseño premium
@@ -145,15 +146,20 @@ const ReviewCard = memo(({
   isProvider = false,
   helpfulLoading = false,
   userVote = null, // 'helpful' | 'notHelpful' | null
-  t // Translation function passed from parent
+  t, // Translation function passed from parent
+  currentLang // Current language for translations
 }) => {
   const clientName = review?.client?.profile?.firstName || t('ui.reviewList.client');
   const clientInitial = clientName.charAt(0).toUpperCase();
   const overall = review?.rating?.overall || 0;
-  const title = review?.review?.title;
-  const comment = review?.review?.comment;
+  // Obtener campos traducidos
+  const translatedReview = getTranslatedReviewInfo(review, currentLang);
+  const title = translatedReview.title;
+  const comment = translatedReview.comment;
   const photos = review?.review?.photos || [];
   const providerResponse = review?.providerResponse;
+  // Usar respuesta traducida si existe
+  const translatedProviderComment = translatedReview.providerResponseComment;
   const createdAt = review?.createdAt;
 
   return (
@@ -285,7 +291,7 @@ const ReviewCard = memo(({
                   </span>
                 )}
               </div>
-              <p className="text-gray-600 text-sm">{providerResponse.comment}</p>
+              <p className="text-gray-600 text-sm">{translatedProviderComment}</p>
             </div>
           </div>
         </div>
@@ -415,6 +421,7 @@ function ReviewList({
   onReviewUpdate
 }) {
   const { t } = useTranslation();
+  const currentLang = useCurrentLanguage(); // Hook reactivo al cambio de idioma
   const toast = useToast();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -901,6 +908,7 @@ function ReviewList({
               helpfulLoading={helpfulLoading === review._id}
               userVote={userVotes[review._id]}
               t={t}
+              currentLang={currentLang}
             />
           ))}
         </div>

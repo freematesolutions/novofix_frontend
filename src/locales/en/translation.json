@@ -41,6 +41,7 @@
     "media": "Medium",
     "alta": "High",
     "urgente": "Urgent",
+    "immediate": "Immediate",
     "scheduled": "Scheduled",
     "flexible": "Flexible"
   },
@@ -190,11 +191,26 @@
     "welcomeClient": "Welcome! You've registered as a client",
     "tryAgain": "Please try again"
   },
+  "chat": {
+    "system": {
+      "proposalStarted": "💬 Conversation started about the {{formattedAmount}} proposal. You can negotiate terms and resolve questions here.",
+      "proposalStartedNoAmount": "💬 Conversation started about the proposal. You can negotiate terms and resolve questions here.",
+      "bookingStarted": "💬 Chat started for the service. You can coordinate details here."
+    },
+    "noMessages": "No messages yet",
+    "startConversation": "Send the first message to start the conversation",
+    "typing": "Typing",
+    "replyingTo": "Replying to",
+    "attachment": "Attachment",
+    "sendMessage": "Send message",
+    "writeMessage": "Write a message..."
+  },
   "notifications": {
     "title": "Notifications",
     "empty": "You have no notifications",
     "willNotify": "We'll notify you when you have new ones",
     "markAllRead": "Mark all as read",
+    "markAllAsRead": "Mark all as read",
     "clearAll": "Clear all",
     "newMessage": "New message",
     "newRequest": "New request",
@@ -210,7 +226,96 @@
     "minutesAgo": "{{count}} minutes ago",
     "hoursAgo": "{{count}} hours ago",
     "daysAgo": "{{count}} days ago",
-    "weeksAgo": "{{count}} weeks ago"
+    "weeksAgo": "{{count}} weeks ago",
+    "unreadCount": "{{count}} unread",
+    "viewAll": "View all notifications",
+    "types": {
+      "WELCOME_PROVIDER": {
+        "title": "Welcome to the platform! 🎉",
+        "message": "Thanks for joining, {{name}}. Set up your provider profile and start receiving requests."
+      },
+      "WELCOME_CLIENT": {
+        "title": "Welcome to the platform! 🎉",
+        "message": "Thanks for joining, {{name}}. Set up your profile and start exploring services."
+      },
+      "WELCOME_ADMIN": {
+        "title": "Welcome to the admin panel! 🎉",
+        "message": "Thanks for joining the team. Check system status and configure plans and moderation."
+      },
+      "NEW_REQUEST": {
+        "title": "New service request available",
+        "message": "You have a new {{category}} request in {{location}}"
+      },
+      "NEW_PROPOSAL": {
+        "title": "New proposal received! 💼",
+        "message": "{{providerName}} sent you a proposal for ${{amount}} for your request.",
+        "messageDefault": "You've received a new proposal from a professional."
+      },
+      "PROPOSAL_ACCEPTED": {
+        "title": "Your proposal has been accepted!",
+        "message": "The client has accepted your proposal for {{title}}"
+      },
+      "PROPOSAL_REJECTED": {
+        "title": "Proposal rejected",
+        "message": "The client has rejected your proposal for {{title}}"
+      },
+      "BOOKING_CONFIRMED": {
+        "title": "Your booking is confirmed!",
+        "message": "We've confirmed your booking with the professional."
+      },
+      "BOOKING_CANCELLED": {
+        "title": "Booking cancelled",
+        "message": "Your booking has been cancelled."
+      },
+      "VERIFY_EMAIL": {
+        "title": "Verify your email",
+        "message": "Please verify your email to activate your account."
+      },
+      "PAYMENT_RECEIVED": {
+        "title": "Payment received",
+        "message": "You've received a payment of ${{amount}}."
+      },
+      "REVIEW_RECEIVED": {
+        "title": "New review received ⭐",
+        "message": "{{clientName}} left you a review."
+      },
+      "NEW_REVIEW": {
+        "title": "New review received ⭐",
+        "message": "You have received a new review from a client."
+      },
+      "REVIEW_RESPONSE": {
+        "title": "Response to your review",
+        "message": "The professional has responded to your review."
+      },
+      "REVIEW_RESPONSE_UPDATED": {
+        "title": "Response updated",
+        "message": "The professional has updated their response to your review."
+      },
+      "REVIEW_RESPONSE_REMOVED": {
+        "title": "Response removed",
+        "message": "The professional has removed their response to your review."
+      },
+      "REVIEW_FLAGGED": {
+        "title": "Review flagged",
+        "message": "Your review has been flagged and is being reviewed."
+      },
+      "REVIEW_REQUEST": {
+        "title": "Rate your experience! ⭐",
+        "message": "Your service has been completed. Let us know about your experience."
+      },
+      "BOOKING_STATUS_UPDATE": {
+        "title": "Booking update",
+        "message": "{{providerName}} has updated your booking status to: {{status}}"
+      },
+      "PAYMENT_REQUIRED": {
+        "title": "Payment required 💳",
+        "message": "Payment is required for your booking."
+      },
+      "DEFAULT": {
+        "title": "Notification",
+        "message": "You have a new notification"
+      }
+    }
   },
   "header": {
     "logout": "Sign out",
@@ -454,8 +559,15 @@
       }
     },
     "proposals": {
+      "request": "Request",
+      "backToRequests": "Back to requests",
+      "negotiateWith": "Negotiate with {{name}}",
       "title": "Received proposals",
+      "proposal": "Proposal",
+      "professional": "Professional",
       "count": "{{count}} proposal(s)",
+      "proposalCount": "proposal(s) received",
+      "professionalsCount": "{{count}} professional(s)",
       "professionalsInterested": "{{count}} professionals interested",
       "noProposals": "No proposals yet",
       "noProposalsDescription": "When a professional sends a proposal, it will appear here",
@@ -989,6 +1101,7 @@
   },
   "shared": {
     "bookings": {
+      "service": "Service",
       "title": {
         "provider": "My Bookings",
         "client": "My Contracted Services"
@@ -1003,6 +1116,7 @@
         "completed": "Completed"
       },
       "status": {
+        "pending": "Pending",
         "confirmed": "Confirmed",
         "providerEnRoute": "On the way",
         "inProgress": "In progress",
@@ -1055,6 +1169,10 @@
         "leaveReview": "Leave review",
         "showReview": "Show review",
         "respondReview": "Respond to review",
+        "startServices": "Start services",
+        "onMyWay": "On my way",
+        "startService": "Start service",
+        "markCompleted": "Mark as completed",
         "edit": "Edit",
         "delete": "Delete",
         "confirmCompletion": "Confirm completion"

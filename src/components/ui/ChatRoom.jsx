@@ -4,6 +4,7 @@ import Spinner from './Spinner.jsx';
 import api from '@/state/apiClient.js';
 import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketClient.js';
 import { compressImage } from '@/utils/fileCompression.js';
+import { useTranslation } from 'react-i18next';
 
 /**
  * ChatRoom Component - Componente de chat en tiempo real reutilizable
@@ -99,12 +100,50 @@ const MessageBubble = memo(({
   onReact,
   allMessages = []
 }) => {
+  const { t, i18n } = useTranslation();
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const longPressTimer = useRef(null);
   const bubbleRef = useRef(null);
   
-  const text = message?.content?.text ?? (typeof message?.content === 'string' ? message.content : '');
+  // Obtener texto del mensaje, con soporte para traducción de mensajes de sistema
+  const rawText = message?.content?.text ?? (typeof message?.content === 'string' ? message.content : '');
+  const translationKey = message?.content?.translationKey;
+  const translationParams = message?.content?.translationParams || {};
+  const isSystemMessage = message?.type === 'system' || message?.senderModel === 'System';
+  
+  // Si hay clave de traducción y existe, usar traducción; sino intentar detectar patrón en mensajes de sistema antiguos
+  const text = useMemo(() => {
+    // Si tiene clave de traducción explícita, usarla
+    if (translationKey && i18n?.exists?.(translationKey)) {
+      return t(translationKey, translationParams);
+    }
+    
+    // Para mensajes de sistema sin translationKey, intentar detectar el patrón y traducir
+    if (isSystemMessage && rawText) {
+      // Detectar patrón: "💬 Conversación iniciada sobre la propuesta de US$ X..."
+      const proposalMatch = rawText.match(/💬\s*Conversación iniciada sobre la propuesta de ([^.]+)\./);
+      if (proposalMatch && i18n?.exists?.('chat.system.proposalStarted')) {
+        return t('chat.system.proposalStarted', { formattedAmount: proposalMatch[1] });
+      }
+      
+      // Detectar patrón: "💬 Conversación iniciada sobre la propuesta."
+      if (rawText.includes('💬') && rawText.includes('propuesta') && i18n?.exists?.('chat.system.proposalStartedNoAmount')) {
+        // Si no tiene monto específico
+        if (!proposalMatch) {
+          return t('chat.system.proposalStartedNoAmount');
+        }
+      }
+      
+      // Detectar patrón: "📅 Conversación iniciada sobre la reserva..."
+      if (rawText.includes('📅') && rawText.includes('reserva') && i18n?.exists?.('chat.system.bookingStarted')) {
+        return t('chat.system.bookingStarted');
+      }
+    }
+    
+    return rawText;
+  }, [translationKey, translationParams, rawText, t, i18n, isSystemMessage]);
+  
   const attachments = message?.content?.attachments || [];
   const timestamp = message?.createdAt || message?.metadata?.timestamp;
   const status = message?.status || 'sent';
@@ -172,6 +211,20 @@ const MessageBubble = memo(({
     onReply?.(message);
     setShowActions(false);
   }, [message, onReply]);
+
+  // Mensajes de sistema se renderizan centrados y con estilo diferente
+  if (isSystemMessage) {
+    return (
+      <div className="flex justify-center my-2" id={`msg-${message._id}`}>
+        <div className="max-w-[85%] px-4 py-2.5 bg-gray-100/80 text-gray-600 text-sm text-center rounded-xl border border-gray-200/50 shadow-sm">
+          <p className="whitespace-pre-wrap">{text}</p>
+          <span className="text-[10px] text-gray-400 mt-1 block">
+            {formatTime(timestamp)}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 

@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useCallback } from 'react';
+import { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { HiX } from 'react-icons/hi';
 
 // Accessible modal dialog with focus management
@@ -97,15 +98,16 @@ function Modal({ open, title, children, onClose, actions, size = 'md', icon: Ico
 
   if (!open) return null; // Unmount when closed to prevent aria-hidden focus conflicts
 
-  return (
-    <div className="fixed inset-0 z-50" role="presentation">
+  // Renderizar en portal para evitar clipping por contenedores con overflow/transform
+  return createPortal(
+    <div className="fixed inset-0 z-9999" role="presentation">
       {/* Backdrop con blur */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300"
         onClick={onClose}
       />
-      {/* Dialog */}
-      <div className="absolute inset-0 flex items-center justify-center p-4">
+      {/* Dialog - centrado con safe-area para móviles */}
+      <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto">
         <div
           ref={dialogRef}
           role="dialog"
@@ -113,7 +115,7 @@ function Modal({ open, title, children, onClose, actions, size = 'md', icon: Ico
           aria-labelledby={title ? titleId : undefined}
           tabIndex={-1}
           className={`
-            w-full ${maxWidthClass} 
+            relative w-full ${maxWidthClass} my-auto
             bg-white rounded-2xl shadow-2xl shadow-gray-900/20
             transform transition-all duration-300
             animate-in zoom-in-95 fade-in
@@ -170,7 +172,8 @@ function Modal({ open, title, children, onClose, actions, size = 'md', icon: Ico
           }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 }
 

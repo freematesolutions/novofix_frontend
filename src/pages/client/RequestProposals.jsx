@@ -10,6 +10,7 @@ import ChatRoom from '@/components/ui/ChatRoom.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
+import { getTranslatedField, getTranslatedProposalMessage, useCurrentLanguage } from '@/utils/translations.js';
 import { 
   HiArrowLeft, HiCurrencyDollar, HiStar, HiBadgeCheck, HiCheckCircle,
   HiX, HiChat, HiClock, HiSparkles, HiShieldCheck, HiUserCircle,
@@ -18,6 +19,7 @@ import {
 
 export default function ClientRequestProposals() {
   const { t } = useTranslation();
+  const currentLang = useCurrentLanguage(); // Hook reactivo al cambio de idioma
   const { role, roles, viewRole, clearError, isAuthenticated, user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -184,7 +186,7 @@ export default function ClientRequestProposals() {
                 {t('client.proposals.title')}
               </h1>
               <p className="text-white/80 text-sm mt-1">
-                {t('client.proposals.request')}: {requestMeta?.title || t('common.loading')}
+                {t('client.proposals.request')}: {getTranslatedField(requestMeta?.translations, 'title', requestMeta?.title || t('common.loading'), currentLang)}
               </p>
             </div>
             {/* Stats card */}
@@ -197,7 +199,7 @@ export default function ClientRequestProposals() {
                   <div className="text-white font-semibold">
                     {t('client.proposals.professionalsCount', { count: proposals.length })}
                   </div>
-                  <div className="text-white/70 text-sm">{t('client.proposals.interestedInProject')}</div>
+                  <div className="text-white/70 text-sm">{t('client.proposals.professionalsInterested', { count: proposals.length })}</div>
                 </div>
               </div>
             )}
@@ -324,7 +326,7 @@ export default function ClientRequestProposals() {
                   {/* Message */}
                   {p.message && (
                     <div className="mt-4 p-4 bg-gray-50 rounded-xl">
-                      <p className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">{p.message}</p>
+                      <p className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">{getTranslatedProposalMessage(p, currentLang)}</p>
                     </div>
                   )}
                 </div>
@@ -389,9 +391,9 @@ export default function ClientRequestProposals() {
                 <HiShieldCheck className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h4 className="font-bold text-gray-900 mb-1">{t('client.proposals.tipsTitle')}</h4>
+                <h4 className="font-bold text-gray-900 mb-1">{t('client.proposals.tip')}</h4>
                 <p className="text-sm text-gray-600">
-                  {t('client.proposals.tipsDescription')}
+                  {t('client.proposals.tipDescription')}
                 </p>
               </div>
             </div>
@@ -436,7 +438,7 @@ export default function ClientRequestProposals() {
           {/* Acciones rápidas del modal */}
           <div className="mt-4 pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-gray-500">
-              💡 {t('client.proposals.chatTip')}
+              💡 {t('client.proposals.chatModal.tip')}
             </p>
             <div className="flex gap-2">
               <button
@@ -454,7 +456,7 @@ export default function ClientRequestProposals() {
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
               >
                 <HiCheckCircle className="w-4 h-4" />
-                {t('client.proposals.acceptProposal')}
+                {t('client.proposals.chatModal.acceptProposal')}
               </button>
             </div>
           </div>

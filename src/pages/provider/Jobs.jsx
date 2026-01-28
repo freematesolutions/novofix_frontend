@@ -6,10 +6,12 @@ import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
+import { getTranslatedRequestInfo, useCurrentLanguage } from '@/utils/translations.js';
 
 export default function Jobs() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const currentLang = useCurrentLanguage(); // Hook reactivo al cambio de idioma
   const { viewRole, user, clearError, isAuthenticated, isRoleSwitching } = useAuth();
   // no toast used here; navigation to detail handles actions
   const [loading, setLoading] = useState(false);
@@ -111,6 +113,9 @@ export default function Jobs() {
           // NUEVO: Detectar si el proveedor ya envió propuesta
           const hasProposal = Array.isArray(r?.proposals) && r.proposals.some(p => String(p?.provider?._id || p?.provider) === String(me));
 
+          // Obtener título y descripción traducidos
+          const translatedInfo = getTranslatedRequestInfo(r, currentLang);
+
           // Urgency configuration
           const urgencyConfig = {
             'baja': { color: 'from-gray-500 to-slate-500', bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', icon: '⏱️' },
@@ -145,7 +150,7 @@ export default function Jobs() {
                   {/* Title and badges */}
                   <div className="flex flex-wrap items-start gap-2">
                     <h3 className="font-semibold text-gray-900 text-lg leading-tight group-hover:text-brand-700 transition-colors">
-                      {r.basicInfo?.title || t('provider.jobs.serviceRequest')}
+                      {translatedInfo.title || t('provider.jobs.serviceRequest')}
                     </h3>
                     {(selectedForMe || notifiedForMe) && (
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${selectedForMe ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-brand-50 text-brand-700 border border-brand-200'}`}>

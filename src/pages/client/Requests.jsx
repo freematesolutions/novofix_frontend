@@ -10,9 +10,11 @@ import { getArray } from '@/utils/data.js';
 import { useToast } from '@/components/ui/Toast.jsx';
 import Modal from '@/components/ui/Modal.jsx';
 import { getSocket } from '@/state/socketClient.js';
+import { getTranslatedRequestInfo, useCurrentLanguage } from '@/utils/translations.js';
 
 export default function ClientRequests() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = useCurrentLanguage(); // Hook reactivo al cambio de idioma
   const { role, roles, viewRole, clearError, isAuthenticated } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -350,7 +352,7 @@ export default function ClientRequests() {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                           <h3 className="text-lg font-semibold text-gray-900 truncate">
-                            {r.basicInfo?.title || t('client.requests.untitledRequest')}
+                            {getTranslatedRequestInfo(r, currentLang).title || t('client.requests.untitledRequest')}
                           </h3>
                           {/* Badge de estado premium */}
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.className}`}>
@@ -427,7 +429,7 @@ export default function ClientRequests() {
                               <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                               </svg>
-                              {r.basicInfo.category}
+                              {r.basicInfo.category ? t(`home.categories.${r.basicInfo.category}`) : r.basicInfo.category}
                             </span>
                           )}
                           {r.basicInfo?.urgency && (
@@ -435,7 +437,7 @@ export default function ClientRequests() {
                               <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
-                              {r.basicInfo.urgency}
+                              {r.basicInfo.urgency ? t(`urgency.${r.basicInfo.urgency}`) : r.basicInfo.urgency}
                             </span>
                           )}
                           {r.createdAt && (
@@ -638,7 +640,7 @@ export default function ClientRequests() {
                   </svg>
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-900">{inviteTarget?.basicInfo?.title}</span>
+                  <span className="font-semibold text-gray-900">{getTranslatedRequestInfo(inviteTarget, currentLang).title}</span>
                   <span className="mx-2 text-gray-300">·</span>
                   <span className="text-emerald-600 font-medium">{inviteTarget?.basicInfo?.category}</span>
                 </div>
@@ -803,7 +805,7 @@ export default function ClientRequests() {
                   </svg>
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-900">{deleteTarget?.basicInfo?.title || 'Solicitud'}</span>
+                  <span className="font-semibold text-gray-900">{getTranslatedRequestInfo(deleteTarget, currentLang).title || 'Solicitud'}</span>
                   {deleteTarget?.basicInfo?.category && (
                     <>
                       <span className="mx-2 text-gray-300">·</span>

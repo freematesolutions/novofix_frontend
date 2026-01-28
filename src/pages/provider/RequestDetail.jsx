@@ -9,6 +9,7 @@ import Modal from '@/components/ui/Modal.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import PortfolioModal from '@/components/ui/PortfolioModal.jsx';
+import { getTranslatedRequestInfo, useCurrentLanguage } from '@/utils/translations.js';
 import { 
   HiArrowLeft, HiPhotograph, HiCurrencyDollar, HiClock, HiCalendar,
   HiLocationMarker, HiTag, HiExclamation, HiPaperAirplane, HiSave,
@@ -18,6 +19,7 @@ import {
 
 export default function RequestDetail() {
   const { t } = useTranslation();
+  const currentLang = useCurrentLanguage(); // Hook reactivo al cambio de idioma
   const { id } = useParams();
   const navigate = useNavigate();
   const { search } = useLocation();
@@ -357,7 +359,7 @@ export default function RequestDetail() {
                   )}
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
-                  {request.basicInfo?.title || t('provider.requestDetail.requestDetail')}
+                  {getTranslatedRequestInfo(request, currentLang).title || t('provider.requestDetail.requestDetail')}
                 </h1>
                 {/* Eliminar presupuesto del header, ya no es relevante */}
               </div>
@@ -419,7 +421,7 @@ export default function RequestDetail() {
                 
                 {/* Description */}
                 <div className="prose prose-sm max-w-none mb-6">
-                  <p className="text-gray-700 whitespace-pre-line leading-relaxed">{request.basicInfo?.description}</p>
+                  <p className="text-gray-700 whitespace-pre-line leading-relaxed">{getTranslatedRequestInfo(request, currentLang).description}</p>
                 </div>
                 
                 {/* Info grid */}
