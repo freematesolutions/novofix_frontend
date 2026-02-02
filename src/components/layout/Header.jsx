@@ -166,6 +166,13 @@ function Header() {
   const [notifications, setNotifications] = useState([]);
   // Lightweight counters for nav badges
   const [counters, setCounters] = useState({ notificationsUnread: 0, client: null, provider: null });
+  // Seen counters (guardados en localStorage) - para mostrar solo contadores "nuevos"
+  const [seenCounters, setSeenCounters] = useState(() => {
+    try {
+      const stored = localStorage.getItem('novofix_seen_counters');
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
   // Subscription upgrade hints (provider mode)
   const [upgradeHint, setUpgradeHint] = useState({ show: false, reason: '' });
   const location = useLocation();
@@ -255,6 +262,44 @@ function Header() {
     window.addEventListener('header:searchbar', handleSearchBarUpdate);
     return () => window.removeEventListener('header:searchbar', handleSearchBarUpdate);
   }, []);
+
+  // Marcar contadores como "vistos" cuando el usuario navega a cada sección
+  // Esto permite que los badges solo muestren items "nuevos" desde la última visita
+  useEffect(() => {
+    const path = location.pathname;
+    const counterMapping = {
+      '/mis-solicitudes': 'client.requestsOpen',
+      '/reservas': viewRole === 'provider' ? 'provider.bookingsUpcoming' : 'client.bookingsUpcoming',
+      '/mis-mensajes': 'client.chatsUnread',
+      '/mensajes': 'provider.chatsUnread',
+      '/empleos': 'provider.jobs',
+      '/propuestas': 'provider.proposalsActive',
+      '/servicios': 'provider.services'
+    };
+    
+    const counterKey = counterMapping[path];
+    if (counterKey && counters) {
+      const [role, key] = counterKey.split('.');
+      const currentValue = counters?.[role]?.[key] || 0;
+      
+      // Guardar el valor actual como "visto"
+      setSeenCounters(prev => {
+        const updated = { ...prev, [counterKey]: currentValue };
+        try {
+          localStorage.setItem('novofix_seen_counters', JSON.stringify(updated));
+        } catch { /* ignore */ }
+        return updated;
+      });
+    }
+  }, [location.pathname, counters, viewRole]);
+
+  // Helper para calcular el contador visible (actual - visto)
+  const getVisibleCount = useCallback((counterKey, currentValue) => {
+    const seen = seenCounters[counterKey] || 0;
+    // Si el valor actual es mayor que el visto, mostrar la diferencia (nuevos items)
+    // Si es igual o menor, no mostrar badge (el usuario ya vio todos)
+    return currentValue > seen ? currentValue - seen : 0;
+  }, [seenCounters]);
 
   // Ocultar SearchBar cuando el usuario es provider o está en páginas de auth
   useEffect(() => {
@@ -631,11 +676,14 @@ function Header() {
                 </svg>}
                 label={t('header.requests')}
                 showLabel={isMobile}
-                badge={Number(counters?.client?.requestsOpen||0) > 0 && (
-                  <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-emerald-500 to-teal-500 text-white min-w-5 shadow-lg shadow-emerald-500/40 ring-2 ring-white/30 animate-pulse-badge">
-                    {counters.client.requestsOpen > 99 ? '99+' : counters.client.requestsOpen}
-                  </span>
-                )}
+                badge={(() => {
+                  const visible = getVisibleCount('client.requestsOpen', Number(counters?.client?.requestsOpen||0));
+                  return visible > 0 && (
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-emerald-500 to-teal-500 text-white min-w-5 shadow-lg shadow-emerald-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                      {visible > 99 ? '99+' : visible}
+                    </span>
+                  );
+                })()}
               />
               <NavLinkWithTooltip
                 to="/reservas"
@@ -646,11 +694,14 @@ function Header() {
                 </svg>}
                 label={t('header.bookings')}
                 showLabel={isMobile}
-                badge={Number(counters?.client?.bookingsUpcoming||0) > 0 && (
-                  <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-teal-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-teal-500/40 ring-2 ring-white/30">
-                    {counters.client.bookingsUpcoming > 99 ? '99+' : counters.client.bookingsUpcoming}
-                  </span>
-                )}
+                badge={(() => {
+                  const visible = getVisibleCount('client.bookingsUpcoming', Number(counters?.client?.bookingsUpcoming||0));
+                  return visible > 0 && (
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-teal-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-teal-500/40 ring-2 ring-white/30">
+                      {visible > 99 ? '99+' : visible}
+                    </span>
+                  );
+                })()}
               />
               <NavLinkWithTooltip
                 to="/mis-mensajes"
@@ -660,11 +711,14 @@ function Header() {
                 </svg>}
                 label={t('header.messages')}
                 showLabel={isMobile}
-                badge={Number(counters?.client?.chatsUnread||0) > 0 && (
-                  <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-violet-500 to-purple-500 text-white min-w-5 shadow-lg shadow-violet-500/40 ring-2 ring-white/30 animate-pulse-badge">
-                    {counters.client.chatsUnread > 99 ? '99+' : counters.client.chatsUnread}
-                  </span>
-                )}
+                badge={(() => {
+                  const visible = getVisibleCount('client.chatsUnread', Number(counters?.client?.chatsUnread||0));
+                  return visible > 0 && (
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-violet-500 to-purple-500 text-white min-w-5 shadow-lg shadow-violet-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                      {visible > 99 ? '99+' : visible}
+                    </span>
+                  );
+                })()}
               />
               <NavLinkWithTooltip
                 to="/empleos"
@@ -674,11 +728,14 @@ function Header() {
                 </svg>}
                 label={t('header.jobs')}
                 showLabel={isMobile}
-                badge={Number(counters?.provider?.jobs||0) > 0 && (
-                  <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30">
-                    {counters.provider.jobs > 99 ? '99+' : counters.provider.jobs}
-                  </span>
-                )}
+                badge={(() => {
+                  const visible = getVisibleCount('provider.jobs', Number(counters?.provider?.jobs||0));
+                  return visible > 0 && (
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30">
+                      {visible > 99 ? '99+' : visible}
+                    </span>
+                  );
+                })()}
               />
             </>
           ) : (
@@ -693,11 +750,14 @@ function Header() {
                 </svg>}
                 label={t('header.requests')}
                 showLabel={isMobile}
-                badge={Number(counters?.client?.requestsOpen||0) > 0 && (
-                  <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-emerald-500 to-teal-500 text-white min-w-5 shadow-lg shadow-emerald-500/40 ring-2 ring-white/30 animate-pulse-badge">
-                    {counters.client.requestsOpen > 99 ? '99+' : counters.client.requestsOpen}
-                  </span>
-                )}
+                badge={(() => {
+                  const visible = getVisibleCount('client.requestsOpen', Number(counters?.client?.requestsOpen||0));
+                  return visible > 0 && (
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-emerald-500 to-teal-500 text-white min-w-5 shadow-lg shadow-emerald-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                      {visible > 99 ? '99+' : visible}
+                    </span>
+                  );
+                })()}
               />
               <NavLinkWithTooltip
                 to="/reservas"
@@ -708,11 +768,14 @@ function Header() {
                 </svg>}
                 label={t('header.bookings')}
                 showLabel={isMobile}
-                badge={Number(counters?.client?.bookingsUpcoming||0) > 0 && (
-                  <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-teal-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-teal-500/40 ring-2 ring-white/30">
-                    {counters.client.bookingsUpcoming > 99 ? '99+' : counters.client.bookingsUpcoming}
-                  </span>
-                )}
+                badge={(() => {
+                  const visible = getVisibleCount('client.bookingsUpcoming', Number(counters?.client?.bookingsUpcoming||0));
+                  return visible > 0 && (
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-teal-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-teal-500/40 ring-2 ring-white/30">
+                      {visible > 99 ? '99+' : visible}
+                    </span>
+                  );
+                })()}
               />
               <NavLinkWithTooltip
                 to="/mis-mensajes"
@@ -722,11 +785,14 @@ function Header() {
                 </svg>}
                 label={t('header.messages')}
                 showLabel={isMobile}
-                badge={Number(counters?.client?.chatsUnread||0) > 0 && (
-                  <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-violet-500 to-purple-500 text-white min-w-5 shadow-lg shadow-violet-500/40 ring-2 ring-white/30 animate-pulse-badge">
-                    {counters.client.chatsUnread > 99 ? '99+' : counters.client.chatsUnread}
-                  </span>
-                )}
+                badge={(() => {
+                  const visible = getVisibleCount('client.chatsUnread', Number(counters?.client?.chatsUnread||0));
+                  return visible > 0 && (
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-violet-500 to-purple-500 text-white min-w-5 shadow-lg shadow-violet-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                      {visible > 99 ? '99+' : visible}
+                    </span>
+                  );
+                })()}
               />
               <NavLinkWithTooltip
                 to="/provider/onboarding"
@@ -752,11 +818,14 @@ function Header() {
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
             label={t('header.jobs')}
             showLabel={isMobile}
-            badge={Number(counters?.provider?.jobs||0) > 0 && (
-              <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/30 animate-pulse-badge">
-                {counters.provider.jobs > 99 ? '99+' : counters.provider.jobs}
-              </span>
-            )}
+            badge={(() => {
+              const visible = getVisibleCount('provider.jobs', Number(counters?.provider?.jobs||0));
+              return visible > 0 && (
+                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/30 animate-pulse-badge">
+                  {visible > 99 ? '99+' : visible}
+                </span>
+              );
+            })()}
           />
           <NavLinkWithTooltip
             to="/mensajes"
@@ -764,11 +833,14 @@ function Header() {
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>}
             label={t('header.requests')}
             showLabel={isMobile}
-            badge={Number(counters?.provider?.proposalsActive||0) > 0 && (
-              <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-cyan-500 to-blue-500 text-white min-w-5 shadow-lg shadow-cyan-500/30">
-                {counters.provider.proposalsActive > 99 ? '99+' : counters.provider.proposalsActive}
-              </span>
-            )}
+            badge={(() => {
+              const visible = getVisibleCount('provider.proposalsActive', Number(counters?.provider?.proposalsActive||0));
+              return visible > 0 && (
+                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-cyan-500 to-blue-500 text-white min-w-5 shadow-lg shadow-cyan-500/30">
+                  {visible > 99 ? '99+' : visible}
+                </span>
+              );
+            })()}
           />
           <NavLinkWithTooltip
             to="/portafolio"
@@ -790,11 +862,14 @@ function Header() {
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
             label={t('header.services')}
             showLabel={isMobile}
-            badge={Number(counters?.provider?.services||0) > 0 && (
-              <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/30">
-                {counters.provider.services > 99 ? '99+' : counters.provider.services}
-              </span>
-            )}
+            badge={(() => {
+              const visible = getVisibleCount('provider.services', Number(counters?.provider?.services||0));
+              return visible > 0 && (
+                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/30">
+                  {visible > 99 ? '99+' : visible}
+                </span>
+              );
+            })()}
           />
           <NavLinkWithTooltip
             to="/calendario"
@@ -816,11 +891,14 @@ function Header() {
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>}
             label={t('header.bookings')}
             showLabel={isMobile}
-            badge={Number(counters?.provider?.bookingsUpcoming||0) > 0 && (
-              <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-1.5 py-0.5 rounded-full bg-brand-500 text-white min-w-4.5 shadow-sm">
-                {counters.provider.bookingsUpcoming > 99 ? '99+' : counters.provider.bookingsUpcoming}
-              </span>
-            )}
+            badge={(() => {
+              const visible = getVisibleCount('provider.bookingsUpcoming', Number(counters?.provider?.bookingsUpcoming||0));
+              return visible > 0 && (
+                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-1.5 py-0.5 rounded-full bg-brand-500 text-white min-w-4.5 shadow-sm">
+                  {visible > 99 ? '99+' : visible}
+                </span>
+              );
+            })()}
           />
         </>
       )}

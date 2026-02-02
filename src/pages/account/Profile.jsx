@@ -131,6 +131,7 @@ export default function Profile() {
 
       const { data } = await api.post('/uploads/avatar', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000, // 2 minutos para upload de avatar
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           // Mapear 0-100 de upload a 30-90% del progreso total

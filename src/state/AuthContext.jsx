@@ -391,8 +391,11 @@ export function AuthProvider({ children }) {
     setRole('guest');
     setViewRole('guest');
     try { localStorage.setItem('view_role', 'guest'); } catch { /* intentionally empty */ }
+    try { sessionStorage.removeItem('view_role_lock'); } catch { /* intentionally empty */ }
+    try { localStorage.removeItem('provider_onboarding_draft'); } catch { /* intentionally empty */ }
     setPendingVerification(null);
     try { sessionStorage.removeItem('pending_verification_email'); } catch { /* intentionally empty */ }
+    try { sessionStorage.removeItem('pending_verification_url'); } catch { /* intentionally empty */ }
   }, []);
 
   const clearPendingVerification = useCallback(() => {

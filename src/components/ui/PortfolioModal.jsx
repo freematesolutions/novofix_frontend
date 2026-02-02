@@ -135,18 +135,21 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
 
   if (!isOpen || !portfolio || portfolio.length === 0) return null;
 
-  const currentItem = filteredPortfolio[selectedIndex];
+  // Guard against empty filtered portfolio
+  const currentItem = filteredPortfolio.length > 0 ? filteredPortfolio[selectedIndex] : null;
 
   const goToPrevious = () => {
+    if (filteredPortfolio.length === 0) return;
     setSelectedIndex((prev) => (prev === 0 ? filteredPortfolio.length - 1 : prev - 1));
   };
 
   const goToNext = () => {
+    if (filteredPortfolio.length === 0) return;
     setSelectedIndex((prev) => (prev === filteredPortfolio.length - 1 ? 0 : prev + 1));
   };
 
   const handleImageClick = (e) => {
-    if (currentItem.type === 'image') {
+    if (currentItem && currentItem.type === 'image') {
       e.stopPropagation();
       if (!isZoomed) {
         setIsZoomed(true);
@@ -245,7 +248,11 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
           <div className="relative w-full h-full flex items-center justify-center p-2 sm:p-4">
             {/* Media display */}
             <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
-              {currentItem.type === 'video' ? (
+              {!currentItem ? (
+                <div className="absolute inset-0 flex items-center justify-center text-white text-lg">
+                  No hay elementos disponibles con este filtro
+                </div>
+              ) : currentItem.type === 'video' ? (
                 <div id={`portfolio-video-container-${currentItem._id}`} className="absolute inset-0 video-fullscreen-container">
                   <video
                     key={currentItem._id}
@@ -354,7 +361,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
               )}
               
               {/* Zoom and Fullscreen indicators */}
-              {currentItem.type === 'image' && !isZoomed && (
+              {currentItem && currentItem.type === 'image' && !isZoomed && (
                 <>
                   <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -394,17 +401,19 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
               )}
 
               {/* Category badge */}
-              {currentItem.category && (
+              {currentItem && currentItem.category && (
                 <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full shadow-lg">
                   {currentItem.category}
                 </div>
               )}
 
               {/* Type badge */}
-              <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-                <span>{currentItem.type === 'video' ? '🎥' : '📷'}</span>
-                <span>{currentItem.type === 'video' ? 'Video' : 'Imagen'}</span>
-              </div>
+              {currentItem && (
+                <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
+                  <span>{currentItem.type === 'video' ? '🎥' : '📷'}</span>
+                  <span>{currentItem.type === 'video' ? 'Video' : 'Imagen'}</span>
+                </div>
+              )}
             </div>
 
             {/* Navigation arrows - Outside media container */}
@@ -435,7 +444,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
           </div>
 
           {/* Caption and Date */}
-          {(currentItem.caption || currentItem.uploadedAt) && (
+          {currentItem && (currentItem.caption || currentItem.uploadedAt) && (
             <div className="px-4 sm:px-6 py-3 space-y-1.5 shrink-0 border-t bg-gray-50">
               {currentItem.caption && (
                 <p className="text-xs sm:text-sm text-gray-700 line-clamp-2">{currentItem.caption}</p>

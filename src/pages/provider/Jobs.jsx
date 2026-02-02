@@ -7,18 +7,46 @@ import Button from '@/components/ui/Button.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
 import { getTranslatedRequestInfo, useCurrentLanguage } from '@/utils/translations.js';
+import { useToast } from '@/components/ui/Toast.jsx';
 
 export default function Jobs() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const currentLang = useCurrentLanguage(); // Hook reactivo al cambio de idioma
   const { viewRole, user, clearError, isAuthenticated, isRoleSwitching } = useAuth();
-  // no toast used here; navigation to detail handles actions
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [requests, setRequests] = useState([]);
+  const [openingChat, setOpeningChat] = useState(null); // ID de la solicitud mientras se abre chat
 
   useEffect(()=>{ clearError?.(); }, [clearError]);
+
+  // Abrir chat de negociación con el cliente
+  const openNegotiationChat = async (request) => {
+    const me = user?.id || user?._id;
+    const myProposal = request.proposals?.find(p => String(p?.provider?._id || p?.provider) === String(me));
+    if (!myProposal) {
+      toast.error(t('provider.jobs.proposalNotFound') || 'Propuesta no encontrada');
+      return;
+    }
+    
+    setOpeningChat(request._id);
+    try {
+      const { data } = await api.post(`/chats/proposal/${myProposal._id}`);
+      if (data?.success && data?.data?.chat) {
+        // Navegar al chat
+        navigate(`/mensajes?chat=${data.data.chat._id}`);
+      } else {
+        toast.error(data?.message || t('provider.jobs.chatOpenError') || 'Error al abrir chat');
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || t('provider.jobs.chatOpenError') || 'Error al abrir chat';
+      toast.error(msg);
+    } finally {
+      setOpeningChat(null);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -218,11 +246,27 @@ export default function Jobs() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => navigate(`/empleos/${r._id}?proponer=1`)}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center gap-2"
+                    onClick={() => hasProposal ? openNegotiationChat(r) : navigate(`/empleos/${r._id}?proponer=1`)}
+                    disabled={openingChat === r._id}
+                    className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-white text-sm font-medium shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait ${
+                      hasProposal 
+                        ? 'bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-emerald-500/25' 
+                        : 'bg-linear-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 shadow-brand-500/25'
+                    }`}
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-                    {t('provider.jobs.propose')}
+                    {openingChat === r._id ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : hasProposal ? (
+                      <>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                        {t('provider.jobs.negotiate')}
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                        {t('provider.jobs.propose')}
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

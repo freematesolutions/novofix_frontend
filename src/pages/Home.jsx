@@ -378,63 +378,46 @@ useEffect(() => {
             {/* Contenido principal - Layout con distribución óptima */}
             <div className="relative h-full flex flex-col justify-between items-center px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6 lg:px-5 lg:py-4 xl:px-8 xl:py-5" style={{ zIndex: 3 }}>
               
-              {/* Sección superior: Badge + Título */}
+              {/* Sección superior: Título */}
               <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-1.5 sm:gap-2 lg:gap-1.5">
-                {/* Badge de categoría */}
-                {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
-                  <div className="relative h-5 sm:h-6 md:h-7 lg:h-5 xl:h-6 w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto">
-                    {allCategoriesWithProviders.map((service, index) => (
-                      <span
-                        key={service.category + '-' + index}
-                        className={`absolute inset-0 flex items-center justify-center px-3 sm:px-4 py-1 rounded-full text-[9px] sm:text-[11px] lg:text-[9px] xl:text-xs font-semibold tracking-wider uppercase transition-all duration-500 ${
-                          index === currentServiceIndex
-                            ? 'opacity-100 scale-100'
-                            : 'opacity-0 scale-95'
-                        }`}
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.15)',
-                          backdropFilter: 'blur(10px)',
-                          WebkitBackdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(255, 255, 255, 0.25)',
-                          color: '#fff',
-                        }}
-                        aria-hidden={index !== currentServiceIndex}
-                      >
-                        <span className="truncate max-w-full">{t(`home.categories.${service.category}`, service.category)}</span>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                
-                {/* Título principal */}
+                {/* Título principal - texto blanco plano sin animación */}
                 <div className="text-center w-full pb-2 sm:pb-3 lg:pb-2">
                   <h1 className="text-lg sm:text-xl md:text-2xl lg:text-xl xl:text-4xl 2xl:text-5xl font-extrabold text-white leading-tight drop-shadow-2xl">
                     {t('home.title1')}
                     <br />
-                    <span className="inline-block bg-linear-to-r from-amber-400 via-orange-400 to-amber-300 bg-clip-text text-transparent animate-pulse-slow drop-shadow-lg">
+                    <span className="text-white">
                       {t('home.title2')}
                     </span>
                   </h1>
                 </div>
               </div>
 
-              {/* Sección central: Carrusel y Buscador */}
-              <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-4 sm:gap-5 md:gap-6 lg:gap-4 xl:gap-5">
-                {/* Carrusel de iconos de categorías - Rotación CONTINUA independiente del fondo */}
-                {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
-                  <div className="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-lg xl:max-w-3xl mx-auto px-1 sm:px-0 pt-2 sm:pt-3 lg:pt-2">
-                    <CategoryIconCarousel
-                      categories={allCategoriesWithProviders}
-                      currentIndex={carouselIndex}
-                      onIndexChange={setCarouselIndex}
-                      onCategoryClick={handleCategoryClick}
-                      autoRotate={true}
-                      rotationInterval={2800}
-                      t={t}
-                    />
-                  </div>
-                )}
+              {/* Carrusel de iconos de categorías - FUERA del contenedor glassmorphism */}
+              {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
+                <div className="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-lg xl:max-w-3xl mx-auto px-1 sm:px-0">
+                  <CategoryIconCarousel
+                    categories={allCategoriesWithProviders}
+                    currentIndex={carouselIndex}
+                    onIndexChange={setCarouselIndex}
+                    onCategoryClick={handleCategoryClick}
+                    autoRotate={true}
+                    rotationInterval={2800}
+                    t={t}
+                  />
+                </div>
+              )}
 
+              {/* Contenedor glassmorphism: Solo Buscador + Stats */}
+              <div 
+                className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-4 sm:gap-5 p-4 sm:p-6 rounded-2xl"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.2))',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                }}
+              >
                 {/* Buscador hero */}
                 <div className="w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-sm xl:max-w-2xl px-2 sm:px-0">
                   <div 
@@ -449,87 +432,56 @@ useEffect(() => {
                     <SearchBar onSearch={handleSearch} variant="hero" placeholder={t('searchBar.placeholder')} buttonLabel={t('searchBar.button')} />
                   </div>
                 </div>
-              </div>
 
-              {/* Sección inferior: Stats, Navegación y Botón - Distribuidos verticalmente */}
-              <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-3 sm:gap-4 lg:gap-3">
-                
-                {/* Stats destacados con efecto glassmorphism mejorado */}
+                {/* Stats destacados */}
                 <div className="flex items-center justify-center gap-3 sm:gap-4 lg:gap-3">
-                  <div 
-                    className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(255, 255, 255, 0.25)',
-                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-                    }}
-                  >
+                  <div className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105">
                     <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">{SERVICE_CATEGORIES_WITH_DESCRIPTION.length}+</span>
                     <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.services')}</span>
                   </div>
-                  <div 
-                    className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(255, 255, 255, 0.25)',
-                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-                    }}
-                  >
+                  <div className="w-px h-8 bg-white/30"></div>
+                  <div className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105">
                     <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">{totalUniqueProviders > 0 ? totalUniqueProviders : '—'}+</span>
                     <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.professionals')}</span>
                   </div>
-                  <div 
-                    className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(255, 255, 255, 0.25)',
-                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-                    }}
-                  >
+                  <div className="w-px h-8 bg-white/30"></div>
+                  <div className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105">
                     <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-purple-300 transition-colors">24/7</span>
                     <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.available')}</span>
                   </div>
                 </div>
-
-                {/* Indicadores de navegación de categorías eliminados para simplificar la UI y mejorar la experiencia en móvil */}
-
-                {/* Botón Ver más - Destacado en línea independiente */}
-                <button
-                  onClick={() => {
-                    const servicesSection = document.getElementById('services-section');
-                    if (servicesSection) {
-                      servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                  }}
-                  className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full px-5 py-2 sm:px-6 sm:py-2.5 lg:px-5 lg:py-2 transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08))',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
-                  }}
-                  aria-label="Ver más contenido"
-                >
-                  <span className="text-xs sm:text-sm lg:text-xs text-white font-semibold group-hover:text-yellow-300 transition-colors">
-                    {t('home.exploreBadge')}
-                  </span>
-                  <svg 
-                    className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 text-white animate-bounce group-hover:text-yellow-300 transition-colors" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
               </div>
+
+              {/* Botón Ver más - FUERA del contenedor glassmorphism */}
+              <button
+                onClick={() => {
+                  const servicesSection = document.getElementById('services-section');
+                  if (servicesSection) {
+                    servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full px-5 py-2 sm:px-6 sm:py-2.5 lg:px-5 lg:py-2 transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08))',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+                }}
+                aria-label="Ver más contenido"
+              >
+                <span className="text-xs sm:text-sm lg:text-xs text-white font-semibold group-hover:text-yellow-300 transition-colors">
+                  {t('home.exploreBadge')}
+                </span>
+                <svg 
+                  className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 text-white animate-bounce group-hover:text-yellow-300 transition-colors" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
             </div>
 
             {/* Onda decorativa inferior - sutil */}

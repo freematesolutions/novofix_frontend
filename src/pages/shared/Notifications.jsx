@@ -342,7 +342,7 @@ export default function Notifications() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
               {/* Email */}
               <label className={`
-                relative flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
+                relative flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 min-h-[88px]
                 ${prefs.email 
                   ? 'border-brand-500 bg-brand-50/50 shadow-sm shadow-brand-100' 
                   : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -370,9 +370,9 @@ export default function Notifications() {
                 )}
               </label>
 
-              {/* Push */}}
+              {/* Push */}
               <label className={`
-                relative flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
+                relative flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 min-h-[88px]
                 ${prefs.push 
                   ? 'border-brand-500 bg-brand-50/50 shadow-sm shadow-brand-100' 
                   : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -400,9 +400,9 @@ export default function Notifications() {
                 )}
               </label>
 
-              {/* SMS */}}
+              {/* SMS */}
               <label className={`
-                relative flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
+                relative flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 min-h-[88px]
                 ${prefs.sms 
                   ? 'border-brand-500 bg-brand-50/50 shadow-sm shadow-brand-100' 
                   : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'

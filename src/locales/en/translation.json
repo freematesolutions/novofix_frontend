@@ -189,7 +189,16 @@
     "passwordResetSent": "Instructions sent to your email",
     "welcomeProvider": "Welcome! You've registered as a provider",
     "welcomeClient": "Welcome! You've registered as a client",
-    "tryAgain": "Please try again"
+    "tryAgain": "Please try again",
+    "planUpdated": "Plan updated successfully",
+    "proposalSent": "Proposal sent successfully",
+    "draftSaved": "Draft saved",
+    "codeApplied": "Code applied successfully",
+    "errorLoadingPlans": "Error loading plans",
+    "couldNotChangePlan": "Could not change plan",
+    "errorChangingPlan": "Error changing plan",
+    "couldNotApplyCode": "Could not apply code",
+    "errorApplyingCode": "Error applying code"
   },
   "chat": {
     "system": {
@@ -517,6 +526,8 @@
       "inviteError": "Error sending invitation",
       "total": "Total",
       "active": "Active",
+      "showArchived": "Show archived",
+      "showArchivedAndCompleted": "Show completed and archived",
       "published": "Published",
       "draft": "Draft",
       "archived": "Archived",
@@ -586,7 +597,10 @@
       },
       "proposalAccepted": "Proposal accepted",
       "proposalRejected": "Proposal rejected",
-      "chatError": "Error opening chat"
+      "chatError": "Error opening chat",
+      "acceptedSuccess": "Proposal accepted! Your booking has been confirmed",
+      "acceptError": "Error accepting proposal",
+      "rejected": "Proposal rejected"
     },
     "messages": {
       "title": "My Messages",
@@ -652,6 +666,7 @@
       "directed": "Directed to you",
       "view": "View",
       "propose": "Propose",
+      "negotiate": "Negotiate",
       "proposalSent": "Proposal sent",
       "serviceRequest": "Service request",
       "providerOnly": "This section is for providers only",
@@ -1173,6 +1188,7 @@
         "onMyWay": "On my way",
         "startService": "Start service",
         "markCompleted": "Mark as completed",
+        "confirmBooking": "Confirm Booking",
         "edit": "Edit",
         "delete": "Delete",
         "confirmCompletion": "Confirm completion"

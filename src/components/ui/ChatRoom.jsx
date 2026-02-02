@@ -494,6 +494,7 @@ function ChatRoom({
   const [uploadProgress, setUploadProgress] = useState({ show: false, progress: 0, message: '' });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [replyingTo, setReplyingTo] = useState(null); // Mensaje al que se está respondiendo
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Estado para el picker de emojis
   
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
@@ -1241,13 +1242,34 @@ function ChatRoom({
             >
               <Icons.Attachment />
             </button>
-            <button
-              type="button"
-              className="p-2 text-gray-400 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors hidden sm:block"
-              title="Emoji"
-            >
-              <Icons.Emoji />
-            </button>
+            {/* Botón de emoji con picker */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className={`p-2 rounded-lg transition-colors ${showEmojiPicker ? 'text-brand-500 bg-brand-50' : 'text-gray-400 hover:text-brand-500 hover:bg-brand-50'}`}
+                title="Agregar emoji"
+              >
+                <span className="text-lg">😊</span>
+              </button>
+              {showEmojiPicker && (
+                <div className="absolute bottom-full left-0 mb-2 p-2 bg-white rounded-xl shadow-lg border border-gray-200 flex gap-1 z-50">
+                  {QUICK_REACTIONS.map(emoji => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => {
+                        setComposer(prev => prev + emoji);
+                        setShowEmojiPicker(false);
+                      }}
+                      className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <input

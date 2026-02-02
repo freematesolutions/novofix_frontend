@@ -21,6 +21,7 @@ export default function ClientRequests() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [requests, setRequests] = useState([]);
+  const [showArchived, setShowArchived] = useState(false); // Ocultar archivadas por defecto
   const [busyId, setBusyId] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteTarget, setInviteTarget] = useState(null); // request object
@@ -31,6 +32,13 @@ export default function ClientRequests() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null); // request object to delete
   const [deleting, setDeleting] = useState(false);
+
+  // Filtrar solicitudes archivadas y completadas por defecto
+  const visibleRequests = useMemo(() => {
+    if (showArchived) return requests;
+    // Ocultar tanto archivadas como completadas cuando no se muestra el toggle
+    return requests.filter(r => r.status !== 'archived' && r.status !== 'completed');
+  }, [requests, showArchived]);
 
   useEffect(() => { clearError?.(); }, [clearError]);
 
@@ -272,7 +280,7 @@ export default function ClientRequests() {
             {/* Stats mini */}
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-white">{requests.length}</div>
+                <div className="text-2xl font-bold text-white">{visibleRequests.length}</div>
                 <div className="text-xs text-white/80 font-medium">{t('client.requests.total')}</div>
               </div>
               <div className="w-px h-8 bg-white/30"></div>
@@ -283,6 +291,26 @@ export default function ClientRequests() {
             </div>
           </div>
         </div>
+
+        {/* Filtros */}
+        {requests.some(r => r.status === 'archived' || r.status === 'completed') && (
+          <div className="flex items-center justify-end gap-2 px-1">
+            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={showArchived}
+                onChange={(e) => setShowArchived(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              {t('client.requests.showArchivedAndCompleted', 'Mostrar finalizadas y archivadas')}
+              {requests.filter(r => r.status === 'archived' || r.status === 'completed').length > 0 && (
+                <span className="text-xs text-gray-400">
+                  ({requests.filter(r => r.status === 'archived' || r.status === 'completed').length})
+                </span>
+              )}
+            </label>
+          </div>
+        )}
 
         {error && <Alert type="error">{error}</Alert>}
 
@@ -300,7 +328,7 @@ export default function ClientRequests() {
         )}
 
         {/* Empty state premium */}
-        {!loading && (!Array.isArray(requests) || requests.length === 0) && (
+        {!loading && (!Array.isArray(visibleRequests) || visibleRequests.length === 0) && (
           <div className="relative overflow-hidden bg-white/80 backdrop-blur-xl rounded-3xl border border-dashed border-emerald-200 shadow-lg p-8 sm:p-12 text-center">
             <div className="absolute inset-0 bg-linear-to-br from-emerald-50/50 via-transparent to-teal-50/50"></div>
             <div className="relative">
@@ -327,9 +355,9 @@ export default function ClientRequests() {
         )}
 
         {/* Lista de solicitudes premium */}
-        {!loading && Array.isArray(requests) && requests.length > 0 && (
+        {!loading && Array.isArray(visibleRequests) && visibleRequests.length > 0 && (
           <div className="space-y-4">
-            {requests.map((r, index) => {
+            {visibleRequests.map((r, index) => {
               const statusInfo = getStatusConfig(r.status);
               return (
                 <div 
@@ -463,7 +491,8 @@ export default function ClientRequests() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
                           {t('client.requests.viewProposals')}
-                          {(r.metadata?.proposalCount > 0) && (
+                          {/* No mostrar contador si ya hay una propuesta aceptada (reserva creada) */}
+                          {(r.metadata?.proposalCount > 0 && !r.acceptedProposal) && (
                             <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-emerald-700 bg-white rounded-full min-w-5 animate-pulse">
                               {r.metadata.proposalCount}
                             </span>

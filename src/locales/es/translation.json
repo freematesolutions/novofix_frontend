@@ -189,7 +189,16 @@
     "passwordResetSent": "Instrucciones enviadas a tu correo",
     "welcomeProvider": "¡Bienvenido! Te has registrado como proveedor",
     "welcomeClient": "¡Bienvenido! Te has registrado como cliente",
-    "tryAgain": "Por favor intenta de nuevo"
+    "tryAgain": "Por favor intenta de nuevo",
+    "planUpdated": "Plan actualizado correctamente",
+    "proposalSent": "Propuesta enviada correctamente",
+    "draftSaved": "Borrador guardado",
+    "codeApplied": "Código aplicado correctamente",
+    "errorLoadingPlans": "Error al cargar planes",
+    "couldNotChangePlan": "No se pudo cambiar el plan",
+    "errorChangingPlan": "Error al cambiar el plan",
+    "couldNotApplyCode": "No se pudo aplicar el código",
+    "errorApplyingCode": "Error al aplicar el código"
   },
   "chat": {
     "system": {
@@ -517,6 +526,8 @@
       "inviteError": "Error al enviar invitación",
       "total": "Total",
       "active": "Activas",
+      "showArchived": "Mostrar archivadas",
+      "showArchivedAndCompleted": "Mostrar finalizadas y archivadas",
       "published": "Publicada",
       "draft": "Borrador",
       "archived": "Archivada",
@@ -586,7 +597,10 @@
       },
       "proposalAccepted": "Propuesta aceptada",
       "proposalRejected": "Propuesta rechazada",
-      "chatError": "Error al abrir el chat"
+      "chatError": "Error al abrir el chat",
+      "acceptedSuccess": "¡Propuesta aceptada! Tu reserva ha sido confirmada",
+      "acceptError": "Error al aceptar la propuesta",
+      "rejected": "Propuesta rechazada"
     },
     "messages": {
       "title": "Mis Mensajes",
@@ -652,6 +666,7 @@
       "directed": "Dirigido a ti",
       "view": "Ver",
       "propose": "Proponer",
+      "negotiate": "Negociar",
       "proposalSent": "Propuesta enviada",
       "serviceRequest": "Solicitud de servicio",
       "providerOnly": "Esta sección es solo para proveedores",
@@ -1173,6 +1188,7 @@
         "onMyWay": "En camino",
         "startService": "Iniciar servicio",
         "markCompleted": "Marcar como completado",
+        "confirmBooking": "Confirmar Reserva",
         "edit": "Editar",
         "delete": "Eliminar",
         "confirmCompletion": "Confirmar finalización"

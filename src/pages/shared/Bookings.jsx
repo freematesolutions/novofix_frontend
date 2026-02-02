@@ -13,17 +13,13 @@ import UploadProgress from '@/components/ui/UploadProgress.jsx';
 import { getTranslatedRequestInfo, getTranslatedReviewInfo, useCurrentLanguage } from '@/utils/translations.js';
 
 const PROVIDER_STATUSES = [
-  { value: 'provider_en_route', labelKey: 'shared.bookings.status.providerEnRoute' },
-  { value: 'in_progress', labelKey: 'shared.bookings.status.inProgress' },
   { value: 'completed', labelKey: 'shared.bookings.status.completed' },
   { value: 'cancelled', labelKey: 'shared.bookings.status.cancelled' }
 ];
 
-// Mapa de transiciones válidas y botón principal según estado actual
+// Mapa de transiciones simplificado: confirmed → completed directamente
 const STATUS_FLOW = {
-  confirmed: { next: 'provider_en_route', labelKey: 'shared.bookings.actions.onMyWay', icon: '🚗' },
-  provider_en_route: { next: 'in_progress', labelKey: 'shared.bookings.actions.startService', icon: '🔧' },
-  in_progress: { next: 'completed', labelKey: 'shared.bookings.actions.markCompleted', icon: '✅' },
+  confirmed: { next: 'completed', labelKey: 'shared.bookings.actions.confirmBooking', icon: '✅' },
   completed: null,
   cancelled: null
 };
