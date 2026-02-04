@@ -273,7 +273,7 @@ export default function Notifications() {
                           <span className="hidden sm:inline">{t('shared.notifications.open')}</span>
                         </Link>
                       );
-                    })()}}
+                    })()}
                     {n.read && !n?.data?.actionUrl && (
                       <div className="p-1">
                         <HiCheck className="w-4 h-4 text-gray-300" />

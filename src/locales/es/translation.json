@@ -204,15 +204,24 @@
     "system": {
       "proposalStarted": "💬 Conversación iniciada sobre la propuesta de {{formattedAmount}}. Pueden negociar términos y resolver dudas aquí.",
       "proposalStartedNoAmount": "💬 Conversación iniciada sobre la propuesta. Pueden negociar términos y resolver dudas aquí.",
-      "bookingStarted": "💬 Chat iniciado para el servicio. Pueden coordinar detalles aquí."
+      "bookingStarted": "💬 Chat iniciado para el servicio. Pueden coordinar detalles aquí.",
+      "infoRequestStarted": "📋 {{providerName}} necesita más información sobre tu solicitud antes de enviarte una propuesta."
     },
     "noMessages": "Sin mensajes aún",
     "startConversation": "Envía el primer mensaje para iniciar la conversación",
     "typing": "Escribiendo",
+    "activeConversation": "Conversación activa",
     "replyingTo": "Respondiendo a",
     "attachment": "Archivo adjunto",
     "sendMessage": "Enviar mensaje",
-    "writeMessage": "Escribe un mensaje..."
+    "writeMessage": "Escribe un mensaje...",
+    "proposalPending": "Propuesta pendiente de {{provider}}",
+    "provider": "proveedor",
+    "acceptProposal": "Aceptar propuesta",
+    "reject": "Rechazar",
+    "accepting": "Aceptando...",
+    "proposalAccepted": "¡Propuesta aceptada!",
+    "proposalRejected": "Propuesta rechazada"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -532,6 +541,7 @@
       "draft": "Borrador",
       "archived": "Archivada",
       "viewProposals": "Ver propuestas",
+      "proposalReceived": "Propuesta recibida",
       "eligible": "Elegibles",
       "publish": "Publicar",
       "archive": "Archivar",
@@ -588,6 +598,7 @@
       "negotiate": "Negociar",
       "provider": "Proveedor",
       "noPrice": "Sin precio",
+      "priceRange": "Rango de precio",
       "tip": "💡 Compara propuestas antes de decidir",
       "tipDescription": "Revisa el perfil, calificación y precio de cada profesional",
       "chatModal": {
@@ -614,7 +625,9 @@
       "selectConversationDescription": "Elige una conversación del panel izquierdo para ver los mensajes",
       "loadError": "Error al cargar conversaciones",
       "chat": "Chat",
-      "provider": "Proveedor"
+      "provider": "Proveedor",
+      "acceptError": "Error al aceptar la propuesta",
+      "rejectError": "Error al rechazar la propuesta"
     },
     "createRequest": {
       "title": "Crear nueva solicitud",
@@ -843,6 +856,37 @@
       "leadsUsed": "Leads utilizados",
       "limitReachedUpgrade": "Has alcanzado tu límite. Mejora tu plan para continuar.",
       "amountLabel": "Monto de la propuesta",
+      "enableRange": "Usar rango de precios",
+      "fixedAmount": "Monto fijo",
+      "rangeAmount": "Rango de precios",
+      "rangeHint": "Si no tienes claro el monto exacto, usa un rango",
+      "minAmount": "Monto mínimo",
+      "maxAmount": "Monto máximo",
+      "minimum": "Mínimo",
+      "maximum": "Máximo",
+      "amountMinRequired": "El monto mínimo es requerido",
+      "amountMaxRequired": "El monto máximo es requerido",
+      "amountMaxMustBeGreater": "El monto máximo debe ser mayor al mínimo",
+      "needMoreInfo": "¿Necesitas más información?",
+      "needMoreInfoDesc": "Antes de enviar tu propuesta, puedes contactar al cliente para aclarar dudas sobre el trabajo",
+      "askClient": "Consultar al cliente",
+      "infoRequestModalTitle": "Solicitar más información",
+      "infoRequestModalSubtitle": "Contacta al cliente antes de enviar tu propuesta",
+      "infoRequestPlaceholder": "Escribe tu pregunta o lo que necesitas saber del cliente...",
+      "sendInfoRequest": "Enviar consulta",
+      "infoRequestSent": "¡Consulta enviada! El cliente recibirá tu mensaje.",
+      "infoRequestError": "Error al enviar la consulta",
+      "infoRequestMessageRequired": "Escribe un mensaje para enviar",
+      "infoRequestMessageLabel": "Tu mensaje para el cliente",
+      "infoRequestMessagePlaceholder": "¿Qué necesitas saber antes de hacer tu propuesta?",
+      "infoRequestTipsTitle": "Consejos para tu consulta",
+      "infoRequestTips": "Consejos para tu consulta",
+      "infoRequestTip1": "Sé específico sobre lo que necesitas saber",
+      "infoRequestTip2": "Pregunta sobre detalles del trabajo, acceso, materiales, etc.",
+      "infoRequestTip3": "Esto abre un chat directo con el cliente",
+      "infoRequestTip4": "El cliente recibirá notificación de tu consulta",
+      "infoRequestNote": "Tu mensaje se enviará directamente al cliente y podrán continuar la conversación en el chat.",
+      "rangeEnabled": "Rango habilitado",
       "estimatedHours": "Horas estimadas",
       "hoursPlaceholder": "Ej: 2",
       "startDate": "Fecha de inicio",
@@ -886,7 +930,21 @@
       "proposalNotCancelled": "No se pudo cancelar la propuesta",
       "errorCancelling": "Error al cancelar la propuesta",
       "errorSending": "Error al enviar la propuesta",
-      "yourIncome": "Tu ingreso"
+      "yourIncome": "Tu ingreso",
+      "proposalSentTitle": "Propuesta enviada",
+      "proposalSentSubtitle": "Ya has enviado una propuesta para esta solicitud",
+      "proposalStatus": {
+        "sent": "Enviada",
+        "viewed": "Vista por el cliente",
+        "accepted": "Aceptada",
+        "rejected": "Rechazada",
+        "draft": "Borrador"
+      },
+      "sentOn": "Enviada el",
+      "proposedAmount": "Monto propuesto",
+      "hours": "horas",
+      "yourMessage": "Tu mensaje",
+      "goToMessages": "Ir a mensajes"
     },
     "referrals": {
       "title": "Programa de Referidos",
@@ -1191,7 +1249,8 @@
         "confirmBooking": "Confirmar Reserva",
         "edit": "Editar",
         "delete": "Eliminar",
-        "confirmCompletion": "Confirmar finalización"
+        "confirmCompletion": "Confirmar finalización",
+        "openChat": "Chat"
       },
       "payment": {
         "pending": "Pago pendiente",
@@ -1220,6 +1279,7 @@
       },
       "errors": {
         "loadFailed": "No se pudieron cargar las reservas",
+        "chatError": "Error al abrir el chat",
         "responsePublishFailed": "No se pudo publicar la respuesta",
         "deleteFailed": "No se pudo eliminar",
         "noEvidenceUrls": "No se obtuvieron URLs de evidencia",

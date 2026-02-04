@@ -249,11 +249,23 @@ export default function ClientRequestProposals() {
         <div className="space-y-4">
           {(Array.isArray(proposals) ? proposals : []).map((p) => {
             const amount = p?.pricing?.amount;
+            const amountMin = p?.pricing?.amountMin;
+            const amountMax = p?.pricing?.amountMax;
+            const isRange = p?.pricing?.isRange || false;
             const currency = p?.pricing?.currency || 'USD';
             const providerName = p?.provider?.providerProfile?.businessName || t('client.proposals.provider');
             const score = p?.provider?.score?.total;
             const plan = p?.provider?.subscription?.plan;
             const avatar = p?.provider?.profile?.avatar;
+            
+            // Función para formatear precio (fijo o rango)
+            const formatPrice = () => {
+              const formatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency });
+              if (isRange && amountMin && amountMax) {
+                return `${formatter.format(amountMin)} - ${formatter.format(amountMax)}`;
+              }
+              return amount ? formatter.format(amount) : t('client.proposals.noPrice');
+            };
             
             return (
               <div 
@@ -314,11 +326,18 @@ export default function ClientRequestProposals() {
                     
                     {/* Price tag */}
                     <div className="sm:text-right">
-                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl">
-                        <HiCurrencyDollar className="w-5 h-5 text-emerald-600" />
-                        <span className="text-xl sm:text-2xl font-bold text-emerald-700">
-                          {amount ? Intl.NumberFormat('es-AR', { style: 'currency', currency }).format(amount) : t('client.proposals.noPrice')}
-                        </span>
+                      <div className="inline-flex flex-col items-end gap-1">
+                        {isRange && (
+                          <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                            {t('client.proposals.priceRange')}
+                          </span>
+                        )}
+                        <div className={`inline-flex items-center gap-2 px-4 py-2 border rounded-xl ${isRange ? 'bg-linear-to-r from-purple-50 to-violet-50 border-purple-100' : 'bg-linear-to-r from-emerald-50 to-teal-50 border-emerald-100'}`}>
+                          <HiCurrencyDollar className={`w-5 h-5 ${isRange ? 'text-purple-600' : 'text-emerald-600'}`} />
+                          <span className={`text-lg sm:text-xl font-bold ${isRange ? 'text-purple-700' : 'text-emerald-700'}`}>
+                            {formatPrice()}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -415,9 +434,14 @@ export default function ClientRequestProposals() {
                   {t('client.proposals.negotiateWith', { name: activeProposal?.provider?.providerProfile?.businessName || t('client.proposals.professional') })}
                 </span>
                 <p className="text-sm text-gray-500 font-normal">
-                  {t('client.proposals.proposal')}: {activeProposal?.pricing?.amount 
-                    ? Intl.NumberFormat('es-AR', { style: 'currency', currency: activeProposal?.pricing?.currency || 'USD' }).format(activeProposal.pricing.amount)
-                    : 'Sin precio'}
+                  {t('client.proposals.proposal')}: {(() => {
+                    const pricing = activeProposal?.pricing;
+                    const formatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency: pricing?.currency || 'USD' });
+                    if (pricing?.isRange && pricing?.amountMin && pricing?.amountMax) {
+                      return `${formatter.format(pricing.amountMin)} - ${formatter.format(pricing.amountMax)}`;
+                    }
+                    return pricing?.amount ? formatter.format(pricing.amount) : 'Sin precio';
+                  })()}
                 </p>
               </div>
             </div>

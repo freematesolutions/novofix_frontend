@@ -34,6 +34,7 @@ export default function Bookings() {
   const [error, setError] = useState('');
   const [bookings, setBookings] = useState([]);
   const [updating, setUpdating] = useState(''); // bookingId
+  const [chatLoading, setChatLoading] = useState(''); // bookingId while opening chat
   // Filtros
   const [statusFilter, setStatusFilter] = useState(''); // '' = todos
   const [search, setSearch] = useState('');
@@ -620,6 +621,25 @@ export default function Bookings() {
     } finally { setUpdating(''); }
   };
 
+  // Abrir chat para comunicarse sobre la reserva
+  const openBookingChat = async (booking) => {
+    setChatLoading(booking._id);
+    try {
+      const { data } = await api.post(`/chats/booking/${booking._id}`);
+      if (data?.success && data?.data?.chat) {
+        // Navegar a la ruta correcta según el rol del usuario
+        const chatRoute = isProvider ? '/mensajes' : '/mis-mensajes';
+        navigate(`${chatRoute}?chat=${data.data.chat._id}`);
+      } else {
+        toast.error(data?.message || t('shared.bookings.errors.chatError'));
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || t('shared.bookings.errors.chatError'));
+    } finally {
+      setChatLoading('');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-emerald-50/30">
       {/* Background decorativo */}
@@ -1148,6 +1168,22 @@ export default function Bookings() {
                         <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         {t('shared.bookings.actions.uploadEvidence')}
                       </button>
+                      
+                      {/* Chat button - para comunicarse con el cliente */}
+                      {b.status !== 'cancelled' && (
+                        <button 
+                          onClick={()=> openBookingChat(b)} 
+                          disabled={chatLoading === b._id}
+                          className="w-full px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-sm font-medium text-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          {chatLoading === b._id ? (
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                          )}
+                          {t('shared.bookings.actions.openChat')}
+                        </button>
+                      )}
                     </>
                   )}
                   {isClient && (
@@ -1183,6 +1219,22 @@ export default function Bookings() {
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           )}
                           {t('shared.bookings.actions.confirmCompletion')}
+                        </button>
+                      )}
+                      
+                      {/* Chat button - para comunicarse con el proveedor */}
+                      {b.status !== 'cancelled' && (
+                        <button 
+                          onClick={()=> openBookingChat(b)} 
+                          disabled={chatLoading === b._id}
+                          className="w-full px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-sm font-medium text-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          {chatLoading === b._id ? (
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                          )}
+                          {t('shared.bookings.actions.openChat')}
                         </button>
                       )}
                     </>

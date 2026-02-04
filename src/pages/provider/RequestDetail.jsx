@@ -14,7 +14,8 @@ import {
   HiArrowLeft, HiPhotograph, HiCurrencyDollar, HiClock, HiCalendar,
   HiLocationMarker, HiTag, HiExclamation, HiPaperAirplane, HiSave,
   HiX, HiRefresh, HiSparkles, HiCheckCircle, HiBadgeCheck, HiLightningBolt,
-  HiTrendingUp, HiChartBar, HiShieldCheck, HiCube
+  HiTrendingUp, HiChartBar, HiShieldCheck, HiCube, HiQuestionMarkCircle,
+  HiChat
 } from 'react-icons/hi';
 
 export default function RequestDetail() {
@@ -24,11 +25,12 @@ export default function RequestDetail() {
   const navigate = useNavigate();
   const { search } = useLocation();
   const toast = useToast();
-  const { viewRole, clearError, isAuthenticated, isRoleSwitching } = useAuth();
+  const { viewRole, clearError, isAuthenticated, isRoleSwitching, user } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [request, setRequest] = useState(null);
+  const [myProposal, setMyProposal] = useState(null); // Propuesta del proveedor actual si existe
   const [context, setContext] = useState(null);
   const [contextLoading, setContextLoading] = useState(false);
   const [showPhotosModal, setShowPhotosModal] = useState(false);
@@ -37,6 +39,9 @@ export default function RequestDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     amount: '',
+    amountMin: '',
+    amountMax: '',
+    isRange: false, // Toggle para monto fijo o rango
     estimatedHours: '',
     startDate: '',
     message: '',
@@ -46,6 +51,11 @@ export default function RequestDetail() {
   const [formErrors, setFormErrors] = useState({});
   const [upgrade, setUpgrade] = useState({ show: false, message: '' });
   const [draftId, setDraftId] = useState('');
+  
+  // Estado para solicitar más información
+  const [showInfoRequestModal, setShowInfoRequestModal] = useState(false);
+  const [infoRequestMessage, setInfoRequestMessage] = useState('');
+  const [sendingInfoRequest, setSendingInfoRequest] = useState(false);
 
   const autoOpenForm = useMemo(() => new URLSearchParams(search).get('proponer') === '1', [search]);
 
@@ -55,9 +65,26 @@ export default function RequestDetail() {
     if (!isAuthenticated) return;
     setLoading(true); setError('');
     try {
-  const { data } = await api.get(`/provider/proposals/requests/${id}`);
+      const { data } = await api.get(`/provider/proposals/requests/${id}`);
       const req = data?.data?.request || data?.request || null;
       setRequest(req);
+      
+      // Detectar si el proveedor actual ya envió una propuesta para esta solicitud
+      const me = user?.id || user?._id;
+      if (req?.proposals && Array.isArray(req.proposals) && me) {
+        const existingProposal = req.proposals.find(p => {
+          const providerId = p?.provider?._id || p?.provider;
+          return String(providerId) === String(me);
+        });
+        // Solo considerar propuestas que ya fueron enviadas (no drafts)
+        if (existingProposal && existingProposal.status !== 'draft') {
+          setMyProposal(existingProposal);
+        } else {
+          setMyProposal(null);
+        }
+      } else {
+        setMyProposal(null);
+      }
     } catch (err) {
       const msg = err?.response?.data?.message || t('provider.requestDetail.errorLoading');
       setError(msg);
@@ -121,7 +148,16 @@ export default function RequestDetail() {
 
   const validate = () => {
     const errs = {};
-    if (!form.amount || Number(form.amount) <= 0) errs.amount = t('provider.requestDetail.amountRequired');
+    // Validar monto según si es rango o fijo
+    if (form.isRange) {
+      if (!form.amountMin || Number(form.amountMin) <= 0) errs.amountMin = t('provider.requestDetail.amountMinRequired');
+      if (!form.amountMax || Number(form.amountMax) <= 0) errs.amountMax = t('provider.requestDetail.amountMaxRequired');
+      if (form.amountMin && form.amountMax && Number(form.amountMin) >= Number(form.amountMax)) {
+        errs.amountMax = t('provider.requestDetail.amountMaxMustBeGreater');
+      }
+    } else {
+      if (!form.amount || Number(form.amount) <= 0) errs.amount = t('provider.requestDetail.amountRequired');
+    }
     if (!form.message || form.message.trim().length < 10) errs.message = t('provider.requestDetail.messageRequired');
     // estimatedHours opcional pero si se provee debe ser > 0
     if (form.estimatedHours && Number(form.estimatedHours) <= 0) errs.estimatedHours = t('provider.requestDetail.hoursError');
@@ -139,13 +175,23 @@ export default function RequestDetail() {
     setSubmitting(true);
     try {
       const payload = {
-        amount: Number(form.amount),
         estimatedHours: form.estimatedHours ? Number(form.estimatedHours) : undefined,
         startDate: form.startDate || undefined,
         materialsIncluded: !!form.materialsIncluded,
         cleanupIncluded: !!form.cleanupIncluded,
-        message: form.message.trim()
+        message: form.message.trim(),
+        isRange: form.isRange
       };
+      
+      // Agregar montos según si es rango o fijo
+      if (form.isRange) {
+        payload.amountMin = Number(form.amountMin);
+        payload.amountMax = Number(form.amountMax);
+        payload.amount = Math.round((Number(form.amountMin) + Number(form.amountMax)) / 2);
+      } else {
+        payload.amount = Number(form.amount);
+      }
+      
   const { data } = await api.post(`/provider/proposals/requests/${id}`, payload);
       if (data?.success) {
         toast.success(t('toast.proposalSent'));
@@ -298,6 +344,38 @@ export default function RequestDetail() {
       toast.error(msg);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Función para solicitar más información al cliente antes de enviar propuesta
+  const requestMoreInfo = async () => {
+    if (!infoRequestMessage.trim()) {
+      toast.warning(t('provider.requestDetail.infoRequestMessageRequired'));
+      return;
+    }
+    setSendingInfoRequest(true);
+    try {
+      // Crear un chat con el cliente para solicitar más información
+      const { data } = await api.post(`/chats/request/${id}/info`, {
+        message: infoRequestMessage.trim(),
+        type: 'info_request'
+      });
+      if (data?.success) {
+        toast.success(t('provider.requestDetail.infoRequestSent'));
+        setShowInfoRequestModal(false);
+        setInfoRequestMessage('');
+        // Redirigir al chat
+        if (data.data?.chat?._id) {
+          navigate(`/mensajes?chat=${data.data.chat._id}`);
+        }
+      } else {
+        toast.warning(data?.message || t('provider.requestDetail.infoRequestError'));
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || t('provider.requestDetail.infoRequestError');
+      toast.error(msg);
+    } finally {
+      setSendingInfoRequest(false);
     }
   };
 
@@ -463,7 +541,181 @@ export default function RequestDetail() {
               </div>
             </div>
 
-            {/* Proposal Form Card */}
+            {/* Card de "Necesito más información" - Solo mostrar si NO hay propuesta enviada */}
+            {!myProposal && (
+            <div className="bg-linear-to-br from-amber-50 via-white to-orange-50 rounded-2xl border border-amber-200 shadow-lg shadow-amber-100/50 overflow-hidden">
+              <div className="p-5 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shrink-0">
+                      <HiQuestionMarkCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900">{t('provider.requestDetail.needMoreInfo')}</h4>
+                      <p className="text-sm text-gray-600">{t('provider.requestDetail.needMoreInfoDesc')}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowInfoRequestModal(true)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/35 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <HiChat className="w-5 h-5" />
+                    {t('provider.requestDetail.askClient')}
+                  </button>
+                </div>
+              </div>
+            </div>
+            )}
+
+            {/* SI YA HAY PROPUESTA ENVIADA: Mostrar información de la propuesta */}
+            {myProposal && (
+              <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden">
+                {/* Header de propuesta enviada */}
+                <div className="bg-linear-to-r from-emerald-50 to-teal-50 border-b border-emerald-100 p-6 sm:p-8">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
+                      <HiCheckCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">{t('provider.requestDetail.proposalSentTitle')}</h3>
+                      <p className="text-sm text-gray-600">{t('provider.requestDetail.proposalSentSubtitle')}</p>
+                    </div>
+                  </div>
+                  {/* Badge de estado */}
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold ${
+                      myProposal.status === 'accepted' ? 'bg-green-100 text-green-700 border border-green-200' :
+                      myProposal.status === 'rejected' ? 'bg-red-100 text-red-700 border border-red-200' :
+                      myProposal.status === 'viewed' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                      'bg-amber-100 text-amber-700 border border-amber-200'
+                    }`}>
+                      {myProposal.status === 'accepted' && <HiCheckCircle className="w-4 h-4" />}
+                      {myProposal.status === 'rejected' && <HiX className="w-4 h-4" />}
+                      {myProposal.status === 'viewed' && <HiSparkles className="w-4 h-4" />}
+                      {myProposal.status === 'sent' && <HiPaperAirplane className="w-4 h-4" />}
+                      {t(`provider.requestDetail.proposalStatus.${myProposal.status}`) || myProposal.status}
+                    </span>
+                    {myProposal.createdAt && (
+                      <span className="text-sm text-gray-500 flex items-center gap-1.5">
+                        <HiClock className="w-4 h-4" />
+                        {t('provider.requestDetail.sentOn')} {new Date(myProposal.createdAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Contenido de la propuesta */}
+                <div className="p-6 sm:p-8 space-y-6">
+                  {/* Monto propuesto */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="p-4 bg-linear-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl">
+                      <div className="flex items-center gap-2 text-emerald-600 mb-1">
+                        <HiCurrencyDollar className="w-5 h-5" />
+                        <span className="text-xs font-semibold uppercase tracking-wide">{t('provider.requestDetail.proposedAmount')}</span>
+                      </div>
+                      <div className="text-2xl font-bold text-emerald-700">
+                        {(() => {
+                          const pricing = myProposal.pricing;
+                          const formatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency: pricing?.currency || 'USD' });
+                          if (pricing?.isRange && pricing?.amountMin && pricing?.amountMax) {
+                            return `${formatter.format(pricing.amountMin)} - ${formatter.format(pricing.amountMax)}`;
+                          }
+                          return pricing?.amount ? formatter.format(pricing.amount) : '-';
+                        })()}
+                      </div>
+                    </div>
+
+                    {myProposal.timing?.estimatedHours && (
+                      <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl">
+                        <div className="flex items-center gap-2 text-gray-600 mb-1">
+                          <HiClock className="w-5 h-5" />
+                          <span className="text-xs font-semibold uppercase tracking-wide">{t('provider.requestDetail.estimatedHours')}</span>
+                        </div>
+                        <div className="text-xl font-bold text-gray-900">
+                          {myProposal.timing.estimatedHours} {t('provider.requestDetail.hours')}
+                        </div>
+                      </div>
+                    )}
+
+                    {myProposal.timing?.startDate && (
+                      <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl">
+                        <div className="flex items-center gap-2 text-gray-600 mb-1">
+                          <HiCalendar className="w-5 h-5" />
+                          <span className="text-xs font-semibold uppercase tracking-wide">{t('provider.requestDetail.startDate')}</span>
+                        </div>
+                        <div className="text-xl font-bold text-gray-900">
+                          {new Date(myProposal.timing.startDate).toLocaleDateString()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Términos incluidos */}
+                  <div className="flex flex-wrap gap-3">
+                    {myProposal.terms?.materialsIncluded && (
+                      <span className="inline-flex items-center gap-2 px-4 py-2 bg-brand-50 text-brand-700 rounded-xl border border-brand-200">
+                        <HiCube className="w-5 h-5" />
+                        <span className="font-medium">{t('provider.requestDetail.includesMaterials')}</span>
+                      </span>
+                    )}
+                    {myProposal.terms?.cleanupIncluded && (
+                      <span className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-50 text-cyan-700 rounded-xl border border-cyan-200">
+                        <HiSparkles className="w-5 h-5" />
+                        <span className="font-medium">{t('provider.requestDetail.includesCleanup')}</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Mensaje de la propuesta */}
+                  {myProposal.message && (
+                    <div className="p-5 bg-gray-50 border border-gray-100 rounded-xl">
+                      <div className="flex items-center gap-2 text-gray-600 mb-3">
+                        <HiBadgeCheck className="w-5 h-5" />
+                        <span className="text-sm font-semibold">{t('provider.requestDetail.yourMessage')}</span>
+                      </div>
+                      <p className="text-gray-700 whitespace-pre-line leading-relaxed">{myProposal.message}</p>
+                    </div>
+                  )}
+
+                  {/* Información de comisión si existe */}
+                  {myProposal.commission && (
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                      <div className="flex items-center gap-2 text-amber-700">
+                        <HiChartBar className="w-5 h-5" />
+                        <span className="font-medium">
+                          {t('provider.requestDetail.commission')}: {myProposal.commission.rate ? `${Math.round(myProposal.commission.rate * 100)}%` : '-'}
+                          {myProposal.commission.amount && ` (${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(myProposal.commission.amount)})`}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Acciones */}
+                  <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/mensajes')}
+                      className="flex items-center gap-2 px-5 py-3 bg-linear-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                    >
+                      <HiChat className="w-5 h-5" />
+                      {t('provider.requestDetail.goToMessages')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/empleos')}
+                      className="flex items-center gap-2 px-4 py-3 text-gray-700 font-medium bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                    >
+                      <HiArrowLeft className="w-5 h-5" />
+                      {t('provider.requestDetail.backToJobs')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Proposal Form Card - Solo mostrar si NO hay propuesta enviada */}
+            {!myProposal && (
             <div id="proposal-form" className={`bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden transition-opacity ${submitting ? 'opacity-70 pointer-events-none' : ''}`}>
               {/* Form Header */}
               <div className="bg-linear-to-r from-brand-50 to-cyan-50 border-b border-brand-100 p-6 sm:p-8">
@@ -548,44 +800,135 @@ export default function RequestDetail() {
 
                 {/* Form */}
                 <form onSubmit={onSubmit} className="space-y-6">
-                  {/* Amount field with commission preview */}
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                      <HiCurrencyDollar className="w-4 h-4 text-gray-400" />
-                      {t('provider.requestDetail.amountLabel')}
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
-                      <input 
-                        type="number" 
-                        min="1" 
-                        step="0.01" 
-                        className="w-full pl-8 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all bg-gray-50 focus:bg-white text-lg font-semibold" 
-                        value={form.amount} 
-                        onChange={(e) => setForm(f => ({ ...f, amount: e.target.value }))}
-                        placeholder="0.00"
-                      />
+                  {/* Amount field with toggle for range */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <HiCurrencyDollar className="w-4 h-4 text-gray-400" />
+                        {t('provider.requestDetail.amountLabel')}
+                      </label>
+                      {/* Toggle para rango de precio */}
+                      <button
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, isRange: !f.isRange }))}
+                        className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                          form.isRange 
+                            ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                            : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+                        }`}
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                        {form.isRange ? t('provider.requestDetail.rangeEnabled') : t('provider.requestDetail.enableRange')}
+                      </button>
                     </div>
+                    
+                    {!form.isRange ? (
+                      /* Monto fijo */
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
+                        <input 
+                          type="number" 
+                          min="1" 
+                          step="0.01" 
+                          className="w-full pl-8 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all bg-gray-50 focus:bg-white text-lg font-semibold" 
+                          value={form.amount} 
+                          onChange={(e) => setForm(f => ({ ...f, amount: e.target.value }))}
+                          placeholder="0.00"
+                        />
+                      </div>
+                    ) : (
+                      /* Rango de monto */
+                      <div className="p-4 bg-purple-50/50 border border-purple-100 rounded-xl space-y-3">
+                        <div className="flex items-center gap-2 text-xs text-purple-700 font-medium">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {t('provider.requestDetail.rangeHint')}
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                            <input 
+                              type="number" 
+                              min="1" 
+                              step="0.01" 
+                              className="w-full pl-7 pr-3 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 transition-all bg-white font-semibold" 
+                              value={form.amountMin} 
+                              onChange={(e) => setForm(f => ({ ...f, amountMin: e.target.value }))}
+                              placeholder={t('provider.requestDetail.minAmount')}
+                            />
+                            <span className="absolute -bottom-5 left-0 text-[10px] text-gray-500">{t('provider.requestDetail.minimum')}</span>
+                          </div>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                            <input 
+                              type="number" 
+                              min="1" 
+                              step="0.01" 
+                              className="w-full pl-7 pr-3 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 transition-all bg-white font-semibold" 
+                              value={form.amountMax} 
+                              onChange={(e) => setForm(f => ({ ...f, amountMax: e.target.value }))}
+                              placeholder={t('provider.requestDetail.maxAmount')}
+                            />
+                            <span className="absolute -bottom-5 left-0 text-[10px] text-gray-500">{t('provider.requestDetail.maximum')}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
                     {formErrors.amount && (
                       <p className="flex items-center gap-1.5 text-sm text-red-600">
                         <HiExclamation className="w-4 h-4" />
                         {formErrors.amount}
                       </p>
                     )}
-                    {context && form.amount && Number(form.amount) > 0 && (
+                    {formErrors.amountMin && (
+                      <p className="flex items-center gap-1.5 text-sm text-red-600">
+                        <HiExclamation className="w-4 h-4" />
+                        {formErrors.amountMin}
+                      </p>
+                    )}
+                    {formErrors.amountMax && (
+                      <p className="flex items-center gap-1.5 text-sm text-red-600">
+                        <HiExclamation className="w-4 h-4" />
+                        {formErrors.amountMax}
+                      </p>
+                    )}
+                    {/* Commission preview */}
+                    {context && ((form.isRange && form.amountMin && form.amountMax) || (!form.isRange && form.amount && Number(form.amount) > 0)) && (
                       <div className="flex flex-wrap gap-3 mt-3">
-                        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-                          <HiChartBar className="w-4 h-4 text-amber-600" />
-                          <span className="text-sm text-amber-800">
-                            {t('provider.requestDetail.commission')}: {Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(Number(form.amount) * context.commissionRateDecimal)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
-                          <HiTrendingUp className="w-4 h-4 text-green-600" />
-                          <span className="text-sm text-green-800">
-                            {t('provider.requestDetail.yourIncome')}: {Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(Number(form.amount) * (1 - context.commissionRateDecimal))}
-                          </span>
-                        </div>
+                        {(() => {
+                          const displayAmount = form.isRange 
+                            ? Math.round((Number(form.amountMin) + Number(form.amountMax)) / 2) 
+                            : Number(form.amount);
+                          const minAmount = form.isRange ? Number(form.amountMin) : displayAmount;
+                          const maxAmount = form.isRange ? Number(form.amountMax) : displayAmount;
+                          
+                          return (
+                            <>
+                              <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                                <HiChartBar className="w-4 h-4 text-amber-600" />
+                                <span className="text-sm text-amber-800">
+                                  {t('provider.requestDetail.commission')}: {form.isRange 
+                                    ? `${Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(minAmount * context.commissionRateDecimal)} - ${Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(maxAmount * context.commissionRateDecimal)}`
+                                    : Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(displayAmount * context.commissionRateDecimal)
+                                  }
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+                                <HiTrendingUp className="w-4 h-4 text-green-600" />
+                                <span className="text-sm text-green-800">
+                                  {t('provider.requestDetail.yourIncome')}: {form.isRange
+                                    ? `${Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(minAmount * (1 - context.commissionRateDecimal))} - ${Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(maxAmount * (1 - context.commissionRateDecimal))}`
+                                    : Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(displayAmount * (1 - context.commissionRateDecimal))
+                                  }
+                                </span>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
@@ -773,6 +1116,7 @@ export default function RequestDetail() {
                 </form>
               </div>
             </div>
+            )}
           </div>
         )}
 
@@ -801,6 +1145,88 @@ export default function RequestDetail() {
           }
         >
           <p className="text-sm text-gray-700 text-center xs:text-left px-1 xs:px-0">{upgrade.message || t('provider.requestDetail.upgradeMessage')}</p>
+        </Modal>
+
+        {/* Modal para solicitar más información al cliente */}
+        <Modal
+          open={showInfoRequestModal}
+          title={
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+                <HiQuestionMarkCircle className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <span className="text-lg font-semibold text-gray-900">{t('provider.requestDetail.infoRequestModalTitle')}</span>
+                <p className="text-sm text-gray-500 font-normal">{t('provider.requestDetail.infoRequestModalSubtitle')}</p>
+              </div>
+            </div>
+          }
+          onClose={() => { setShowInfoRequestModal(false); setInfoRequestMessage(''); }}
+          actions={
+            <div className="flex gap-3">
+              <button 
+                onClick={() => { setShowInfoRequestModal(false); setInfoRequestMessage(''); }}
+                className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-300"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={requestMoreInfo}
+                disabled={sendingInfoRequest || !infoRequestMessage.trim()}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {sendingInfoRequest ? (
+                  <Spinner size="sm" className="text-white" />
+                ) : (
+                  <HiChat className="w-4 h-4" />
+                )}
+                {sendingInfoRequest ? t('common.loading') : t('provider.requestDetail.sendInfoRequest')}
+              </button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            {/* Tips para qué tipo de información solicitar */}
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+              <div className="flex items-start gap-3">
+                <HiLightningBolt className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-800">
+                  <p className="font-medium mb-1">{t('provider.requestDetail.infoRequestTipsTitle')}</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>{t('provider.requestDetail.infoRequestTip1')}</li>
+                    <li>{t('provider.requestDetail.infoRequestTip2')}</li>
+                    <li>{t('provider.requestDetail.infoRequestTip3')}</li>
+                    <li>{t('provider.requestDetail.infoRequestTip4')}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Textarea para el mensaje */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">
+                {t('provider.requestDetail.infoRequestMessageLabel')}
+              </label>
+              <textarea
+                rows={4}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 transition-all bg-gray-50 focus:bg-white resize-none"
+                placeholder={t('provider.requestDetail.infoRequestMessagePlaceholder')}
+                value={infoRequestMessage}
+                onChange={(e) => setInfoRequestMessage(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">
+                {infoRequestMessage.length}/10 {t('provider.requestDetail.minChars')}
+              </p>
+            </div>
+
+            {/* Nota importante */}
+            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+              <HiShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-700">
+                {t('provider.requestDetail.infoRequestNote')}
+              </p>
+            </div>
+          </div>
         </Modal>
       </div>
     </div>

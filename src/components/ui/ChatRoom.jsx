@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Spinner from './Spinner.jsx';
 import api from '@/state/apiClient.js';
@@ -482,8 +483,18 @@ function ChatRoom({
   placeholder = 'Escribe un mensaje...',
   className = '',
   showHeader = true,
-  maxHeight = '500px'
+  maxHeight = '500px',
+  // Nuevas props para aceptar propuesta desde el chat
+  proposalInfo = null, // { proposalId, amount, amountMin, amountMax, isRange, currency, providerName, status }
+  onAcceptProposal = null, // Callback para aceptar propuesta
+  onRejectProposal = null, // Callback para rechazar propuesta
+  isAcceptingProposal = false, // Estado de carga
+  userRole = null, // 'client' o 'provider'
+  onClose = null // Callback para cerrar el chat (usado en panel de provider)
 }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -1071,10 +1082,69 @@ function ChatRoom({
               <h4 className="font-semibold text-gray-900 truncate">{chatTitle}</h4>
               <p className="text-xs text-gray-500 truncate">
                 {typingList.length > 0 
-                  ? `${typingList[0].userName || 'Escribiendo'}...`
-                  : 'Conversación activa'
+                  ? `${typingList[0].userName || t('chat.typing', 'Escribiendo')}...`
+                  : t('chat.activeConversation', 'Conversación activa')
                 }
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Panel de propuesta aceptable - Solo para clientes con propuesta pendiente */}
+      {proposalInfo && userRole === 'client' && proposalInfo.status === 'pending' && onAcceptProposal && (
+        <div className="px-4 py-3 border-b border-gray-100 bg-linear-to-br from-emerald-50 via-green-50 to-teal-50">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            {/* Icono y información */}
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  {t('chat.proposalPending', 'Propuesta pendiente de {{provider}}', { provider: proposalInfo.providerName || t('chat.provider', 'proveedor') })}
+                </p>
+                <p className="text-lg font-bold text-emerald-600">
+                  {proposalInfo.isRange 
+                    ? `${proposalInfo.currency || 'US$'} ${proposalInfo.amountMin?.toLocaleString()} - ${proposalInfo.amountMax?.toLocaleString()}`
+                    : `${proposalInfo.currency || 'US$'} ${proposalInfo.amount?.toLocaleString()}`
+                  }
+                </p>
+              </div>
+            </div>
+            
+            {/* Botones de acción */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {onRejectProposal && (
+                <button
+                  onClick={() => onRejectProposal(proposalInfo.proposalId)}
+                  disabled={isAcceptingProposal}
+                  className="flex-1 sm:flex-initial px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {t('chat.reject', 'Rechazar')}
+                </button>
+              )}
+              <button
+                onClick={() => onAcceptProposal(proposalInfo.proposalId)}
+                disabled={isAcceptingProposal}
+                className="flex-1 sm:flex-initial px-4 py-2.5 text-sm font-semibold text-white bg-linear-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg shadow-emerald-500/25 hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isAcceptingProposal ? (
+                  <>
+                    <Spinner size="sm" className="text-white" />
+                    <span>{t('chat.accepting', 'Aceptando...')}</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>{t('chat.acceptProposal', 'Aceptar propuesta')}</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -1149,6 +1219,48 @@ function ChatRoom({
           </>
         )}
       </div>
+
+      {/* Provider quick actions for info_request chats - Bottom panel */}
+      {(() => {
+        const serviceRequestId = chat?.serviceRequest?._id || chat?.serviceRequest;
+        const showProviderActions = chat?.chatType === 'info_request' && userRole === 'provider' && serviceRequestId;
+        
+        if (!showProviderActions) return null;
+        
+        return (
+          <div className="px-4 py-3 border-t border-gray-100 bg-linear-to-r from-brand-50/50 to-cyan-50/30">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center text-white shadow-sm">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{t('chat.infoRequestProvider.title', 'Solicitud de información')}</p>
+                  <p className="text-xs text-gray-500">{t('chat.infoRequestProvider.subtitle', 'Continúa la conversación o envía una propuesta')}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onClose ? onClose() : navigate('/mensajes')}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  {t('chat.close', 'Cerrar')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/empleos/${serviceRequestId}`)}
+                  className="px-3 py-1.5 text-sm font-semibold text-white bg-linear-to-r from-brand-600 to-cyan-500 rounded-xl shadow-sm hover:from-brand-700 hover:to-cyan-600 transition-colors"
+                >
+                  {t('provider.requestDetail.sendProposal', 'Enviar propuesta')}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Composer */}
       <div className="p-4 border-t border-gray-100 bg-white">
@@ -1328,7 +1440,22 @@ ChatRoom.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
   showHeader: PropTypes.bool,
-  maxHeight: PropTypes.string
+  maxHeight: PropTypes.string,
+  proposalInfo: PropTypes.shape({
+    proposalId: PropTypes.string,
+    amount: PropTypes.number,
+    amountMin: PropTypes.number,
+    amountMax: PropTypes.number,
+    isRange: PropTypes.bool,
+    currency: PropTypes.string,
+    providerName: PropTypes.string,
+    status: PropTypes.string
+  }),
+  onAcceptProposal: PropTypes.func,
+  onRejectProposal: PropTypes.func,
+  isAcceptingProposal: PropTypes.bool,
+  userRole: PropTypes.string,
+  onClose: PropTypes.func
 };
 
 export default memo(ChatRoom);

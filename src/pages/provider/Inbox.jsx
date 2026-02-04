@@ -392,6 +392,8 @@ export default function Inbox() {
               className="min-h-125"
               maxHeight="400px"
               showHeader={true}
+              userRole="provider"
+              onClose={() => setSelectedChat(null)}
             />
           )}
         </div>
@@ -428,6 +430,7 @@ export default function Inbox() {
               currentUserId={user?.id || user?._id}
               showHeader={false}
               maxHeight="100%"
+              userRole="provider"
             />
           )}
         </div>

@@ -204,15 +204,24 @@
     "system": {
       "proposalStarted": "💬 Conversation started about the {{formattedAmount}} proposal. You can negotiate terms and resolve questions here.",
       "proposalStartedNoAmount": "💬 Conversation started about the proposal. You can negotiate terms and resolve questions here.",
-      "bookingStarted": "💬 Chat started for the service. You can coordinate details here."
+      "bookingStarted": "💬 Chat started for the service. You can coordinate details here.",
+      "infoRequestStarted": "📋 {{providerName}} needs more information about your request before sending you a proposal."
     },
     "noMessages": "No messages yet",
     "startConversation": "Send the first message to start the conversation",
     "typing": "Typing",
+    "activeConversation": "Active conversation",
     "replyingTo": "Replying to",
     "attachment": "Attachment",
     "sendMessage": "Send message",
-    "writeMessage": "Write a message..."
+    "writeMessage": "Write a message...",
+    "proposalPending": "Pending proposal from {{provider}}",
+    "provider": "provider",
+    "acceptProposal": "Accept proposal",
+    "reject": "Reject",
+    "accepting": "Accepting...",
+    "proposalAccepted": "Proposal accepted!",
+    "proposalRejected": "Proposal rejected"
   },
   "notifications": {
     "title": "Notifications",
@@ -532,6 +541,7 @@
       "draft": "Draft",
       "archived": "Archived",
       "viewProposals": "View proposals",
+      "proposalReceived": "Proposal received",
       "eligible": "Eligible",
       "publish": "Publish",
       "archive": "Archive",
@@ -588,6 +598,7 @@
       "negotiate": "Negotiate",
       "provider": "Provider",
       "noPrice": "No price",
+      "priceRange": "Price range",
       "tip": "💡 Compare proposals before deciding",
       "tipDescription": "Review each professional's profile, rating and price",
       "chatModal": {
@@ -614,7 +625,9 @@
       "selectConversationDescription": "Choose a conversation from the left panel to view messages",
       "loadError": "Error loading conversations",
       "chat": "Chat",
-      "provider": "Provider"
+      "provider": "Provider",
+      "acceptError": "Error accepting proposal",
+      "rejectError": "Error rejecting proposal"
     },
     "createRequest": {
       "title": "Create new request",
@@ -843,6 +856,37 @@
       "leadsUsed": "Leads used",
       "limitReachedUpgrade": "You've reached your limit. Upgrade your plan to continue.",
       "amountLabel": "Proposal amount",
+      "enableRange": "Use price range",
+      "fixedAmount": "Fixed amount",
+      "rangeAmount": "Price range",
+      "rangeHint": "If you're not sure about the exact amount, use a range",
+      "minAmount": "Minimum amount",
+      "maxAmount": "Maximum amount",
+      "minimum": "Minimum",
+      "maximum": "Maximum",
+      "amountMinRequired": "Minimum amount is required",
+      "amountMaxRequired": "Maximum amount is required",
+      "amountMaxMustBeGreater": "Maximum amount must be greater than minimum",
+      "needMoreInfo": "Need more information?",
+      "needMoreInfoDesc": "Before sending your proposal, you can contact the client to clarify questions about the job",
+      "askClient": "Ask client",
+      "infoRequestModalTitle": "Request more information",
+      "infoRequestModalSubtitle": "Contact the client before sending your proposal",
+      "infoRequestPlaceholder": "Write your question or what you need to know from the client...",
+      "sendInfoRequest": "Send inquiry",
+      "infoRequestSent": "Inquiry sent! The client will receive your message.",
+      "infoRequestError": "Error sending inquiry",
+      "infoRequestMessageRequired": "Write a message to send",
+      "infoRequestMessageLabel": "Your message to the client",
+      "infoRequestMessagePlaceholder": "What do you need to know before making your proposal?",
+      "infoRequestTipsTitle": "Tips for your inquiry",
+      "infoRequestTips": "Tips for your inquiry",
+      "infoRequestTip1": "Be specific about what you need to know",
+      "infoRequestTip2": "Ask about job details, access, materials, etc.",
+      "infoRequestTip3": "This opens a direct chat with the client",
+      "infoRequestTip4": "The client will receive a notification about your inquiry",
+      "infoRequestNote": "Your message will be sent directly to the client and you can continue the conversation in chat.",
+      "rangeEnabled": "Range enabled",
       "estimatedHours": "Estimated hours",
       "hoursPlaceholder": "E.g.: 2",
       "startDate": "Start date",
@@ -886,7 +930,21 @@
       "proposalNotCancelled": "Could not cancel proposal",
       "errorCancelling": "Error cancelling proposal",
       "errorSending": "Error sending proposal",
-      "yourIncome": "Your income"
+      "yourIncome": "Your income",
+      "proposalSentTitle": "Proposal sent",
+      "proposalSentSubtitle": "You have already sent a proposal for this request",
+      "proposalStatus": {
+        "sent": "Sent",
+        "viewed": "Viewed by client",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "draft": "Draft"
+      },
+      "sentOn": "Sent on",
+      "proposedAmount": "Proposed amount",
+      "hours": "hours",
+      "yourMessage": "Your message",
+      "goToMessages": "Go to messages"
     },
     "referrals": {
       "title": "Referral Program",
@@ -1191,7 +1249,8 @@
         "confirmBooking": "Confirm Booking",
         "edit": "Edit",
         "delete": "Delete",
-        "confirmCompletion": "Confirm completion"
+        "confirmCompletion": "Confirm completion",
+        "openChat": "Chat"
       },
       "payment": {
         "pending": "Payment pending",
@@ -1220,6 +1279,7 @@
       },
       "errors": {
         "loadFailed": "Could not load bookings",
+        "chatError": "Failed to open chat",
         "responsePublishFailed": "Could not publish response",
         "deleteFailed": "Could not delete",
         "noEvidenceUrls": "No evidence URLs obtained",

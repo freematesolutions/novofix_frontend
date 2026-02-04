@@ -149,7 +149,7 @@ function NotificationDropdownItem({ notification: n, index, onMarkRead, onNaviga
   );
 }
 function Header() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, role, roles, viewRole, isAuthenticated, changeViewRole, startRoleSwitch, clearViewRoleLock, logout, pendingVerification } = useAuth();
   const navigate = useNavigate();
 
@@ -1261,6 +1261,27 @@ function Header() {
       });
       // Broadcast for any other listeners (e.g., admin page badges)
       try { window.dispatchEvent(new CustomEvent('notifications:updated')); } catch {/* ignore */}
+      // Show a toast with action to navigate if the notification provides an actionUrl
+      try {
+        const actionUrl = payload?.data?.actionUrl;
+        const { title: translatedTitle, message: translatedMessage } = getTranslatedNotification(payload, t, i18n);
+        if (actionUrl) {
+          toastRef.current?.info(
+            translatedTitle,
+            translatedMessage,
+            {
+              duration: 8000,
+              action: {
+                label: t('header.open'),
+                onClick: () => { navigateRef.current?.(actionUrl); }
+              }
+            }
+          );
+        } else {
+          // Simple toast without action
+          toastRef.current?.info(translatedTitle, translatedMessage, { duration: 6000 });
+        }
+      } catch (err) { /* ignore toast errors */ }
     };
     const onCountersUpdate = () => {
       // When server signals counters changed, refresh immediately

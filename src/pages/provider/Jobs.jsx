@@ -118,21 +118,37 @@ export default function Jobs() {
           </div>
         )}
         
-        {!loading && (!Array.isArray(requests) || requests.length === 0) && (
-          <div className="flex flex-col items-center justify-center py-16 px-4">
-            <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-linear-to-br from-brand-100 to-cyan-100 mb-4">
-              <svg className="w-10 h-10 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('provider.jobs.noRequests')}</h3>
-            <p className="text-sm text-gray-500 text-center max-w-md">
-              {t('provider.jobs.noRequestsDescription')}
-            </p>
-          </div>
-        )}
-        
-        {!loading && (Array.isArray(requests) ? requests : []).map((r) => {
+        {/* Filtrar solicitudes: solo mostrar donde NO hay propuesta aceptada/rechazada del proveedor */}
+        {(() => {
+          const me = user?.id || user?._id;
+          const filteredRequests = (Array.isArray(requests) ? requests : []).filter((r) => {
+            const myProposal = Array.isArray(r?.proposals) && r.proposals.find(p => String(p?.provider?._id || p?.provider) === String(me));
+            // Si no hay propuesta del proveedor, mostrar (pendiente a enviar)
+            if (!myProposal) return true;
+            // Si la propuesta está aceptada o rechazada, NO mostrar
+            const status = myProposal.status?.toLowerCase();
+            if (status === 'accepted' || status === 'rejected') return false;
+            // Propuestas pendientes (sent, viewed, draft, etc.) se muestran
+            return true;
+          });
+
+          if (!loading && filteredRequests.length === 0) {
+            return (
+              <div className="flex flex-col items-center justify-center py-16 px-4">
+                <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-linear-to-br from-brand-100 to-cyan-100 mb-4">
+                  <svg className="w-10 h-10 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('provider.jobs.noRequests')}</h3>
+                <p className="text-sm text-gray-500 text-center max-w-md">
+                  {t('provider.jobs.noRequestsDescription')}
+                </p>
+              </div>
+            );
+          }
+
+          return filteredRequests.map((r) => {
           const isDirected = String(r?.visibility).toLowerCase() === 'directed';
           const me = user?.id || user?._id;
           const selectedForMe = isDirected && Array.isArray(r?.selectedProviders) && r.selectedProviders.some(pid => String(pid) === String(me));
@@ -235,11 +251,11 @@ export default function Jobs() {
                 </div>
                 
                 {/* Action buttons */}
-                <div className="flex items-center gap-2 sm:flex-col sm:items-stretch">
+                <div className="shrink-0 w-full sm:w-auto flex flex-col xs:flex-row sm:flex-col gap-2 mt-3 sm:mt-0">
                   <button
                     type="button"
                     onClick={() => navigate(`/empleos/${r._id}`)}
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-brand-300 hover:bg-brand-50/30 text-sm font-medium text-gray-700 transition-all flex items-center justify-center gap-2"
+                    className="w-full xs:w-auto sm:w-full px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-brand-300 hover:bg-brand-50/30 text-sm font-medium text-gray-700 transition-all flex items-center justify-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                     {t('provider.jobs.view')}
@@ -248,7 +264,7 @@ export default function Jobs() {
                     type="button"
                     onClick={() => hasProposal ? openNegotiationChat(r) : navigate(`/empleos/${r._id}?proponer=1`)}
                     disabled={openingChat === r._id}
-                    className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-white text-sm font-medium shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait ${
+                    className={`w-full xs:w-auto sm:w-full px-4 py-2.5 rounded-xl text-white text-sm font-medium shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait ${
                       hasProposal 
                         ? 'bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-emerald-500/25' 
                         : 'bg-linear-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 shadow-brand-500/25'
@@ -272,7 +288,8 @@ export default function Jobs() {
               </div>
             </div>
           );
-        })}
+        });
+        })()}
       </div>
     </div>
   );

@@ -26,6 +26,9 @@ export default function Messages() {
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [unreadCounts, setUnreadCounts] = useState({});
   
+  // Estado para aceptar/rechazar propuesta desde el chat
+  const [isAcceptingProposal, setIsAcceptingProposal] = useState(false);
+  
   // Limpiar errores al montar
   useEffect(() => { clearError?.(); }, [clearError]);
 
@@ -153,6 +156,95 @@ export default function Messages() {
   const selectedChat = useMemo(() => {
     return chats.find(c => (c._id || c.id) === selectedChatId);
   }, [chats, selectedChatId]);
+
+  // Extraer información de propuesta del chat seleccionado (si tiene una asociada)
+  const proposalInfo = useMemo(() => {
+    if (!selectedChat?.proposal) return null;
+    const proposal = selectedChat.proposal;
+    const provider = selectedChat.participants?.provider;
+    const providerName = provider?.providerProfile?.businessName || 
+                         provider?.profile?.firstName || 
+                         t('client.messages.provider');
+    
+    return {
+      proposalId: proposal._id || proposal.id || proposal,
+      amount: proposal.pricing?.amount,
+      amountMin: proposal.pricing?.amountMin,
+      amountMax: proposal.pricing?.amountMax,
+      isRange: proposal.pricing?.isRange || false,
+      currency: proposal.pricing?.currency || 'US$',
+      providerName,
+      status: proposal.status || 'pending'
+    };
+  }, [selectedChat, t]);
+
+  // Aceptar propuesta desde el chat
+  const handleAcceptProposal = useCallback(async (proposalId) => {
+    if (!proposalId || isAcceptingProposal) return;
+    
+    setIsAcceptingProposal(true);
+    setError('');
+    try {
+      await api.patch(`/proposals/${proposalId}/accept`);
+      
+      // Actualizar el chat local para reflejar el cambio
+      setChats(prev => prev.map(chat => {
+        const id = chat._id || chat.id;
+        if (id === selectedChatId && chat.proposal) {
+          return {
+            ...chat,
+            proposal: {
+              ...chat.proposal,
+              status: 'accepted'
+            }
+          };
+        }
+        return chat;
+      }));
+      
+      // Recargar chats para obtener datos actualizados
+      await loadChats();
+      
+    } catch (err) {
+      setError(err?.response?.data?.message || t('client.messages.acceptError', 'Error al aceptar propuesta'));
+    } finally {
+      setIsAcceptingProposal(false);
+    }
+  }, [selectedChatId, isAcceptingProposal, loadChats, t]);
+
+  // Rechazar propuesta desde el chat
+  const handleRejectProposal = useCallback(async (proposalId) => {
+    if (!proposalId || isAcceptingProposal) return;
+    
+    setIsAcceptingProposal(true);
+    setError('');
+    try {
+      await api.patch(`/proposals/${proposalId}/reject`);
+      
+      // Actualizar el chat local
+      setChats(prev => prev.map(chat => {
+        const id = chat._id || chat.id;
+        if (id === selectedChatId && chat.proposal) {
+          return {
+            ...chat,
+            proposal: {
+              ...chat.proposal,
+              status: 'rejected'
+            }
+          };
+        }
+        return chat;
+      }));
+      
+      // Recargar chats
+      await loadChats();
+      
+    } catch (err) {
+      setError(err?.response?.data?.message || t('client.messages.rejectError', 'Error al rechazar propuesta'));
+    } finally {
+      setIsAcceptingProposal(false);
+    }
+  }, [selectedChatId, isAcceptingProposal, loadChats, t]);
 
   // Nombre del otro participante
   const getParticipantName = (chat) => {
@@ -339,6 +431,12 @@ export default function Messages() {
                 className="h-125 lg:h-150"
                 showHeader={true}
                 onChatError={(err) => setError(err)}
+                // Props para aceptar/rechazar propuesta desde el chat
+                proposalInfo={proposalInfo}
+                onAcceptProposal={handleAcceptProposal}
+                onRejectProposal={handleRejectProposal}
+                isAcceptingProposal={isAcceptingProposal}
+                userRole="client"
               />
             </div>
           ) : (
