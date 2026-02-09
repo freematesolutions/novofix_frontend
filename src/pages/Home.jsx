@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import SearchBar from '@/components/ui/SearchBar.jsx';
@@ -17,6 +17,7 @@ function Home() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, viewRole } = useAuth();
   // const [activeServices, setActiveServices] = useState([]);
   const [currentServiceIndex, setCurrentServiceIndex] = useState(0);
@@ -120,16 +121,44 @@ function Home() {
     }
   }, [isAuthenticated, viewRole, navigate]);
 
+  // Sincronizar categoría desde URL params (para que el botón "atrás" funcione)
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get('category');
+    if (categoryFromUrl && categoryFromUrl !== selectedCategory) {
+      // Si hay categoría en URL pero no en estado, cargar los proveedores
+      const loadCategoryFromUrl = async () => {
+        setSelectedCategory(categoryFromUrl);
+        setSearchResults(null);
+        setLoadingProviders(true);
+        try {
+          const { data } = await api.get('/guest/providers/search', {
+            params: { category: categoryFromUrl, limit: 50 }
+          });
+          setCategoryProviders(data?.data?.providers || []);
+        } catch {
+          setCategoryProviders([]);
+        } finally {
+          setLoadingProviders(false);
+        }
+      };
+      loadCategoryFromUrl();
+    } else if (!categoryFromUrl && selectedCategory) {
+      // Si no hay categoría en URL pero sí en estado, limpiar (usuario hizo "atrás")
+      setSelectedCategory(null);
+      setCategoryProviders([]);
+    }
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Limpiar estado solo cuando se hace click en el logo (resetHome = true)
   useEffect(() => {
     if (location.state?.resetHome) {
       setSearchResults(null);
       setSelectedCategory(null);
       setCategoryProviders([]);
-      // Limpiar el flag para que no se ejecute en cada render
-      navigate(location.pathname, { replace: true, state: {} });
+      // Limpiar el flag y los params de URL
+      navigate('/', { replace: true, state: {} });
     }
-  }, [location.state, location.pathname, navigate]);
+  }, [location.state, navigate]);
 
   // Obtener servicios activos y categorías
   useEffect(() => {
@@ -254,11 +283,17 @@ useEffect(() => {
     }
   }, []);
 
-  // Limpiar búsqueda y volver a categorías
+  // Limpiar búsqueda y volver a categorías - usar navegación del historial
   const handleClearSearch = useCallback(() => {
-    setSearchResults(null);
-    setSelectedCategory(null);
-  }, []);
+    // Si hay categoría seleccionada, navegar hacia atrás en el historial
+    if (selectedCategory) {
+      navigate(-1);
+    } else {
+      // Si solo hay resultados de búsqueda, limpiar el estado
+      setSearchResults(null);
+      setSelectedCategory(null);
+    }
+  }, [selectedCategory, navigate]);
 
   // Notificar al Header cuando hay búsqueda o categoría activa
   // Solo para usuarios guest o con viewRole 'client' (no provider)
@@ -284,9 +319,11 @@ useEffect(() => {
     }
   }, [searchResults, selectedCategory, handleSearch, handleClearSearch, isAuthenticated, viewRole]);
 
-  // Manejar clic en categoría
+  // Manejar clic en categoría - actualiza URL para que el botón "atrás" funcione
   const handleCategoryClick = async (category) => {
     // console.log('Home: handleCategoryClick llamado con:', category);
+    // Actualizar URL con el parámetro de categoría (esto crea una entrada en el historial)
+    setSearchParams({ category }, { replace: false });
     setSelectedCategory(category);
     setSearchResults(null);
     setLoadingProviders(true);
