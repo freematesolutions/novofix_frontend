@@ -26,8 +26,6 @@ function CategoryIconCarousel({
   const { t } = useTranslation();
   const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [dragOffset, setDragOffset] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   
@@ -37,6 +35,12 @@ function CategoryIconCarousel({
   const lastTimeRef = useRef(0);
   const offsetRef = useRef(0); // Ref para tracking del offset sin causar re-renders
   const hasDraggedRef = useRef(false); // Flag para saber si hubo drag significativo
+  const autoPauseTimeoutRef = useRef(null);
+  const [autoPausedUntil, setAutoPausedUntil] = useState(0);
+  
+  // Refs para drag - usar refs para evitar re-renders durante el drag
+  const startXRef = useRef(0);
+  const dragStartOffsetRef = useRef(0); // Offset al iniciar el drag
 
   // Cantidad de iconos visibles: ~3 total para efecto espiral flotante
   const visibleCount = useMemo(() => {
@@ -50,30 +54,8 @@ function CategoryIconCarousel({
 
   // Calcular posiciones de iconos - CARRUSEL CIRCULAR CONTINUO
   // Calcula posición 3D con SEPARACIÓN FIJA basada en índice relativo
-  const getIconPosition = useCallback((index) => {
-    const totalItems = categories.length;
-    if (totalItems === 0) return { isVisible: false };
-
-    // Calcular posición relativa al centro (qué tan lejos está del ítem actual)
-    let relativeIndex = index - continuousOffset;
-    
-    // Normalizar para que esté en rango [-totalItems/2, totalItems/2]
-    while (relativeIndex > totalItems / 2) relativeIndex -= totalItems;
-    while (relativeIndex < -totalItems / 2) relativeIndex += totalItems;
-    
-    // Agregar offset del drag (en unidades de índice)
-    relativeIndex += dragOffset / 100;
-
-    // SOLO mostrar 3 tarjetas: la central y una a cada lado
-    // Si está más lejos de 1.5 posiciones, no es visible
-    if (Math.abs(relativeIndex) > 1.5) {
-      return { isVisible: false };
-    }
-
-    // SEPARACIÓN FIJA EN PÍXELES según resolución
-    // Cada tarjeta se separa esta cantidad de píxeles del centro
+  const getCardSpacing = useCallback(() => {
     let cardSpacing = 120; // Móvil pequeño
-    
     if (typeof window !== 'undefined') {
       const width = window.innerWidth;
       if (width >= 1536) {
@@ -91,6 +73,40 @@ function CategoryIconCarousel({
       } else {
         cardSpacing = 110; // Móvil pequeño
       }
+    }
+    return cardSpacing;
+  }, []);
+
+  const pauseAutoRotate = useCallback((ms = 3000) => {
+    const until = Date.now() + ms;
+    setAutoPausedUntil(until);
+    if (autoPauseTimeoutRef.current) {
+      clearTimeout(autoPauseTimeoutRef.current);
+    }
+    autoPauseTimeoutRef.current = setTimeout(() => {
+      setAutoPausedUntil(0);
+    }, ms);
+  }, []);
+
+  const getIconPosition = useCallback((index) => {
+    const totalItems = categories.length;
+    if (totalItems === 0) return { isVisible: false };
+
+    // SEPARACIÓN FIJA EN PÍXELES según resolución
+    const cardSpacing = getCardSpacing();
+
+    // Calcular posición relativa al centro (qué tan lejos está del ítem actual)
+    // continuousOffset ya incluye el drag offset durante el drag
+    let relativeIndex = index - continuousOffset;
+    
+    // Normalizar para que esté en rango [-totalItems/2, totalItems/2]
+    while (relativeIndex > totalItems / 2) relativeIndex -= totalItems;
+    while (relativeIndex < -totalItems / 2) relativeIndex += totalItems;
+
+    // SOLO mostrar 3 tarjetas: la central y una a cada lado
+    // Si está más lejos de 1.5 posiciones, no es visible
+    if (Math.abs(relativeIndex) > 1.5) {
+      return { isVisible: false };
     }
 
     // Posición horizontal: directamente proporcional al índice relativo
@@ -127,7 +143,7 @@ function CategoryIconCarousel({
       relativeIndex,
       isCenter
     };
-  }, [categories.length, dragOffset, continuousOffset]);
+  }, [categories.length, continuousOffset, getCardSpacing]);
 
   // Navegación por teclado
   const handleKeyDown = useCallback((e) => {
@@ -148,16 +164,20 @@ function CategoryIconCarousel({
     // Permitir drag desde cualquier parte, incluyendo tarjetas
     hasDraggedRef.current = false;
     const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
-    setStartX(clientX);
-    setDragOffset(0);
+    startXRef.current = clientX;
+    dragStartOffsetRef.current = offsetRef.current; // Guardar offset al iniciar
     // NO activar isDragging aquí - esperar a que haya movimiento
   }, []);
 
   const handleDragMove = useCallback((e) => {
-    if (startX === 0) return; // No hay drag iniciado
+    if (startXRef.current === 0) return; // No hay drag iniciado
     
     const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
-    const diff = clientX - startX;
+    const diff = clientX - startXRef.current;
+    
+    if (e.cancelable && Math.abs(diff) > 3) {
+      e.preventDefault();
+    }
     
     // Solo activar modo drag después de movimiento significativo (más de 5px)
     if (Math.abs(diff) > 5) {
@@ -165,42 +185,57 @@ function CategoryIconCarousel({
         setIsDragging(true);
       }
       hasDraggedRef.current = true;
-      setDragOffset(diff);
-    }
-  }, [startX, isDragging]);
-
-  const handleDragEnd = useCallback(() => {
-    if (startX === 0 && !isDragging) return;
-    
-    setIsDragging(false);
-    setStartX(0);
-    
-    // Calcular cuántos items mover basado en el drag y aplicar al offset continuo
-    const threshold = 50;
-    const itemsToMove = Math.round(dragOffset / threshold);
-    
-    if (itemsToMove !== 0) {
-      // Actualizar el offset continuo directamente
-      const newOffset = (offsetRef.current + itemsToMove + categories.length) % categories.length;
+      
+      // Calcular nuevo offset basado en el drag
+      // relativeIndex = index - continuousOffset
+      // translateX = relativeIndex * cardSpacing
+      // Para que las tarjetas sigan el dedo:
+      // - Arrastrar a la derecha (diff > 0) debe mover tarjetas a la derecha
+      // - Esto requiere que translateX aumente, lo que requiere que relativeIndex aumente
+      // - Para que relativeIndex aumente, continuousOffset debe DISMINUIR
+      // - Por lo tanto: newOffset = dragStartOffset - dragItems
+      const cardSpacing = getCardSpacing();
+      const dragItems = diff / cardSpacing;
+      const total = categories.length || 1;
+      let newOffset = dragStartOffsetRef.current - dragItems;
+      // Normalizar al rango [0, total)
+      newOffset = ((newOffset % total) + total) % total;
       offsetRef.current = newOffset;
       setContinuousOffset(newOffset);
     }
+  }, [isDragging, getCardSpacing, categories.length]);
+
+  const handleDragEnd = useCallback(() => {
+    if (startXRef.current === 0 && !isDragging) return;
     
-    setDragOffset(0);
-  }, [isDragging, startX, dragOffset, categories.length]);
+    setIsDragging(false);
+    startXRef.current = 0;
+    dragStartOffsetRef.current = 0;
+    
+    // El offset ya está actualizado durante el drag, solo pausar auto-rotación
+    if (hasDraggedRef.current && onIndexChange) {
+      const total = categories.length || 1;
+      const roundedIndex = Math.round(offsetRef.current) % total;
+      onIndexChange(roundedIndex);
+    }
+
+    pauseAutoRotate(3500);
+  }, [isDragging, categories.length, onIndexChange, pauseAutoRotate]);
 
   // Navegación manual con flechas
   const navigatePrev = useCallback(() => {
     const newOffset = (offsetRef.current - 1 + categories.length) % categories.length;
     offsetRef.current = newOffset;
     setContinuousOffset(newOffset);
-  }, [categories.length]);
+    pauseAutoRotate(2500);
+  }, [categories.length, pauseAutoRotate]);
 
   const navigateNext = useCallback(() => {
     const newOffset = (offsetRef.current + 1) % categories.length;
     offsetRef.current = newOffset;
     setContinuousOffset(newOffset);
-  }, [categories.length]);
+    pauseAutoRotate(2500);
+  }, [categories.length, pauseAutoRotate]);
 
   // Scroll wheel para navegar
   const handleWheel = useCallback((e) => {
@@ -215,6 +250,7 @@ function CategoryIconCarousel({
       const newOffset = (offsetRef.current + direction + categories.length) % categories.length;
       offsetRef.current = newOffset;
       setContinuousOffset(newOffset);
+      pauseAutoRotate(2000);
       
       setTimeout(() => {
         if (containerRef.current) {
@@ -222,11 +258,12 @@ function CategoryIconCarousel({
         }
       }, 300);
     }
-  }, [currentIndex, categories.length, onIndexChange]);
+  }, [currentIndex, categories.length, onIndexChange, pauseAutoRotate]);
 
   // Auto-rotación CONTINUA fluida - movimiento de espiral sin interrupciones
   useEffect(() => {
-    if (!autoRotate || isHovering || isDragging || categories.length <= 1) {
+    const isAutoPaused = autoPausedUntil && Date.now() < autoPausedUntil;
+    if (!autoRotate || isHovering || isDragging || isAutoPaused || categories.length <= 1) {
       // Cancelar animación si está pausada
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
@@ -272,7 +309,15 @@ function CategoryIconCarousel({
         animationFrameRef.current = null;
       }
     };
-  }, [autoRotate, isHovering, isDragging, categories.length]);
+  }, [autoRotate, isHovering, isDragging, categories.length, autoPausedUntil]);
+
+  useEffect(() => {
+    return () => {
+      if (autoPauseTimeoutRef.current) {
+        clearTimeout(autoPauseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Notificar al componente padre cuando cambia el estado de hover
   useEffect(() => {
@@ -325,13 +370,13 @@ function CategoryIconCarousel({
     <div 
       ref={containerRef}
       className="relative w-full h-36 sm:h-40 md:h-44 lg:h-36 xl:h-44 select-none"
-      style={{ perspective: '1200px' }}
+      style={{ perspective: '1200px', touchAction: 'pan-y' }}
       onMouseDown={handleDragStart}
       onMouseMove={handleDragMove}
       onMouseUp={handleDragEnd}
       onMouseLeave={() => {
         handleDragEnd();
-        setStartX(0);
+        startXRef.current = 0;
         setIsHovering(false);
         setHoveredIndex(null);
       }}

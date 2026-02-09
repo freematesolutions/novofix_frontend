@@ -5,6 +5,7 @@ import ProviderProfileModal from './ProviderProfileModal.jsx';
 import RequestWizardModal from './RequestWizardModal.jsx';
 import ImageZoomModal from './ImageZoomModal.jsx';
 import GuestConversionModal from './GuestConversionModal.jsx';
+import PortfolioModal from './PortfolioModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { useToast } from './Toast.jsx';
 
@@ -65,9 +66,11 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
   const [showProfile, setShowProfile] = useState(false);
   const [showRequestWizard, setShowRequestWizard] = useState(false);
   const [showGuestConversion, setShowGuestConversion] = useState(false);
+  const [showPortfolioGallery, setShowPortfolioGallery] = useState(false);
   
   // Extract provider data
   const businessName = provider.providerProfile?.businessName || provider.profile?.firstName || t('ui.providerCard.professional');
+  const businessDescription = provider.providerProfile?.description || provider.providerProfile?.businessDescription || '';
   const rating = provider.providerProfile?.rating?.average || 0;
   const reviewCount = provider.providerProfile?.rating?.count || 0;
   const plan = provider.subscription?.plan || 'free';
@@ -120,6 +123,13 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
       setShowRequestWizard(true);
       return;
     }
+    // Verificar si es el botón de portafolio (galería)
+    const portfolioBtn = e.target.closest('[data-action="portfolio"]');
+    if (portfolioBtn) {
+      e.stopPropagation();
+      setShowPortfolioGallery(true);
+      return;
+    }
     // Click en área general - ir a about
     setShowProfile('about');
     onSelect?.(provider);
@@ -130,7 +140,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
       {/* Modern Provider Card */}
       <div 
         onClickCapture={handleCardClickCapture}
-        className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-brand-200 transition-all duration-300 cursor-pointer overflow-hidden w-full max-w-2xl min-w-65 min-h-80 max-h-105 mx-auto"
+        className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-brand-200 transition-all duration-300 cursor-pointer overflow-hidden w-full max-w-2xl min-w-65 mx-auto"
       >
         {/* Plan badge + Score/Rating: estático en móviles, absoluto en sm+ */}
         <div className="flex items-center gap-2 z-10 mt-2 mb-2 justify-center sm:justify-end sm:absolute sm:top-4 sm:right-4 sm:mt-0 sm:mb-0">
@@ -222,7 +232,19 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                 </div>
               </div>
 
-              {/* Quick stats row */}
+              {/* Business Description - replaces service count */}
+              {businessDescription && (
+                <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-3 leading-relaxed">
+                  {businessDescription}
+                </p>
+              )}
+              {!businessDescription && (
+                <p className="text-xs sm:text-sm text-gray-400 italic mb-3">
+                  {t('ui.providerCard.noDescription')}
+                </p>
+              )}
+
+              {/* Quick stats row - compact */}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
                 {/* Completed jobs */}
                 <div className="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-lg">
@@ -246,71 +268,65 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
                   </div>
                 )}
 
-                {/* Portfolio count */}
+                {/* Portfolio badge - clickable indicator */}
                 {portfolio.length > 0 && (
                   <div 
-                    data-nav-section="portfolio"
-                    className="flex items-center gap-2 bg-linear-to-r from-purple-500 to-pink-500 px-3 py-2 rounded-xl cursor-pointer shadow-md hover:scale-105 hover:shadow-lg transition-all text-white font-semibold text-sm"
-                    title={t('ui.providerCard.exploreWorksTooltip')}
+                    data-action="portfolio"
+                    className="flex items-center gap-1 bg-purple-50 px-2 py-1 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer"
                   >
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    {t('ui.providerCard.exploreWorks')}
+                    <span className="text-xs text-purple-700 font-medium">{portfolio.length}</span>
                   </div>
                 )}
               </div>
 
-              {/* Services tags */}
-              {services.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {services.slice(0, 2).map((service, idx) => (
-                    <span 
-                      key={idx}
-                      data-nav-section="services"
-                      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700 border border-brand-100 cursor-pointer hover:bg-brand-100 transition-colors"
-                      title={t('ui.providerCard.viewAllServices')}
-                    >
-                      {t(`home.categories.${service.category}`, service.category)}
-                    </span>
-                  ))}
-                  {services.length > 2 && (
-                    <span 
-                      data-nav-section="services"
-                      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 cursor-pointer hover:bg-brand-100 hover:text-brand-700 transition-colors"
-                      title={t('ui.providerCard.viewAllServices')}
-                    >
-                      {t('ui.providerCard.moreServices', { count: services.length - 2 })}
-                    </span>
-                  )}
+              {/* Action buttons - Modernized layout */}
+              <div className="flex flex-col gap-2 mt-auto">
+                {/* Primary actions row */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  {/* Request Estimate - Primary CTA */}
+                  <button
+                    data-action="contact"
+                    className="inline-flex items-center gap-1.5 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    {t('ui.providerCard.sendRequest')}
+                  </button>
+
+                  {/* View Profile - Secondary */}
+                  <button
+                    data-nav-section="about"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors px-3 py-2 rounded-lg hover:bg-gray-50"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span className="underline underline-offset-2">{t('ui.providerCard.viewProfile')}</span>
+                  </button>
                 </div>
-              )}
 
-              {/* Action buttons */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-auto">
-                {/* Contact price link */}
-                <button
-                  data-action="contact"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <span className="underline underline-offset-2">{t('ui.providerCard.sendRequest')}</span>
-                </button>
-
-                <span className="text-gray-300">|</span>
-
-                {/* View profile button */}
-                <button
-                  data-nav-section="about"
-                  className="inline-flex items-center gap-1.5 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  {t('ui.providerCard.viewProfile')}
-                </button>
+                {/* Portfolio Gallery Button - Only shown if portfolio exists */}
+                {portfolio.length > 0 && (
+                  <button
+                    data-action="portfolio"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowPortfolioGallery(true);
+                    }}
+                    className="inline-flex items-center justify-center gap-2 w-full sm:w-auto bg-linear-to-r from-purple-500 to-pink-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
+                    title={t('ui.providerCard.exploreWorksTooltip')}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>{t('ui.providerCard.exploreWorks')}</span>
+                    <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{portfolio.length}</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -365,6 +381,16 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
           setShowRequestWizard(true);
         }}
       />
+
+      {/* Portfolio Gallery Modal - Opens directly with media playback */}
+      {showPortfolioGallery && portfolio.length > 0 && (
+        <PortfolioModal
+          isOpen={showPortfolioGallery}
+          onClose={() => setShowPortfolioGallery(false)}
+          portfolio={portfolio}
+          providerName={businessName}
+        />
+      )}
     </>
   );
 }

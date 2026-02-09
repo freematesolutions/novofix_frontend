@@ -1,5 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Suspense, lazy, useEffect, useMemo, useRef } from 'react';
 import Header from './components/layout/Header.jsx';
 import Footer from './components/layout/Footer.jsx';
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx';
@@ -45,9 +45,65 @@ const AdminAlerts = lazy(() => import('./pages/admin/AdminAlerts.jsx'));
 function App() {
   const { pendingVerification, user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const historyStackRef = useRef([]);
+  const isHandlingPopRef = useRef(false);
+  const hasPushedGuardRef = useRef(false);
+  const isMobileDevice = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(pointer: coarse)').matches;
+  }, []);
   // Ocultar header SOLO en /verificar-email si hay verificación pendiente o usuario no verificado
   const isVerifyRoute = location.pathname.startsWith('/verificar-email');
   const hideHeader = isVerifyRoute && (pendingVerification || (user && user.emailVerified !== true));
+
+  useEffect(() => {
+    const path = `${location.pathname}${location.search}${location.hash}`;
+    if (!isHandlingPopRef.current) {
+      const stack = historyStackRef.current;
+      if (stack[stack.length - 1] !== path) {
+        stack.push(path);
+        if (stack.length > 50) {
+          stack.shift();
+        }
+      }
+    }
+  }, [location.pathname, location.search, location.hash]);
+
+  useEffect(() => {
+    if (!isMobileDevice) return;
+
+    if (!hasPushedGuardRef.current) {
+      hasPushedGuardRef.current = true;
+      const guardPath = `${location.pathname}${location.search}${location.hash}`;
+      navigate(guardPath, {
+        replace: false,
+        state: { ...(location.state || {}), __appGuard: true }
+      });
+    }
+
+    const handlePopState = () => {
+      const stack = historyStackRef.current;
+      if (stack.length > 1) {
+        stack.pop();
+        const prev = stack[stack.length - 1];
+        isHandlingPopRef.current = true;
+        navigate(prev, { replace: true });
+        setTimeout(() => {
+          isHandlingPopRef.current = false;
+        }, 0);
+      } else {
+        isHandlingPopRef.current = true;
+        navigate('/', { replace: true });
+        setTimeout(() => {
+          isHandlingPopRef.current = false;
+        }, 0);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isMobileDevice, location.pathname, location.search, location.hash, location.state, navigate]);
   return (
     <div className="min-h-screen flex flex-col">
       {/* Skip link for keyboard users */}

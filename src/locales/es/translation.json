@@ -1634,13 +1634,13 @@
       "noFilesAttached": "No has adjuntado archivos",
       "addPhotosOrVideos": "Agregar fotos o videos",
       "previous": "Anterior",
-      "sendRequest": "Enviar solicitud"
+      "sendRequest": "Solicitar Estimado"
     },
     "providerProfile": {
       "professional": "Profesional",
       "onlyClientsCanRequest": "Solo los clientes pueden enviar solicitudes",
       "jobs": "trabajos",
-      "sendRequest": "Enviar solicitud",
+      "sendRequest": "Solicitar Estimado",
       "estimate": "Cotización",
       "tabs": {
         "about": "Acerca de",
@@ -1685,12 +1685,13 @@
       "reviewsCount": "{{count}} reseñas",
       "hires": "contrataciones",
       "response": "respuesta",
-      "exploreWorksTooltip": "Explorar trabajos realizados",
+      "exploreWorksTooltip": "Ver galería de trabajos realizados",
       "exploreWorks": "Ver trabajos",
       "viewAllServices": "Ver todos los servicios",
       "moreServices": "+{{count}} más",
-      "sendRequest": "Enviar solicitud",
-      "viewProfile": "Ver perfil"
+      "sendRequest": "Solicitar Estimado",
+      "viewProfile": "Ver perfil",
+      "noDescription": "Sin descripción disponible"
     },
     "mapPicker": {
       "title": "Seleccionar ubicación",

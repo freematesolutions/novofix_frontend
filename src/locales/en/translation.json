@@ -1634,13 +1634,13 @@
       "noFilesAttached": "No files attached",
       "addPhotosOrVideos": "Add photos or videos",
       "previous": "Previous",
-      "sendRequest": "Send request"
+      "sendRequest": "Request Estimate"
     },
     "providerProfile": {
       "professional": "Professional",
       "onlyClientsCanRequest": "Only clients can send requests",
       "jobs": "jobs",
-      "sendRequest": "Send request",
+      "sendRequest": "Request Estimate",
       "estimate": "Quote",
       "tabs": {
         "about": "About",
@@ -1685,12 +1685,13 @@
       "reviewsCount": "{{count}} reviews",
       "hires": "hires",
       "response": "response",
-      "exploreWorksTooltip": "Explore completed works",
+      "exploreWorksTooltip": "View portfolio gallery",
       "exploreWorks": "View works",
       "viewAllServices": "View all services",
       "moreServices": "+{{count}} more",
-      "sendRequest": "Send request",
-      "viewProfile": "View profile"
+      "sendRequest": "Request Estimate",
+      "viewProfile": "View profile",
+      "noDescription": "No description available"
     },
     "mapPicker": {
       "title": "Select location",

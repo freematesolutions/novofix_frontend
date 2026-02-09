@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function PortfolioModal({ isOpen, onClose, portfolio, providerName }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -165,16 +166,18 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
     }
   };
 
-  return (
+  // Usar createPortal para renderizar el modal directamente en el body
+  // Esto evita problemas de z-index con elementos sticky como el header
+  return createPortal(
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-2 sm:p-4" 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm" 
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="portfolio-modal-title"
     >
       <div 
-        className="bg-white rounded-xl shadow-2xl w-full h-full sm:max-w-7xl sm:max-h-[96vh] flex flex-col overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl w-full h-full max-h-screen sm:m-4 sm:w-[calc(100%-2rem)] sm:h-[calc(100%-2rem)] sm:max-w-7xl flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -537,6 +540,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

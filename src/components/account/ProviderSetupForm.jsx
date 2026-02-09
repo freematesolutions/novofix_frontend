@@ -73,6 +73,9 @@ const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, s
         await api.put('/auth/profile', payload);
       }
 
+      // Disparar evento para refrescar el usuario en AuthContext
+      window.dispatchEvent(new Event('auth:refresh'));
+      
       toast.success('Perfil de proveedor actualizado');
       if (typeof onCompleted === 'function') onCompleted();
       return true;
