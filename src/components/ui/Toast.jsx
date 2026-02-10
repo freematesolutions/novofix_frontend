@@ -192,7 +192,7 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={api}>
       {children}
-      <div className="fixed top-4 right-4 z-9999 space-y-3 w-96 max-w-[calc(100vw-2rem)]">
+      <div className="fixed top-4 right-4 z-99999 space-y-3 w-96 max-w-[calc(100vw-2rem)]">
         {toasts.map((t, index) => (
           <ToastItem 
             key={t.id} 

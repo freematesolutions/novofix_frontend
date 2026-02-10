@@ -24,6 +24,19 @@ const STATUS_FLOW = {
   cancelled: null
 };
 
+const CATEGORY_KEYS = ['professionalism', 'quality', 'punctuality', 'communication', 'value'];
+
+const buildCategoryMap = (value) => CATEGORY_KEYS.reduce((acc, key) => {
+  acc[key] = value;
+  return acc;
+}, {});
+
+const calculateOverallFromCategories = (cats) => {
+  const total = CATEGORY_KEYS.reduce((sum, key) => sum + Number(cats[key] || 0), 0);
+  const avg = total / CATEGORY_KEYS.length;
+  return Math.max(1, Math.round(avg));
+};
+
 export default function Bookings() {
   const { t } = useTranslation();
   const currentLang = useCurrentLanguage(); // Hook reactivo al cambio de idioma
@@ -65,7 +78,7 @@ export default function Bookings() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewBooking, setReviewBooking] = useState(null);
   const [reviewOverall, setReviewOverall] = useState(5);
-  const [reviewCats, setReviewCats] = useState({ professionalism: 5, quality: 5, punctuality: 5, communication: 5, value: 5 });
+  const [reviewCats, setReviewCats] = useState(buildCategoryMap(5));
   const [reviewTitle, setReviewTitle] = useState('');
   const [reviewComment, setReviewComment] = useState('');
   const [reviewFiles, setReviewFiles] = useState([]);
@@ -73,12 +86,33 @@ export default function Bookings() {
   const [reviewedIds, setReviewedIds] = useState(new Set());
   const [reviewsByBooking, setReviewsByBooking] = useState({}); // bookingId -> review
   const [reviewLoadingMap, setReviewLoadingMap] = useState({}); // bookingId -> bool
+  // Feedback de plataforma (cliente califica NovoFix)
+  const [platformRating, setPlatformRating] = useState(0); // 0 = no calificado
+  const [platformComment, setPlatformComment] = useState('');
+  const [wouldRecommend, setWouldRecommend] = useState(true);
   // Responder reseña (proveedor)
   const [responseOpen, setResponseOpen] = useState(false);
   const [responseReview, setResponseReview] = useState(null);
   const [responseComment, setResponseComment] = useState('');
   const [responseLoading, setResponseLoading] = useState(false);
   const [responseMode, setResponseMode] = useState('create'); // 'create' | 'edit'
+  // Reseña del proveedor hacia el cliente
+  const [clientReviewOpen, setClientReviewOpen] = useState(false);
+  const [clientReviewBooking, setClientReviewBooking] = useState(null);
+  const [clientReviewOverall, setClientReviewOverall] = useState(5);
+  const [clientReviewCats, setClientReviewCats] = useState({ communication: 5, punctuality: 5, respect: 5, clarity: 5, payment: 5 });
+  const [clientReviewComment, setClientReviewComment] = useState('');
+  const [clientReviewLoading, setClientReviewLoading] = useState(false);
+  const [clientReviewedIds, setClientReviewedIds] = useState(new Set());
+  // Feedback de plataforma desde proveedor
+  const [providerPlatformRating, setProviderPlatformRating] = useState(0);
+  const [providerPlatformComment, setProviderPlatformComment] = useState('');
+  const [providerWouldRecommend, setProviderWouldRecommend] = useState(true);
+  // Para que el cliente vea la reseña que el proveedor le dejó
+  const [viewClientReviewOpen, setViewClientReviewOpen] = useState(false);
+  const [viewClientReviewData, setViewClientReviewData] = useState(null);
+  const [viewClientReviewLoading, setViewClientReviewLoading] = useState({});
+  const [clientReviewsByBooking, setClientReviewsByBooking] = useState({});
 
   // Paginación básica
   const [page, setPage] = useState(1);
@@ -114,6 +148,44 @@ export default function Bookings() {
     }
   };
 
+  // Función para cargar la reseña que el proveedor dejó al cliente
+  const loadClientReview = async (bookingId) => {
+    setViewClientReviewLoading((m)=> ({ ...m, [bookingId]: true }));
+    try {
+      const r = await api.get(`/reviews/client/booking/${bookingId}`);
+      const review = r?.data?.data?.review || null;
+      setClientReviewsByBooking((prev)=> ({ ...prev, [bookingId]: review }));
+      return review;
+    } catch {
+      setClientReviewsByBooking((prev)=> ({ ...prev, [bookingId]: null }));
+      return null;
+    } finally {
+      setViewClientReviewLoading((m)=> ({ ...m, [bookingId]: false }));
+    }
+  };
+
+  // Abrir modal para que el cliente vea la reseña del proveedor
+  const openViewClientReview = async (booking) => {
+    // Si ya está cargada, usar cache
+    if (clientReviewsByBooking[booking._id] !== undefined) {
+      setViewClientReviewData(clientReviewsByBooking[booking._id]);
+      if (clientReviewsByBooking[booking._id]) {
+        setViewClientReviewOpen(true);
+      } else {
+        toast.info(t('shared.bookings.review.noProviderReview'));
+      }
+      return;
+    }
+    // Cargar la reseña
+    const review = await loadClientReview(booking._id);
+    if (review) {
+      setViewClientReviewData(review);
+      setViewClientReviewOpen(true);
+    } else {
+      toast.info(t('shared.bookings.review.noProviderReview'));
+    }
+  };
+
   const load = async () => {
     if (!listEndpoint) return;
     setLoading(true); setError('');
@@ -132,6 +204,7 @@ export default function Bookings() {
       setBookings(list);
       // Resetear el cache de reseñas
       setReviewsByBooking({});
+      setClientReviewsByBooking({});
       
       // Pre-cargar reseñas para bookings completados (solo para clientes)
       if (isClient) {
@@ -139,6 +212,26 @@ export default function Bookings() {
         completedBookings.forEach(b => {
           loadSingleReview(b._id);
         });
+      }
+      
+      // Pre-cargar estado de calificaciones de cliente para proveedores
+      if (isProvider) {
+        const completedBookings = list.filter(b => b.status === 'completed');
+        const existingClientReviewIds = new Set();
+        
+        // Verificar cada booking completado si ya tiene calificación del cliente
+        await Promise.all(completedBookings.map(async (b) => {
+          try {
+            const res = await api.get(`/reviews/client/booking/${b._id}/exists`);
+            if (res?.data?.exists) {
+              existingClientReviewIds.add(b._id);
+            }
+          } catch {
+            // Si hay error (404 o similar), no existe la reseña
+          }
+        }));
+        
+        setClientReviewedIds(existingClientReviewIds);
       }
     } catch (err) {
       setError(err?.response?.data?.message || t('shared.bookings.errors.loadFailed'));
@@ -481,13 +574,27 @@ export default function Bookings() {
     }
   };
 
+  const handleOverallChange = (value) => {
+    setReviewOverall(value);
+    setReviewCats(buildCategoryMap(value));
+  };
+
+  const handleCategoryChange = (key, value) => {
+    const next = { ...reviewCats, [key]: value };
+    setReviewCats(next);
+    setReviewOverall(calculateOverallFromCategories(next));
+  };
+
   const openReview = (booking) => {
     setReviewBooking(booking);
-    setReviewOverall(5);
-    setReviewCats({ professionalism: 5, quality: 5, punctuality: 5, communication: 5, value: 5 });
+    handleOverallChange(5);
     setReviewTitle('');
     setReviewComment('');
     setReviewFiles([]);
+    // Reset platform feedback
+    setPlatformRating(0);
+    setPlatformComment('');
+    setWouldRecommend(true);
     setReviewOpen(true);
   };
 
@@ -553,6 +660,16 @@ export default function Bookings() {
         comment: reviewComment,
         photos
       };
+
+      // Agregar feedback de plataforma si el usuario calificó
+      if (platformRating > 0) {
+        payload.platformFeedback = {
+          rating: platformRating,
+          comment: platformComment.trim() || '',
+          wouldRecommend
+        };
+      }
+
       await api.post(`/bookings/${reviewBooking._id}/reviews`, payload);
       toast.success(t('shared.bookings.success.reviewThanks'));
       setReviewOpen(false);
@@ -571,6 +688,62 @@ export default function Bookings() {
       toast.error(msg);
     } finally {
       setReviewLoading(false);
+    }
+  };
+
+  // ========== FUNCIONES PARA RESEÑA DEL PROVEEDOR HACIA EL CLIENTE ==========
+  const openClientReview = (booking) => {
+    setClientReviewBooking(booking);
+    setClientReviewOverall(5);
+    setClientReviewCats({ communication: 5, punctuality: 5, respect: 5, clarity: 5, payment: 5 });
+    setClientReviewComment('');
+    // Reset platform feedback del proveedor
+    setProviderPlatformRating(0);
+    setProviderPlatformComment('');
+    setProviderWouldRecommend(true);
+    setClientReviewOpen(true);
+  };
+
+  const handleClientOverallChange = (value) => {
+    setClientReviewOverall(value);
+    setClientReviewCats({ communication: value, punctuality: value, respect: value, clarity: value, payment: value });
+  };
+
+  const handleClientCategoryChange = (key, value) => {
+    const next = { ...clientReviewCats, [key]: value };
+    setClientReviewCats(next);
+    const avg = Object.values(next).reduce((s, v) => s + v, 0) / 5;
+    setClientReviewOverall(Math.max(1, Math.round(avg)));
+  };
+
+  const handleSubmitClientReview = async () => {
+    if (!clientReviewBooking) return;
+    setClientReviewLoading(true);
+    try {
+      const payload = {
+        overall: clientReviewOverall,
+        categories: clientReviewCats,
+        comment: clientReviewComment.trim()
+      };
+
+      // Agregar feedback de plataforma si el proveedor calificó
+      if (providerPlatformRating > 0) {
+        payload.platformFeedback = {
+          rating: providerPlatformRating,
+          comment: providerPlatformComment.trim() || '',
+          wouldRecommend: providerWouldRecommend
+        };
+      }
+
+      await api.post(`/reviews/client/booking/${clientReviewBooking._id}`, payload);
+      toast.success(t('shared.bookings.success.clientReviewThanks'));
+      setClientReviewOpen(false);
+      setClientReviewedIds((prev) => new Set(prev).add(clientReviewBooking._id));
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || t('shared.bookings.errors.clientReviewFailed');
+      toast.error(msg);
+    } finally {
+      setClientReviewLoading(false);
     }
   };
 
@@ -1000,6 +1173,24 @@ export default function Bookings() {
                       {reviewsByBooking[b._id].review?.comment && (
                         <p className="text-xs text-gray-600 line-clamp-2 italic">"{getTranslatedReviewInfo(reviewsByBooking[b._id], currentLang).comment}"</p>
                       )}
+                      {/* Fotos de la reseña */}
+                      {reviewsByBooking[b._id].review?.photos?.length > 0 && (
+                        <div className="mt-3">
+                          <div className="text-xs font-medium text-gray-500 mb-2">{t('shared.bookings.review.attachedPhotos')}</div>
+                          <div className="flex gap-2 flex-wrap">
+                            {reviewsByBooking[b._id].review.photos.slice(0, 4).map((photo, idx) => (
+                              <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity" onClick={() => openLightbox(reviewsByBooking[b._id].review.photos.map(p => p.url), idx)}>
+                                <img src={photo.url} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
+                                {idx === 3 && reviewsByBooking[b._id].review.photos.length > 4 && (
+                                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xs font-bold">
+                                    +{reviewsByBooking[b._id].review.photos.length - 4}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       {reviewsByBooking[b._id].providerResponse?.comment ? (
                         <div className="mt-3 p-3 rounded-lg bg-white/80 border border-gray-100">
                           <div className="text-xs font-medium text-gray-500 mb-1">{t('shared.bookings.review.providerResponse')}</div>
@@ -1055,6 +1246,27 @@ export default function Bookings() {
                       <p className="text-xs text-gray-400 mt-1">{t('shared.bookings.review.willAppearHere')}</p>
                     </div>
                   )}
+
+                  {/* Para PROVEEDORES: Botón para calificar al cliente */}
+                  {isProvider && b.status === 'completed' && !clientReviewedIds.has(b._id) && (
+                    <button 
+                      onClick={() => openClientReview(b)}
+                      className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white text-sm font-medium shadow-lg shadow-teal-500/25 transition-all flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      {t('shared.bookings.actions.rateClient')}
+                    </button>
+                  )}
+                  
+                  {/* Para PROVEEDORES: Ya calificó al cliente */}
+                  {isProvider && clientReviewedIds.has(b._id) && (
+                    <div className="w-full px-4 py-2.5 rounded-xl bg-teal-50 border border-teal-200 text-sm text-teal-700 font-medium flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      ✓ {t('shared.bookings.review.clientReviewSent')}
+                    </div>
+                  )}
                   
                   {/* Para CLIENTES: Mostrar botón según si ya existe reseña o no */}
                   {isClient && b.status === 'completed' && (
@@ -1096,6 +1308,20 @@ export default function Bookings() {
                           ✓ {t('shared.bookings.review.reviewSent')}
                         </div>
                       )}
+                      
+                      {/* Botón para ver reseña que el proveedor dejó al cliente */}
+                      <button 
+                        onClick={() => openViewClientReview(b)}
+                        disabled={viewClientReviewLoading[b._id]}
+                        className="w-full px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm text-gray-600 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {viewClientReviewLoading[b._id] ? (
+                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        )}
+                        {t('shared.bookings.actions.viewProviderReview')}
+                      </button>
                     </>
                   )}
                 </div>
@@ -1514,9 +1740,9 @@ export default function Bookings() {
                     <button 
                       key={n} 
                       type="button"
-                      onClick={() => setReviewOverall(n.toString())}
+                      onClick={() => handleOverallChange(n)}
                       className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                        parseInt(reviewOverall) >= n 
+                        reviewOverall >= n 
                           ? 'text-amber-400 scale-110' 
                           : 'text-gray-300 hover:text-amber-200'
                       }`}
@@ -1545,7 +1771,7 @@ export default function Bookings() {
                   <select 
                     className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-300 transition-all" 
                     value={reviewCats[cat.key]} 
-                    onChange={(e)=> setReviewCats({...reviewCats, [cat.key]: e.target.value})}
+                    onChange={(e)=> handleCategoryChange(cat.key, Number(e.target.value))}
                   >
                     {[5,4,3,2,1].map(n=> <option key={n} value={n}>{n} ⭐</option>)}
                   </select>
@@ -1602,6 +1828,90 @@ export default function Bookings() {
               onChange={(e)=> setReviewFiles(e.target.files)} 
               className="w-full px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 hover:border-amber-400 bg-gray-50 hover:bg-amber-50/30 text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-amber-500 file:text-white hover:file:bg-amber-600 transition-all cursor-pointer"
             />
+          </div>
+
+          {/* ========== SECCIÓN FEEDBACK DE LA PLATAFORMA (Opcional) ========== */}
+          <div className="space-y-3 p-4 rounded-xl bg-linear-to-br from-brand-50 via-cyan-50 to-teal-50 border border-brand-100">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-teal-500 text-white">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">{t('shared.bookings.modal.platformFeedbackTitle')}</h4>
+                <p className="text-xs text-gray-500">{t('shared.bookings.modal.platformFeedbackSubtitle')}</p>
+              </div>
+            </div>
+
+            {/* Rating de la plataforma */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium text-gray-600">{t('shared.bookings.modal.platformRating')}</span>
+              <div className="flex items-center gap-1">
+                {[1,2,3,4,5].map(n => (
+                  <button 
+                    key={n}
+                    type="button"
+                    onClick={() => setPlatformRating(platformRating === n ? 0 : n)}
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                      platformRating >= n 
+                        ? 'text-brand-500 scale-110' 
+                        : 'text-gray-300 hover:text-brand-300'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                  </button>
+                ))}
+              </div>
+              {platformRating > 0 && (
+                <span className="text-xs text-brand-600 font-medium">{platformRating}/5</span>
+              )}
+            </div>
+
+            {/* Solo mostrar el resto si calificó la plataforma */}
+            {platformRating > 0 && (
+              <>
+                {/* ¿Recomendarías NovoFix? */}
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-medium text-gray-600">{t('shared.bookings.modal.wouldRecommend')}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setWouldRecommend(true)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        wouldRecommend 
+                          ? 'bg-emerald-500 text-white shadow-sm' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      👍 {t('common.yes')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWouldRecommend(false)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        !wouldRecommend 
+                          ? 'bg-red-500 text-white shadow-sm' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      👎 {t('common.no')}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Comentario sobre la plataforma */}
+                <textarea 
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-lg border border-brand-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 resize-none transition-all"
+                  value={platformComment}
+                  onChange={(e) => setPlatformComment(e.target.value)}
+                  placeholder={t('shared.bookings.modal.platformCommentPlaceholder')}
+                />
+              </>
+            )}
           </div>
           
           {/* Acciones */}
@@ -1765,6 +2075,270 @@ export default function Bookings() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
               )}
               {responseMode === 'edit' ? t('shared.bookings.modal.update') : t('shared.bookings.modal.publishResponse')}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal calificar cliente (proveedor) */}
+      <Modal open={clientReviewOpen} onClose={() => setClientReviewOpen(false)} title={t('shared.bookings.modal.clientReviewTitle')}>
+        <div className="space-y-5">
+          {/* Header decorativo */}
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-teal-50 via-cyan-50 to-blue-50 border border-teal-100/50">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/25">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-900">{t('shared.bookings.modal.rateClientExperience')}</h4>
+              <p className="text-sm text-gray-500">{t('shared.bookings.modal.rateClientSubtitle')}</p>
+            </div>
+          </div>
+
+          {/* Calificación general */}
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <svg className="w-4 h-4 text-teal-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              {t('shared.bookings.modal.overallRating')}
+            </label>
+            <div className="p-4 rounded-xl bg-linear-to-br from-teal-50 to-cyan-50 border border-teal-100">
+              <div className="flex items-center justify-center gap-1">
+                {[1,2,3,4,5].map(n => (
+                  <button 
+                    key={n}
+                    type="button"
+                    onClick={() => handleClientOverallChange(n)}
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
+                      clientReviewOverall >= n 
+                        ? 'text-teal-500 scale-110' 
+                        : 'text-gray-300 hover:text-teal-300'
+                    }`}
+                  >
+                    <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Categorías del cliente */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {[
+                { key: 'communication', labelKey: 'shared.bookings.modal.clientCommunication', icon: '💬' },
+                { key: 'punctuality', labelKey: 'shared.bookings.modal.clientPunctuality', icon: '⏰' },
+                { key: 'respect', labelKey: 'shared.bookings.modal.clientRespect', icon: '🤝' },
+                { key: 'clarity', labelKey: 'shared.bookings.modal.clientClarity', icon: '📋' },
+                { key: 'payment', labelKey: 'shared.bookings.modal.clientPayment', icon: '💳' }
+              ].map((cat) => (
+                <div key={cat.key} className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="text-sm">{cat.icon}</span>
+                    <span className="text-xs font-medium text-gray-600">{t(cat.labelKey)}</span>
+                  </div>
+                  <select 
+                    className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 transition-all" 
+                    value={clientReviewCats[cat.key]} 
+                    onChange={(e) => handleClientCategoryChange(cat.key, Number(e.target.value))}
+                  >
+                    {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} ⭐</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Comentario opcional */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+              {t('shared.bookings.modal.commentOptional')}
+            </label>
+            <textarea 
+              rows={3}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 resize-none transition-all"
+              value={clientReviewComment}
+              onChange={(e) => setClientReviewComment(e.target.value)}
+              placeholder={t('shared.bookings.modal.clientCommentPlaceholder')}
+            />
+          </div>
+
+          {/* ========== SECCIÓN FEEDBACK DE LA PLATAFORMA (Proveedor) ========== */}
+          <div className="space-y-3 p-4 rounded-xl bg-linear-to-br from-brand-50 via-cyan-50 to-teal-50 border border-brand-100">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-teal-500 text-white">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">{t('shared.bookings.modal.platformFeedbackTitle')}</h4>
+                <p className="text-xs text-gray-500">{t('shared.bookings.modal.platformFeedbackProviderSubtitle')}</p>
+              </div>
+            </div>
+
+            {/* Rating de la plataforma */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium text-gray-600">{t('shared.bookings.modal.platformRating')}</span>
+              <div className="flex items-center gap-1">
+                {[1,2,3,4,5].map(n => (
+                  <button 
+                    key={n}
+                    type="button"
+                    onClick={() => setProviderPlatformRating(providerPlatformRating === n ? 0 : n)}
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                      providerPlatformRating >= n 
+                        ? 'text-brand-500 scale-110' 
+                        : 'text-gray-300 hover:text-brand-300'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                  </button>
+                ))}
+              </div>
+              {providerPlatformRating > 0 && (
+                <span className="text-xs text-brand-600 font-medium">{providerPlatformRating}/5</span>
+              )}
+            </div>
+
+            {providerPlatformRating > 0 && (
+              <>
+                {/* ¿Recomendarías NovoFix? */}
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-medium text-gray-600">{t('shared.bookings.modal.wouldRecommendPlatform')}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setProviderWouldRecommend(true)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        providerWouldRecommend 
+                          ? 'bg-emerald-500 text-white shadow-sm' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      👍 {t('common.yes')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setProviderWouldRecommend(false)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        !providerWouldRecommend 
+                          ? 'bg-red-500 text-white shadow-sm' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      👎 {t('common.no')}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Comentario sobre la plataforma */}
+                <textarea 
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-lg border border-brand-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 resize-none transition-all"
+                  value={providerPlatformComment}
+                  onChange={(e) => setProviderPlatformComment(e.target.value)}
+                  placeholder={t('shared.bookings.modal.platformCommentProviderPlaceholder')}
+                />
+              </>
+            )}
+          </div>
+
+          {/* Acciones */}
+          <div className="flex items-center gap-3 pt-2">
+            <button 
+              onClick={() => setClientReviewOpen(false)}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all"
+            >
+              {t('shared.bookings.modal.cancel')}
+            </button>
+            <button 
+              onClick={handleSubmitClientReview}
+              disabled={clientReviewLoading}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white text-sm font-medium shadow-lg shadow-teal-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {clientReviewLoading ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              )}
+              {t('shared.bookings.modal.submitClientReview')}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal para ver la reseña que el proveedor dejó al cliente */}
+      <Modal open={viewClientReviewOpen} onClose={() => setViewClientReviewOpen(false)} title={t('shared.bookings.modal.providerReviewTitle')}>
+        <div className="space-y-4 p-4">
+          {viewClientReviewData ? (
+            <>
+              {/* Información del proveedor */}
+              <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white font-bold">
+                  🔧
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{t('shared.bookings.modal.fromProvider')}</p>
+                  <p className="text-xs text-gray-500">{new Date(viewClientReviewData.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              {/* Calificación general */}
+              <div className="text-center py-3">
+                <p className="text-sm text-gray-500 mb-2">{t('shared.bookings.modal.overallRating')}</p>
+                <div className="flex items-center justify-center gap-1">
+                  {[1,2,3,4,5].map((s) => (
+                    <svg key={s} className={`w-8 h-8 ${s <= (viewClientReviewData.rating?.overall || 0) ? 'text-amber-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{(viewClientReviewData.rating?.overall || 0).toFixed(1)}</p>
+              </div>
+
+              {/* Categorías */}
+              {viewClientReviewData.rating?.categories && (
+                <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 rounded-xl">
+                  {Object.entries(viewClientReviewData.rating.categories).map(([key, value]) => (
+                    <div key={key} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">{t(`shared.bookings.modal.client${key.charAt(0).toUpperCase() + key.slice(1)}`)}</span>
+                      <div className="flex items-center gap-1">
+                        {[1,2,3,4,5].map((s) => (
+                          <svg key={s} className={`w-3 h-3 ${s <= value ? 'text-amber-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                          </svg>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Comentario */}
+              {viewClientReviewData.comment && (
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  <p className="text-sm text-gray-500 mb-1">{t('shared.bookings.modal.comment')}</p>
+                  <p className="text-sm text-gray-700 italic">"{viewClientReviewData.comment}"</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">{t('shared.bookings.review.noProviderReview')}</p>
+            </div>
+          )}
+
+          {/* Cerrar */}
+          <div className="pt-2">
+            <button 
+              onClick={() => setViewClientReviewOpen(false)}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all"
+            >
+              {t('shared.bookings.modal.cancel')}
             </button>
           </div>
         </div>
