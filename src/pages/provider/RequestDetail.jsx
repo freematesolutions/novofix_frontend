@@ -41,7 +41,7 @@ export default function RequestDetail() {
     amount: '',
     amountMin: '',
     amountMax: '',
-    isRange: false, // Toggle para monto fijo o rango
+    isRange: true, // Toggle para rango (default) o monto fijo
     estimatedHours: '',
     startDate: '',
     message: '',
@@ -807,41 +807,27 @@ export default function RequestDetail() {
                         <HiCurrencyDollar className="w-4 h-4 text-gray-400" />
                         {t('provider.requestDetail.amountLabel')}
                       </label>
-                      {/* Toggle para rango de precio */}
+                      {/* Toggle para precio fijo (opcional) */}
                       <button
                         type="button"
                         onClick={() => setForm(f => ({ ...f, isRange: !f.isRange }))}
                         className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
-                          form.isRange 
-                            ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                          !form.isRange 
+                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
                             : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
                         }`}
                       >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        {form.isRange ? t('provider.requestDetail.rangeEnabled') : t('provider.requestDetail.enableRange')}
+                        {!form.isRange ? t('provider.requestDetail.fixedPriceEnabled') : t('provider.requestDetail.useFixedPrice')}
                       </button>
                     </div>
                     
-                    {!form.isRange ? (
-                      /* Monto fijo */
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
-                        <input 
-                          type="number" 
-                          min="1" 
-                          step="0.01" 
-                          className="w-full pl-8 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all bg-gray-50 focus:bg-white text-lg font-semibold" 
-                          value={form.amount} 
-                          onChange={(e) => setForm(f => ({ ...f, amount: e.target.value }))}
-                          placeholder="0.00"
-                        />
-                      </div>
-                    ) : (
-                      /* Rango de monto */
-                      <div className="p-4 bg-purple-50/50 border border-purple-100 rounded-xl space-y-3">
-                        <div className="flex items-center gap-2 text-xs text-purple-700 font-medium">
+                    {form.isRange ? (
+                      /* Rango de monto (opción por defecto) */
+                      <div className="p-4 bg-brand-50/50 border border-brand-100 rounded-xl space-y-3">
+                        <div className="flex items-center gap-2 text-xs text-brand-700 font-medium">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -854,7 +840,7 @@ export default function RequestDetail() {
                               type="number" 
                               min="1" 
                               step="0.01" 
-                              className="w-full pl-7 pr-3 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 transition-all bg-white font-semibold" 
+                              className="w-full pl-7 pr-3 py-3 border border-brand-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all bg-white font-semibold" 
                               value={form.amountMin} 
                               onChange={(e) => setForm(f => ({ ...f, amountMin: e.target.value }))}
                               placeholder={t('provider.requestDetail.minAmount')}
@@ -867,7 +853,7 @@ export default function RequestDetail() {
                               type="number" 
                               min="1" 
                               step="0.01" 
-                              className="w-full pl-7 pr-3 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 transition-all bg-white font-semibold" 
+                              className="w-full pl-7 pr-3 py-3 border border-brand-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all bg-white font-semibold" 
                               value={form.amountMax} 
                               onChange={(e) => setForm(f => ({ ...f, amountMax: e.target.value }))}
                               placeholder={t('provider.requestDetail.maxAmount')}
@@ -875,6 +861,20 @@ export default function RequestDetail() {
                             <span className="absolute -bottom-5 left-0 text-[10px] text-gray-500">{t('provider.requestDetail.maximum')}</span>
                           </div>
                         </div>
+                      </div>
+                    ) : (
+                      /* Monto fijo (opción secundaria) */
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
+                        <input 
+                          type="number" 
+                          min="1" 
+                          step="0.01" 
+                          className="w-full pl-8 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all bg-gray-50 focus:bg-white text-lg font-semibold" 
+                          value={form.amount} 
+                          onChange={(e) => setForm(f => ({ ...f, amount: e.target.value }))}
+                          placeholder="0.00"
+                        />
                       </div>
                     )}
                     

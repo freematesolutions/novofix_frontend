@@ -37,6 +37,8 @@ function Home() {
   const [providerCountByCategory, setProviderCountByCategory] = useState({});
   // Total de proveedores únicos (de la API)
   const [totalUniqueProviders, setTotalUniqueProviders] = useState(0);
+  // Total de clientes registrados (de la API)
+  const [totalClients, setTotalClients] = useState(0);
   // Flag para saber si ya cargaron los datos de la API
   const [dataLoaded, setDataLoaded] = useState(false);
   // Profesionales destacados
@@ -184,6 +186,10 @@ function Home() {
           // Guardar el total de proveedores únicos
           if (data.data.totalUniqueProviders !== undefined) {
             setTotalUniqueProviders(data.data.totalUniqueProviders);
+          }
+          // Guardar el total de clientes registrados
+          if (data.data.totalClients !== undefined) {
+            setTotalClients(data.data.totalClients);
           }
         } else {
           // console.log('No services with providers found in API response');
@@ -509,8 +515,8 @@ useEffect(() => {
                   </div>
                   <div className="w-px h-8 bg-white/30"></div>
                   <div className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105">
-                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-purple-300 transition-colors">24/7</span>
-                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.available')}</span>
+                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-purple-300 transition-colors">{totalClients > 0 ? totalClients : '—'}+</span>
+                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.clients')}</span>
                   </div>
                 </div>
               </div>

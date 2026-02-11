@@ -313,18 +313,18 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
 
   const planInfo = planConfig[plan] || planConfig.free;
 
-  // Rating bar component
+  // Rating bar component - diseño simple y robusto
   const RatingBar = ({ label, value, icon }) => (
-    <div className="flex items-center gap-3">
-      <span className="text-lg">{icon}</span>
-      <span className="text-sm text-gray-600 w-28">{label}</span>
-      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+    <div className="flex items-center text-xs">
+      <span className="w-5 shrink-0">{icon}</span>
+      <span className="w-24 text-gray-600 truncate">{label}</span>
+      <div className="flex-1 mx-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
         <div 
-          className="h-full bg-linear-to-r from-yellow-400 to-amber-500 rounded-full transition-all duration-500"
+          className="h-full bg-linear-to-r from-yellow-400 to-amber-500 rounded-full transition-all"
           style={{ width: `${(value / 5) * 100}%` }}
         />
       </div>
-      <span className="text-sm font-semibold text-gray-700 w-8">{value.toFixed(1)}</span>
+      <span className="w-7 text-right font-semibold text-gray-700">{value.toFixed(1)}</span>
     </div>
   );
 
@@ -381,15 +381,15 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
               </div>
               
               {/* Rating inline */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm">
-                <div className="flex items-center gap-1">
-                  <StarRating value={rating} size="sm" />
+              <div className="flex items-center gap-2 text-sm overflow-hidden">
+                <div className="flex items-center gap-1 shrink-0">
+                  <StarRating value={rating} size="xs" />
                   <span className="font-medium">{rating.toFixed(1)}</span>
                   <span className="text-white/70">({reviewCount})</span>
                 </div>
                 
                 {score > 0 && (
-                  <span className="text-emerald-300 font-medium">Score: {score.toFixed(1)}</span>
+                  <span className="text-emerald-300 font-medium shrink-0">Score: {score.toFixed(1)}</span>
                 )}
                 
                 <span className="hidden sm:inline text-white/70">•</span>
@@ -441,8 +441,8 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
         </div>
 
         {/* Scrollable Content */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto scroll-smooth">
-          <div className="p-4 sm:p-5 space-y-8">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
+          <div className="p-3 sm:p-5 space-y-6 sm:space-y-8 max-w-full overflow-hidden">
             
             {/* ========== ABOUT SECTION ========== */}
             <section ref={sectionRefs.about} id="about" className="pt-1">
@@ -639,80 +639,183 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
             </section>
 
             {/* ========== REVIEWS SECTION ========== */}
-            <section ref={sectionRefs.reviews} id="reviews" className="pt-2">
-              <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-bold text-gray-900 mb-6">
-                <span className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">⭐</span>
-                {t('ui.providerProfile.reviewsAndRatings')}
+            <section 
+              ref={sectionRefs.reviews} 
+              id="reviews" 
+              style={{ 
+                overflow: 'hidden',
+                position: 'relative',
+                zIndex: 1
+              }}
+            >
+              <h2 className="flex items-center gap-2 text-base sm:text-lg font-bold text-gray-900 mb-3">
+                <span className="w-7 h-7 sm:w-8 sm:h-8 bg-amber-100 rounded-lg flex items-center justify-center text-xs sm:text-sm">⭐</span>
+                <span>{t('ui.providerProfile.reviewsAndRatings')}</span>
               </h2>
 
-              {/* Rating Summary */}
-              <div className="grid lg:grid-cols-2 gap-4 mb-6">
-                {/* Overall rating */}
-                <div className="bg-linear-to-br from-amber-50 to-yellow-50 rounded-xl p-4 text-center">
-                  <div className="text-5xl font-bold text-gray-900 mb-1">{rating.toFixed(1)}</div>
-                  <StarRating value={rating} size="lg" />
-                  <p className="text-gray-600 mt-2">
-                    {t('ui.providerProfile.basedOnReviews', { count: reviewCount })}
-                  </p>
+              {/* Rating Summary - BLOQUE 1: Calificación general - SIN GRID */}
+              <div 
+                style={{ 
+                  display: 'block',
+                  width: '100%',
+                  background: 'linear-gradient(to bottom right, #fffbeb, #fef3c7)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  textAlign: 'center',
+                  marginBottom: '12px',
+                  boxSizing: 'border-box',
+                  position: 'relative',
+                  zIndex: 1,
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ fontSize: '30px', fontWeight: 'bold', color: '#111827', marginBottom: '4px' }}>
+                  {rating.toFixed(1)}
                 </div>
-
-                {/* Rating breakdown */}
-                <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                  <h3 className="font-semibold text-gray-900 mb-3">{t('ui.providerProfile.ratingsBreakdown')}</h3>
-                  <RatingBar 
-                    label={t('ui.providerProfile.quality')} 
-                    value={ratingBreakdown.quality || 0} 
-                    icon="🎯" 
-                  />
-                  <RatingBar 
-                    label={t('ui.providerProfile.professionalism')} 
-                    value={ratingBreakdown.professionalism || 0} 
-                    icon="💼" 
-                  />
-                  <RatingBar 
-                    label={t('ui.providerProfile.communication')} 
-                    value={ratingBreakdown.communication || 0} 
-                    icon="💬" 
-                  />
-                  <RatingBar 
-                    label={t('ui.providerProfile.punctuality')} 
-                    value={ratingBreakdown.punctuality || 0} 
-                    icon="⏰" 
-                  />
+                {/* StarRating contenido en un div con overflow hidden */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  marginBottom: '4px',
+                  overflow: 'hidden',
+                  maxWidth: '100%'
+                }}>
+                  <div style={{ overflow: 'hidden', maxWidth: '150px' }}>
+                    <StarRating value={rating} size="sm" readonly />
+                  </div>
                 </div>
+                <p style={{ color: '#4b5563', fontSize: '12px' }}>
+                  {t('ui.providerProfile.basedOnReviews', { count: reviewCount })}
+                </p>
               </div>
 
-              {/* Reviews list */}
+              {/* Rating Summary - BLOQUE 2: Desglose - COMPLETAMENTE SEPARADO */}
+              <div 
+                style={{ 
+                  display: 'block',
+                  width: '100%',
+                  background: '#f9fafb',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  marginBottom: '16px',
+                  boxSizing: 'border-box',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  zIndex: 1
+                }}
+              >
+                <h3 style={{ fontWeight: 600, color: '#111827', marginBottom: '8px', fontSize: '12px' }}>
+                  {t('ui.providerProfile.ratingsBreakdown')}
+                </h3>
+                {/* Rating bars con estilos inline */}
+                {[
+                  { label: t('ui.providerProfile.quality'), value: ratingBreakdown.quality || 0, icon: '🎯' },
+                  { label: t('ui.providerProfile.professionalism'), value: ratingBreakdown.professionalism || 0, icon: '💼' },
+                  { label: t('ui.providerProfile.communication'), value: ratingBreakdown.communication || 0, icon: '💬' },
+                  { label: t('ui.providerProfile.punctuality'), value: ratingBreakdown.punctuality || 0, icon: '⏰' }
+                ].map((item, idx) => (
+                  <div 
+                    key={idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '100%',
+                      marginBottom: idx < 3 ? '8px' : '0',
+                      fontSize: '11px',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <span style={{ width: '18px', flexShrink: 0, fontSize: '12px' }}>{item.icon}</span>
+                    <span style={{ 
+                      width: '70px', 
+                      flexShrink: 0, 
+                      color: '#6b7280',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {item.label}
+                    </span>
+                    <div style={{ 
+                      flex: 1, 
+                      height: '6px', 
+                      backgroundColor: '#e5e7eb',
+                      borderRadius: '9999px',
+                      marginLeft: '6px',
+                      marginRight: '6px',
+                      overflow: 'hidden',
+                      minWidth: '30px'
+                    }}>
+                      <div style={{ 
+                        height: '100%', 
+                        width: `${(item.value / 5) * 100}%`,
+                        background: 'linear-gradient(to right, #facc15, #f59e0b)',
+                        borderRadius: '9999px'
+                      }} />
+                    </div>
+                    <span style={{ 
+                      width: '24px', 
+                      textAlign: 'right', 
+                      fontWeight: 600,
+                      color: '#374151',
+                      flexShrink: 0,
+                      fontSize: '11px'
+                    }}>
+                      {item.value.toFixed(1)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Reviews list - responsive mejorado */}
               {reviews.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3" style={{ overflow: 'hidden' }}>
                   {reviews.map((review, idx) => (
-                    <div key={idx} className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start gap-4">
-                        {/* Reviewer avatar */}
-                        <div className="shrink-0 w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                          <Icons.User className="w-6 h-6 text-gray-500" />
+                    <div key={idx} className="bg-white rounded-xl border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow" style={{ overflow: 'hidden' }}>
+                      <div className="flex flex-col xs:flex-row xs:items-start gap-2 xs:gap-3 sm:gap-4">
+                        {/* Reviewer avatar - más pequeño en móviles */}
+                        <div className="flex items-center gap-2 xs:block" style={{ overflow: 'hidden' }}>
+                          <div className="shrink-0 w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                            <Icons.User className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 text-gray-500" />
+                          </div>
+                          {/* Nombre visible solo en móviles muy pequeños junto al avatar */}
+                          <div className="xs:hidden" style={{ overflow: 'hidden', maxWidth: '200px' }}>
+                            <h4 className="font-semibold text-gray-900 text-sm truncate">
+                              {review.clientName || t('ui.providerProfile.verifiedClient')}
+                            </h4>
+                            <div style={{ overflow: 'hidden', maxWidth: '100px' }}>
+                              <StarRating value={review.rating?.overall || 5} size="xs" readonly />
+                            </div>
+                          </div>
                         </div>
                         
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2 mb-2">
-                            <div>
-                              <h4 className="font-semibold text-gray-900">
+                        <div className="flex-1 min-w-0" style={{ overflow: 'hidden' }}>
+                          <div className="hidden xs:flex items-start justify-between gap-2 mb-1 sm:mb-2">
+                            <div style={{ overflow: 'hidden' }}>
+                              <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
                                 {review.clientName || t('ui.providerProfile.verifiedClient')}
                               </h4>
-                              <StarRating value={review.rating?.overall || 5} size="sm" />
+                              <div style={{ overflow: 'hidden', maxWidth: '120px' }}>
+                                <StarRating value={review.rating?.overall || 5} size="sm" readonly />
+                              </div>
                             </div>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-xs sm:text-sm text-gray-500 shrink-0">
                               {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : t('ui.providerProfile.recent')}
                             </span>
                           </div>
                           
-                          <p className="text-gray-600">{review.comment || review.review?.comment}</p>
+                          {/* Fecha en móviles muy pequeños */}
+                          <span className="xs:hidden text-xs text-gray-500 block mb-1">
+                            {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : t('ui.providerProfile.recent')}
+                          </span>
                           
-                          {/* Helpful buttons */}
-                          <div className="flex items-center gap-4 mt-4">
-                            <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-brand-600 transition-colors">
-                              <Icons.ThumbUp className="w-4 h-4" />
-                              <span>{t('ui.providerProfile.helpful')}</span>
+                          <p className="text-gray-600 text-xs sm:text-sm">{review.comment || review.review?.comment}</p>
+                          
+                          {/* Helpful buttons - más compacto */}
+                          <div className="flex items-center gap-3 mt-2 sm:mt-3">
+                            <button className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 hover:text-brand-600 transition-colors">
+                              <Icons.ThumbUp className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span className="hidden xs:inline">{t('ui.providerProfile.helpful')}</span>
                             </button>
                           </div>
                         </div>

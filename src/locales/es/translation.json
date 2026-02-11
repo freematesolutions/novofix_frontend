@@ -323,11 +323,22 @@
       },
       "BOOKING_STATUS_UPDATE": {
         "title": "Actualización de reserva",
-        "message": "{{providerName}} ha actualizado el estado de tu reserva a: {{status}}"
+        "message": "{{providerName}} ha actualizado el estado de tu reserva a: {{status}}",
+        "messageDefault": "El estado de tu reserva ha sido actualizado."
       },
       "PAYMENT_REQUIRED": {
         "title": "Pago pendiente 💳",
         "message": "Se requiere pago para tu reserva."
+      },
+      "PAYMENT_RECEIVED": {
+        "title": "Pago recibido ✅",
+        "message": "Has recibido un pago de ${{amount}}.",
+        "messageDefault": "Has recibido un pago."
+      },
+      "NEW_MESSAGE": {
+        "title": "Nuevo mensaje 💬",
+        "message": "{{senderName}} te ha enviado un mensaje.",
+        "messageDefault": "Tienes un nuevo mensaje."
       },
       "DEFAULT": {
         "title": "Notificación",
@@ -405,7 +416,7 @@
     "carouselTitle": "Nuestros profesionales destacados",
     "heroDescription": "Encuentra y contrata a los mejores profesionales para tu necesidad."
     ,
-    "available": "Disponible",
+    "clients": "Clientes",
     "categoriesWithProfessionals": "{{count}} categorías con profesionales disponibles",
     "comingSoonProfessionals": "Próximamente tendremos profesionales disponibles",
     "swipeToSeeMore": "Desliza para ver más",
@@ -654,6 +665,7 @@
       "chatError": "Error al abrir el chat",
       "acceptedSuccess": "¡Propuesta aceptada! Tu reserva ha sido confirmada",
       "acceptError": "Error al aceptar la propuesta",
+      "alreadyProcessed": "Esta propuesta ya fue procesada anteriormente",
       "rejected": "Propuesta rechazada"
     },
     "messages": {
@@ -900,6 +912,8 @@
       "limitReachedUpgrade": "Has alcanzado tu límite. Mejora tu plan para continuar.",
       "amountLabel": "Monto de la propuesta",
       "enableRange": "Usar rango de precios",
+      "useFixedPrice": "Usar precio fijo",
+      "fixedPriceEnabled": "Precio fijo activo",
       "fixedAmount": "Monto fijo",
       "rangeAmount": "Rango de precios",
       "rangeHint": "Si no tienes claro el monto exacto, usa un rango",
@@ -1875,7 +1889,7 @@
       "saveAll": "Guardar todo",
       "tabs": {
         "personal": "Datos personales",
-        "provider": "Proveedor"
+        "provider": "Datos de Negocio"
       },
       "links": {
         "services": "Servicios",

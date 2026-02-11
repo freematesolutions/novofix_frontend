@@ -1217,7 +1217,7 @@ export default function Bookings() {
                             {t('shared.bookings.actions.respondReview')}
                           </button>
                         )
-                      )}}
+                      )}
                     </div>
                   )}
                   
@@ -1614,7 +1614,7 @@ export default function Bookings() {
                 </button>
               </div>
               
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-80 overflow-y-auto p-1">
+              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-h-80 overflow-y-auto p-1">
                 {evidencePreviews.map((preview, idx) => (
                   <div key={idx} className="group relative">
                     {/* Preview container */}
@@ -1754,8 +1754,8 @@ export default function Bookings() {
               </div>
             </div>
             
-            {/* Categorías específicas */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {/* Categorías específicas - 1 columna en móviles pequeños */}
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
               {[
                 { key: 'professionalism', labelKey: 'shared.bookings.modal.professionalism', icon: '💼' },
                 { key: 'quality', labelKey: 'shared.bookings.modal.quality', icon: '⭐' },
@@ -1763,13 +1763,13 @@ export default function Bookings() {
                 { key: 'communication', labelKey: 'shared.bookings.modal.communication', icon: '💬' },
                 { key: 'value', labelKey: 'shared.bookings.modal.value', icon: '💰' }
               ].map((cat)=> (
-                <div key={cat.key} className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <span className="text-sm">{cat.icon}</span>
-                    <span className="text-xs font-medium text-gray-600">{t(cat.labelKey)}</span>
+                <div key={cat.key} className="p-2 sm:p-3 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden">
+                  <div className="flex items-center gap-1.5 mb-1.5 sm:mb-2">
+                    <span className="text-sm shrink-0">{cat.icon}</span>
+                    <span className="text-[10px] sm:text-xs font-medium text-gray-600 truncate">{t(cat.labelKey)}</span>
                   </div>
                   <select 
-                    className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-300 transition-all" 
+                    className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-300 transition-all" 
                     value={reviewCats[cat.key]} 
                     onChange={(e)=> handleCategoryChange(cat.key, Number(e.target.value))}
                   >
@@ -2121,8 +2121,8 @@ export default function Bookings() {
               </div>
             </div>
 
-            {/* Categorías del cliente */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {/* Categorías del cliente - 1 columna en móviles pequeños para evitar superposición */}
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
               {[
                 { key: 'communication', labelKey: 'shared.bookings.modal.clientCommunication', icon: '💬' },
                 { key: 'punctuality', labelKey: 'shared.bookings.modal.clientPunctuality', icon: '⏰' },
@@ -2130,13 +2130,13 @@ export default function Bookings() {
                 { key: 'clarity', labelKey: 'shared.bookings.modal.clientClarity', icon: '📋' },
                 { key: 'payment', labelKey: 'shared.bookings.modal.clientPayment', icon: '💳' }
               ].map((cat) => (
-                <div key={cat.key} className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <span className="text-sm">{cat.icon}</span>
-                    <span className="text-xs font-medium text-gray-600">{t(cat.labelKey)}</span>
+                <div key={cat.key} className="p-2 sm:p-3 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden">
+                  <div className="flex items-center gap-1.5 mb-1.5 sm:mb-2">
+                    <span className="text-sm shrink-0">{cat.icon}</span>
+                    <span className="text-[10px] sm:text-xs font-medium text-gray-600 truncate">{t(cat.labelKey)}</span>
                   </div>
                   <select 
-                    className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 transition-all" 
+                    className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 transition-all" 
                     value={clientReviewCats[cat.key]} 
                     onChange={(e) => handleClientCategoryChange(cat.key, Number(e.target.value))}
                   >
@@ -2302,13 +2302,13 @@ export default function Bookings() {
 
               {/* Categorías */}
               {viewClientReviewData.rating?.categories && (
-                <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 rounded-xl">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3 p-3 bg-gray-50 rounded-xl overflow-hidden">
                   {Object.entries(viewClientReviewData.rating.categories).map(([key, value]) => (
-                    <div key={key} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">{t(`shared.bookings.modal.client${key.charAt(0).toUpperCase() + key.slice(1)}`)}</span>
-                      <div className="flex items-center gap-1">
+                    <div key={key} className="flex items-center justify-between text-xs sm:text-sm gap-2 overflow-hidden">
+                      <span className="text-gray-600 truncate">{t(`shared.bookings.modal.client${key.charAt(0).toUpperCase() + key.slice(1)}`)}</span>
+                      <div className="flex items-center gap-0.5 shrink-0">
                         {[1,2,3,4,5].map((s) => (
-                          <svg key={s} className={`w-3 h-3 ${s <= value ? 'text-amber-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+                          <svg key={s} className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${s <= value ? 'text-amber-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                           </svg>
                         ))}

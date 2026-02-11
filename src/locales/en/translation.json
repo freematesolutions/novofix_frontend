@@ -323,11 +323,22 @@
       },
       "BOOKING_STATUS_UPDATE": {
         "title": "Booking update",
-        "message": "{{providerName}} has updated your booking status to: {{status}}"
+        "message": "{{providerName}} has updated your booking status to: {{status}}",
+        "messageDefault": "Your booking status has been updated."
       },
       "PAYMENT_REQUIRED": {
         "title": "Payment required 💳",
         "message": "Payment is required for your booking."
+      },
+      "PAYMENT_RECEIVED": {
+        "title": "Payment received ✅",
+        "message": "You've received a payment of ${{amount}}.",
+        "messageDefault": "You've received a payment."
+      },
+      "NEW_MESSAGE": {
+        "title": "New message 💬",
+        "message": "{{senderName}} sent you a message.",
+        "messageDefault": "You have a new message."
       },
       "DEFAULT": {
         "title": "Notification",
@@ -405,7 +416,7 @@
     "carouselTitle": "Our featured professionals",
     "heroDescription": "Find and hire the best professionals for your needs."
     ,
-    "available": "Available",
+    "clients": "Clients",
     "categoriesWithProfessionals": "{{count}} categories with available professionals",
     "comingSoonProfessionals": "Professionals coming soon",
     "swipeToSeeMore": "Swipe to see more",
@@ -654,6 +665,7 @@
       "chatError": "Error opening chat",
       "acceptedSuccess": "Proposal accepted! Your booking has been confirmed",
       "acceptError": "Error accepting proposal",
+      "alreadyProcessed": "This proposal has already been processed",
       "rejected": "Proposal rejected"
     },
     "messages": {
@@ -900,6 +912,8 @@
       "limitReachedUpgrade": "You've reached your limit. Upgrade your plan to continue.",
       "amountLabel": "Proposal amount",
       "enableRange": "Use price range",
+      "useFixedPrice": "Use fixed price",
+      "fixedPriceEnabled": "Fixed price active",
       "fixedAmount": "Fixed amount",
       "rangeAmount": "Price range",
       "rangeHint": "If you're not sure about the exact amount, use a range",
@@ -1875,7 +1889,7 @@
       "saveAll": "Save all",
       "tabs": {
         "personal": "Personal info",
-        "provider": "Provider"
+        "provider": "Business Info"
       },
       "links": {
         "services": "Services",

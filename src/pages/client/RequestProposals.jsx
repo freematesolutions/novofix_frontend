@@ -75,6 +75,7 @@ export default function ClientRequestProposals() {
   }
 
   const accept = async (proposalId) => {
+    if (accepting) return; // Evitar doble click
     setAccepting(proposalId);
     try {
       const { data } = await api.post(`/client/proposals/${proposalId}/accept`);
@@ -86,7 +87,13 @@ export default function ClientRequestProposals() {
       }
     } catch (err) {
       const msg = err?.response?.data?.message || t('client.proposals.acceptError');
-      toast.error(msg);
+      // Verificar si es porque ya fue procesada (aceptada/rechazada)
+      if (msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('not available')) {
+        toast.info(t('client.proposals.alreadyProcessed'));
+        await load(); // Recargar lista para mostrar estado actualizado
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setAccepting('');
     }
