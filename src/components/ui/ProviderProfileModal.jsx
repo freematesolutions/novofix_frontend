@@ -123,7 +123,7 @@ const TABS = [
   { id: 'reviews', labelKey: 'reviews', icon: '⭐' }
 ];
 
-function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
+function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedCategory = null }) {
   const { t } = useTranslation();
   const { isAuthenticated, viewRole } = useAuth();
   const toast = useToast();
@@ -910,6 +910,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab }) {
           provider={provider}
           isOpen={showRequestWizard}
           onClose={() => setShowRequestWizard(false)}
+          initialCategory={selectedCategory}
         />
       )}
 
@@ -932,7 +933,8 @@ ProviderProfileModal.propTypes = {
   initialTab: PropTypes.string,
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  provider: PropTypes.object
+  provider: PropTypes.object,
+  selectedCategory: PropTypes.string
 };
 
 export default ProviderProfileModal;

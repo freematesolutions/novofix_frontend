@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import Button from './Button.jsx';
@@ -8,6 +8,7 @@ import { useToast } from './Toast.jsx';
 import { useNavigate } from 'react-router-dom';
 import { compressImages, validateFiles } from '@/utils/fileCompression.js';
 import UploadProgress from './UploadProgress.jsx';
+import { getProblemsForCategory, categoryRequiresLocation } from '@/utils/categoryProblems.js';
 
 // ============================================================================
 // ICONS - Iconos SVG modernos inline
@@ -73,6 +74,12 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
+  ),
+  Wrench: ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
   )
 };
 
@@ -81,12 +88,12 @@ const Icons = {
 // ============================================================================
 const STEPS = [
   { 
-    id: 'description', 
-    titleKey: 'description', 
-    shortTitleKey: 'description',
-    descriptionKey: 'descriptionHint',
-    icon: '📝',
-    color: 'from-blue-500 to-indigo-500'
+    id: 'problems', 
+    titleKey: 'problems', 
+    shortTitleKey: 'problems',
+    descriptionKey: 'problemsHint',
+    icon: '🔧',
+    color: 'from-brand-500 to-brand-600'
   },
   { 
     id: 'media', 
@@ -155,7 +162,7 @@ const CURRENCIES = [
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
-function RequestWizardModal({ provider, isOpen, onClose }) {
+function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
@@ -179,6 +186,8 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
     description: '',
     category: '',
     subcategory: '',
+    selectedProblems: [], // IDs de problemas seleccionados
+    additionalDetails: '', // Detalles adicionales opcionales
     urgency: 'scheduled',
     address: '',
     coordinates: null,
@@ -191,17 +200,38 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
 
   const [formErrors, setFormErrors] = useState({});
 
-  // Inicializar categoría con la del proveedor
+  // Obtener problemas disponibles según la categoría del proveedor
+  const availableProblems = useMemo(() => {
+    if (!formData.category) return [];
+    return getProblemsForCategory(formData.category);
+  }, [formData.category]);
+
+  // Inicializar categoría: usa initialCategory si viene, o la primera del proveedor
   useEffect(() => {
     if (provider && isOpen) {
       const providerCategories = provider.providerProfile?.services || [];
-      const firstCategory = providerCategories[0]?.category || '';
+      
+      // Si viene initialCategory y el proveedor la ofrece, usarla
+      let categoryToUse = '';
+      if (initialCategory) {
+        const hasCategory = providerCategories.some(s => s.category === initialCategory);
+        if (hasCategory) {
+          categoryToUse = initialCategory;
+        } else {
+          // Fallback a la primera categoría del proveedor
+          categoryToUse = providerCategories[0]?.category || '';
+        }
+      } else {
+        categoryToUse = providerCategories[0]?.category || '';
+      }
+      
       setFormData(prev => ({
         ...prev,
-        category: firstCategory
+        category: categoryToUse,
+        selectedProblems: [] // Reset problemas al cambiar categoría
       }));
     }
-  }, [provider, isOpen]);
+  }, [provider, isOpen, initialCategory]);
 
   // Reset al cerrar
   useEffect(() => {
@@ -213,6 +243,8 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
         description: '',
         category: '',
         subcategory: '',
+        selectedProblems: [],
+        additionalDetails: '',
         urgency: 'scheduled',
         address: '',
         coordinates: null,
@@ -269,37 +301,89 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
     }
   };
 
+  // Función para toggle de selección de problema
+  const toggleProblem = (problemId) => {
+    setFormData(prev => {
+      const isSelected = prev.selectedProblems.includes(problemId);
+      const newSelected = isSelected
+        ? prev.selectedProblems.filter(id => id !== problemId)
+        : [...prev.selectedProblems, problemId];
+      return { ...prev, selectedProblems: newSelected };
+    });
+    // Limpiar error si se selecciona algo
+    if (formErrors.selectedProblems) {
+      setFormErrors(prev => ({ ...prev, selectedProblems: undefined }));
+    }
+  };
+
+  // Generar descripción automática basada en problemas seleccionados
+  const generateAutoDescription = () => {
+    if (formData.selectedProblems.length === 0) return '';
+    
+    const problemNames = formData.selectedProblems.map(problemId => {
+      const key = `ui.categoryProblems.${formData.category}.${problemId}.name`;
+      return t(key, { defaultValue: problemId });
+    });
+    
+    let description = problemNames.join(', ');
+    if (formData.additionalDetails?.trim()) {
+      description += `. ${formData.additionalDetails.trim()}`;
+    }
+    return description;
+  };
+
+  // La ubicación es siempre opcional para todas las categorías
+  const locationRequired = false;
+
   const validateStep = (step) => {
     const errors = {};
     
     switch (step) {
-      case 0:
-        if (!formData.description || formData.description.trim().length < 10) {
-          errors.description = t('ui.requestWizard.descriptionMinLength');
+      case 0: // Paso de selección de problemas
+        if (!formData.selectedProblems || formData.selectedProblems.length === 0) {
+          errors.selectedProblems = t('ui.categoryProblems.noProblemsSelected');
         }
         if (!formData.urgency) {
           errors.urgency = t('ui.requestWizard.selectUrgency');
         }
         break;
-      case 1:
+      case 1: // Media - opcional, siempre válido
         break;
-      case 2:
-        if (!formData.address || formData.address.trim().length < 3) {
-          errors.address = t('ui.requestWizard.addressRequired');
+      case 2: // Location - condicional según categoría
+        // Solo validar si la categoría requiere ubicación O si el usuario ingresó datos parciales
+        if (locationRequired) {
+          if (!formData.address || formData.address.trim().length < 3) {
+            errors.address = t('ui.requestWizard.addressRequired');
+          }
+          if (!formData.coordinates || !Number.isFinite(formData.coordinates.lat) || !Number.isFinite(formData.coordinates.lng)) {
+            errors.coordinates = t('ui.requestWizard.selectLocationOnMap');
+          }
+        } else {
+          // Para categorías remotas: si puso dirección, debe ser válida
+          if (formData.address && formData.address.trim().length > 0 && formData.address.trim().length < 3) {
+            errors.address = t('ui.requestWizard.addressTooShort');
+          }
         }
-        if (!formData.coordinates || !Number.isFinite(formData.coordinates.lat) || !Number.isFinite(formData.coordinates.lng)) {
-          errors.coordinates = t('ui.requestWizard.selectLocationOnMap');
-        }
         break;
-      case 3:
+      case 3: // Date - opcional, siempre válido
         break;
-      case 4:
+      case 4: // Summary
         // El paso de resumen no requiere validación adicional
         break;
     }
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  // Función para omitir paso opcional
+  const handleSkipStep = () => {
+    if (!completedSteps.includes(currentStep)) {
+      setCompletedSteps(prev => [...prev, currentStep]);
+    }
+    if (currentStep < STEPS.length - 1) {
+      setCurrentStep(prev => prev + 1);
+    }
   };
 
   const handleNext = () => {
@@ -551,16 +635,25 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
     setLoading(true);
     let data;
     try {
-      const autoTitle = formData.description.trim().substring(0, 50) + 
-                       (formData.description.trim().length > 50 ? '...' : '');
+      // Generate description from selected problems + additional details
+      const generatedDescription = generateAutoDescription();
+      const autoTitle = generatedDescription.substring(0, 50) + 
+                       (generatedDescription.length > 50 ? '...' : '');
+      
+      // Construir payload - ubicación solo si está completa
+      const hasValidLocation = formData.address?.trim() && 
+                               formData.coordinates?.lat && 
+                               formData.coordinates?.lng;
+      
       const payload = {
         title: autoTitle,
-        description: formData.description.trim(),
+        description: generatedDescription,
         category: formData.category,
         subcategory: formData.subcategory || undefined,
         urgency: formData.urgency,
-        address: formData.address.trim(),
-        coordinates: formData.coordinates,
+        // Solo incluir ubicación si está completa
+        address: hasValidLocation ? formData.address.trim() : undefined,
+        coordinates: hasValidLocation ? formData.coordinates : undefined,
         preferredDate: formData.preferredDate || undefined,
         budget: formData.budgetAmount ? {
           amount: Number(formData.budgetAmount),
@@ -693,7 +786,10 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
               {/* Info */}
               <div className="flex-1 min-w-0 text-white">
                 <h2 className="text-base sm:text-lg font-bold truncate pr-8">
-                  {t('ui.requestWizard.requestFor', { provider: providerName })}
+                  {t('ui.requestWizard.requestForCategory', { 
+                    provider: providerName, 
+                    category: formData.category || t('ui.requestWizard.service') 
+                  })}
                 </h2>
                 <div className="flex items-center gap-2 text-sm text-white/80">
                   <span>{t('ui.requestWizard.stepOf', { current: currentStep + 1, total: STEPS.length })}</span>
@@ -770,36 +866,96 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
                 <p className="text-sm text-gray-500 mt-1">{t(`ui.requestWizard.steps.${step.descriptionKey}`)}</p>
               </div>
 
-              {/* ==================== STEP 0: DESCRIPTION ==================== */}
+              {/* ==================== STEP 0: PROBLEM SELECTION ==================== */}
               {currentStep === 0 && (
                 <div className="space-y-5">
-                  {/* Description textarea */}
+                  {/* Info banner */}
+                  <div className="flex items-start gap-3 bg-brand-50 border border-brand-200 rounded-xl p-4">
+                    <Icons.Wrench className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-brand-800">{t('ui.categoryProblems.selectTitle')}</p>
+                      <p className="text-sm text-brand-700">{t('ui.categoryProblems.selectSubtitle')}</p>
+                    </div>
+                  </div>
+
+                  {/* Problem Grid Selection */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        {t('ui.requestWizard.whatProblemHave')} *
+                      </label>
+                      {formData.selectedProblems.length > 0 && (
+                        <span className="text-xs font-medium text-brand-600 bg-brand-100 px-2 py-1 rounded-full">
+                          {t('ui.requestWizard.problemsSelectedSummary', { count: formData.selectedProblems.length })}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Problems Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                      {availableProblems.map((problem) => {
+                        const isSelected = formData.selectedProblems.includes(problem.id);
+                        const isOther = problem.id === 'other';
+                        
+                        return (
+                          <button
+                            key={problem.id}
+                            type="button"
+                            onClick={() => toggleProblem(problem.id)}
+                            className={`
+                              relative p-3 sm:p-4 rounded-xl border-2 text-left transition-all group
+                              ${isSelected 
+                                ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20' 
+                                : 'border-gray-200 bg-white hover:border-brand-300 hover:bg-brand-50/50'}
+                              ${isOther ? 'col-span-2 sm:col-span-1' : ''}
+                            `}
+                          >
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <span className="text-xl sm:text-2xl shrink-0">{problem.icon}</span>
+                              <div className="min-w-0 flex-1">
+                                <p className={`font-medium text-sm sm:text-base truncate ${isSelected ? 'text-brand-800' : 'text-gray-900'}`}>
+                                  {t(`ui.categoryProblems.${formData.category}.${problem.id}.name`)}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate hidden sm:block">
+                                  {t(`ui.categoryProblems.${formData.category}.${problem.id}.desc`)}
+                                </p>
+                              </div>
+                            </div>
+                            {/* Selection indicator */}
+                            {isSelected && (
+                              <div className="absolute top-2 right-2 w-5 h-5 bg-brand-500 rounded-full flex items-center justify-center">
+                                <Icons.Check className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    {formErrors.selectedProblems && (
+                      <p className="text-xs text-red-600 mt-2 flex items-center gap-1">
+                        <span>⚠️</span> {formErrors.selectedProblems}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Additional Details - Optional textarea */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('ui.requestWizard.whatServiceNeeded')} *
+                      {t('ui.categoryProblems.additionalDetails')}
                     </label>
                     <textarea
-                      rows={5}
-                      value={formData.description}
-                      onChange={(e) => updateField('description', e.target.value)}
-                      className={`
-                        w-full border-2 rounded-xl px-4 py-3 text-gray-900 
+                      rows={3}
+                      value={formData.additionalDetails}
+                      onChange={(e) => updateField('additionalDetails', e.target.value)}
+                      className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 
                         placeholder:text-gray-400 resize-none transition-colors
-                        focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20
-                        ${formErrors.description ? 'border-red-300 bg-red-50' : 'border-gray-200'}
-                      `}
-                      placeholder={t('ui.requestWizard.descriptionPlaceholder')}
+                        focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+                      placeholder={t('ui.categoryProblems.additionalDetailsPlaceholder')}
                     />
-                    <div className="flex items-center justify-between mt-1">
-                      {formErrors.description ? (
-                        <p className="text-xs text-red-600">{formErrors.description}</p>
-                      ) : (
-                        <p className="text-xs text-gray-400">{t('ui.requestWizard.minCharacters', { min: 10 })}</p>
-                      )}
-                      <span className="text-xs text-gray-400">
-                        {t('ui.requestWizard.characters', { count: formData.description.length })}
-                      </span>
-                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {t('ui.requestWizard.characters', { count: formData.additionalDetails.length })}
+                    </p>
                   </div>
 
                   {/* Urgency selection */}
@@ -989,10 +1145,25 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
               {/* ==================== STEP 2: LOCATION ==================== */}
               {currentStep === 2 && (
                 <div className="space-y-5">
+                  {/* Banner informativo según si es obligatorio u opcional */}
+                  {!locationRequired && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+                      <span className="text-xl">💻</span>
+                      <div>
+                        <p className="text-sm font-medium text-blue-800">
+                          {t('ui.requestWizard.locationOptionalTitle')}
+                        </p>
+                        <p className="text-sm text-blue-700">
+                          {t('ui.requestWizard.locationOptionalDesc')}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Map */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('ui.requestWizard.selectOnMap')} *
+                      {t('ui.requestWizard.selectOnMap')} {locationRequired && '*'}
                     </label>
                     <div className="rounded-xl overflow-hidden border-2 border-gray-200">
                       <MapPicker
@@ -1010,7 +1181,7 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
                   {/* Address input */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('ui.requestWizard.serviceAddress')} *
+                      {t('ui.requestWizard.serviceAddress')} {locationRequired && '*'}
                     </label>
                     <div className="relative">
                       <Icons.MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -1100,6 +1271,37 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
               {/* ==================== STEP 4: RESUMEN ==================== */}
               {currentStep === 4 && (
                 <div className="space-y-5">
+                  {/* Request completeness indicator */}
+                  {(() => {
+                    const hasLocation = formData.address?.trim() && formData.coordinates?.lat;
+                    const hasDate = !!formData.preferredDate;
+                    const hasMedia = formData.photos.length > 0 || formData.videos.length > 0;
+                    const isComplete = hasLocation && hasDate && hasMedia;
+                    
+                    return (
+                      <div className={`rounded-xl p-4 flex items-start gap-3 ${
+                        isComplete 
+                          ? 'bg-green-50 border border-green-200' 
+                          : 'bg-amber-50 border border-amber-200'
+                      }`}>
+                        <span className="text-xl">{isComplete ? '✅' : '💡'}</span>
+                        <div className="flex-1">
+                          <p className={`text-sm font-medium ${isComplete ? 'text-green-800' : 'text-amber-800'}`}>
+                            {isComplete 
+                              ? t('ui.requestWizard.requestComplete')
+                              : t('ui.requestWizard.requestIncomplete')
+                            }
+                          </p>
+                          {!isComplete && (
+                            <p className="text-sm text-amber-700 mt-1">
+                              {t('ui.requestWizard.incompleteHint')}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Summary card */}
                   <div className="bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
                     <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -1107,11 +1309,30 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
                       {t('ui.requestWizard.requestSummary')}
                     </h4>
                     <div className="space-y-3">
+                      {/* Selected Problems */}
                       <div className="flex items-start gap-3">
-                        <span className="text-gray-400 shrink-0">📝</span>
+                        <span className="text-gray-400 shrink-0">🔧</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">{t('ui.requestWizard.steps.description')}</p>
-                          <p className="text-sm text-gray-900 line-clamp-2">{formData.description || '-'}</p>
+                          <p className="text-xs text-gray-500">{t('ui.requestWizard.steps.problems')}</p>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {formData.selectedProblems.map((problemId) => {
+                              const problem = availableProblems.find(p => p.id === problemId);
+                              return problem ? (
+                                <span 
+                                  key={problemId}
+                                  className="inline-flex items-center gap-1 text-xs bg-brand-100 text-brand-700 px-2 py-1 rounded-full"
+                                >
+                                  <span>{problem.icon}</span>
+                                  {t(`ui.categoryProblems.${formData.category}.${problemId}.name`)}
+                                </span>
+                              ) : null;
+                            })}
+                          </div>
+                          {formData.additionalDetails && (
+                            <p className="text-xs text-gray-600 mt-2 italic">
+                              "{formData.additionalDetails.substring(0, 80)}{formData.additionalDetails.length > 80 ? '...' : ''}"
+                            </p>
+                          )}
                         </div>
                         <button
                           type="button"
@@ -1121,34 +1342,50 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
                           {t('ui.requestWizard.edit')}
                         </button>
                       </div>
+                      
+                      {/* Location - con indicador de opcional */}
                       <div className="flex items-start gap-3">
-                        <span className="text-gray-400 shrink-0">📍</span>
+                        <span className={`shrink-0 ${formData.address ? 'text-gray-400' : 'text-amber-400'}`}>📍</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">{t('ui.requestWizard.steps.location')}</p>
-                          <p className="text-sm text-gray-900 truncate">{formData.address || '-'}</p>
+                          <p className="text-xs text-gray-500">
+                            {t('ui.requestWizard.steps.location')}
+                            {!locationRequired && <span className="text-gray-400 ml-1">({t('ui.requestWizard.optional')})</span>}
+                          </p>
+                          <p className={`text-sm truncate ${formData.address ? 'text-gray-900' : 'text-amber-600 italic'}`}>
+                            {formData.address || t('ui.requestWizard.notSpecified')}
+                          </p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setCurrentStep(2)}
                           className="text-xs text-brand-600 hover:text-brand-700 font-medium shrink-0"
                         >
-                          {t('ui.requestWizard.edit')}
+                          {formData.address ? t('ui.requestWizard.edit') : t('ui.requestWizard.add')}
                         </button>
                       </div>
+                      
+                      {/* Date - con indicador de opcional */}
                       <div className="flex items-start gap-3">
-                        <span className="text-gray-400 shrink-0">📅</span>
+                        <span className={`shrink-0 ${formData.preferredDate ? 'text-gray-400' : 'text-amber-400'}`}>📅</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500">{t('ui.requestWizard.steps.date')}</p>
-                          <p className="text-sm text-gray-900">{formData.preferredDate || t('ui.requestWizard.notSpecified')}</p>
+                          <p className="text-xs text-gray-500">
+                            {t('ui.requestWizard.steps.date')}
+                            <span className="text-gray-400 ml-1">({t('ui.requestWizard.optional')})</span>
+                          </p>
+                          <p className={`text-sm ${formData.preferredDate ? 'text-gray-900' : 'text-amber-600 italic'}`}>
+                            {formData.preferredDate || t('ui.requestWizard.notSpecified')}
+                          </p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setCurrentStep(3)}
                           className="text-xs text-brand-600 hover:text-brand-700 font-medium shrink-0"
                         >
-                          {t('ui.requestWizard.edit')}
+                          {formData.preferredDate ? t('ui.requestWizard.edit') : t('ui.requestWizard.add')}
                         </button>
                       </div>
+                      
+                      {/* Urgency */}
                       <div className="flex items-start gap-3">
                         <span className="text-gray-400 shrink-0">⚡</span>
                         <div className="flex-1 min-w-0">
@@ -1277,20 +1514,34 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
           {/* FOOTER - Botones de navegación */}
           {/* ============================================================ */}
           <div className="bg-gray-50 border-t px-4 py-3 flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={handleBack}
-              disabled={currentStep === 0 || loading}
-              className={`
-                flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-medium transition-all
-                ${currentStep === 0 
-                  ? 'text-gray-300 cursor-not-allowed' 
-                  : 'text-gray-600 hover:bg-gray-200'}
-              `}
-            >
-              <Icons.ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('ui.requestWizard.previous')}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Botón Cancelar */}
+              <button
+                type="button"
+                onClick={handleCloseAttempt}
+                disabled={loading}
+                className="flex items-center gap-1.5 px-4 py-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-medium transition-all"
+              >
+                <Icons.Close className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('ui.requestWizard.cancel')}</span>
+              </button>
+              
+              {/* Botón Anterior */}
+              <button
+                type="button"
+                onClick={handleBack}
+                disabled={currentStep === 0 || loading}
+                className={`
+                  flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-medium transition-all
+                  ${currentStep === 0 
+                    ? 'text-gray-300 cursor-not-allowed' 
+                    : 'text-gray-600 hover:bg-gray-200'}
+                `}
+              >
+                <Icons.ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('ui.requestWizard.previous')}</span>
+              </button>
+            </div>
 
             <div className="flex items-center gap-1.5">
               {STEPS.map((_, idx) => (
@@ -1305,15 +1556,28 @@ function RequestWizardModal({ provider, isOpen, onClose }) {
             </div>
 
             {currentStep < STEPS.length - 1 ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                disabled={uploadingMedia}
-                className="flex items-center gap-1.5 px-5 py-2.5 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition-all disabled:opacity-50"
-              >
-                <span>{t('ui.requestWizard.continue')}</span>
-                <Icons.ChevronRight className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Botón Omitir - visible en pasos opcionales (Media, Ubicación, Fecha) */}
+                {(currentStep === 1 || currentStep === 2 || currentStep === 3) && (
+                  <button
+                    type="button"
+                    onClick={handleSkipStep}
+                    className="flex items-center gap-1.5 px-4 py-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl font-medium transition-all"
+                  >
+                    <span>{t('ui.requestWizard.skip')}</span>
+                    <Icons.ChevronRight className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={uploadingMedia}
+                  className="flex items-center gap-1.5 px-5 py-2.5 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition-all disabled:opacity-50"
+                >
+                  <span>{t('ui.requestWizard.continue')}</span>
+                  <Icons.ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             ) : (
               <Button 
                 onClick={handleSubmit} 

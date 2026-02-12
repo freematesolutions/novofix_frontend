@@ -57,7 +57,7 @@ const planConfig = {
   }
 };
 
-function ProviderCard({ provider, onSelect, onViewPortfolio }) {
+function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = null }) {
   const { t } = useTranslation();
   const [showImageZoom, setShowImageZoom] = useState(false);
   const [blockCardClicks, setBlockCardClicks] = useState(false);
@@ -361,6 +361,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
         onClose={() => setShowProfile(false)}
         provider={provider}
         initialTab={typeof showProfile === 'string' ? showProfile : 'about'}
+        selectedCategory={selectedCategory}
       />
 
       {/* Request Wizard Modal */}
@@ -369,6 +370,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio }) {
           provider={provider}
           isOpen={showRequestWizard}
           onClose={() => setShowRequestWizard(false)}
+          initialCategory={selectedCategory}
         />
       )}
 

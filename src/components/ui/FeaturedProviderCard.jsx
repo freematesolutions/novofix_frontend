@@ -52,7 +52,7 @@ const planConfig = {
   }
 };
 
-function FeaturedProviderCard({ provider, onViewProfile }) {
+function FeaturedProviderCard({ provider, onViewProfile, selectedCategory = null }) {
   const { t, i18n } = useTranslation();
   const { isAuthenticated, viewRole } = useAuth();
   const toast = useToast();
@@ -359,6 +359,7 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
           provider={provider}
           isOpen={showRequestWizard}
           onClose={() => setShowRequestWizard(false)}
+          initialCategory={selectedCategory}
         />
       )}
 

@@ -605,6 +605,7 @@ useEffect(() => {
                     provider={provider}
                     onSelect={handleProviderSelect}
                     onViewPortfolio={handleViewPortfolio}
+                    selectedCategory={selectedCategory}
                   />
                 ))}
               </div>
@@ -1153,6 +1154,7 @@ useEffect(() => {
                         provider={provider}
                         onSelect={handleProviderSelect}
                         onViewPortfolio={handleViewPortfolio}
+                        selectedCategory={selectedCategory}
                       />
                     ))}
                 </div>
