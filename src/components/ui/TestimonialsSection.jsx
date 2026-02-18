@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import api from '@/state/apiClient.js';
 import ImageZoomModal from './ImageZoomModal.jsx';
+import ProviderProfileModal from './ProviderProfileModal.jsx';
 
 // Star Rating Component
 const StarRating = ({ rating, size = 'sm' }) => {
@@ -24,13 +25,13 @@ const StarRating = ({ rating, size = 'sm' }) => {
 };
 
 // Testimonial Card Component
-const TestimonialCard = ({ testimonial, onImageClick }) => {
+const TestimonialCard = ({ testimonial }) => {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language?.split('-')[0] || 'es';
 
   const isProvider = testimonial.userRole === 'provider';
 
-  // Get translated comment
+  // Get translated comment (review about provider for clients, review about client for providers)
   const getComment = () => {
     if (testimonial.translations?.[currentLang]?.comment) {
       return testimonial.translations[currentLang].comment;
@@ -47,9 +48,12 @@ const TestimonialCard = ({ testimonial, onImageClick }) => {
 
   const comment = getComment();
   const platformComment = getPlatformComment();
-  // Use allPhotos (combined from review.photos + booking evidence)
-  const photos = testimonial.allPhotos || testimonial.review?.photos || [];
-  const hasPhotos = photos.length > 0;
+  
+  // Platform rating
+  const platformRating = testimonial.platformFeedback?.rating;
+  
+  // For providers: rating they gave to the client
+  const clientRating = isProvider ? (testimonial.rating?.overall || null) : null;
 
   // Role badge colors
   const roleBadgeStyles = isProvider
@@ -68,74 +72,77 @@ const TestimonialCard = ({ testimonial, onImageClick }) => {
 
   return (
     <div className="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden h-full flex flex-col">
-      {/* Photos Grid */}
-      {hasPhotos && (
-        <div className="relative">
-          {photos.length === 1 ? (
-            <div 
-              className="aspect-4/3 cursor-pointer overflow-hidden"
-              onClick={() => onImageClick(photos[0].url)}
-            >
-              <img 
-                src={photos[0].url} 
-                alt={t('testimonials.workPhoto')}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-0.5">
-              {photos.slice(0, 4).map((photo, idx) => (
-                <div 
-                  key={idx}
-                  className="relative aspect-square cursor-pointer overflow-hidden"
-                  onClick={() => onImageClick(photo.url)}
-                >
-                  <img 
-                    src={photo.url} 
-                    alt={`${t('testimonials.workPhoto')} ${idx + 1}`}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                  />
-                  {idx === 3 && photos.length > 4 && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">+{photos.length - 4}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Category badge */}
-          {testimonial.providerServices?.[0]?.category && (
-            <div className="absolute bottom-2 left-2 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 shadow-md">
-              <span className="text-xs font-medium text-gray-700">
-                {t(`home.categories.${testimonial.providerServices[0].category}`, testimonial.providerServices[0].category)}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Content */}
       <div className="p-5 flex-1 flex flex-col">
-        {/* Role Badge + Rating */}
-        <div className="flex items-center justify-between mb-3">
-          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${roleBadgeStyles}`}>
-            {roleIcon}
-            <span>{isProvider ? t('testimonials.roleProvider') : t('testimonials.roleClient')}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <StarRating rating={testimonial.rating?.overall || testimonial.platformFeedback?.rating || 5} size="sm" />
-            <span className="text-sm font-medium text-gray-700">
-              {(testimonial.rating?.overall || testimonial.platformFeedback?.rating || 5).toFixed(1)}
-            </span>
+        {/* Header: User Identity (Social Card Style) */}
+        <div className="flex items-center gap-3 mb-4">
+          {/* Avatar */}
+          {testimonial.userAvatar ? (
+            <img 
+              src={testimonial.userAvatar} 
+              alt={testimonial.userName}
+              className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100"
+            />
+          ) : (
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-bold ring-2 ring-gray-100 ${isProvider ? 'bg-linear-to-br from-purple-400 to-indigo-500' : 'bg-linear-to-br from-emerald-400 to-teal-500'}`}>
+              {testimonial.userName?.charAt(0) || (isProvider ? 'P' : 'C')}
+            </div>
+          )}
+          {/* Name and Role */}
+          <div className="flex-1 min-w-0">
+            <p className="text-base font-semibold text-gray-900 truncate">{testimonial.userName}</p>
+            <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${roleBadgeStyles}`}>
+              {roleIcon}
+              <span>{isProvider ? t('testimonials.verifiedProvider') : t('testimonials.verifiedClient')}</span>
+            </div>
           </div>
         </div>
 
-        {/* Review Comment (for clients reviewing providers) */}
+        {/* For Clients: Show their review/rating about the provider */}
         {!isProvider && comment && (
-          <div className="mb-3">
-            <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">
+          <div className="mb-3 rounded-lg p-3 border bg-linear-to-r from-emerald-50 to-teal-50 border-emerald-100">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+                </svg>
+                <span className="text-xs font-semibold text-emerald-700">
+                  {t('testimonials.aboutProvider', { name: testimonial.providerName || t('testimonials.roleProvider') })}
+                </span>
+              </div>
+              {testimonial.rating?.overall && (
+                <div className="flex items-center gap-1">
+                  <StarRating rating={testimonial.rating.overall} size="xs" />
+                  <span className="text-xs font-medium text-emerald-700">{testimonial.rating.overall.toFixed(1)}</span>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-600 italic line-clamp-2">
+              "{comment}"
+            </p>
+          </div>
+        )}
+
+        {/* For Providers: Show their review/rating about the client */}
+        {isProvider && comment && (
+          <div className="mb-3 rounded-lg p-3 border bg-linear-to-r from-amber-50 to-orange-50 border-amber-100">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+                <span className="text-xs font-semibold text-amber-700">
+                  {t('testimonials.aboutClient', { name: testimonial.clientName || t('testimonials.roleClient') })}
+                </span>
+              </div>
+              {clientRating && (
+                <div className="flex items-center gap-1">
+                  <StarRating rating={clientRating} size="xs" />
+                  <span className="text-xs font-medium text-amber-700">{clientRating.toFixed(1)}</span>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-600 italic line-clamp-2">
               "{comment}"
             </p>
           </div>
@@ -144,115 +151,643 @@ const TestimonialCard = ({ testimonial, onImageClick }) => {
         {/* Platform Feedback (main content for provider testimonials, optional for clients) */}
         {testimonial.hasPlatformFeedback && platformComment && (
           <div className={`mb-3 rounded-lg p-3 border ${isProvider ? 'bg-linear-to-r from-purple-50 to-indigo-50 border-purple-100' : 'bg-linear-to-r from-brand-50 to-cyan-50 border-brand-100'}`}>
-            <div className="flex items-center gap-1.5 mb-1">
-              <svg className={`w-4 h-4 ${isProvider ? 'text-purple-600' : 'text-brand-600'}`} fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-              <span className={`text-xs font-semibold ${isProvider ? 'text-purple-700' : 'text-brand-700'}`}>
-                {t('testimonials.aboutNovoFix')}
-              </span>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <svg className={`w-4 h-4 ${isProvider ? 'text-purple-600' : 'text-brand-600'}`} fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <span className={`text-xs font-semibold ${isProvider ? 'text-purple-700' : 'text-brand-700'}`}>
+                  {t('testimonials.aboutNovoFix')}
+                </span>
+              </div>
+              {platformRating && (
+                <div className="flex items-center gap-1">
+                  <StarRating rating={platformRating} size="xs" />
+                  <span className={`text-xs font-medium ${isProvider ? 'text-purple-700' : 'text-brand-700'}`}>{platformRating.toFixed(1)}</span>
+                </div>
+              )}
             </div>
             <p className="text-xs text-gray-600 italic line-clamp-2">
               "{platformComment}"
             </p>
           </div>
         )}
-
-        {/* Spacer */}
-        <div className="flex-1"></div>
-
-        {/* Footer: User info */}
-        <div className="pt-3 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            {/* User who left the testimonial */}
-            <div className="flex items-center gap-2">
-              {testimonial.userAvatar ? (
-                <img 
-                  src={testimonial.userAvatar} 
-                  alt={testimonial.userName}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${isProvider ? 'bg-linear-to-br from-purple-400 to-indigo-500' : 'bg-linear-to-br from-gray-400 to-gray-500'}`}>
-                  {testimonial.userName?.charAt(0) || (isProvider ? 'P' : 'C')}
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-medium text-gray-900">{testimonial.userName}</p>
-                <p className="text-xs text-gray-500">
-                  {isProvider ? t('testimonials.verifiedProvider') : t('testimonials.verifiedClient')}
-                </p>
-              </div>
-            </div>
-
-            {/* Provider info (for client testimonials with work photos) */}
-            {!isProvider && hasPhotos && testimonial.providerName && (
-              <div className="text-right">
-                <p className="text-xs text-gray-500">{t('testimonials.serviceBy')}</p>
-                <p className="text-xs font-medium text-brand-600">{testimonial.providerName}</p>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
-// Work Photo Gallery Component
-const WorkPhotoGallery = ({ photos, onImageClick }) => {
+// Testimonials Carousel Component - Auto-scroll horizontal with pause on hover/touch
+const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
   const { t } = useTranslation();
-  const [visiblePhotos, setVisiblePhotos] = useState(8);
+  const containerRef = useRef(null);
+  const scrollRef = useRef(null);
+  const animationRef = useRef(null);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const lastTimeRef = useRef(0);
+  
+  // Auto-scroll speed (pixels per frame at 60fps) - Higher = faster
+  const scrollSpeed = 1.2;
+
+  // Auto-scroll animation
+  useEffect(() => {
+    if (!scrollRef.current || isHovering || isDragging || testimonials.length <= 1) {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+      lastTimeRef.current = 0;
+      return;
+    }
+
+    const animate = (currentTime) => {
+      if (!lastTimeRef.current) {
+        lastTimeRef.current = currentTime;
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      const deltaTime = currentTime - lastTimeRef.current;
+      lastTimeRef.current = currentTime;
+
+      const container = scrollRef.current;
+      if (container) {
+        // Scroll from left to right
+        container.scrollLeft += scrollSpeed * (deltaTime / 16.67); // Normalize to 60fps
+        
+        // Reset to beginning when reaching the end (infinite loop)
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        if (container.scrollLeft >= maxScroll) {
+          container.scrollLeft = 0;
+        }
+      }
+
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
+  }, [isHovering, isDragging, testimonials.length]);
+
+  // Mouse/Touch handlers for drag scrolling
+  const handleMouseDown = useCallback((e) => {
+    e.preventDefault(); // Prevent text selection
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  }, []);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Scroll speed multiplier
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  }, [isDragging, startX, scrollLeft]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    // Don't stop dragging on mouse leave - let mouseup handle it
+    setIsHovering(false);
+  }, []);
+
+  // Global mouseup listener to handle drag release outside container
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+    };
+    
+    if (isDragging) {
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+    }
+  }, [isDragging]);
+
+  // Touch handlers
+  const handleTouchStart = useCallback((e) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  }, [isDragging, startX, scrollLeft]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Scroll wheel handler for horizontal scrolling
+  const handleWheel = useCallback((e) => {
+    if (scrollRef.current) {
+      e.preventDefault();
+      scrollRef.current.scrollLeft += e.deltaY;
+    }
+  }, []);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (container) {
+      container.addEventListener('wheel', handleWheel, { passive: false });
+      return () => container.removeEventListener('wheel', handleWheel);
+    }
+  }, [handleWheel]);
+
+  if (!testimonials || testimonials.length === 0) return null;
+
+  // Duplicate testimonials for seamless infinite scroll
+  const displayTestimonials = testimonials.length < 6 
+    ? [...testimonials, ...testimonials, ...testimonials] // Triple for small sets
+    : [...testimonials, ...testimonials]; // Double for larger sets
+
+  return (
+    <div className="mb-10" ref={containerRef}>
+      <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <svg className="w-6 h-6 text-brand-500" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/>
+        </svg>
+        {t('testimonials.userReviews')}
+      </h3>
+      
+      {/* Carousel Container */}
+      <div 
+        ref={scrollRef}
+        className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 cursor-grab active:cursor-grabbing select-none"
+        style={{ 
+          scrollBehavior: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none'
+        }}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={handleMouseLeave}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onDragStart={(e) => e.preventDefault()}
+      >
+        {displayTestimonials.map((testimonial, index) => (
+          <div 
+            key={`${testimonial._id}-${index}`}
+            className="shrink-0 w-[320px] sm:w-[350px] md:w-[380px]"
+          >
+            <TestimonialCard 
+              testimonial={testimonial}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Gradient overlays to indicate more content */}
+      <div className="relative -mt-4 h-4 pointer-events-none">
+        <div className="absolute left-0 top-0 w-16 h-full bg-linear-to-r from-white to-transparent"></div>
+        <div className="absolute right-0 top-0 w-16 h-full bg-linear-to-l from-white to-transparent"></div>
+      </div>
+
+      {/* Scroll hint text */}
+      <p className="text-center text-xs text-gray-400 mt-2">
+        {t('testimonials.scrollHint')}
+      </p>
+    </div>
+  );
+};
+
+// Work Photo Gallery Component - Galería de Trabajos Realizados
+// Incluye: reseñas de clientes, reseñas de profesionales, portafolio y evidencias
+// Agrupados por procedencia con opción de ver perfil del proveedor
+const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
+  const { t, i18n } = useTranslation();
+  const containerRef = useRef(null);
+  const scrollRef = useRef(null);
+  const animationRef = useRef(null);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const lastTimeRef = useRef(0);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const currentLang = i18n.language?.split('-')[0] || 'es';
+  
+  // Auto-scroll speed (pixels per frame at 60fps) - Higher = faster
+  const scrollSpeed = 1.2;
+
+  // Auto-scroll animation - RIGHT TO LEFT
+  useEffect(() => {
+    if (!scrollRef.current || isHovering || isDragging || !photos || photos.length <= 1) {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+      lastTimeRef.current = 0;
+      return;
+    }
+
+    // Start at the end for right-to-left scrolling
+    const container = scrollRef.current;
+    if (container.scrollLeft === 0) {
+      container.scrollLeft = container.scrollWidth - container.clientWidth;
+    }
+
+    const animate = (currentTime) => {
+      if (!lastTimeRef.current) {
+        lastTimeRef.current = currentTime;
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      const deltaTime = currentTime - lastTimeRef.current;
+      lastTimeRef.current = currentTime;
+
+      const container = scrollRef.current;
+      if (container) {
+        // Scroll from right to left (decrement scrollLeft)
+        container.scrollLeft -= scrollSpeed * (deltaTime / 16.67); // Normalize to 60fps
+        
+        // Reset to end when reaching the beginning (infinite loop)
+        if (container.scrollLeft <= 0) {
+          container.scrollLeft = container.scrollWidth - container.clientWidth;
+        }
+      }
+
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
+  }, [isHovering, isDragging, photos?.length]);
+
+  // Mouse/Touch handlers for drag scrolling
+  const handleMouseDown = useCallback((e) => {
+    e.preventDefault(); // Prevent text selection and image drag
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  }, []);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  }, [isDragging, startX, scrollLeft]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    // Don't stop dragging on mouse leave - let mouseup handle it
+    setIsHovering(false);
+  }, []);
+
+  // Global mouseup listener to handle drag release outside container
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+    };
+    
+    if (isDragging) {
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+    }
+  }, [isDragging]);
+
+  // Touch handlers
+  const handleTouchStart = useCallback((e) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  }, [isDragging, startX, scrollLeft]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Scroll wheel handler
+  const handleWheel = useCallback((e) => {
+    if (scrollRef.current) {
+      e.preventDefault();
+      scrollRef.current.scrollLeft += e.deltaY;
+    }
+  }, []);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (container) {
+      container.addEventListener('wheel', handleWheel, { passive: false });
+      return () => container.removeEventListener('wheel', handleWheel);
+    }
+  }, [handleWheel]);
 
   if (!photos || photos.length === 0) return null;
 
+  // Configuración de colores y iconos por tipo de fuente
+  const sourceConfig = {
+    client_review: {
+      color: 'emerald',
+      bgColor: 'bg-emerald-500',
+      textColor: 'text-emerald-600',
+      borderColor: 'border-emerald-200',
+      bgLight: 'bg-emerald-50',
+      icon: (
+        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+      )
+    },
+    provider_review: {
+      color: 'amber',
+      bgColor: 'bg-amber-500',
+      textColor: 'text-amber-600',
+      borderColor: 'border-amber-200',
+      bgLight: 'bg-amber-50',
+      icon: (
+        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+        </svg>
+      )
+    },
+    portfolio: {
+      color: 'purple',
+      bgColor: 'bg-purple-500',
+      textColor: 'text-purple-600',
+      borderColor: 'border-purple-200',
+      bgLight: 'bg-purple-50',
+      icon: (
+        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H6c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h12c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1zm-4.44-6.19l-2.35 3.02-1.56-1.88c-.2-.25-.58-.24-.78.01l-1.74 2.23c-.26.33-.02.81.39.81h8.98c.41 0 .65-.47.4-.8l-2.55-3.39c-.19-.26-.59-.26-.79 0z"/>
+        </svg>
+      )
+    },
+    service_evidence: {
+      color: 'blue',
+      bgColor: 'bg-blue-500',
+      textColor: 'text-blue-600',
+      borderColor: 'border-blue-200',
+      bgLight: 'bg-blue-50',
+      icon: (
+        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        </svg>
+      )
+    }
+  };
+
+  // Función para obtener el thumbnail de videos de Cloudinary
+  const getThumbnailUrl = (photo) => {
+    if (photo.type === 'video' && photo.url) {
+      if (photo.url.includes('cloudinary.com') && photo.url.includes('/video/')) {
+        return photo.url.replace('/video/upload/', '/video/upload/so_0,f_jpg,w_400,h_400,c_fill/');
+      }
+    }
+    return photo.url;
+  };
+
+  // Función para detectar si es video
+  const isVideo = (photo) => {
+    return photo.type === 'video' || photo.url?.includes('/video/');
+  };
+
+  // Manejar click en la imagen/video
+  const handleMediaClick = (photo, e) => {
+    e.stopPropagation();
+    onImageClick(photo.url, photo);
+  };
+
+  // Manejar click en ver perfil
+  const handleProfileClick = (photo, e) => {
+    e.stopPropagation();
+    if (onViewProfile && photo.providerId) {
+      onViewProfile(photo.providerId, photo);
+    }
+  };
+
+  // Obtener la etiqueta de procedencia traducida
+  const getSourceLabel = (photo) => {
+    if (photo.sourceLabel) {
+      return photo.sourceLabel[currentLang] || photo.sourceLabel.es || t(`testimonials.source.${photo.source}`);
+    }
+    return t(`testimonials.source.${photo.source}`, photo.source);
+  };
+
+  // Contar fotos por tipo de fuente
+  const sourceCounts = photos.reduce((acc, photo) => {
+    const source = photo.source || 'other';
+    acc[source] = (acc[source] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Filtrar fotos según el filtro activo
+  const filteredPhotos = activeFilter === 'all' 
+    ? photos 
+    : photos.filter(p => p.source === activeFilter);
+
+  // Photos to display in carousel (duplicate for infinite scroll if needed)
+  const displayPhotos = filteredPhotos.length < 8 
+    ? [...filteredPhotos, ...filteredPhotos, ...filteredPhotos] 
+    : filteredPhotos;
+
+  // Opciones de filtro
+  const filterOptions = [
+    { key: 'all', label: t('testimonials.filter.all', 'Todos'), count: photos.length },
+    { key: 'client_review', label: t('testimonials.filter.clientReviews', 'Reseñas de clientes'), count: sourceCounts.client_review || 0 },
+    { key: 'portfolio', label: t('testimonials.filter.portfolio', 'Portafolio'), count: sourceCounts.portfolio || 0 },
+    { key: 'service_evidence', label: t('testimonials.filter.evidence', 'Evidencias'), count: sourceCounts.service_evidence || 0 },
+    { key: 'provider_review', label: t('testimonials.filter.providerReviews', 'Reseñas de profesionales'), count: sourceCounts.provider_review || 0 },
+  ].filter(opt => opt.key === 'all' || opt.count > 0);
+
   return (
     <div className="mb-10">
+      {/* Header con título */}
       <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
         <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
         {t('testimonials.workGallery')}
       </h3>
+
+      {/* Filtros por procedencia */}
+      {filterOptions.length > 2 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {filterOptions.map(option => {
+            const config = sourceConfig[option.key] || { bgColor: 'bg-gray-500', textColor: 'text-gray-600' };
+            const isActive = activeFilter === option.key;
+            return (
+              <button
+                key={option.key}
+                onClick={() => setActiveFilter(option.key)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                  isActive 
+                    ? `${config.bgColor} text-white shadow-md` 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {option.key !== 'all' && sourceConfig[option.key]?.icon}
+                <span>{option.label}</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-xs ${
+                  isActive ? 'bg-white/20' : 'bg-gray-200'
+                }`}>
+                  {option.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {photos.slice(0, visiblePhotos).map((photo, idx) => (
-          <div 
-            key={idx}
-            className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all duration-300"
-            onClick={() => onImageClick(photo.url)}
-          >
-            <img 
-              src={photo.url} 
-              alt={`${t('testimonials.work')} - ${photo.category}`}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="absolute bottom-2 left-2 right-2">
-                <p className="text-white text-xs font-medium truncate">{photo.providerName}</p>
-                <div className="flex items-center gap-1">
-                  <StarRating rating={photo.rating || 5} size="xs" />
-                  <span className="text-white/80 text-xs">{t(`home.categories.${photo.category}`, photo.category)}</span>
+      {/* Carousel de fotos/videos - Right to Left */}
+      <div 
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 cursor-grab active:cursor-grabbing select-none"
+        style={{ 
+          scrollBehavior: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none'
+        }}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={handleMouseLeave}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onDragStart={(e) => e.preventDefault()}
+      >
+        {/* Duplicate photos for infinite scroll */}
+        {[...displayPhotos, ...displayPhotos].map((photo, idx) => {
+          const config = sourceConfig[photo.source] || sourceConfig.client_review;
+          
+          return (
+            <div 
+              key={`${photo.url}-${idx}`}
+              className="shrink-0 w-[200px] sm:w-[220px] md:w-[250px] group relative aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
+            >
+              {/* Imagen o thumbnail de video - área clickeable */}
+              <div 
+                className="absolute inset-0"
+                onClick={(e) => !isDragging && handleMediaClick(photo, e)}
+              >
+                <img 
+                  src={getThumbnailUrl(photo)} 
+                  alt={`${t('testimonials.work')} - ${photo.category}`}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 pointer-events-none"
+                  draggable="false"
+                  onError={(e) => {
+                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNlNWU3ZWIiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiPkltYWdlbjwvdGV4dD48L3N2Zz4=';
+                  }}
+                />
+              </div>
+              
+              {/* Indicador de video */}
+              {isVideo(photo) && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="bg-black/60 rounded-full p-3 group-hover:bg-black/80 group-hover:scale-110 transition-all duration-300">
+                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              {/* Badge de procedencia (esquina superior izquierda) */}
+              <div className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-white ${config.bgColor} shadow-md`}>
+                {config.icon}
+                <span className="hidden sm:inline max-w-20 truncate">{getSourceLabel(photo)}</span>
+              </div>
+
+              {/* Overlay con información del proveedor */}
+              <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/40 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="flex items-center gap-2">
+                  {/* Avatar del proveedor */}
+                  {photo.providerAvatar ? (
+                    <img 
+                      src={photo.providerAvatar} 
+                      alt={photo.providerName}
+                      className="w-8 h-8 rounded-full object-cover ring-2 ring-white/50"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-sm font-bold ring-2 ring-white/50">
+                      {photo.providerName?.charAt(0) || 'P'}
+                    </div>
+                  )}
+                  
+                  {/* Info del proveedor */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-xs font-semibold truncate">{photo.providerName}</p>
+                    <div className="flex items-center gap-1">
+                      <StarRating rating={photo.rating || 5} size="xs" />
+                      <span className="text-white/70 text-xs truncate">{t(`home.categories.${photo.category}`, photo.category)}</span>
+                    </div>
+                  </div>
+
+                  {/* Botón ver perfil */}
+                  {photo.providerId && onViewProfile && (
+                    <button
+                      onClick={(e) => handleProfileClick(photo, e)}
+                      className="shrink-0 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-1.5 rounded-full transition-colors"
+                      title={t('testimonials.viewProfile', 'Ver perfil')}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {photos.length > visiblePhotos && (
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={() => setVisiblePhotos(prev => prev + 8)}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors"
-          >
-            <span>{t('testimonials.showMore')}</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
-      )}
+      {/* Gradient overlays to indicate more content */}
+      <div className="relative -mt-4 h-4 pointer-events-none">
+        <div className="absolute left-0 top-0 w-16 h-full bg-linear-to-r from-white to-transparent"></div>
+        <div className="absolute right-0 top-0 w-16 h-full bg-linear-to-l from-white to-transparent"></div>
+      </div>
+
+      {/* Scroll hint text */}
+      <p className="text-center text-xs text-gray-400 mt-2">
+        {t('testimonials.scrollHintGallery')}
+      </p>
     </div>
   );
 };
@@ -264,12 +799,16 @@ function TestimonialsSection() {
   const [workPhotos, setWorkPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [zoomImage, setZoomImage] = useState(null);
+  const [selectedMediaData, setSelectedMediaData] = useState(null);
+  // Estado para el modal de perfil del proveedor
+  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [loadingProvider, setLoadingProvider] = useState(false);
 
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
         const { data } = await api.get('/guest/testimonials/featured', {
-          params: { limit: 12 }
+          params: { limit: 20 }
         });
         if (data?.data) {
           setTestimonials(data.data.testimonials || []);
@@ -284,8 +823,39 @@ function TestimonialsSection() {
     fetchTestimonials();
   }, []);
 
-  const handleImageClick = (url) => {
+  const handleImageClick = (url, photoData = null) => {
     setZoomImage(url);
+    setSelectedMediaData(photoData);
+  };
+
+  // Manejar click en ver perfil del proveedor
+  const handleViewProfile = async (providerId, photoData) => {
+    if (!providerId) return;
+    
+    setLoadingProvider(true);
+    try {
+      // Obtener datos completos del proveedor
+      const { data } = await api.get(`/guest/providers/${providerId}`);
+      if (data?.data?.provider) {
+        setSelectedProvider(data.data.provider);
+      }
+    } catch (error) {
+      console.error('Error fetching provider profile:', error);
+      // Mostrar datos básicos si falla la carga completa
+      if (photoData) {
+        setSelectedProvider({
+          _id: providerId,
+          profile: { firstName: photoData.providerName, avatar: photoData.providerAvatar },
+          providerProfile: {
+            businessName: photoData.providerName,
+            rating: { average: photoData.rating || 0 },
+            services: [{ category: photoData.category }]
+          }
+        });
+      }
+    } finally {
+      setLoadingProvider(false);
+    }
   };
 
   const isEmpty = !loading && testimonials.length === 0 && workPhotos.length === 0;
@@ -332,30 +902,20 @@ function TestimonialsSection() {
             </div>
           ) : (
             <>
-              {/* Testimonials Grid - Opiniones de usuarios primero */}
+              {/* Testimonials Carousel - Opiniones de usuarios primero */}
               {testimonials.length > 0 && (
-                <div className="mb-10">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <svg className="w-6 h-6 text-brand-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/>
-                    </svg>
-                    {t('testimonials.userReviews')}
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {testimonials.slice(0, 6).map((testimonial) => (
-                      <TestimonialCard 
-                        key={testimonial._id} 
-                        testimonial={testimonial}
-                        onImageClick={handleImageClick}
-                      />
-                    ))}
-                  </div>
-                </div>
+                <TestimonialsCarousel 
+                  testimonials={testimonials}
+                  onImageClick={handleImageClick}
+                />
               )}
 
               {/* Work Photos Gallery - Galería después */}
-              <WorkPhotoGallery photos={workPhotos} onImageClick={handleImageClick} />
+              <WorkPhotoGallery 
+                photos={workPhotos} 
+                onImageClick={handleImageClick}
+                onViewProfile={handleViewProfile}
+              />
             </>
           )}
 
@@ -437,23 +997,52 @@ function TestimonialsSection() {
       {zoomImage && (
         <ImageZoomModal
           isOpen={!!zoomImage}
-          onClose={() => setZoomImage(null)}
+          onClose={() => {
+            setZoomImage(null);
+            setSelectedMediaData(null);
+          }}
           imageUrl={zoomImage}
           alt={t('testimonials.workPhoto')}
+          mediaData={selectedMediaData}
         />
+      )}
+
+      {/* Provider Profile Modal */}
+      {selectedProvider && (
+        <ProviderProfileModal
+          isOpen={!!selectedProvider}
+          onClose={() => setSelectedProvider(null)}
+          provider={selectedProvider}
+          initialTab="portfolio"
+        />
+      )}
+
+      {/* Loading overlay para cargar perfil */}
+      {loadingProvider && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 shadow-2xl flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600"></div>
+            <p className="text-gray-600">{t('common.loading')}</p>
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
 TestimonialCard.propTypes = {
-  testimonial: PropTypes.object.isRequired,
+  testimonial: PropTypes.object.isRequired
+};
+
+TestimonialsCarousel.propTypes = {
+  testimonials: PropTypes.array.isRequired,
   onImageClick: PropTypes.func.isRequired
 };
 
 WorkPhotoGallery.propTypes = {
   photos: PropTypes.array,
-  onImageClick: PropTypes.func.isRequired
+  onImageClick: PropTypes.func.isRequired,
+  onViewProfile: PropTypes.func
 };
 
 export default TestimonialsSection;

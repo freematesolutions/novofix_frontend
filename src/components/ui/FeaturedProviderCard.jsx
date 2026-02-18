@@ -2,11 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import ProviderProfileModal from './ProviderProfileModal.jsx';
-import RequestWizardModal from './RequestWizardModal.jsx';
-import GuestConversionModal from './GuestConversionModal.jsx';
 import PortfolioModal from './PortfolioModal.jsx';
-import { useAuth } from '@/state/AuthContext.jsx';
-import { useToast } from './Toast.jsx';
 
 // Star Rating Component
 const StarRating = ({ rating, size = 'sm' }) => {
@@ -27,87 +23,38 @@ const StarRating = ({ rating, size = 'sm' }) => {
   );
 };
 
-// Plan badge configuration
-const planConfig = {
-  pro: { 
-    label: 'PRO', 
-    gradient: 'bg-linear-to-r from-purple-500 to-purple-700',
-    icon: '👑',
-    ring: 'ring-purple-400',
-    glow: 'shadow-purple-500/30'
-  },
-  basic: { 
-    label: 'BASIC', 
-    gradient: 'bg-linear-to-r from-blue-500 to-blue-600',
-    icon: '⭐',
-    ring: 'ring-blue-400',
-    glow: 'shadow-blue-500/30'
-  },
-  free: { 
-    label: 'FREE', 
-    gradient: 'bg-gray-200 text-gray-700',
-    icon: '✨',
-    ring: 'ring-gray-300',
-    glow: ''
-  }
-};
-
-function FeaturedProviderCard({ provider, onViewProfile, selectedCategory = null }) {
-  const { t, i18n } = useTranslation();
-  const { isAuthenticated, viewRole } = useAuth();
-  const toast = useToast();
-  
+function FeaturedProviderCard({ provider, onViewProfile }) {
+  const { t } = useTranslation();
   const [showProfile, setShowProfile] = useState(false);
-  const [showRequestWizard, setShowRequestWizard] = useState(false);
-  const [showGuestConversion, setShowGuestConversion] = useState(false);
   const [showPortfolioGallery, setShowPortfolioGallery] = useState(false);
+
+  // Función helper para generar thumbnail URL de videos de Cloudinary
+  const getVideoThumbnailUrl = (videoUrl) => {
+    // Si la URL contiene 'cloudinary', usar transformaciones de Cloudinary
+    if (videoUrl.includes('cloudinary')) {
+      // Extraer la parte de upload y agregar transformación para thumbnail
+      // Formato: https://res.cloudinary.com/cloud_name/video/upload/v123/folder/file.mp4
+      // Convertir a: https://res.cloudinary.com/cloud_name/video/upload/so_0,f_jpg,w_300,h_300,c_fill/v123/folder/file.mp4
+      return videoUrl.replace(
+        /\/upload\/(v\d+\/)?/,
+        '/upload/so_0,f_jpg,w_300,h_300,c_fill/$1'
+      );
+    }
+    // Fallback: reemplazar extensión de video por .jpg
+    return videoUrl.replace(/\.(mp4|mov|avi|webm)$/i, '.jpg');
+  };
 
   // Extract provider data
   const businessName = provider.providerProfile?.businessName || provider.profile?.firstName || t('home.featuredProviders.professional');
   const businessDescription = provider.providerProfile?.description || provider.providerProfile?.businessDescription || '';
   const rating = provider.providerProfile?.rating?.average || 0;
   const reviewCount = provider.providerProfile?.rating?.count || 0;
-  const plan = provider.subscription?.plan || 'free';
   const services = provider.providerProfile?.services || [];
   const profileImage = provider.profile?.avatar || null;
   const portfolio = provider.providerProfile?.portfolio || [];
   const score = provider.score?.total || provider.score || 0;
   const stats = provider.providerProfile?.stats || {};
   const completedJobs = stats.completedJobs || 0;
-  const featuredReview = provider.featuredReview || null;
-  
-  const planInfo = planConfig[plan] || planConfig.free;
-  const currentLang = i18n.language?.split('-')[0] || 'es';
-
-  // Get review text with translation support
-  const getReviewText = () => {
-    if (!featuredReview) return null;
-    
-    // Try translated version first
-    if (featuredReview.translations?.[currentLang]?.comment) {
-      return featuredReview.translations[currentLang].comment;
-    }
-    // Fallback to original
-    return featuredReview.review?.comment || null;
-  };
-
-  const reviewText = getReviewText();
-  const reviewerName = featuredReview?.client?.profile?.firstName || t('home.featuredProviders.client');
-  const reviewerAvatar = featuredReview?.client?.profile?.avatar;
-
-  // Handle contact button click
-  const handleContactClick = (e) => {
-    e.stopPropagation();
-    if (!isAuthenticated) {
-      setShowGuestConversion(true);
-      return;
-    }
-    if (viewRole !== 'client') {
-      toast.warning(t('ui.providerCard.onlyClientsCanRequest'));
-      return;
-    }
-    setShowRequestWizard(true);
-  };
 
   // Handle portfolio click
   const handlePortfolioClick = (e) => {
@@ -126,11 +73,10 @@ function FeaturedProviderCard({ provider, onViewProfile, selectedCategory = null
       {/* Featured Provider Card */}
       <div 
         onClick={handleCardClick}
-        className={`group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden h-full flex flex-col ${plan !== 'free' ? `${planInfo.glow} shadow-lg` : ''}`}
-        style={{ minHeight: '480px' }}
+        className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden h-full flex flex-col"
       >
-        {/* Top gradient accent based on plan */}
-        <div className={`absolute top-0 left-0 right-0 h-1.5 ${plan === 'pro' ? 'bg-linear-to-r from-purple-400 via-purple-500 to-pink-500' : plan === 'basic' ? 'bg-linear-to-r from-blue-400 via-blue-500 to-cyan-500' : 'bg-linear-to-r from-gray-300 to-gray-400'}`}></div>
+        {/* Top gradient accent */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-brand-400 via-brand-500 to-cyan-500"></div>
 
         {/* Header Section with Avatar and Badges */}
         <div className="relative p-5 pb-3">
@@ -144,10 +90,6 @@ function FeaturedProviderCard({ provider, onViewProfile, selectedCategory = null
                 <span className="text-xs font-bold">{typeof score === 'number' ? score.toFixed(1) : score}</span>
               </div>
             )}
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-full shadow-sm ${planInfo.gradient}`}>
-              <span className="text-xs">{planInfo.icon}</span>
-              <span className={`text-xs font-bold ${plan === 'free' ? '' : 'text-white'}`}>{planInfo.label}</span>
-            </div>
           </div>
 
           {/* Avatar and Name */}
@@ -157,10 +99,10 @@ function FeaturedProviderCard({ provider, onViewProfile, selectedCategory = null
                 <img 
                   src={profileImage} 
                   alt={businessName}
-                  className={`w-18 h-18 rounded-xl object-cover ring-2 ${planInfo.ring} ring-offset-2 transition-transform duration-300 group-hover:scale-105`}
+                  className="w-18 h-18 rounded-xl object-cover ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105"
                 />
               ) : (
-                <div className={`w-18 h-18 rounded-xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl font-bold ring-2 ${planInfo.ring} ring-offset-2`}>
+                <div className="w-18 h-18 rounded-xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl font-bold ring-2 ring-brand-400 ring-offset-2">
                   {businessName.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -205,7 +147,7 @@ function FeaturedProviderCard({ provider, onViewProfile, selectedCategory = null
         </div>
 
         {/* Description */}
-        <div className="px-5 pb-3 grow">
+        <div className="px-5 pb-3">
           {businessDescription ? (
             <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
               {businessDescription}
@@ -242,71 +184,56 @@ function FeaturedProviderCard({ provider, onViewProfile, selectedCategory = null
           </div>
         </div>
 
-        {/* Featured Review Section */}
-        {featuredReview && reviewText && (
-          <div className="px-5 pb-3">
-            <div className="bg-linear-to-br from-amber-50 to-yellow-50 rounded-xl p-3 border border-amber-100">
-              <div className="flex items-start gap-2">
-                <svg className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/>
-                </svg>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-700 line-clamp-2 italic leading-relaxed">
-                    "{reviewText}"
-                  </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    {reviewerAvatar ? (
-                      <img src={reviewerAvatar} alt={reviewerName} className="w-5 h-5 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center text-xs text-white font-medium">
-                        {reviewerName.charAt(0)}
-                      </div>
-                    )}
-                    <span className="text-xs text-gray-500">{reviewerName}</span>
-                    <div className="flex items-center gap-0.5">
-                      {[1,2,3,4,5].map(s => (
-                        <svg key={s} className={`w-3 h-3 ${s <= featuredReview.rating?.overall ? 'text-amber-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Portfolio Preview (if no review) */}
-        {!featuredReview && portfolio.length > 0 && (
+        {/* Portfolio Preview */}
+        {portfolio.length > 0 && (
           <div className="px-5 pb-3">
             <button
               onClick={handlePortfolioClick}
               className="w-full"
             >
               <div className="grid grid-cols-3 gap-1.5 rounded-xl overflow-hidden">
-                {portfolio.slice(0, 3).map((item, idx) => (
-                  <div key={idx} className="relative aspect-square bg-gray-100 overflow-hidden group/img">
-                    {item.type === 'video' ? (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                {portfolio.slice(0, 3).map((item, idx) => {
+                  // Generar URL del thumbnail para videos usando transformaciones de Cloudinary
+                  const thumbnailUrl = item.type === 'video' 
+                    ? getVideoThumbnailUrl(item.url)
+                    : item.url;
+                  
+                  return (
+                    <div key={idx} className="relative aspect-square bg-gray-100 overflow-hidden group/img">
+                      <img 
+                        src={thumbnailUrl} 
+                        alt={item.caption || `${t('home.featuredProviders.work')} ${idx + 1}`}
+                        className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-300"
+                        onError={(e) => {
+                          // Fallback si no se puede cargar el thumbnail
+                          e.target.style.display = 'none';
+                          e.target.nextElementSibling.style.display = 'flex';
+                        }}
+                      />
+                      {/* Fallback para cuando falla la carga del thumbnail */}
+                      <div className="hidden w-full h-full bg-linear-to-br from-gray-300 to-gray-400 items-center justify-center absolute inset-0">
+                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M8 5v14l11-7z"/>
                         </svg>
                       </div>
-                    ) : (
-                      <img 
-                        src={item.url} 
-                        alt={item.caption || `${t('home.featuredProviders.work')} ${idx + 1}`}
-                        className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-300"
-                      />
-                    )}
-                    {idx === 2 && portfolio.length > 3 && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">+{portfolio.length - 3}</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      {/* Indicador de video */}
+                      {item.type === 'video' && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="w-10 h-10 bg-black/50 rounded-full flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      )}
+                      {idx === 2 && portfolio.length > 3 && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">+{portfolio.length - 3}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </button>
           </div>
@@ -314,28 +241,18 @@ function FeaturedProviderCard({ provider, onViewProfile, selectedCategory = null
 
         {/* Action Buttons */}
         <div className="p-5 pt-2 mt-auto border-t border-gray-100">
-          <div className="flex gap-2">
-            <button
-              onClick={handleContactClick}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow-md hover:shadow-lg"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              {t('home.featuredProviders.contact')}
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowProfile('about');
-              }}
-              className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:text-brand-600 border border-gray-200 hover:border-brand-300 hover:bg-gray-50 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </button>
-          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowProfile('about');
+            }}
+            className="w-full inline-flex items-center justify-center gap-1.5 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow-md hover:shadow-lg"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            {t('home.featuredProviders.viewProfile')}
+          </button>
         </div>
 
         {/* Hover arrow indicator */}
@@ -352,25 +269,6 @@ function FeaturedProviderCard({ provider, onViewProfile, selectedCategory = null
         onClose={() => setShowProfile(false)}
         provider={provider}
         initialTab={typeof showProfile === 'string' ? showProfile : 'about'}
-      />
-
-      {showRequestWizard && (
-        <RequestWizardModal
-          provider={provider}
-          isOpen={showRequestWizard}
-          onClose={() => setShowRequestWizard(false)}
-          initialCategory={selectedCategory}
-        />
-      )}
-
-      <GuestConversionModal
-        isOpen={showGuestConversion}
-        onClose={() => setShowGuestConversion(false)}
-        provider={provider}
-        onConversionComplete={() => {
-          setShowGuestConversion(false);
-          setShowRequestWizard(true);
-        }}
       />
 
       {showPortfolioGallery && portfolio.length > 0 && (

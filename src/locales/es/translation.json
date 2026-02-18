@@ -36,6 +36,11 @@
     "tip": "Consejo",
     "continue": "Continuar"
   },
+  "imageZoom": {
+    "dragToMove": "Arrastra para mover la imagen",
+    "clickToZoom": "Click para ampliar y hacer zoom",
+    "videoNotSupported": "Tu navegador no soporta la reproducción de videos."
+  },
   "urgency": {
     "baja": "Baja",
     "media": "Media",
@@ -407,6 +412,13 @@
     "upgradeRequired": "Mejora tu plan para continuar."
   },
   "home": {
+    "nav": {
+      "hero": "Inicio",
+      "services": "Servicios",
+      "featured": "Destacados",
+      "testimonials": "Testimonios",
+      "mission": "Nuestra Esencia"
+    },
     "title1": "Encuentra el profesional",
     "title2": "que necesitas",
     "services": "Servicios",
@@ -545,6 +557,12 @@
     "viewProfessionals": "Ver profesionales",
     "comingSoon": "Próximamente",
     "comingSoonAvailable": "Próximamente disponible",
+    "clickToViewProviders": "Click para ver profesionales disponibles",
+    "carousel": {
+      "ariaLabel": "Carrusel de categorías de servicio",
+      "provider": "profesional",
+      "providers": "profesionales"
+    },
     "searchBar": {
       "placeholder": "Buscar servicios profesionales...",
       "button": "Buscar",
@@ -2588,12 +2606,30 @@
     "roleProvider": "Profesional",
     "serviceBy": "Servicio por",
     "aboutNovoFix": "Sobre NovoFix",
+    "aboutClient": "Sobre Cliente: {{name}}",
+    "aboutProvider": "Sobre Profesional: {{name}}",
     "showMore": "Ver más",
+    "scrollHint": "Desliza para ver más opiniones • Pausa con el cursor",
+    "scrollHintGallery": "Desliza para ver más trabajos • Pausa con el cursor",
     "platformImpact": "El Impacto de NovoFix",
     "platformImpactDesc": "Transformando la manera en que las personas encuentran y contratan profesionales",
     "stat1": "Usuarios satisfechos",
     "stat2": "Tiempo promedio de respuesta",
     "stat3": "Calificación promedio",
-    "stat4": "Servicios completados"
+    "stat4": "Servicios completados",
+    "viewProfile": "Ver perfil",
+    "filter": {
+      "all": "Todos",
+      "clientReviews": "Reseñas de clientes",
+      "providerReviews": "Reseñas de profesionales",
+      "portfolio": "Portafolio",
+      "evidence": "Evidencias"
+    },
+    "source": {
+      "client_review": "Reseña cliente",
+      "provider_review": "Reseña profesional",
+      "portfolio": "Portafolio",
+      "service_evidence": "Evidencia"
+    }
   }
 }

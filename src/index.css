@@ -600,7 +600,8 @@ body { margin: 0; }
 
 /* ============================================
    CAROUSEL CARD HOVER/TOUCH EFFECTS
-   Estilos para desktop (hover) y móvil (touch)
+   Estilos para tarjetas con imagen grande
+   Desktop (hover) y móvil (touch)
    ============================================ */
 
 /* Asegurar que las tarjetas del carrusel reciban eventos correctamente */
@@ -608,14 +609,13 @@ body { margin: 0; }
 	pointer-events: auto !important;
 	cursor: pointer;
 	/* Padding invisible para área de interacción más grande y estable */
-	padding: 12px !important;
-	margin: -12px !important;
+	padding: 8px !important;
+	margin: -8px !important;
 	-webkit-tap-highlight-color: transparent;
 	touch-action: manipulation;
 }
 
 /* Cursor NOT-ALLOWED para tarjetas deshabilitadas (sin proveedores) */
-/* PERO mantienen la misma animación hover que las habilitadas */
 .carousel-card.cursor-not-allowed {
 	cursor: not-allowed !important;
 }
@@ -630,38 +630,23 @@ body { margin: 0; }
 /* Efecto en el contenedor de la tarjeta - hover (desktop) */
 .carousel-card:hover .carousel-card-inner,
 .carousel-card:focus-visible .carousel-card-inner {
-	background: linear-gradient(135deg, rgba(251,191,36,0.4) 0%, rgba(255,255,255,0.98) 40%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.98) 60%, rgba(14,165,233,0.3) 100%) !important;
-	border: 3px solid rgb(251 191 36) !important;
 	box-shadow: 
-		0 25px 50px -15px rgba(0,0,0,0.5),
-		0 0 0 6px rgba(251,191,36,0.4),
-		0 0 80px -10px rgba(251,191,36,0.8),
-		0 0 120px -20px rgba(14,165,233,0.5),
-		inset 0 2px 6px rgba(255,255,255,1) !important;
-	transform: scale(1.3) translateY(-10px) !important;
-}
-
-/* Efecto en el icono - hover (desktop) */
-.carousel-card:hover .carousel-card-icon,
-.carousel-card:focus-visible .carousel-card-icon {
-	color: #0ea5e9 !important;
-	filter: drop-shadow(0 0 15px rgba(14,165,233,1)) drop-shadow(0 0 30px rgba(251,191,36,0.8)) !important;
-	transform: scale(1.1) !important;
+		0 30px 60px -15px rgba(0,0,0,0.6),
+		0 0 0 3px rgba(255,255,255,0.5),
+		0 0 60px -10px rgba(59,130,246,0.5),
+		inset 0 2px 6px rgba(255,255,255,0.3) !important;
 }
 
 /* Efecto en el label - hover (desktop) */
 .carousel-card:hover .carousel-card-label,
 .carousel-card:focus-visible .carousel-card-label {
-	background: rgba(0,0,0,0.8) !important;
-	color: #fcd34d !important;
-	transform: scale(1.15) translateY(-5px) !important;
-	box-shadow: 0 8px 25px rgba(0,0,0,0.5), 0 0 40px rgba(251,191,36,0.6) !important;
+	text-shadow: 0 2px 12px rgba(0,0,0,0.8), 0 0 30px rgba(255,255,255,0.5) !important;
 }
 
 /* Glow en hover */
 .carousel-card:hover .carousel-card-glow,
 .carousel-card:focus-visible .carousel-card-glow {
-	opacity: 1 !important;
+	opacity: 0.7 !important;
 }
 
 /* ============================================
@@ -676,37 +661,23 @@ body { margin: 0; }
 	}
 
 	.carousel-card:active .carousel-card-inner {
-		background: linear-gradient(135deg, rgba(251,191,36,0.4) 0%, rgba(255,255,255,0.98) 40%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.98) 60%, rgba(14,165,233,0.3) 100%) !important;
-		border: 3px solid rgb(251 191 36) !important;
 		box-shadow: 
-			0 20px 40px -15px rgba(0,0,0,0.5),
-			0 0 0 4px rgba(251,191,36,0.4),
-			0 0 60px -10px rgba(251,191,36,0.7),
-			inset 0 2px 4px rgba(255,255,255,1) !important;
-		transform: scale(1.2) translateY(-8px) !important;
-	}
-
-	.carousel-card:active .carousel-card-icon {
-		color: #0ea5e9 !important;
-		filter: drop-shadow(0 0 12px rgba(14,165,233,1)) drop-shadow(0 0 20px rgba(251,191,36,0.7)) !important;
-		transform: scale(1.1) !important;
+			0 25px 50px -15px rgba(0,0,0,0.55),
+			0 0 0 3px rgba(255,255,255,0.4),
+			0 0 50px -10px rgba(59,130,246,0.4) !important;
 	}
 
 	.carousel-card:active .carousel-card-label {
-		background: rgba(0,0,0,0.8) !important;
-		color: #fcd34d !important;
-		transform: scale(1.1) translateY(-3px) !important;
-		box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 30px rgba(251,191,36,0.5) !important;
+		text-shadow: 0 2px 10px rgba(0,0,0,0.7), 0 0 20px rgba(255,255,255,0.4) !important;
 	}
 
 	.carousel-card:active .carousel-card-glow {
-		opacity: 0.8 !important;
+		opacity: 0.6 !important;
 	}
 }
 
-/* Transiciones suaves */
+/* Transiciones suaves para tarjetas con imagen */
 .carousel-card-inner,
-.carousel-card-icon,
 .carousel-card-label,
 .carousel-card-glow {
 	transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;

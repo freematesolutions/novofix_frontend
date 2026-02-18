@@ -11,7 +11,7 @@ export const CATEGORY_IMAGES = {
   'Cerrajería': 'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=800&q=80',
   'Albañilería': 'https://images.unsplash.com/photo-1615971677499-5467cbab01c0?w=800&q=80',
   'Reparación de electrodomésticos': 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&q=80',
-  'Instalación de aire acondicionado': 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=800&q=80',
+  'Instalación de aire acondicionado': 'https://images.unsplash.com/photo-1628744448840-55bdb2497bd4?w=800&q=80',
   'Mudanzas': 'https://images.unsplash.com/photo-1600518464441-9154a4dea21b?w=800&q=80',
   'Fumigación': 'https://images.unsplash.com/photo-1563207153-f403bf289096?w=800&q=80',
   'Tecnología e informática': 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80',

@@ -14,6 +14,14 @@ import CategoryIconCarousel from '@/components/ui/CategoryIconCarousel.jsx';
 import { CATEGORY_IMAGES } from '@/utils/categoryImages.js';
 import { SERVICE_CATEGORIES_WITH_DESCRIPTION } from '@/utils/categories.js';
 
+// Secciones de la página para la navegación flotante
+const HOME_SECTIONS = [
+  { id: 'hero-section', icon: 'home', labelKey: 'home.nav.hero' },
+  { id: 'services-section', icon: 'services', labelKey: 'home.nav.services' },
+  { id: 'featured-providers-section', icon: 'featured', labelKey: 'home.nav.featured' },
+  { id: 'testimonials-section', icon: 'testimonials', labelKey: 'home.nav.testimonials' },
+  { id: 'mission-vision-section', icon: 'mission', labelKey: 'home.nav.mission' }
+];
 
 function Home() {
   const { t } = useTranslation();
@@ -44,6 +52,41 @@ function Home() {
   // Profesionales destacados
   const [featuredProviders, setFeaturedProviders] = useState([]);
   const [loadingFeatured, setLoadingFeatured] = useState(false);
+  // Estado para navegación flotante
+  const [showFloatingNav, setShowFloatingNav] = useState(false);
+  const [activeSection, setActiveSection] = useState('hero-section');
+
+  // Efecto para detectar scroll y mostrar/ocultar navegación flotante
+  useEffect(() => {
+    const handleScroll = () => {
+      // Mostrar navegación flotante después de 300px de scroll
+      const shouldShow = window.scrollY > 300;
+      setShowFloatingNav(shouldShow);
+
+      // Detectar sección activa
+      const sections = HOME_SECTIONS.map(s => document.getElementById(s.id)).filter(Boolean);
+      const scrollPosition = window.scrollY + 150; // Offset para mejor detección
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = sections[i];
+        if (section && section.offsetTop <= scrollPosition) {
+          setActiveSection(section.id);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Función para scroll suave a una sección
+  const scrollToSection = (sectionId) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
 
   // Generar dinámicamente nombres y descripciones traducidas de categorías para el carrusel
@@ -385,13 +428,115 @@ useEffect(() => {
 
   return (
     <section className="space-y-12 w-full">
+      {/* Navegación flotante creativa - Solo visible al hacer scroll */}
+      {!searchResults && !selectedCategory && showFloatingNav && (
+        <nav className="fixed right-4 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-2 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200/50 p-2 transition-all duration-300">
+          {HOME_SECTIONS.map((section) => {
+            const isActive = activeSection === section.id;
+            return (
+              <button
+                key={section.id}
+                onClick={() => scrollToSection(section.id)}
+                className={`group relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                  isActive 
+                    ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30' 
+                    : 'bg-gray-50 text-gray-500 hover:bg-brand-50 hover:text-brand-600'
+                }`}
+                title={t(section.labelKey)}
+                aria-label={t(section.labelKey)}
+              >
+                {/* Iconos SVG para cada sección */}
+                {section.icon === 'home' && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                )}
+                {section.icon === 'services' && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                )}
+                {section.icon === 'featured' && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                )}
+                {section.icon === 'testimonials' && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                )}
+                {section.icon === 'mission' && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                )}
+                {/* Tooltip con nombre de la sección */}
+                <span className="absolute right-full mr-3 px-2 py-1 rounded-lg bg-gray-900 text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                  {t(section.labelKey)}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
+
+      {/* Navegación flotante móvil - Iconos en la parte inferior */}
+      {!searchResults && !selectedCategory && showFloatingNav && (
+        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 lg:hidden flex items-center gap-1.5 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200/50 px-2 py-1.5 transition-all duration-300">
+          {HOME_SECTIONS.map((section) => {
+            const isActive = activeSection === section.id;
+            return (
+              <button
+                key={section.id}
+                onClick={() => scrollToSection(section.id)}
+                className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300 ${
+                  isActive 
+                    ? 'bg-brand-500 text-white shadow-md shadow-brand-500/30 scale-110' 
+                    : 'bg-gray-100 text-gray-500 hover:bg-brand-50 hover:text-brand-600'
+                }`}
+                title={t(section.labelKey)}
+                aria-label={t(section.labelKey)}
+              >
+                {section.icon === 'home' && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                )}
+                {section.icon === 'services' && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                )}
+                {section.icon === 'featured' && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                )}
+                {section.icon === 'testimonials' && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                )}
+                {section.icon === 'mission' && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      )}
+
       {/* Hero Section - Solo mostrar cuando no hay resultados de búsqueda */}
       {!searchResults && !selectedCategory && (
         <>
           {/* Hero Section - Altura fija que garantiza visibilidad de todo el contenido */}
-          {/* Usa min-height fijo para evitar cortes en resoluciones landscape (1024x600, 1280x720) */}
+          {/* Ajustada para acomodar las tarjetas de imagen más grandes del carrusel */}
           <div 
-            className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-95 sm:min-h-100 md:min-h-105 lg:min-h-95 xl:min-h-112.5 2xl:min-h-125"
+            id="hero-section"
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-[520px] sm:min-h-[580px] md:min-h-[640px] lg:min-h-[600px] xl:min-h-[720px] 2xl:min-h-[800px] scroll-mt-20"
           >
             {/* Contenedor de imágenes de fondo con transiciones suaves */}
             <div className="absolute inset-0">
@@ -448,9 +593,9 @@ useEffect(() => {
             <div className="relative h-full flex flex-col justify-between items-center px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6 lg:px-5 lg:py-4 xl:px-8 xl:py-5" style={{ zIndex: 3 }}>
               
               {/* Sección superior: Título */}
-              <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-1.5 sm:gap-2 lg:gap-1.5">
+              <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-1.5 sm:gap-2 lg:gap-1.5 pt-2">
                 {/* Título principal - texto blanco plano sin animación */}
-                <div className="text-center w-full pb-2 sm:pb-3 lg:pb-2">
+                <div className="text-center w-full pb-1 sm:pb-2">
                   <h1 className="text-lg sm:text-xl md:text-2xl lg:text-xl xl:text-4xl 2xl:text-5xl font-extrabold text-white leading-tight drop-shadow-2xl">
                     {t('home.title1')}
                     <br />
@@ -461,9 +606,9 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/* Carrusel de iconos de categorías - FUERA del contenedor glassmorphism */}
+              {/* Carrusel de tarjetas con imágenes de categorías */}
               {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
-                <div className="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-lg xl:max-w-3xl mx-auto px-1 sm:px-0">
+                <div className="w-full max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-xl xl:max-w-4xl 2xl:max-w-5xl mx-auto px-2 sm:px-4 flex-1 flex items-center">
                   <CategoryIconCarousel
                     categories={allCategoriesWithProviders}
                     currentIndex={carouselIndex}
@@ -471,14 +616,13 @@ useEffect(() => {
                     onCategoryClick={handleCategoryClick}
                     autoRotate={true}
                     rotationInterval={2800}
-                    t={t}
                   />
                 </div>
               )}
 
               {/* Contenedor glassmorphism: Solo Buscador + Stats */}
               <div 
-                className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-4 sm:gap-5 p-4 sm:p-6 rounded-2xl"
+                className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-3 sm:gap-4 p-3 sm:p-5 rounded-2xl"
                 style={{
                   background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.2))',
                   backdropFilter: 'blur(16px)',

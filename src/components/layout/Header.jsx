@@ -1482,6 +1482,21 @@ function Header() {
           <Link 
             to={isAuthenticated && viewRole === 'admin' ? '/admin' : isAuthenticated && viewRole === 'provider' ? '/empleos' : '/'} 
             state={isAuthenticated && (viewRole === 'provider' || viewRole === 'admin') ? undefined : { resetHome: true }}
+            onClick={(e) => {
+              // Determinar la ruta objetivo según el rol
+              const targetPath = isAuthenticated && viewRole === 'admin' ? '/admin' : isAuthenticated && viewRole === 'provider' ? '/empleos' : '/';
+              
+              // Si estamos en la página de inicio SIN parámetros de búsqueda, solo hacer scroll al top
+              // Si hay query params (como ?category=...), permitir la navegación completa para resetear
+              const hasSearchParams = location.search && location.search.length > 0;
+              
+              if (location.pathname === targetPath && targetPath === '/' && !hasSearchParams) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+              // Si hay search params, dejamos que la navegación ocurra normalmente
+              // para que resetHome limpie el estado en Home.jsx
+            }}
             className={`flex items-center gap-2 sm:gap-3 group transition-all duration-300 ${role === 'guest' ? 'text-brand-600 hover:text-brand-700' : `${accent.text600} ${accent.hoverText700}`}`}
           >
             {/* Logo icon mejorado con efectos premium */}

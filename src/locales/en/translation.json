@@ -36,6 +36,11 @@
     "tip": "Tip",
     "continue": "Continue"
   },
+  "imageZoom": {
+    "dragToMove": "Drag to move the image",
+    "clickToZoom": "Click to zoom in",
+    "videoNotSupported": "Your browser does not support video playback."
+  },
   "urgency": {
     "baja": "Low",
     "media": "Medium",
@@ -407,6 +412,13 @@
     "upgradeRequired": "Upgrade your plan to continue."
   },
   "home": {
+    "nav": {
+      "hero": "Home",
+      "services": "Services",
+      "featured": "Featured",
+      "testimonials": "Testimonials",
+      "mission": "Our Essence"
+    },
     "title1": "Find the professional",
     "title2": "you need",
     "services": "Services",
@@ -545,6 +557,12 @@
     "viewProfessionals": "View professionals",
     "comingSoon": "Coming soon",
     "comingSoonAvailable": "Available soon",
+    "clickToViewProviders": "Click to view available professionals",
+    "carousel": {
+      "ariaLabel": "Service categories carousel",
+      "provider": "professional",
+      "providers": "professionals"
+    },
     "searchBar": {
       "placeholder": "Search professional services...",
       "button": "Search",
@@ -2588,12 +2606,30 @@
     "roleProvider": "Professional",
     "serviceBy": "Service by",
     "aboutNovoFix": "About NovoFix",
+    "aboutClient": "About Client: {{name}}",
+    "aboutProvider": "About Professional: {{name}}",
     "showMore": "Show more",
+    "scrollHint": "Swipe to see more reviews • Hover to pause",
+    "scrollHintGallery": "Swipe to see more works • Hover to pause",
     "platformImpact": "The NovoFix Impact",
     "platformImpactDesc": "Transforming the way people find and hire professionals",
     "stat1": "Satisfied users",
     "stat2": "Avg response time",
     "stat3": "Average rating",
-    "stat4": "Completed services"
+    "stat4": "Completed services",
+    "viewProfile": "View profile",
+    "filter": {
+      "all": "All",
+      "clientReviews": "Client reviews",
+      "providerReviews": "Professional reviews",
+      "portfolio": "Portfolio",
+      "evidence": "Evidence"
+    },
+    "source": {
+      "client_review": "Client review",
+      "provider_review": "Pro review",
+      "portfolio": "Portfolio",
+      "service_evidence": "Evidence"
+    }
   }
 }

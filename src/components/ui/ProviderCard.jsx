@@ -35,28 +35,6 @@ const StarRating = ({ rating, size = 'sm', dataNavSection }) => {
   );
 };
 
-// Plan badge configuration
-const planConfig = {
-  pro: { 
-    label: 'PRO', 
-    gradient: 'bg-linear-to-r from-purple-500 to-purple-700',
-    icon: '👑',
-    ring: 'ring-purple-400'
-  },
-  basic: { 
-    label: 'BASIC', 
-    gradient: 'bg-linear-to-r from-blue-500 to-blue-600',
-    icon: '⭐',
-    ring: 'ring-blue-400'
-  },
-  free: { 
-    label: 'FREE', 
-    gradient: 'bg-gray-200 text-gray-700',
-    icon: '✨',
-    ring: 'ring-gray-300'
-  }
-};
-
 function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = null }) {
   const { t } = useTranslation();
   const [showImageZoom, setShowImageZoom] = useState(false);
@@ -68,12 +46,27 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
   const [showGuestConversion, setShowGuestConversion] = useState(false);
   const [showPortfolioGallery, setShowPortfolioGallery] = useState(false);
   
+  // Función helper para generar thumbnail URL de videos de Cloudinary
+  const getVideoThumbnailUrl = (videoUrl) => {
+    // Si la URL contiene 'cloudinary', usar transformaciones de Cloudinary
+    if (videoUrl.includes('cloudinary')) {
+      // Extraer la parte de upload y agregar transformación para thumbnail
+      // Formato: https://res.cloudinary.com/cloud_name/video/upload/v123/folder/file.mp4
+      // Convertir a: https://res.cloudinary.com/cloud_name/video/upload/so_0,f_jpg,w_300,h_300,c_fill/v123/folder/file.mp4
+      return videoUrl.replace(
+        /\/upload\/(v\d+\/)?/,
+        '/upload/so_0,f_jpg,w_300,h_300,c_fill/$1'
+      );
+    }
+    // Fallback: reemplazar extensión de video por .jpg
+    return videoUrl.replace(/\.(mp4|mov|avi|webm)$/i, '.jpg');
+  };
+  
   // Extract provider data
   const businessName = provider.providerProfile?.businessName || provider.profile?.firstName || t('ui.providerCard.professional');
   const businessDescription = provider.providerProfile?.description || provider.providerProfile?.businessDescription || '';
   const rating = provider.providerProfile?.rating?.average || 0;
   const reviewCount = provider.providerProfile?.rating?.count || 0;
-  const plan = provider.subscription?.plan || 'free';
   const services = provider.providerProfile?.services || [];
   const profileImage = provider.profile?.avatar || null;
   const portfolio = provider.providerProfile?.portfolio || [];
@@ -83,8 +76,6 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
   // Limitar responseRate a 100% máximo y redondear para evitar decimales largos
   const rawResponseRate = stats.responseRate || 0;
   const responseRate = Math.min(100, Math.round(rawResponseRate));
-  
-  const planInfo = planConfig[plan] || planConfig.free;
 
   // Handler único que maneja TODOS los clicks usando onClickCapture
   const handleCardClickCapture = (e) => {
@@ -159,15 +150,6 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
               <span className="text-sm font-bold" data-nav-section="reviews">{typeof score === 'number' ? score.toFixed(1) : score}</span>
             </div>
           )}
-          {/* Plan badge */}
-            <div 
-              data-nav-section="reviews"
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-full shadow-lg cursor-pointer hover:scale-105 transition-transform ${planInfo.gradient}`}
-              title={t('ui.providerCard.viewReviews')}
-            >
-            <span className="text-xs">{planInfo.icon}</span>
-            <span className={`text-xs font-bold ${plan === 'free' ? '' : 'text-white'}`}>{planInfo.label}</span>
-          </div>
         </div>
         {/* Gradient top border on hover */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-brand-400 via-brand-500 to-cyan-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
@@ -185,11 +167,11 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
                     src={profileImage} 
                     alt={businessName}
                     data-avatar-img
-                    className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-2 ${planInfo.ring} ring-offset-2 transition-transform duration-300 group-hover:scale-105 cursor-zoom-in`}
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
                     title={t('ui.providerCard.enlargeImage')}
                   />
                 ) : (
-                  <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold ring-2 ${planInfo.ring} ring-offset-2 transition-transform duration-300 group-hover:scale-105`}>
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105">
                     {businessName.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -258,6 +240,19 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
                   </span>
                 </div>
 
+                {/* Portfolio works count */}
+                {portfolio.length > 0 && (
+                  <div 
+                    data-action="portfolio"
+                    className="flex items-center gap-1.5 bg-purple-50 px-2.5 py-1.5 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer"
+                  >
+                    <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-xs sm:text-sm text-purple-700 font-medium">{portfolio.length} {t('home.featuredProviders.works')}</span>
+                  </div>
+                )}
+
                 {/* Response rate */}
                 {responseRate > 0 && (
                   <div className="flex items-center gap-1.5 bg-blue-50 px-2.5 py-1.5 rounded-lg">
@@ -269,20 +264,66 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
                     </span>
                   </div>
                 )}
-
-                {/* Portfolio badge - clickable indicator */}
-                {portfolio.length > 0 && (
-                  <div 
-                    data-action="portfolio"
-                    className="flex items-center gap-1 bg-purple-50 px-2 py-1 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer"
-                  >
-                    <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-xs text-purple-700 font-medium">{portfolio.length}</span>
-                  </div>
-                )}
               </div>
+
+              {/* Portfolio Preview - Thumbnails Grid */}
+              {portfolio.length > 0 && (
+                <div className="mb-3">
+                  <button
+                    data-action="portfolio"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowPortfolioGallery(true);
+                    }}
+                    className="w-full"
+                  >
+                    <div className="grid grid-cols-3 gap-1.5 rounded-xl overflow-hidden">
+                      {portfolio.slice(0, 3).map((item, idx) => {
+                        // Generar URL del thumbnail para videos usando transformaciones de Cloudinary
+                        const thumbnailUrl = item.type === 'video' 
+                          ? getVideoThumbnailUrl(item.url)
+                          : item.url;
+                        
+                        return (
+                          <div key={idx} className="relative aspect-square bg-gray-100 overflow-hidden group/img">
+                            <img 
+                              src={thumbnailUrl} 
+                              alt={item.caption || `${t('ui.providerCard.portfolioWork')} ${idx + 1}`}
+                              className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-300"
+                              onError={(e) => {
+                                // Fallback si no se puede cargar el thumbnail
+                                e.target.style.display = 'none';
+                                e.target.nextElementSibling.style.display = 'flex';
+                              }}
+                            />
+                            {/* Fallback para cuando falla la carga del thumbnail */}
+                            <div className="hidden w-full h-full bg-linear-to-br from-gray-300 to-gray-400 items-center justify-center absolute inset-0">
+                              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                              </svg>
+                            </div>
+                            {/* Indicador de video */}
+                            {item.type === 'video' && (
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="w-10 h-10 bg-black/50 rounded-full flex items-center justify-center">
+                                  <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                  </svg>
+                                </div>
+                              </div>
+                            )}
+                            {idx === 2 && portfolio.length > 3 && (
+                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                <span className="text-white font-bold text-lg">+{portfolio.length - 3}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </button>
+                </div>
+              )}
 
               {/* Action buttons - Modernized layout */}
               <div className="flex flex-col gap-2 mt-auto">
@@ -310,25 +351,6 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
                     <span>{t('ui.providerCard.viewProfile')}</span>
                   </button>
                 </div>
-
-                {/* Portfolio Gallery Button - Only shown if portfolio exists */}
-                {portfolio.length > 0 && (
-                  <button
-                    data-action="portfolio"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowPortfolioGallery(true);
-                    }}
-                    className="inline-flex items-center justify-center gap-2 w-full bg-linear-to-r from-purple-500 to-pink-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
-                    title={t('ui.providerCard.exploreWorksTooltip')}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span>{t('ui.providerCard.exploreWorks')}</span>
-                    <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{portfolio.length}</span>
-                  </button>
-                )}
               </div>
             </div>
           </div>
