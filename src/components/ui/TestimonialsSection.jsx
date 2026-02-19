@@ -190,6 +190,7 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
   
   // Refs for touch/drag handling (using refs to avoid stale closures)
   const isDraggingRef = useRef(false);
+  const hasDraggedRef = useRef(false); // Track if significant drag occurred (to prevent click)
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
   const lastTouchXRef = useRef(0);
@@ -309,6 +310,7 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
   const handleMouseDown = useCallback((e) => {
     e.preventDefault();
     isDraggingRef.current = true;
+    hasDraggedRef.current = false;
     startXRef.current = e.pageX;
     scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
     lastTouchXRef.current = e.pageX;
@@ -329,6 +331,9 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
     lastTouchXRef.current = x;
     
     const walk = x - startXRef.current;
+    if (Math.abs(walk) > 5) {
+      hasDraggedRef.current = true;
+    }
     if (scrollRef.current) {
       scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
     }
@@ -339,12 +344,14 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
     isDraggingRef.current = false;
     applyMomentum();
     pauseAutoScroll(3000);
+    setTimeout(() => { hasDraggedRef.current = false; }, 100);
   }, [applyMomentum, pauseAutoScroll]);
 
   const handleMouseLeave = useCallback(() => {
     setIsHovering(false);
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
+      hasDraggedRef.current = false;
       applyMomentum();
       pauseAutoScroll(3000);
     }
@@ -357,6 +364,7 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
         isDraggingRef.current = false;
         applyMomentum();
         pauseAutoScroll(3000);
+        setTimeout(() => { hasDraggedRef.current = false; }, 100);
       }
     };
     
@@ -367,6 +375,7 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
   // Touch handlers for mobile - using refs to avoid stale closures
   const handleTouchStart = useCallback((e) => {
     isDraggingRef.current = true;
+    hasDraggedRef.current = false;
     const touch = e.touches[0];
     startXRef.current = touch.clientX;
     scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
@@ -396,6 +405,9 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
     lastTouchXRef.current = x;
     
     const walk = x - startXRef.current;
+    if (Math.abs(walk) > 5) {
+      hasDraggedRef.current = true;
+    }
     scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
     
     // Prevent page scroll when dragging horizontally
@@ -409,6 +421,7 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
     isDraggingRef.current = false;
     applyMomentum();
     pauseAutoScroll(4000); // Longer pause after touch
+    setTimeout(() => { hasDraggedRef.current = false; }, 100);
   }, [applyMomentum, pauseAutoScroll]);
 
   // Scroll wheel handler for horizontal scrolling
@@ -420,13 +433,26 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
     }
   }, [pauseAutoScroll]);
 
+  // Register wheel and touch events with { passive: false } to allow preventDefault
   useEffect(() => {
     const container = scrollRef.current;
-    if (container) {
-      container.addEventListener('wheel', handleWheel, { passive: false });
-      return () => container.removeEventListener('wheel', handleWheel);
-    }
-  }, [handleWheel]);
+    if (!container) return;
+
+    // Wheel event
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    
+    // Touch events - MUST be passive: false to allow preventDefault on mobile
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   if (!testimonials || testimonials.length === 0) return null;
 
@@ -454,16 +480,14 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
           msOverflowStyle: 'none',
           scrollbarWidth: 'none',
           userSelect: 'none',
-          WebkitUserSelect: 'none'
+          WebkitUserSelect: 'none',
+          touchAction: 'pan-y'
         }}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={handleMouseLeave}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         onDragStart={(e) => e.preventDefault()}
       >
         {displayTestimonials.map((testimonial, index) => (
@@ -510,6 +534,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
   
   // Refs for touch/drag handling (using refs to avoid stale closures)
   const isDraggingRef = useRef(false);
+  const hasDraggedRef = useRef(false); // Track if significant drag occurred (to prevent click)
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
   const lastTouchXRef = useRef(0);
@@ -655,6 +680,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
   const handleMouseDown = useCallback((e) => {
     e.preventDefault();
     isDraggingRef.current = true;
+    hasDraggedRef.current = false;
     startXRef.current = e.pageX;
     scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
     lastTouchXRef.current = e.pageX;
@@ -675,6 +701,9 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
     lastTouchXRef.current = x;
     
     const walk = x - startXRef.current;
+    if (Math.abs(walk) > 5) {
+      hasDraggedRef.current = true;
+    }
     if (scrollRef.current) {
       scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
     }
@@ -685,12 +714,14 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
     isDraggingRef.current = false;
     applyMomentum();
     pauseAutoScroll(3000);
+    setTimeout(() => { hasDraggedRef.current = false; }, 100);
   }, [applyMomentum, pauseAutoScroll]);
 
   const handleMouseLeave = useCallback(() => {
     setIsHovering(false);
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
+      hasDraggedRef.current = false;
       applyMomentum();
       pauseAutoScroll(3000);
     }
@@ -703,6 +734,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
         isDraggingRef.current = false;
         applyMomentum();
         pauseAutoScroll(3000);
+        setTimeout(() => { hasDraggedRef.current = false; }, 100);
       }
     };
     
@@ -713,6 +745,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
   // Touch handlers for mobile - using refs to avoid stale closures
   const handleTouchStart = useCallback((e) => {
     isDraggingRef.current = true;
+    hasDraggedRef.current = false;
     const touch = e.touches[0];
     startXRef.current = touch.clientX;
     scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
@@ -742,6 +775,9 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
     lastTouchXRef.current = x;
     
     const walk = x - startXRef.current;
+    if (Math.abs(walk) > 5) {
+      hasDraggedRef.current = true;
+    }
     scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
     
     // Prevent page scroll when dragging horizontally
@@ -755,6 +791,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
     isDraggingRef.current = false;
     applyMomentum();
     pauseAutoScroll(4000); // Longer pause after touch
+    setTimeout(() => { hasDraggedRef.current = false; }, 100);
   }, [applyMomentum, pauseAutoScroll]);
 
   // Scroll wheel handler
@@ -766,13 +803,26 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
     }
   }, [pauseAutoScroll]);
 
+  // Register wheel and touch events with { passive: false } to allow preventDefault
   useEffect(() => {
     const container = scrollRef.current;
-    if (container) {
-      container.addEventListener('wheel', handleWheel, { passive: false });
-      return () => container.removeEventListener('wheel', handleWheel);
-    }
-  }, [handleWheel]);
+    if (!container) return;
+
+    // Wheel event
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    
+    // Touch events - MUST be passive: false to allow preventDefault on mobile
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   if (!photos || photos.length === 0) return null;
 
@@ -940,16 +990,14 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
           msOverflowStyle: 'none',
           scrollbarWidth: 'none',
           userSelect: 'none',
-          WebkitUserSelect: 'none'
+          WebkitUserSelect: 'none',
+          touchAction: 'pan-y'
         }}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={handleMouseLeave}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         onDragStart={(e) => e.preventDefault()}
       >
         {/* Duplicate photos for infinite scroll */}
@@ -964,7 +1012,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
               {/* Imagen o thumbnail de video - área clickeable */}
               <div 
                 className="absolute inset-0"
-                onClick={(e) => !isDraggingRef.current && handleMediaClick(photo, e)}
+                onClick={(e) => !hasDraggedRef.current && handleMediaClick(photo, e)}
               >
                 <img 
                   src={getThumbnailUrl(photo)} 
