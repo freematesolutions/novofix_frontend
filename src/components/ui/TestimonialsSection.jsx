@@ -570,33 +570,33 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
 
   // Initialize scroll position to end (for right-to-left scroll)
   useEffect(() => {
-    if (!scrollRef.current || !photos || photos.length <= 1 || initializedRef.current) return;
+    if (!scrollRef.current || !photos || photos.length <= 1) return;
     
-    // Wait for DOM to be ready
+    // Wait for DOM to be ready and images to potentially load
     const initPosition = () => {
       const container = scrollRef.current;
       if (container && container.scrollWidth > container.clientWidth) {
         container.scrollLeft = container.scrollWidth - container.clientWidth;
         initializedRef.current = true;
+      } else if (!initializedRef.current) {
+        // Retry if not ready yet (images might still be loading)
+        setTimeout(initPosition, 100);
       }
     };
+    
+    // Reset and reinitialize
+    initializedRef.current = false;
     
     // Use requestAnimationFrame to ensure DOM is painted
     requestAnimationFrame(() => {
       requestAnimationFrame(initPosition);
     });
-  }, [photos]);
-
-  // Reset initialization when filter changes
-  useEffect(() => {
-    initializedRef.current = false;
-  }, [activeFilter]);
+  }, [photos, activeFilter]);
 
   // Auto-scroll animation - RIGHT TO LEFT
   useEffect(() => {
-    const shouldAnimate = scrollRef.current && !isHovering && !isDraggingRef.current && !isPaused && photos && photos.length > 1;
-    
-    if (!shouldAnimate) {
+    // Don't animate if hovering, paused, or not enough content
+    if (!scrollRef.current || isHovering || isPaused || !photos || photos.length <= 1) {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
@@ -605,8 +605,13 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
       return;
     }
 
+    // Wait for initialization
+    if (!initializedRef.current) {
+      return;
+    }
+
     const animate = (currentTime) => {
-      // Check again inside animation loop
+      // Check conditions inside animation loop (refs don't trigger re-renders)
       if (isDraggingRef.current || isPaused || isHovering) {
         animationRef.current = null;
         lastTimeRef.current = 0;
@@ -636,15 +641,21 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
       animationRef.current = requestAnimationFrame(animate);
     };
 
-    animationRef.current = requestAnimationFrame(animate);
+    // Small delay to ensure initialization is complete
+    const startAnimation = setTimeout(() => {
+      if (scrollRef.current && initializedRef.current && !isDraggingRef.current) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    }, 200);
 
     return () => {
+      clearTimeout(startAnimation);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
       }
     };
-  }, [isHovering, isPaused, photos?.length]);
+  }, [isHovering, isPaused, photos?.length, activeFilter]);
 
   // Momentum scrolling after touch release
   const applyMomentum = useCallback(() => {
