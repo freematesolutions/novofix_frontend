@@ -178,23 +178,53 @@ const TestimonialCard = ({ testimonial }) => {
 };
 
 // Testimonials Carousel Component - Auto-scroll horizontal with pause on hover/touch
+// Optimized for mobile touch interactions
 const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
   const { t } = useTranslation();
   const containerRef = useRef(null);
   const scrollRef = useRef(null);
   const animationRef = useRef(null);
   const [isHovering, setIsHovering] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const lastTimeRef = useRef(0);
+  
+  // Refs for touch/drag handling (using refs to avoid stale closures)
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const lastTouchXRef = useRef(0);
+  const velocityRef = useRef(0);
+  const momentumAnimRef = useRef(null);
+  const pauseTimeoutRef = useRef(null);
   
   // Auto-scroll speed (pixels per frame at 60fps) - Higher = faster
   const scrollSpeed = 1.2;
 
+  // Pause auto-scroll temporarily (e.g., after user interaction)
+  const pauseAutoScroll = useCallback((duration = 3000) => {
+    setIsPaused(true);
+    if (pauseTimeoutRef.current) {
+      clearTimeout(pauseTimeoutRef.current);
+    }
+    pauseTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+    }, duration);
+  }, []);
+
+  // Cleanup pause timeout
+  useEffect(() => {
+    return () => {
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Auto-scroll animation
   useEffect(() => {
-    if (!scrollRef.current || isHovering || isDragging || testimonials.length <= 1) {
+    const shouldAnimate = scrollRef.current && !isHovering && !isDraggingRef.current && !isPaused && testimonials.length > 1;
+    
+    if (!shouldAnimate) {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
@@ -204,6 +234,13 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
     }
 
     const animate = (currentTime) => {
+      // Check again inside animation loop
+      if (isDraggingRef.current || isPaused || isHovering) {
+        animationRef.current = null;
+        lastTimeRef.current = 0;
+        return;
+      }
+
       if (!lastTimeRef.current) {
         lastTimeRef.current = currentTime;
         animationRef.current = requestAnimationFrame(animate);
@@ -236,70 +273,152 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
         animationRef.current = null;
       }
     };
-  }, [isHovering, isDragging, testimonials.length]);
+  }, [isHovering, isPaused, testimonials.length]);
 
-  // Mouse/Touch handlers for drag scrolling
+  // Momentum scrolling after touch release
+  const applyMomentum = useCallback(() => {
+    if (momentumAnimRef.current) {
+      cancelAnimationFrame(momentumAnimRef.current);
+    }
+
+    const decelerate = () => {
+      const container = scrollRef.current;
+      if (!container || Math.abs(velocityRef.current) < 0.5) {
+        velocityRef.current = 0;
+        return;
+      }
+
+      container.scrollLeft -= velocityRef.current;
+      velocityRef.current *= 0.95; // Friction
+
+      // Wrap around for infinite scroll
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      if (container.scrollLeft <= 0) {
+        container.scrollLeft = maxScroll;
+      } else if (container.scrollLeft >= maxScroll) {
+        container.scrollLeft = 0;
+      }
+
+      momentumAnimRef.current = requestAnimationFrame(decelerate);
+    };
+
+    momentumAnimRef.current = requestAnimationFrame(decelerate);
+  }, []);
+
+  // Mouse handlers for desktop drag scrolling
   const handleMouseDown = useCallback((e) => {
-    e.preventDefault(); // Prevent text selection
-    setIsDragging(true);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
+    e.preventDefault();
+    isDraggingRef.current = true;
+    startXRef.current = e.pageX;
+    scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
+    lastTouchXRef.current = e.pageX;
+    velocityRef.current = 0;
+    
+    if (momentumAnimRef.current) {
+      cancelAnimationFrame(momentumAnimRef.current);
+    }
   }, []);
 
   const handleMouseMove = useCallback((e) => {
-    if (!isDragging) return;
+    if (!isDraggingRef.current) return;
     e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // Scroll speed multiplier
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startX, scrollLeft]);
+    
+    const x = e.pageX;
+    const delta = x - lastTouchXRef.current;
+    velocityRef.current = delta;
+    lastTouchXRef.current = x;
+    
+    const walk = x - startXRef.current;
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
+    }
+  }, []);
 
   const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    applyMomentum();
+    pauseAutoScroll(3000);
+  }, [applyMomentum, pauseAutoScroll]);
 
   const handleMouseLeave = useCallback(() => {
-    // Don't stop dragging on mouse leave - let mouseup handle it
     setIsHovering(false);
-  }, []);
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
+      applyMomentum();
+      pauseAutoScroll(3000);
+    }
+  }, [applyMomentum, pauseAutoScroll]);
 
-  // Global mouseup listener to handle drag release outside container
+  // Global mouseup listener
   useEffect(() => {
     const handleGlobalMouseUp = () => {
-      setIsDragging(false);
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        applyMomentum();
+        pauseAutoScroll(3000);
+      }
     };
     
-    if (isDragging) {
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
-    }
-  }, [isDragging]);
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, [applyMomentum, pauseAutoScroll]);
 
-  // Touch handlers
+  // Touch handlers for mobile - using refs to avoid stale closures
   const handleTouchStart = useCallback((e) => {
-    setIsDragging(true);
-    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
+    isDraggingRef.current = true;
+    const touch = e.touches[0];
+    startXRef.current = touch.clientX;
+    scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
+    lastTouchXRef.current = touch.clientX;
+    velocityRef.current = 0;
+    
+    // Stop any ongoing momentum
+    if (momentumAnimRef.current) {
+      cancelAnimationFrame(momentumAnimRef.current);
+      momentumAnimRef.current = null;
+    }
+    
+    // Stop auto-scroll immediately
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
   }, []);
 
   const handleTouchMove = useCallback((e) => {
-    if (!isDragging) return;
-    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startX, scrollLeft]);
+    if (!isDraggingRef.current || !scrollRef.current) return;
+    
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const delta = x - lastTouchXRef.current;
+    velocityRef.current = delta * 0.8; // Dampen velocity for smoother feel
+    lastTouchXRef.current = x;
+    
+    const walk = x - startXRef.current;
+    scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
+    
+    // Prevent page scroll when dragging horizontally
+    if (Math.abs(walk) > 10) {
+      e.preventDefault();
+    }
+  }, []);
 
   const handleTouchEnd = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    applyMomentum();
+    pauseAutoScroll(4000); // Longer pause after touch
+  }, [applyMomentum, pauseAutoScroll]);
 
   // Scroll wheel handler for horizontal scrolling
   const handleWheel = useCallback((e) => {
     if (scrollRef.current) {
       e.preventDefault();
       scrollRef.current.scrollLeft += e.deltaY;
+      pauseAutoScroll(2000);
     }
-  }, []);
+  }, [pauseAutoScroll]);
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -376,25 +495,83 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
 // Work Photo Gallery Component - Galería de Trabajos Realizados
 // Incluye: reseñas de clientes, reseñas de profesionales, portafolio y evidencias
 // Agrupados por procedencia con opción de ver perfil del proveedor
+// Optimized for mobile touch interactions with horizontal scroll
 const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
   const { t, i18n } = useTranslation();
   const containerRef = useRef(null);
   const scrollRef = useRef(null);
   const animationRef = useRef(null);
   const [isHovering, setIsHovering] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const lastTimeRef = useRef(0);
   const [activeFilter, setActiveFilter] = useState('all');
   const currentLang = i18n.language?.split('-')[0] || 'es';
+  const initializedRef = useRef(false);
+  
+  // Refs for touch/drag handling (using refs to avoid stale closures)
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const lastTouchXRef = useRef(0);
+  const velocityRef = useRef(0);
+  const momentumAnimRef = useRef(null);
+  const pauseTimeoutRef = useRef(null);
   
   // Auto-scroll speed (pixels per frame at 60fps) - Higher = faster
   const scrollSpeed = 1.2;
 
+  // Pause auto-scroll temporarily (e.g., after user interaction)
+  const pauseAutoScroll = useCallback((duration = 3000) => {
+    setIsPaused(true);
+    if (pauseTimeoutRef.current) {
+      clearTimeout(pauseTimeoutRef.current);
+    }
+    pauseTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+    }, duration);
+  }, []);
+
+  // Cleanup pause timeout
+  useEffect(() => {
+    return () => {
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
+      if (momentumAnimRef.current) {
+        cancelAnimationFrame(momentumAnimRef.current);
+      }
+    };
+  }, []);
+
+  // Initialize scroll position to end (for right-to-left scroll)
+  useEffect(() => {
+    if (!scrollRef.current || !photos || photos.length <= 1 || initializedRef.current) return;
+    
+    // Wait for DOM to be ready
+    const initPosition = () => {
+      const container = scrollRef.current;
+      if (container && container.scrollWidth > container.clientWidth) {
+        container.scrollLeft = container.scrollWidth - container.clientWidth;
+        initializedRef.current = true;
+      }
+    };
+    
+    // Use requestAnimationFrame to ensure DOM is painted
+    requestAnimationFrame(() => {
+      requestAnimationFrame(initPosition);
+    });
+  }, [photos]);
+
+  // Reset initialization when filter changes
+  useEffect(() => {
+    initializedRef.current = false;
+  }, [activeFilter]);
+
   // Auto-scroll animation - RIGHT TO LEFT
   useEffect(() => {
-    if (!scrollRef.current || isHovering || isDragging || !photos || photos.length <= 1) {
+    const shouldAnimate = scrollRef.current && !isHovering && !isDraggingRef.current && !isPaused && photos && photos.length > 1;
+    
+    if (!shouldAnimate) {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
@@ -403,13 +580,14 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
       return;
     }
 
-    // Start at the end for right-to-left scrolling
-    const container = scrollRef.current;
-    if (container.scrollLeft === 0) {
-      container.scrollLeft = container.scrollWidth - container.clientWidth;
-    }
-
     const animate = (currentTime) => {
+      // Check again inside animation loop
+      if (isDraggingRef.current || isPaused || isHovering) {
+        animationRef.current = null;
+        lastTimeRef.current = 0;
+        return;
+      }
+
       if (!lastTimeRef.current) {
         lastTimeRef.current = currentTime;
         animationRef.current = requestAnimationFrame(animate);
@@ -441,70 +619,152 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
         animationRef.current = null;
       }
     };
-  }, [isHovering, isDragging, photos?.length]);
+  }, [isHovering, isPaused, photos?.length]);
 
-  // Mouse/Touch handlers for drag scrolling
+  // Momentum scrolling after touch release
+  const applyMomentum = useCallback(() => {
+    if (momentumAnimRef.current) {
+      cancelAnimationFrame(momentumAnimRef.current);
+    }
+
+    const decelerate = () => {
+      const container = scrollRef.current;
+      if (!container || Math.abs(velocityRef.current) < 0.5) {
+        velocityRef.current = 0;
+        return;
+      }
+
+      container.scrollLeft -= velocityRef.current;
+      velocityRef.current *= 0.95; // Friction
+
+      // Wrap around for infinite scroll
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      if (container.scrollLeft <= 0) {
+        container.scrollLeft = maxScroll;
+      } else if (container.scrollLeft >= maxScroll) {
+        container.scrollLeft = 0;
+      }
+
+      momentumAnimRef.current = requestAnimationFrame(decelerate);
+    };
+
+    momentumAnimRef.current = requestAnimationFrame(decelerate);
+  }, []);
+
+  // Mouse handlers for desktop drag scrolling
   const handleMouseDown = useCallback((e) => {
-    e.preventDefault(); // Prevent text selection and image drag
-    setIsDragging(true);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
+    e.preventDefault();
+    isDraggingRef.current = true;
+    startXRef.current = e.pageX;
+    scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
+    lastTouchXRef.current = e.pageX;
+    velocityRef.current = 0;
+    
+    if (momentumAnimRef.current) {
+      cancelAnimationFrame(momentumAnimRef.current);
+    }
   }, []);
 
   const handleMouseMove = useCallback((e) => {
-    if (!isDragging) return;
+    if (!isDraggingRef.current) return;
     e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startX, scrollLeft]);
+    
+    const x = e.pageX;
+    const delta = x - lastTouchXRef.current;
+    velocityRef.current = delta;
+    lastTouchXRef.current = x;
+    
+    const walk = x - startXRef.current;
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
+    }
+  }, []);
 
   const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    applyMomentum();
+    pauseAutoScroll(3000);
+  }, [applyMomentum, pauseAutoScroll]);
 
   const handleMouseLeave = useCallback(() => {
-    // Don't stop dragging on mouse leave - let mouseup handle it
     setIsHovering(false);
-  }, []);
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
+      applyMomentum();
+      pauseAutoScroll(3000);
+    }
+  }, [applyMomentum, pauseAutoScroll]);
 
-  // Global mouseup listener to handle drag release outside container
+  // Global mouseup listener
   useEffect(() => {
     const handleGlobalMouseUp = () => {
-      setIsDragging(false);
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        applyMomentum();
+        pauseAutoScroll(3000);
+      }
     };
     
-    if (isDragging) {
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
-    }
-  }, [isDragging]);
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, [applyMomentum, pauseAutoScroll]);
 
-  // Touch handlers
+  // Touch handlers for mobile - using refs to avoid stale closures
   const handleTouchStart = useCallback((e) => {
-    setIsDragging(true);
-    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
+    isDraggingRef.current = true;
+    const touch = e.touches[0];
+    startXRef.current = touch.clientX;
+    scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
+    lastTouchXRef.current = touch.clientX;
+    velocityRef.current = 0;
+    
+    // Stop any ongoing momentum
+    if (momentumAnimRef.current) {
+      cancelAnimationFrame(momentumAnimRef.current);
+      momentumAnimRef.current = null;
+    }
+    
+    // Stop auto-scroll immediately
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
   }, []);
 
   const handleTouchMove = useCallback((e) => {
-    if (!isDragging) return;
-    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startX, scrollLeft]);
+    if (!isDraggingRef.current || !scrollRef.current) return;
+    
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const delta = x - lastTouchXRef.current;
+    velocityRef.current = delta * 0.8; // Dampen velocity for smoother feel
+    lastTouchXRef.current = x;
+    
+    const walk = x - startXRef.current;
+    scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
+    
+    // Prevent page scroll when dragging horizontally
+    if (Math.abs(walk) > 10) {
+      e.preventDefault();
+    }
+  }, []);
 
   const handleTouchEnd = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    applyMomentum();
+    pauseAutoScroll(4000); // Longer pause after touch
+  }, [applyMomentum, pauseAutoScroll]);
 
   // Scroll wheel handler
   const handleWheel = useCallback((e) => {
     if (scrollRef.current) {
       e.preventDefault();
       scrollRef.current.scrollLeft += e.deltaY;
+      pauseAutoScroll(2000);
     }
-  }, []);
+  }, [pauseAutoScroll]);
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -704,7 +964,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
               {/* Imagen o thumbnail de video - área clickeable */}
               <div 
                 className="absolute inset-0"
-                onClick={(e) => !isDragging && handleMediaClick(photo, e)}
+                onClick={(e) => !isDraggingRef.current && handleMediaClick(photo, e)}
               >
                 <img 
                   src={getThumbnailUrl(photo)} 
