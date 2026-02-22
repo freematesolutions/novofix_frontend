@@ -48,6 +48,7 @@ const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, s
         businessName: form.businessName,
         description: form.description,
         services: user?.providerProfile?.services || [],
+        additionalServices: user?.providerProfile?.additionalServices || [],
         serviceArea: {
           zones: form.serviceAreaZone ? [form.serviceAreaZone] : [],
           radius: Number(form.radius) || 15,
@@ -63,6 +64,7 @@ const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, s
           businessName: payload.businessName,
           description: payload.description,
           services: payload.services,
+          additionalServices: payload.additionalServices,
           serviceArea: payload.serviceArea,
           phone: form.phone
         });

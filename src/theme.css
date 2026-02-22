@@ -215,10 +215,13 @@
 }
 
 /* Mejoras de rendimiento para el carrusel */
-.carousel-icon-item {
+.carousel-icon-item,
+.carousel-card {
   will-change: transform, opacity;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  /* SIN transition por defecto — la animación continua manipula el DOM directamente.
+     Las transiciones se aplican inline solo en hover/drag-end. */
 }
 
 /* Reducir animaciones si el usuario lo prefiere */
@@ -229,7 +232,8 @@
     animation: none;
   }
   
-  .carousel-icon-item {
+  .carousel-icon-item,
+  .carousel-card {
     transition-duration: 0.1s !important;
   }
 }

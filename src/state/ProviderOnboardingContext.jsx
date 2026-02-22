@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from './apiClient';
 
 const ProviderOnboardingContext = createContext(null);
@@ -15,23 +16,28 @@ export function useProviderOnboarding() {
 const STORAGE_KEY = 'provider_onboarding_draft';
 
 export function ProviderOnboardingProvider({ children, user, isExistingClient = false, onRegistrationComplete }) {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState(() => {
-    // Si es cliente existente, NO usar draft del localStorage para evitar conflictos
-    // Solo usar draft para usuarios no autenticados (guest)
     if (!isExistingClient) {
       try {
         const draft = localStorage.getItem(STORAGE_KEY);
         if (draft) {
           const parsed = JSON.parse(draft);
-          // Si hay draft y es reciente (< 7 días), usarlo
           if (parsed.timestamp && Date.now() - parsed.timestamp < 7 * 24 * 60 * 60 * 1000) {
-            // Validar que el email del draft no sea de un usuario autenticado
             if (!user?.email || parsed.data?.email !== user.email) {
-              return parsed.data || {};
+              const draftData = parsed.data || {};
+              if (!draftData.primaryCategory && Array.isArray(draftData.categories) && draftData.categories.length > 0) {
+                return {
+                  ...draftData,
+                  primaryCategory: draftData.categories[0],
+                  additionalCategories: draftData.categories.slice(1)
+                };
+              }
+              return draftData;
             }
           }
         }
@@ -39,15 +45,13 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
         // ignore
       }
     } else {
-      // Limpiar draft si es cliente existente
       try {
         localStorage.removeItem(STORAGE_KEY);
       } catch {
         // ignore
       }
     }
-    
-    // Prefill desde usuario existente
+
     return {
       // Paso 1: Identidad profesional
       email: isExistingClient ? user?.email || '' : '',
@@ -56,31 +60,31 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
       firstName: user?.profile?.firstName || '',
       lastName: user?.profile?.lastName || '',
       phone: user?.profile?.phone || '',
-      
+
       // Paso 2: Oferta y servicios
       description: user?.providerProfile?.description || '',
-      categories: user?.providerProfile?.services?.map(s => s.category).filter(Boolean) || [],
+      primaryCategory: user?.providerProfile?.services?.[0]?.category || '',
+      additionalCategories: user?.providerProfile?.additionalServices || user?.providerProfile?.services?.slice(1).map(s => s.category).filter(Boolean) || [],
       mainService: user?.providerProfile?.services?.[0]?.name || '',
       servicesList: user?.providerProfile?.services || [],
-      
+
       // Paso 3: Cobertura
       serviceAreaZone: user?.providerProfile?.serviceArea?.zones?.[0] || '',
       radius: user?.providerProfile?.serviceArea?.radius || 15,
       lat: user?.providerProfile?.serviceArea?.coordinates?.lat || '',
       lng: user?.providerProfile?.serviceArea?.coordinates?.lng || '',
-      serviceMode: 'both', // online, presencial, both
-      
+      serviceMode: 'both',
+
       // Paso 4: Verificación (opcional)
       acceptTerms: false,
       acceptPrivacy: false,
       referredByCode: '',
-      
+
       // Metadata
       isExistingClient
     };
   });
 
-  // Autosave al localStorage cada vez que cambia formData
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -104,31 +108,49 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
     }
   }, []);
 
-  // Validación de email en tiempo real
   const checkEmailAvailability = useCallback(async (email) => {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return { available: false, error: 'Email inválido' };
+      return { available: false, error: t('onboarding.identity.emailInvalid') };
     }
 
-    // Si es cliente existente y está usando su propio email, permitirlo (multirol)
     if (isExistingClient && user?.email && email.toLowerCase() === user.email.toLowerCase()) {
       return { available: true, error: null, isCurrentUser: true };
     }
 
     try {
       const response = await api.get(`/auth/check-email?email=${encodeURIComponent(email)}`);
-      return { 
-        available: response.data?.available !== false, 
-        error: response.data?.available === false ? 'Este email ya está registrado' : null 
+      return {
+        available: response.data?.available !== false,
+        code: response.data?.code,
+        error: response.data?.available === false ? t('onboarding.identity.emailNotAvailable') : null
       };
     } catch (err) {
-      // Si el endpoint no existe, retornar disponible por defecto
       if (err?.response?.status === 404) {
         return { available: true, error: null };
       }
-      return { available: false, error: 'Error al verificar email' };
+      return { available: false, error: t('onboarding.identity.emailCheckError') };
     }
-  }, [isExistingClient, user?.email]);
+  }, [isExistingClient, user?.email, t]);
+
+  const checkProviderAvailability = useCallback(async (email, mainCategory) => {
+    if (!email || !mainCategory) {
+      return { available: true, error: null };
+    }
+    try {
+      const response = await api.get(`/auth/check-email?email=${encodeURIComponent(email)}&serviceCategory=${encodeURIComponent(mainCategory)}&role=provider`);
+      if (response.data?.available === false) {
+        if (response.data?.code === 'PROVIDER_EMAIL_SERVICE_EXISTS') {
+          return { available: false, error: t('onboarding.identity.emailServiceExists') };
+        }
+        if (response.data?.code === 'PROVIDER_EMAIL_DIFFERENT_SERVICE') {
+          return { available: false, error: t('onboarding.identity.emailDifferentService') };
+        }
+      }
+      return { available: true, error: null };
+    } catch {
+      return { available: true, error: null };
+    }
+  }, [t]);
 
   const goToStep = useCallback((stepIndex) => {
     setCurrentStep(stepIndex);
@@ -152,72 +174,76 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
   }, []);
 
   const validateStep = useCallback(async (stepIndex) => {
-    // Validación básica por paso
     switch (stepIndex) {
-      case 0: // Identidad profesional
+      case 0:
         if (!isExistingClient) {
           if (!formData.email || !formData.password) {
-            setError('Email y contraseña son requeridos');
+            setError(t('onboarding.validation.emailPasswordRequired'));
             return false;
           }
-          // Validar formato de email
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            setError('Email inválido');
+            setError(t('onboarding.identity.emailInvalid'));
             return false;
           }
-          // Verificar disponibilidad del email
           const emailCheck = await checkEmailAvailability(formData.email);
           if (!emailCheck.available) {
-            setError(emailCheck.error || 'Este email ya está registrado');
+            setError(emailCheck.error || t('onboarding.identity.emailNotAvailable'));
             return false;
           }
           if (formData.password.length < 6) {
-            setError('La contraseña debe tener al menos 6 caracteres');
+            setError(t('onboarding.validation.passwordMin'));
             return false;
           }
         }
         if (!formData.businessName || formData.businessName.trim().length < 3) {
-          setError('El nombre comercial debe tener al menos 3 caracteres');
+          setError(t('onboarding.validation.businessNameMin'));
           return false;
         }
         break;
-      
-      case 1: // Oferta y servicios
-        if (!formData.categories || formData.categories.length === 0) {
-          setError('Selecciona al menos una categoría');
+
+      case 1:
+        if (!formData.primaryCategory) {
+          setError(t('onboarding.validation.selectMainCategory'));
           return false;
         }
         if (!formData.mainService || formData.mainService.trim().length < 3) {
-          setError('Describe tu servicio principal');
+          setError(t('onboarding.validation.mainServiceRequired'));
           return false;
         }
+        if (!isExistingClient) {
+          const providerCheck = await checkProviderAvailability(formData.email, formData.primaryCategory);
+          if (!providerCheck.available) {
+            setError(providerCheck.error || t('onboarding.identity.emailNotAvailable'));
+            return false;
+          }
+        }
         break;
-      
-      case 2: // Cobertura
+
+      case 2:
         if (!formData.serviceAreaZone || formData.serviceAreaZone.trim().length < 2) {
-          setError('Especifica tu zona de servicio');
+          setError(t('onboarding.validation.serviceAreaRequired'));
           return false;
         }
         if (!formData.radius || formData.radius < 1) {
-          setError('Especifica un radio válido');
+          setError(t('onboarding.validation.radiusRequired'));
           return false;
         }
         break;
-      
-      case 3: // Verificación
+
+      case 3:
         if (!formData.acceptTerms || !formData.acceptPrivacy) {
-          setError('Debes aceptar los términos y políticas');
+          setError(t('onboarding.validation.acceptTerms'));
           return false;
         }
         break;
-      
+
       default:
         break;
     }
-    
+
     setError('');
     return true;
-  }, [formData, isExistingClient]);
+  }, [formData, isExistingClient, checkEmailAvailability, checkProviderAvailability, t]);
 
   const saveStep = useCallback(async (stepIndex) => {
     const isValid = await validateStep(stepIndex);
@@ -229,9 +255,7 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
     setError('');
 
     try {
-      // Guardar progreso en el servidor (draft)
       if (isExistingClient && user?.id) {
-        // Para cliente existente, guardar como draft en su perfil
         await api.put('/auth/profile', {
           providerDraft: {
             step: stepIndex,
@@ -240,23 +264,22 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
           }
         });
       }
-      
+
       nextStep();
       return true;
     } catch (err) {
-      setError(err?.response?.data?.message || 'Error al guardar');
+      setError(err?.response?.data?.message || t('onboarding.toast.stepError'));
       return false;
     } finally {
       setLoading(false);
     }
-  }, [validateStep, nextStep, formData, isExistingClient, user]);
+  }, [validateStep, nextStep, formData, isExistingClient, user, t]);
 
   const submitOnboarding = useCallback(async (finalData = {}) => {
     setLoading(true);
     setError('');
 
     try {
-      // Marcar paso 3 como completado antes de enviar
       setCompletedSteps(prev => {
         if (!prev.includes(3)) {
           return [...prev, 3];
@@ -264,24 +287,24 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
         return prev;
       });
 
-      // Merge con datos finales del último paso
       const mergedData = { ...formData, ...finalData };
-      
-      // Construir payload según el flujo
+      const primaryCategory = mergedData.primaryCategory;
+
       const payload = {
         businessName: mergedData.businessName,
         description: mergedData.description,
-        services: mergedData.servicesList?.length > 0 
-          ? mergedData.servicesList 
-          : mergedData.categories.map(cat => ({
-              category: cat,
-              name: cat === mergedData.categories[0] ? mergedData.mainService : cat,
+        services: mergedData.servicesList?.length > 0
+          ? [mergedData.servicesList[0]]
+          : [{
+              category: primaryCategory,
+              name: mergedData.mainService,
               description: mergedData.description
-            })),
+            }],
+        additionalServices: mergedData.additionalCategories || [],
         serviceArea: {
           zones: mergedData.serviceAreaZone ? [mergedData.serviceAreaZone] : [],
           radius: Number(mergedData.radius) || 15,
-          coordinates: (mergedData.lat !== '' && mergedData.lng !== '' && 
+          coordinates: (mergedData.lat !== '' && mergedData.lng !== '' &&
                        !isNaN(Number(mergedData.lat)) && !isNaN(Number(mergedData.lng)))
             ? { lat: Number(mergedData.lat), lng: Number(mergedData.lng) }
             : undefined
@@ -291,45 +314,32 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
       };
 
       if (!isExistingClient) {
-        // Registro nuevo como proveedor
         payload.email = formData.email;
         payload.password = formData.password;
         payload.firstName = formData.firstName || formData.businessName;
         payload.lastName = formData.lastName || '';
       }
 
-      // Si hay un callback de registro, usarlo (pasa por AuthContext para manejo correcto del estado)
       if (onRegistrationComplete && typeof onRegistrationComplete === 'function') {
-        // Limpiar draft antes de llamar al callback
         clearDraft();
-        
-        // Llamar al callback que está conectado a AuthContext.registerProvider
-        // Este se encarga de establecer pendingVerification y manejar tokens
         const result = await onRegistrationComplete(payload);
-        
-        // Si el callback retorna algo, usarlo como resultado
         if (result) {
           if (result.pending || result.ok) {
             return { success: true, data: result };
           } else if (result.error) {
-            setError(result.error?.message || result.error || 'Error en el registro');
+            setError(result.error?.message || result.error || t('onboarding.toast.stepError'));
             return { success: false, error: result.error };
           }
         }
-        
         return { success: true };
       }
 
-      // Fallback: llamada directa a la API (no recomendado, no actualiza AuthContext)
       let response;
       if (isExistingClient) {
-        // Upgrade de cliente a proveedor
         response = await api.post('/auth/become-provider', payload);
       } else {
-        // Registro nuevo
         response = await api.post('/auth/register/provider', payload);
-        
-        // Guardar token en localStorage para nuevos usuarios
+
         const token = response.data?.data?.token;
         if (token) {
           try {
@@ -338,8 +348,7 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
             console.error('Error saving token:', e);
           }
         }
-        
-        // Guardar email pendiente en sessionStorage para que VerifyEmail lo recupere
+
         const userEmail = response.data?.data?.user?.email || formData.email;
         if (userEmail) {
           try {
@@ -350,18 +359,17 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
         }
       }
 
-      // Limpiar draft
       clearDraft();
 
       return { success: true, data: response.data };
     } catch (err) {
-      const message = err?.response?.data?.message || 'Error al completar el registro';
+      const message = err?.response?.data?.message || t('onboarding.toast.stepError');
       setError(message);
       return { success: false, error: message };
     } finally {
       setLoading(false);
     }
-  }, [formData, isExistingClient, clearDraft]);
+  }, [formData, isExistingClient, clearDraft, onRegistrationComplete, t]);
 
   const completionPercentage = useMemo(() => {
     const totalSteps = 4;
@@ -371,7 +379,6 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
   }, [completedSteps, currentStep]);
 
   const value = {
-    // Estado
     currentStep,
     completedSteps,
     formData,
@@ -379,8 +386,7 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
     error,
     isExistingClient,
     completionPercentage,
-    
-    // Métodos
+
     updateFormData,
     goToStep,
     nextStep,

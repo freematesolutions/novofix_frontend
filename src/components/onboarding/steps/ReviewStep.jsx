@@ -115,16 +115,32 @@ export default function ReviewStep() {
           </div>
           <dl className="space-y-2 text-sm">
             <div>
-              <dt className="text-gray-600 font-medium mb-1">{t('onboarding.review.categoriesLabel')}:</dt>
+              <dt className="text-gray-600 font-medium mb-1">{t('onboarding.review.mainCategoryLabel')}:</dt>
               <dd className="flex flex-wrap gap-1">
-                {formData.categories?.map(cat => (
-                  <span 
-                    key={cat}
-                    className="px-2 py-1 bg-brand-100 text-brand-800 rounded text-xs"
-                  >
-                    {cat}
+                {formData.primaryCategory ? (
+                  <span className="px-2 py-1 bg-brand-100 text-brand-800 rounded text-xs">
+                    {t(`home.categories.${formData.primaryCategory}`, formData.primaryCategory)}
                   </span>
-                ))}
+                ) : (
+                  <span className="text-gray-500 text-xs">{t('onboarding.review.noMainCategory')}</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-gray-600 font-medium mb-1">{t('onboarding.review.additionalCategoriesLabel')}:</dt>
+              <dd className="flex flex-wrap gap-1">
+                {formData.additionalCategories?.length > 0 ? (
+                  formData.additionalCategories.map(cat => (
+                    <span 
+                      key={cat}
+                      className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-xs"
+                    >
+                      {t(`home.categories.${cat}`, cat)}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-500 text-xs">{t('onboarding.review.noAdditionalCategories')}</span>
+                )}
               </dd>
             </div>
             <div>

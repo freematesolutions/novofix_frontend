@@ -222,6 +222,10 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
   const ratingBreakdown = provider?.providerProfile?.rating?.breakdown || {};
   const plan = provider?.subscription?.plan || 'free';
   const services = provider?.providerProfile?.services || [];
+  const mainService = services[0];
+  const additionalServices = (provider?.providerProfile?.additionalServices && provider.providerProfile.additionalServices.length > 0)
+    ? provider.providerProfile.additionalServices
+    : services.slice(1).map(s => s.category).filter(Boolean);
   const profileImage = provider?.profile?.avatar || null;
   const portfolio = provider?.providerProfile?.portfolio || [];
   const stats = provider?.providerProfile?.stats || {};
@@ -501,42 +505,39 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                 {t('ui.providerProfile.servicesOffered')}
               </h2>
 
-              {services.length > 0 ? (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {services.map((service, idx) => (
-                    <div 
-                      key={idx}
-                      className="group relative bg-white rounded-xl border border-gray-100 p-4 hover:border-brand-200 hover:shadow-md transition-all duration-300"
-                    >
+              {mainService ? (
+                <div className="space-y-4">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="group relative bg-white rounded-xl border border-gray-100 p-4 hover:border-brand-200 hover:shadow-md transition-all duration-300">
                       {/* Category badge */}
                       <div className="flex items-center gap-2 mb-3">
                         <div className="w-10 h-10 bg-linear-to-br from-brand-400 to-brand-600 rounded-lg flex items-center justify-center text-white text-base">
-                          {service.category?.charAt(0) || '🔧'}
+                          {mainService.category?.charAt(0) || '🔧'}
                         </div>
                         <div>
-                          <h3 className="font-bold text-gray-900 text-sm">{t(`home.categories.${service.category}`, service.category)}</h3>
-                          {service.experience && (
-                            <p className="text-xs text-gray-500">{t('ui.providerProfile.yearsExp', { years: service.experience })}</p>
+                          <h3 className="font-bold text-gray-900 text-sm">{t(`home.categories.${mainService.category}`, mainService.category)}</h3>
+                          {mainService.experience && (
+                            <p className="text-xs text-gray-500">{t('ui.providerProfile.yearsExp', { years: mainService.experience })}</p>
                           )}
                         </div>
                       </div>
 
                       {/* Service name */}
-                      {service.name && (
-                        <p className="font-medium text-gray-700 text-sm mb-1">{service.name}</p>
+                      {mainService.name && (
+                        <p className="font-medium text-gray-700 text-sm mb-1">{mainService.name}</p>
                       )}
 
                       {/* Description */}
-                      {service.description && (
+                      {mainService.description && (
                         <p className="text-xs text-gray-500 line-clamp-2 mb-2">
-                          {service.description}
+                          {mainService.description}
                         </p>
                       )}
 
                       {/* Subcategories */}
-                      {service.subcategories?.length > 0 && (
+                      {mainService.subcategories?.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {service.subcategories.slice(0, 2).map((sub, subIdx) => (
+                          {mainService.subcategories.slice(0, 2).map((sub, subIdx) => (
                             <span 
                               key={subIdx}
                               className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
@@ -544,9 +545,9 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                               {sub}
                             </span>
                           ))}
-                          {service.subcategories.length > 2 && (
+                          {mainService.subcategories.length > 2 && (
                             <span className="text-xs text-gray-500">
-                              +{service.subcategories.length - 2}
+                              +{mainService.subcategories.length - 2}
                             </span>
                           )}
                         </div>
@@ -557,7 +558,22 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                         <Icons.Check className="w-3 h-3 text-white" />
                       </div>
                     </div>
-                  ))}
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('ui.providerProfile.additionalServices')}</h4>
+                    {additionalServices.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {additionalServices.map((svc) => (
+                          <span key={svc} className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-100">
+                            {t(`home.categories.${svc}`, svc)}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-500">{t('ui.providerProfile.noAdditionalServices')}</p>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8 bg-gray-50 rounded-xl">

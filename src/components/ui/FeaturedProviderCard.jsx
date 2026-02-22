@@ -127,24 +127,19 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
           </div>
         </div>
 
-        {/* Services Tags */}
-        <div className="px-5 pb-3">
-          <div className="flex flex-wrap gap-1.5">
-            {services.slice(0, 3).map((service, idx) => (
-              <span 
-                key={idx}
-                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700 border border-brand-100"
-              >
-                {t(`home.categories.${service.category}`, service.category)}
+        {/* Main Service Badge - Only show primary service highlighted */}
+        {services.length > 0 && services[0]?.category && (
+          <div className="px-5 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-linear-to-r from-brand-500 to-brand-600 text-white shadow-sm">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                {t(`home.categories.${services[0].category}`, services[0].category)}
               </span>
-            ))}
-            {services.length > 3 && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                +{services.length - 3}
-              </span>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Description */}
         <div className="px-5 pb-3">

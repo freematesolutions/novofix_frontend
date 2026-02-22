@@ -94,7 +94,6 @@ function Home() {
   const allCategoriesWithProviders = useMemo(() => {
     const all = SERVICE_CATEGORIES_WITH_DESCRIPTION.map((cat, idx) => {
       const name = t(`home.categories.${cat.value}`, cat.value);
-      // Fallback: si no hay traducción, usa descripción estática solo como último recurso
       const descKey = `home.categoryDescriptions.${cat.value}`;
       let desc = t(descKey);
       if (desc === descKey) desc = cat.description;
@@ -107,28 +106,36 @@ function Home() {
         instanceId: `cat-${cat.value}-${idx}`
       };
     });
-    const withProviders = all.filter(cat => cat.hasProviders);
-    const withoutProviders = all.filter(cat => !cat.hasProviders);
-    if (withProviders.length === 0) return all;
+
+    const withP = all.filter(c => c.hasProviders);
+    const noP   = all.filter(c => !c.hasProviders);
+
+    // Si solo hay un grupo, devolver tal cual
+    if (withP.length === 0) return all;
+    if (noP.length === 0) return withP;
+
+    // Distribuir las tarjetas CON proveedores equitativamente entre las SIN
+    // proveedores, SIN duplicar ninguna. Resultado: [noP, noP, ..., withP, noP, ...]
+    // donde cada "withP" está separada por aproximadamente la misma cantidad de "noP".
     const result = [];
-    let wpIndex = 0;
-    withoutProviders.forEach((cat) => {
-      result.push({ ...cat });
-      result.push({ ...withProviders[wpIndex] });
-      wpIndex = (wpIndex + 1) % withProviders.length;
-    });
-    for (let j = 0; j < withProviders.length; j++) {
-      if (!result.some(x => x.instanceId === withProviders[j].instanceId)) {
-        result.push({ ...withProviders[j] });
+    const gap = noP.length / (withP.length + 1);
+    //  gap = cuántas "noP" poner antes de cada "withP"
+    //  +1 para también tener "noP" al final
+
+    let nIdx = 0;
+    for (let i = 0; i < withP.length; i++) {
+      // Cuántas "noP" van antes de esta "withP"
+      const batchEnd = Math.round((i + 1) * gap);
+      while (nIdx < batchEnd && nIdx < noP.length) {
+        result.push(noP[nIdx++]);
       }
+      result.push(withP[i]);
     }
-    if (result.length < all.length) {
-      all.forEach(cat => {
-        if (!result.some(x => x.instanceId === cat.instanceId)) {
-          result.push({ ...cat });
-        }
-      });
+    // Agregar las "noP" restantes al final
+    while (nIdx < noP.length) {
+      result.push(noP[nIdx++]);
     }
+
     return result;
   }, [providerCountByCategory, dataLoaded, t]);
 
@@ -536,7 +543,7 @@ useEffect(() => {
           {/* Ajustada para acomodar las tarjetas de imagen más grandes del carrusel */}
           <div 
             id="hero-section"
-            className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-[520px] sm:min-h-[580px] md:min-h-[640px] lg:min-h-[600px] xl:min-h-[720px] 2xl:min-h-[800px] scroll-mt-20"
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-[480px] sm:min-h-[540px] md:min-h-[600px] lg:min-h-[580px] xl:min-h-[680px] 2xl:min-h-[760px] scroll-mt-20"
           >
             {/* Contenedor de imágenes de fondo con transiciones suaves */}
             <div className="absolute inset-0">
@@ -590,7 +597,7 @@ useEffect(() => {
             </div>
 
             {/* Contenido principal - Layout con distribución óptima */}
-            <div className="relative h-full flex flex-col justify-between items-center px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6 lg:px-5 lg:py-4 xl:px-8 xl:py-5" style={{ zIndex: 3 }}>
+            <div className="relative h-full flex flex-col justify-center items-center gap-3 sm:gap-4 md:gap-5 lg:gap-4 xl:gap-5 px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6 lg:px-5 lg:py-4 xl:px-8 xl:py-5" style={{ zIndex: 3 }}>
               
               {/* Sección superior: Título */}
               <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-1.5 sm:gap-2 lg:gap-1.5 pt-2">
@@ -608,7 +615,7 @@ useEffect(() => {
 
               {/* Carrusel de tarjetas con imágenes de categorías */}
               {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
-                <div className="w-full max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-xl xl:max-w-4xl 2xl:max-w-5xl mx-auto px-2 sm:px-4 flex-1 flex items-center">
+                <div className="w-full max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-xl xl:max-w-4xl 2xl:max-w-5xl mx-auto px-2 sm:px-4 shrink-0 overflow-hidden">
                   <CategoryIconCarousel
                     categories={allCategoriesWithProviders}
                     currentIndex={carouselIndex}
