@@ -212,6 +212,9 @@ export default function RequestDetail() {
         setUpgrade({ show: true, message: msg || t('provider.requestDetail.leadLimitReached') });
       } else if (status === 400) {
         toast.error(msg || t('provider.requestDetail.invalidValidation'));
+      } else if (status === 409) {
+        toast.error(t('provider.requestDetail.requestNoLongerAvailable', 'Esta solicitud ya no acepta propuestas'));
+        load(); // Reload to update the UI
       } else if (status === 404) {
         toast.error(t('provider.requestDetail.requestNotAvailable'));
       } else {
@@ -257,6 +260,9 @@ export default function RequestDetail() {
         toast.error(msg || t('provider.requestDetail.leadLimitReached'));
         localStorage.setItem('upgrade_hint', '1');
         setUpgrade({ show: true, message: msg || t('provider.requestDetail.leadLimitReached') });
+      } else if (status === 409) {
+        toast.error(t('provider.requestDetail.requestNoLongerAvailable', 'Esta solicitud ya no acepta propuestas'));
+        load();
       } else {
         toast.error(msg);
       }
@@ -588,8 +594,8 @@ export default function RequestDetail() {
               </div>
             </div>
 
-            {/* Card de "Necesito más información" - Solo mostrar si NO hay propuesta enviada */}
-            {!myProposal && (
+            {/* Card de "Necesito más información" - Solo mostrar si la solicitud acepta propuestas */}
+            {!myProposal && request?.status === 'published' && (
             <div className="bg-linear-to-br from-amber-50 via-white to-orange-50 rounded-2xl border border-amber-200 shadow-lg shadow-amber-100/50 overflow-hidden">
               <div className="p-5 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -761,8 +767,45 @@ export default function RequestDetail() {
               </div>
             )}
 
-            {/* Proposal Form Card - Solo mostrar si NO hay propuesta enviada */}
-            {!myProposal && (
+            {/* Banner when request is no longer accepting proposals */}
+            {!myProposal && request?.status && request.status !== 'published' && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 sm:p-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                    <HiExclamation className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-amber-800">{t('provider.requestDetail.requestNoLongerAvailable', 'Esta solicitud ya no acepta propuestas')}</h4>
+                    <p className="text-sm text-amber-600 mt-0.5">
+                      {request.status === 'active' && (() => {
+                        const ap = request.acceptedProposal?.provider;
+                        const provName = ap?.providerProfile?.businessName || ap?.profile?.firstName || null;
+                        return provName
+                          ? t('provider.requestDetail.requestTakenByProvider', { name: provName })
+                          : t('provider.requestDetail.requestTakenByOther');
+                      })()}
+                      {request.status === 'completed' && t('provider.requestDetail.requestCompleted', 'Este trabajo ya fue completado.')}
+                      {request.status === 'cancelled' && t('provider.requestDetail.requestCancelled', 'El cliente canceló esta solicitud.')}
+                      {request.status === 'expired' && t('provider.requestDetail.requestExpired', 'Esta solicitud ha expirado.')}
+                      {request.status === 'archived' && t('provider.requestDetail.requestArchived', 'Esta solicitud fue archivada.')}
+                    </p>
+                    {request.status === 'active' && request.acceptedProposal?.provider && (
+                      <div className="flex items-center gap-2 mt-2 p-2 bg-white/70 rounded-lg border border-amber-100 w-fit">
+                        <div className="w-8 h-8 rounded-full bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                          {(request.acceptedProposal.provider.providerProfile?.businessName || request.acceptedProposal.provider.profile?.firstName || '?')[0].toUpperCase()}
+                        </div>
+                        <span className="text-sm font-medium text-gray-800">
+                          {request.acceptedProposal.provider.providerProfile?.businessName || `${request.acceptedProposal.provider.profile?.firstName || ''} ${request.acceptedProposal.provider.profile?.lastName || ''}`.trim()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Proposal Form Card - Solo mostrar si la solicitud acepta propuestas */}
+            {!myProposal && request?.status === 'published' && (
             <div id="proposal-form" className={`bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden transition-opacity ${submitting ? 'opacity-70 pointer-events-none' : ''}`}>
               {/* Form Header */}
               <div className="bg-linear-to-r from-brand-50 to-cyan-50 border-b border-brand-100 p-6 sm:p-8">

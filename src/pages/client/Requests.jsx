@@ -37,6 +37,7 @@ export default function ClientRequests() {
   const [showEligibleFor, setShowEligibleFor] = useState(null); // requestId or null
   const [editTarget, setEditTarget] = useState(null); // request object to edit via wizard modal
   const [profileTarget, setProfileTarget] = useState(null); // provider object to show profile modal
+  const [openMenuId, setOpenMenuId] = useState(null); // overflow menu for request actions
 
   // Filtrar solicitudes: excluir archivadas, completadas, y aquellas con propuesta ya aceptada
   // Solo mostrar solicitudes pendientes a propuestas o con propuestas sin aceptar/rechazar
@@ -409,7 +410,7 @@ export default function ClientRequests() {
               return (
                 <div 
                   key={r._id} 
-                  className="group relative bg-white/80 backdrop-blur-xl rounded-2xl border border-emerald-100/60 shadow-lg shadow-emerald-900/5 hover:shadow-xl hover:shadow-emerald-900/10 transition-all duration-500 hover:-translate-y-1 overflow-hidden"
+                  className="group relative bg-white/80 backdrop-blur-xl rounded-2xl border border-emerald-100/60 shadow-lg shadow-emerald-900/5 hover:shadow-xl hover:shadow-emerald-900/10 transition-all duration-500 hover:-translate-y-1"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {/* Barra lateral de color según estado */}
@@ -427,22 +428,34 @@ export default function ClientRequests() {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                           <h3 className="text-lg font-semibold text-gray-900 truncate">
-                            {getTranslatedRequestInfo(r, currentLang).title || t('client.requests.untitledRequest')}
+                            {(() => {
+                              const cat = r.basicInfo?.category;
+                              const catLabel = cat ? t(`home.categories.${cat}`, cat) : '';
+                              return catLabel
+                                ? t('client.requests.estimateRequestTitle', { category: catLabel })
+                                : getTranslatedRequestInfo(r, currentLang).title || t('client.requests.untitledRequest');
+                            })()}
                           </h3>
-                          {/* Badge de estado premium */}
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.className}`}>
-                            {statusInfo.icon}
-                            {statusInfo.label}
-                          </span>
-                          {/* Badge de propuesta recibida - solo si hay propuestas y no hay aceptada */}
-                          {(r.metadata?.proposalCount > 0 || (Array.isArray(r.proposals) && r.proposals.length > 0)) && !r.acceptedProposal && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-linear-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/25 animate-pulse">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                              {t('client.requests.proposalReceived')}
-                            </span>
-                          )}
+                          {/* Badge de estado — dinámico: si published y tiene propuestas, mostrar "Propuesta recibida" en vez de "Esperando propuesta" */}
+                          {(() => {
+                            const hasProposals = (r.metadata?.proposalCount > 0 || (Array.isArray(r.proposals) && r.proposals.length > 0)) && !r.acceptedProposal;
+                            if (r.status === 'published' && hasProposals) {
+                              return (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-linear-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/25">
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  {t('client.requests.proposalReceived')}
+                                </span>
+                              );
+                            }
+                            return (
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.className}`}>
+                                {statusInfo.icon}
+                                {statusInfo.label}
+                              </span>
+                            );
+                          })()}
                           {/* Badge de tipo de solicitud */}
                           {r.visibility === 'directed' && (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
@@ -482,9 +495,9 @@ export default function ClientRequests() {
                         </div>
                       </div>
 
-                      {/* Acciones */}
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        {/* Botón Ver propuestas - solo visible cuando hay propuestas */}
+                      {/* Acciones — Layout: fila primaria + menú overflow */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {/* Botón Ver propuestas - CTA primario */}
                         {(r.metadata?.proposalCount > 0 || (Array.isArray(r.proposals) && r.proposals.length > 0)) && (
                           <button
                             onClick={() => navigate(`/mis-solicitudes/${r._id}/propuestas`)}
@@ -494,8 +507,8 @@ export default function ClientRequests() {
                               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            {t('client.requests.viewProposals')}
-                            {/* Mostrar contador de propuestas */}
+                            <span className="hidden sm:inline">{t('client.requests.viewProposals')}</span>
+                            <span className="sm:hidden">{t('client.requests.proposals', 'Propuestas')}</span>
                             {(r.metadata?.proposalCount > 0 && !r.acceptedProposal) && (
                               <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-emerald-700 bg-white rounded-full min-w-5 animate-pulse">
                                 {r.metadata.proposalCount}
@@ -504,11 +517,9 @@ export default function ClientRequests() {
                           </button>
                         )}
 
-                        {/* Botón Ver atendiendo - Muestra profesionales notificados + con propuesta */}
+                        {/* Botón Atendiendo — compacto */}
                         {(() => {
-                          // Calcular proveedores atendiendo desde datos locales
                           const attendingMap = new Map();
-                          // Notificados (eligibleProviders con provider populado)
                           if (Array.isArray(r.eligibleProviders)) {
                             r.eligibleProviders.forEach(ep => {
                               const prov = ep?.provider;
@@ -529,7 +540,6 @@ export default function ClientRequests() {
                               }
                             });
                           }
-                          // Dirigidos (selectedProviders)
                           if (Array.isArray(r.selectedProviders)) {
                             r.selectedProviders.forEach(sp => {
                               const pid = String(sp?._id || sp);
@@ -547,7 +557,6 @@ export default function ClientRequests() {
                               }
                             });
                           }
-                          // Proveedores con propuesta
                           if (Array.isArray(r.proposals)) {
                             r.proposals.forEach(prop => {
                               const prov = prop?.provider;
@@ -585,7 +594,7 @@ export default function ClientRequests() {
                                 if (attendingCount === 0) toast.info(t('client.requests.noAttendingProviders', 'Aún no hay profesionales atendiendo esta solicitud'));
                               }}
                               title={t('client.requests.attendingTooltip', 'Ver profesionales que están atendiendo esta solicitud')}
-                              className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl shadow-sm transition-all duration-300 ${
+                              className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold rounded-xl shadow-sm transition-all duration-300 ${
                                 showEligibleFor === r._id 
                                   ? 'bg-teal-50 border border-teal-300 text-teal-700 shadow-md' 
                                   : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:shadow-md'
@@ -594,7 +603,7 @@ export default function ClientRequests() {
                               <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                               </svg>
-                              {t('client.requests.attending', 'Atendiendo')}
+                              <span className="hidden sm:inline">{t('client.requests.attending', 'Atendiendo')}</span>
                               {attendingCount > 0 && (
                                 <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-white bg-teal-500 rounded-full min-w-5">
                                   {attendingCount}
@@ -604,96 +613,109 @@ export default function ClientRequests() {
                           );
                         })()}
 
-                        {/* Botón Editar - para draft y published */}
-                        {['draft', 'published'].includes(r.status) && (
+                        {/* Menú overflow "⋯" para acciones secundarias */}
+                        <div className="relative">
                           <button
-                            onClick={() => setEditTarget(r)}
-                            title={t('client.requests.editTooltip', 'Editar los detalles de esta solicitud')}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 hover:border-emerald-300 transition-all duration-300"
+                            onClick={() => setOpenMenuId(openMenuId === r._id ? null : r._id)}
+                            className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 transition-all duration-200 shadow-sm text-sm font-medium"
+                            title={t('client.requests.moreActions', 'Más acciones')}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                             </svg>
-                            {t('client.requests.edit', 'Editar')}
+                            <span>{t('client.requests.actions', 'Acciones')}</span>
                           </button>
-                        )}
 
-                        {/* Acciones específicas por estado */}
-                        {r.status === 'draft' && (
-                          <button
-                            onClick={() => doAction(r._id, 'publish')}
-                            disabled={busyId === r._id}
-                            title="Publicar solicitud para que los profesionales la vean y envíen propuestas"
-                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-linear-to-r from-blue-500 to-cyan-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/35 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {busyId === r._id ? (
-                              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            ) : (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                              </svg>
-                            )}
-                            {t('client.requests.publish')}
-                          </button>
-                        )}
-                        
-                        {r.status === 'published' && (
-                          <>
-                            <button
-                              onClick={() => doAction(r._id, 'archive')}
-                              disabled={busyId === r._id}
-                              title="Archivar la solicitud temporalmente. Dejará de recibir propuestas pero podrás republicarla después"
-                              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 hover:border-amber-300 transition-all duration-300 disabled:opacity-50"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                              </svg>
-                              {t('client.requests.archive')}
-                            </button>
-                            <button
-                              onClick={() => openInvite(r)}
-                              title="Buscar y enviar invitaciones directas a profesionales específicos para que vean tu solicitud"
-                              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all duration-300"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                              </svg>
-                              {t('client.requests.invite')}
-                            </button>
-                          </>
-                        )}
-                        
-                        {r.status === 'archived' && (
-                          <button
-                            onClick={() => doAction(r._id, 'republish')}
-                            disabled={busyId === r._id}
-                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-linear-to-r from-emerald-500 to-teal-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/35 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {busyId === r._id ? (
-                              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            ) : (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                            )}
-                            {t('client.requests.republish')}
-                          </button>
-                        )}
-                        
-                        {/* Botón eliminar - disponible para draft, published y archived */}
-                        {['draft', 'published', 'archived'].includes(r.status) && (
-                          <button
-                            onClick={() => openDeleteConfirm(r)}
-                            disabled={busyId === r._id}
-                            title="Eliminar esta solicitud permanentemente"
-                            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 hover:border-red-300 transition-all duration-300 disabled:opacity-50"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            {t('common.delete')}
-                          </button>
-                        )}
+                          {/* Dropdown menu */}
+                          {openMenuId === r._id && (
+                            <>
+                              {/* Backdrop invisible para cerrar */}
+                              <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                              <div className="absolute right-0 top-full mt-1 z-20 w-48 bg-white rounded-xl border border-gray-200 shadow-xl shadow-gray-200/50 py-1 animate-in fade-in slide-in-from-top-1 duration-150">
+                                {/* Invitar — solo published */}
+                                {r.status === 'published' && (
+                                  <button
+                                    onClick={() => { setOpenMenuId(null); openInvite(r); }}
+                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                                  >
+                                    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                    </svg>
+                                    {t('client.requests.invite')}
+                                  </button>
+                                )}
+                                {/* Editar — draft y published */}
+                                {['draft', 'published'].includes(r.status) && (
+                                  <button
+                                    onClick={() => { setOpenMenuId(null); setEditTarget(r); }}
+                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                                  >
+                                    <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    {t('client.requests.edit', 'Editar')}
+                                  </button>
+                                )}
+                                {/* Publicar — solo draft */}
+                                {r.status === 'draft' && (
+                                  <button
+                                    onClick={() => { setOpenMenuId(null); doAction(r._id, 'publish'); }}
+                                    disabled={busyId === r._id}
+                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors disabled:opacity-50"
+                                  >
+                                    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    </svg>
+                                    {t('client.requests.publish')}
+                                  </button>
+                                )}
+                                {/* Archivar — solo published */}
+                                {r.status === 'published' && (
+                                  <button
+                                    onClick={() => { setOpenMenuId(null); doAction(r._id, 'archive'); }}
+                                    disabled={busyId === r._id}
+                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors disabled:opacity-50"
+                                  >
+                                    <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg>
+                                    {t('client.requests.archive')}
+                                  </button>
+                                )}
+                                {/* Republicar — solo archived */}
+                                {r.status === 'archived' && (
+                                  <button
+                                    onClick={() => { setOpenMenuId(null); doAction(r._id, 'republish'); }}
+                                    disabled={busyId === r._id}
+                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors disabled:opacity-50"
+                                  >
+                                    <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    {t('client.requests.republish')}
+                                  </button>
+                                )}
+                                {/* Separador antes de eliminar */}
+                                {['draft', 'published', 'archived'].includes(r.status) && (
+                                  <div className="border-t border-gray-100 my-1"></div>
+                                )}
+                                {/* Eliminar */}
+                                {['draft', 'published', 'archived'].includes(r.status) && (
+                                  <button
+                                    onClick={() => { setOpenMenuId(null); openDeleteConfirm(r); }}
+                                    disabled={busyId === r._id}
+                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    {t('common.delete')}
+                                  </button>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
 
