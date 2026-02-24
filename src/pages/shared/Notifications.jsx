@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient.js';
+import { getNotificationActionUrl } from '@/utils/notificationLinks.js';
 import Spinner from '@/components/ui/Spinner.jsx';
 import Button from '@/components/ui/Button.jsx';
 import { 
@@ -261,9 +262,8 @@ export default function Notifications() {
                       </button>
                     )}
                     {(() => {
-                      const raw = n?.data?.actionUrl;
-                      if (!raw) return null;
-                      const to = raw.includes('/provider/onboarding') ? '/perfil?section=provider-setup' : raw;
+                      const to = getNotificationActionUrl(n);
+                      if (!to) return null;
                       return (
                         <Link 
                           to={to} 
@@ -274,7 +274,7 @@ export default function Notifications() {
                         </Link>
                       );
                     })()}
-                    {n.read && !n?.data?.actionUrl && (
+                    {n.read && !(n?.data?.actionUrl && n.data.actionUrl !== '/notificaciones') && (
                       <div className="p-1">
                         <HiCheck className="w-4 h-4 text-gray-300" />
                       </div>

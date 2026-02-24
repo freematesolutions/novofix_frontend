@@ -178,19 +178,30 @@ const MessageBubble = memo(({
   }, [reactions]);
 
   // Long press para mostrar acciones en móvil
-  const handleTouchStart = useCallback(() => {
+  const handleTouchStart = useCallback((e) => {
+    // Solo permitir long press con un dedo
+    if (e.touches && e.touches.length > 1) return;
     longPressTimer.current = setTimeout(() => {
       setShowActions(true);
     }, 500);
   }, []);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchMove = useCallback(() => {
+    // Cancelar long press al hacer swipe/scroll
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
     }
   }, []);
 
-  // Cerrar picker al hacer clic fuera
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  // Cerrar picker al hacer clic/toque fuera
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (bubbleRef.current && !bubbleRef.current.contains(e.target)) {
@@ -199,10 +210,20 @@ const MessageBubble = memo(({
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
+  const reactionProcessingRef = useRef(false);
   const handleReaction = useCallback((emoji) => {
+    // Guard against double-fire from touch + click on mobile
+    if (reactionProcessingRef.current) return;
+    reactionProcessingRef.current = true;
+    setTimeout(() => { reactionProcessingRef.current = false; }, 300);
+    
     onReact?.(message._id, emoji);
     setShowReactionPicker(false);
     setShowActions(false);
@@ -232,7 +253,9 @@ const MessageBubble = memo(({
       ref={bubbleRef}
       className={`flex gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'} group relative`}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     >
       {/* Avatar (for received messages) */}
       {!isMine && showAvatar && (
@@ -354,8 +377,8 @@ const MessageBubble = memo(({
               {groupedReactions.map(({ emoji, count }) => (
                 <button
                   key={emoji}
-                  onClick={() => handleReaction(emoji)}
-                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-gray-200 rounded-full text-xs shadow-sm hover:bg-gray-50 transition-colors"
+                  onPointerUp={(e) => { e.stopPropagation(); handleReaction(emoji); }}
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-gray-200 rounded-full text-xs shadow-sm hover:bg-gray-50 transition-colors touch-manipulation select-none"
                   title="Clic para alternar reacción"
                 >
                   <span>{emoji}</span>
@@ -403,8 +426,8 @@ const MessageBubble = memo(({
                 {QUICK_REACTIONS.map(emoji => (
                   <button
                     key={emoji}
-                    onClick={() => handleReaction(emoji)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-all hover:scale-125 text-xl"
+                    onPointerUp={(e) => { e.stopPropagation(); handleReaction(emoji); }}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-all hover:scale-125 text-xl select-none touch-manipulation"
                   >
                     {emoji}
                   </button>
@@ -413,8 +436,8 @@ const MessageBubble = memo(({
               {showActions && (
                 <div className="border-t border-gray-100 mt-2 pt-2">
                   <button
-                    onClick={handleReply}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    onPointerUp={handleReply}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
                   >
                     <Icons.Reply className="w-4 h-4" />
                     Responder
@@ -490,7 +513,8 @@ function ChatRoom({
   onRejectProposal = null, // Callback para rechazar propuesta
   isAcceptingProposal = false, // Estado de carga
   userRole = null, // 'client' o 'provider'
-  onClose = null // Callback para cerrar el chat (usado en panel de provider)
+  onClose = null, // Callback para cerrar el chat (usado en panel de provider)
+  onEditRequest = null // Callback para editar solicitud (abre modal wizard)
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -743,9 +767,16 @@ function ChatRoom({
     setReplyingTo(null);
   }, []);
 
-  // Handle reaction to a message
+  // Handle reaction to a message (with debounce guard to prevent mobile double-fire)
+  const reactionGuardRef = useRef(new Set());
   const handleReaction = useCallback(async (messageId, emoji) => {
     if (!messageId || !chatId) return;
+    
+    // Prevent duplicate rapid calls for the same message+emoji
+    const key = `${messageId}:${emoji}`;
+    if (reactionGuardRef.current.has(key)) return;
+    reactionGuardRef.current.add(key);
+    setTimeout(() => reactionGuardRef.current.delete(key), 400);
     
     try {
       // Optimistic update
@@ -1254,7 +1285,55 @@ function ChatRoom({
                   onClick={() => navigate(`/empleos/${serviceRequestId}`)}
                   className="px-3 py-1.5 text-sm font-semibold text-white bg-linear-to-r from-brand-600 to-cyan-500 rounded-xl shadow-sm hover:from-brand-700 hover:to-cyan-600 transition-colors"
                 >
-                  {t('provider.requestDetail.sendProposal', 'Enviar propuesta')}
+                  {t('provider.requestDetail.sendProposal', 'Enviar estimado')}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Client quick actions for info_request chats - Bottom panel */}
+      {(() => {
+        const serviceRequestId = chat?.serviceRequest?._id || chat?.serviceRequest;
+        const showClientActions = chat?.chatType === 'info_request' && userRole === 'client' && serviceRequestId;
+        
+        if (!showClientActions) return null;
+        
+        return (
+          <div className="px-4 py-3 border-t border-gray-100 bg-linear-to-r from-emerald-50/50 to-teal-50/30">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-sm">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{t('chat.infoRequestClient.title', 'Consulta del profesional')}</p>
+                  <p className="text-xs text-gray-500">{t('chat.infoRequestClient.subtitle', 'El profesional necesita más detalles sobre tu solicitud')}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onClose ? onClose() : navigate('/mensajes')}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  {t('chat.close', 'Cerrar')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onEditRequest) {
+                      onEditRequest(serviceRequestId);
+                    } else {
+                      navigate(`/mis-solicitudes`);
+                    }
+                  }}
+                  className="px-3 py-1.5 text-sm font-semibold text-white bg-linear-to-r from-emerald-600 to-teal-500 rounded-xl shadow-sm hover:from-emerald-700 hover:to-teal-600 transition-colors"
+                >
+                  {t('chat.infoRequestClient.updateRequest', 'Actualizar solicitud')}
                 </button>
               </div>
             </div>
@@ -1365,16 +1444,19 @@ function ChatRoom({
                 <span className="text-lg">😊</span>
               </button>
               {showEmojiPicker && (
-                <div className="absolute bottom-full left-0 mb-2 p-2 bg-white rounded-xl shadow-lg border border-gray-200 flex gap-1 z-50">
+                <div className="absolute bottom-full left-0 mb-2 p-2 bg-white rounded-xl shadow-lg border border-gray-200 flex gap-1 z-50"
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
                   {QUICK_REACTIONS.map(emoji => (
                     <button
                       key={emoji}
                       type="button"
-                      onClick={() => {
+                      onPointerUp={(e) => {
+                        e.stopPropagation();
                         setComposer(prev => prev + emoji);
                         setShowEmojiPicker(false);
                       }}
-                      className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 rounded-lg transition-colors"
+                      className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 rounded-lg transition-colors touch-manipulation select-none"
                     >
                       {emoji}
                     </button>
@@ -1455,7 +1537,8 @@ ChatRoom.propTypes = {
   onRejectProposal: PropTypes.func,
   isAcceptingProposal: PropTypes.bool,
   userRole: PropTypes.string,
-  onClose: PropTypes.func
+  onClose: PropTypes.func,
+  onEditRequest: PropTypes.func
 };
 
 export default memo(ChatRoom);

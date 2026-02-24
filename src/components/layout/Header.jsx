@@ -15,6 +15,7 @@ import api from '@/state/apiClient.js';
 
 import LanguageSelector from '@/components/ui/LanguageSelector.jsx';
 import { useTranslation } from 'react-i18next';
+import { getNotificationActionUrl } from '@/utils/notificationLinks.js';
 
 // Función helper para traducir notificaciones dinámicamente basándose en el tipo
 function getTranslatedNotification(notification, t, i18n) {
@@ -70,7 +71,7 @@ function getTranslatedNotification(notification, t, i18n) {
   return { title, message };
 }
 
-function NotificationDropdownItem({ notification: n, index, onMarkRead, onNavigate, actionUrl, message: originalMessage, isLongMessage: originalIsLongMessage, compact = false }) {
+function NotificationDropdownItem({ notification: n, index, onMarkRead, onNavigate, actionUrl, compact = false }) {
   const [expanded, setExpanded] = useState(false);
   const { t, i18n } = useTranslation();
   
@@ -1263,7 +1264,7 @@ function Header() {
       try { window.dispatchEvent(new CustomEvent('notifications:updated')); } catch {/* ignore */}
       // Show a toast with action to navigate if the notification provides an actionUrl
       try {
-        const actionUrl = payload?.data?.actionUrl;
+        const actionUrl = getNotificationActionUrl(payload);
         const { title: translatedTitle, message: translatedMessage } = getTranslatedNotification(payload, t, i18n);
         if (actionUrl) {
           toastRef.current?.info(
@@ -1281,7 +1282,7 @@ function Header() {
           // Simple toast without action
           toastRef.current?.info(translatedTitle, translatedMessage, { duration: 6000 });
         }
-      } catch (err) { /* ignore toast errors */ }
+      } catch { /* ignore toast errors */ }
     };
     const onCountersUpdate = () => {
       // When server signals counters changed, refresh immediately
@@ -1299,7 +1300,6 @@ function Header() {
       const msg = payload?.message || payload;
       const chatId = payload?.chatId || payload?.chat;
       const chatType = payload?.chatType;
-      const relatedTo = payload?.relatedTo;
       
       // Obtener senderId como string para comparación correcta
       // El sender puede ser: string, ObjectId, o objeto con _id o id
@@ -1464,7 +1464,7 @@ function Header() {
     const onInvalidate = () => { subscriptionCacheRef.current.ts = 0; fetchStatus(); };
     window.addEventListener('subscription:invalidate', onInvalidate);
     return () => { mounted = false; window.removeEventListener('subscription:invalidate', onInvalidate); };
-  }, [isAuthenticated, viewRole]);
+  }, [isAuthenticated, viewRole, t]);
 
   if (isBlocked) {
     // No renderizar header ni menú si está pendiente de verificación
@@ -1655,7 +1655,7 @@ function Header() {
                     )}
                     {notifications.map((n, index) => {
                       const id = n._id || n.id;
-                      const actionUrl = n?.data?.actionUrl;
+                      const actionUrl = getNotificationActionUrl(n);
                       const message = n.message || n.body || '—';
                       const isLongMessage = message.length > 60;
                       return (
@@ -1834,7 +1834,7 @@ function Header() {
                         )}
                         {notifications.map((n, index) => {
                           const id = n._id || n.id;
-                          const actionUrl = n?.data?.actionUrl;
+                          const actionUrl = getNotificationActionUrl(n);
                           const message = n.message || n.body || '—';
                           const isLongMessage = message.length > 80;
                           return (

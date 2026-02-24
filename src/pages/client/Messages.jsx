@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import ChatRoom from '@/components/ui/ChatRoom.jsx';
+import RequestWizardModal from '@/components/ui/RequestWizardModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
 import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketClient.js';
@@ -25,9 +26,12 @@ export default function Messages() {
   const [chats, setChats] = useState([]);
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [unreadCounts, setUnreadCounts] = useState({});
+  const [activeFilter, setActiveFilter] = useState('all');
   
   // Estado para aceptar/rechazar propuesta desde el chat
   const [isAcceptingProposal, setIsAcceptingProposal] = useState(false);
+  const [editTarget, setEditTarget] = useState(null); // request object to edit via wizard modal
+  const [editLoading, setEditLoading] = useState(false);
   
   // Limpiar errores al montar
   useEffect(() => { clearError?.(); }, [clearError]);
@@ -246,6 +250,60 @@ export default function Messages() {
     }
   }, [selectedChatId, isAcceptingProposal, loadChats, t]);
 
+  // Chat type configuration
+  const chatTypeConfig = useMemo(() => ({
+    booking: {
+      label: t('client.messages.typeBooking', 'Reservas'),
+      icon: '📅',
+      color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
+      dot: 'bg-emerald-500'
+    },
+    proposal_negotiation: {
+      label: t('client.messages.typeEstimate', 'Estimados'),
+      icon: '💰',
+      color: 'text-brand-600 bg-brand-50 border-brand-200',
+      dot: 'bg-brand-500'
+    },
+    info_request: {
+      label: t('client.messages.typeInquiry', 'Consultas'),
+      icon: '💬',
+      color: 'text-amber-600 bg-amber-50 border-amber-200',
+      dot: 'bg-amber-500'
+    },
+    inquiry: {
+      label: t('client.messages.typeInquiry', 'Consultas'),
+      icon: '💬',
+      color: 'text-amber-600 bg-amber-50 border-amber-200',
+      dot: 'bg-amber-500'
+    }
+  }), [t]);
+
+  // Filter tabs
+  const filterTabs = useMemo(() => {
+    const counts = { all: chats.length, booking: 0, estimate: 0, inquiry: 0 };
+    chats.forEach(c => {
+      const type = c.chatType;
+      if (type === 'booking') counts.booking++;
+      else if (type === 'proposal_negotiation') counts.estimate++;
+      else if (type === 'info_request' || type === 'inquiry') counts.inquiry++;
+    });
+    return [
+      { key: 'all', label: t('client.messages.filterAll', 'Todos'), count: counts.all },
+      { key: 'booking', label: t('client.messages.filterBookings', 'Reservas'), count: counts.booking, icon: '📅' },
+      { key: 'estimate', label: t('client.messages.filterEstimates', 'Estimados'), count: counts.estimate, icon: '💰' },
+      { key: 'inquiry', label: t('client.messages.filterInquiries', 'Consultas'), count: counts.inquiry, icon: '💬' }
+    ];
+  }, [chats, t]);
+
+  // Filtered chats based on active filter
+  const filteredChats = useMemo(() => {
+    if (activeFilter === 'all') return chats;
+    if (activeFilter === 'booking') return chats.filter(c => c.chatType === 'booking');
+    if (activeFilter === 'estimate') return chats.filter(c => c.chatType === 'proposal_negotiation');
+    if (activeFilter === 'inquiry') return chats.filter(c => c.chatType === 'info_request' || c.chatType === 'inquiry');
+    return chats;
+  }, [chats, activeFilter]);
+
   // Nombre del otro participante
   const getParticipantName = (chat) => {
     if (!chat) return t('client.messages.chat');
@@ -267,6 +325,7 @@ export default function Messages() {
   const totalUnread = Object.values(unreadCounts).reduce((sum, n) => sum + n, 0);
 
   return (
+  <>
     <div className="max-w-7xl mx-auto space-y-6 p-4 sm:p-6">
       {/* Premium Header */}
       <div className="overflow-hidden rounded-2xl bg-linear-to-br from-brand-500 via-brand-600 to-cyan-600 p-6 sm:p-8 text-white relative">
@@ -305,14 +364,42 @@ export default function Messages() {
           selectedChatId ? 'hidden lg:block' : 'block'
         }`}>
           {/* Header */}
-          <div className="flex items-center gap-3 p-4 border-b border-gray-100 bg-linear-to-r from-brand-50/50 to-cyan-50/30">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-cyan-500 text-white">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-              </svg>
+          <div className="p-4 border-b border-gray-100 bg-linear-to-r from-brand-50/50 to-cyan-50/30">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-cyan-500 text-white">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                </svg>
+              </div>
+              <span className="font-semibold text-gray-900">{t('client.messages.conversations')}</span>
+              <span className="text-sm text-gray-500 ml-auto">{chats.length}</span>
             </div>
-            <span className="font-semibold text-gray-900">{t('client.messages.conversations')}</span>
-            <span className="text-sm text-gray-500 ml-auto">{chats.length}</span>
+            {/* Filter tabs */}
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {filterTabs.map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveFilter(tab.key)}
+                  className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    activeFilter === tab.key
+                      ? 'bg-linear-to-r from-brand-500 to-cyan-500 text-white shadow-md shadow-brand-500/20'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-brand-300 hover:text-brand-600'
+                  }`}
+                >
+                  {tab.icon && <span>{tab.icon}</span>}
+                  {tab.label}
+                  {tab.count > 0 && (
+                    <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full ${
+                      activeFilter === tab.key
+                        ? 'bg-white/25 text-white'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Chat Items */}
@@ -321,8 +408,8 @@ export default function Messages() {
               <div className="flex items-center justify-center py-12">
                 <div className="w-8 h-8 rounded-full border-3 border-brand-100 border-t-brand-500 animate-spin" />
               </div>
-            ) : chats.length > 0 ? (
-              chats.map((chat) => {
+            ) : filteredChats.length > 0 ? (
+              filteredChats.map((chat) => {
                 const id = chat._id || chat.id;
                 const isActive = selectedChatId === id;
                 const unread = unreadCounts[id] || 0;
@@ -334,6 +421,7 @@ export default function Messages() {
                 const name = getParticipantName(chat);
                 const initial = name[0]?.toUpperCase() || 'P';
                 const lastTime = chat.metadata?.lastActivity || chat.updatedAt;
+                const typeConf = chatTypeConfig[chat.chatType] || chatTypeConfig.booking;
 
                 return (
                   <button
@@ -345,12 +433,19 @@ export default function Messages() {
                   >
                     <div className="flex items-start gap-3">
                       {/* Avatar */}
-                      <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-semibold text-white ${
-                        isActive 
-                          ? 'bg-linear-to-br from-brand-500 to-cyan-500' 
-                          : 'bg-linear-to-br from-gray-400 to-gray-500'
-                      }`}>
-                        {initial}
+                      <div className="relative shrink-0">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-semibold text-white ${
+                          isActive 
+                            ? 'bg-linear-to-br from-brand-500 to-cyan-500' 
+                            : 'bg-linear-to-br from-gray-400 to-gray-500'
+                        }`}>
+                          {initial}
+                        </div>
+                        {/* Chat type dot indicator */}
+                        <span className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center text-[8px] ${typeConf.dot}`}
+                          title={typeConf.label}
+                        >
+                        </span>
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -366,6 +461,11 @@ export default function Messages() {
                             </span>
                           )}
                         </div>
+                        {/* Chat type badge */}
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border mt-0.5 ${typeConf.color}`}>
+                          <span>{typeConf.icon}</span>
+                          {typeConf.label}
+                        </span>
                         <p className={`text-sm truncate mt-0.5 ${
                           unread > 0 ? 'text-gray-700 font-medium' : 'text-gray-500'
                         }`}>
@@ -386,6 +486,22 @@ export default function Messages() {
                   </button>
                 );
               })
+            ) : chats.length > 0 && filteredChats.length === 0 ? (
+              /* No results for active filter but chats exist */
+              <div className="flex flex-col items-center justify-center py-10 px-4">
+                <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-3">
+                  <svg className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                </div>
+                <h4 className="text-sm font-medium text-gray-700 mb-1">{t('client.messages.noChatsInFilter', 'Sin conversaciones en esta categoría')}</h4>
+                <button
+                  onClick={() => setActiveFilter('all')}
+                  className="text-xs text-brand-600 hover:text-brand-700 font-medium mt-1"
+                >
+                  {t('client.messages.showAll', 'Ver todas')}
+                </button>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4">
                 <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center mb-4">
@@ -437,6 +553,19 @@ export default function Messages() {
                 onRejectProposal={handleRejectProposal}
                 isAcceptingProposal={isAcceptingProposal}
                 userRole="client"
+                onEditRequest={async (serviceRequestId) => {
+                  try {
+                    setEditLoading(true);
+                    const { data } = await api.get(`/client/requests/${serviceRequestId}`);
+                    const req = data?.data?.request || data?.request || data;
+                    setEditTarget(req);
+                  } catch {
+                    // fallback: navigate to requests page
+                    navigate('/mis-solicitudes');
+                  } finally {
+                    setEditLoading(false);
+                  }
+                }}
               />
             </div>
           ) : (
@@ -457,5 +586,26 @@ export default function Messages() {
         </div>
       </div>
     </div>
+
+    {/* Loading overlay para edición */}
+    {editLoading && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+        <div className="bg-white rounded-2xl shadow-xl p-6 flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm text-gray-700">{t('common.loading', 'Cargando...')}</span>
+        </div>
+      </div>
+    )}
+
+    {/* Modal de edición de solicitud (wizard) */}
+    <RequestWizardModal
+      isOpen={!!editTarget}
+      onClose={() => setEditTarget(null)}
+      editRequest={editTarget}
+      onEditSuccess={() => {
+        setEditTarget(null);
+      }}
+    />
+  </>
   );
 }

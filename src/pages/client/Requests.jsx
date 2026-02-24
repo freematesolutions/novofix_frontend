@@ -11,6 +11,8 @@ import { useToast } from '@/components/ui/Toast.jsx';
 import Modal from '@/components/ui/Modal.jsx';
 import { getSocket } from '@/state/socketClient.js';
 import { getTranslatedRequestInfo, useCurrentLanguage } from '@/utils/translations.js';
+import RequestWizardModal from '@/components/ui/RequestWizardModal.jsx';
+import ProviderProfileModal from '@/components/ui/ProviderProfileModal.jsx';
 
 export default function ClientRequests() {
   const { t, i18n } = useTranslation();
@@ -25,13 +27,16 @@ export default function ClientRequests() {
   const [busyId, setBusyId] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteTarget, setInviteTarget] = useState(null); // request object
-  const [searchQ, setSearchQ] = useState('');
   const [searchRes, setSearchRes] = useState([]);
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState({}); // providerId: true
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null); // request object to delete
   const [deleting, setDeleting] = useState(false);
+  const [eligibleData, setEligibleData] = useState({}); // { [requestId]: { count, providers } }
+  const [showEligibleFor, setShowEligibleFor] = useState(null); // requestId or null
+  const [editTarget, setEditTarget] = useState(null); // request object to edit via wizard modal
+  const [profileTarget, setProfileTarget] = useState(null); // provider object to show profile modal
 
   // Filtrar solicitudes: excluir archivadas, completadas, y aquellas con propuesta ya aceptada
   // Solo mostrar solicitudes pendientes a propuestas o con propuestas sin aceptar/rechazar
@@ -41,8 +46,8 @@ export default function ClientRequests() {
     return requests.filter(r => {
       // Si tiene propuesta aceptada, no mostrar
       if (r.acceptedProposal) return false;
-      // Si el status es completed, active o archived, no mostrar
-      if (['archived', 'completed', 'active'].includes(r.status)) return false;
+      // Si el status es completed, active, archived o cancelled, no mostrar
+      if (['archived', 'completed', 'active', 'cancelled'].includes(r.status)) return false;
       return true;
     });
   }, [requests, showArchived]);
@@ -111,36 +116,68 @@ export default function ClientRequests() {
     }
   };
 
-  const openInvite = (reqItem) => {
+  const openInvite = async (reqItem) => {
     setInviteTarget(reqItem);
     setInviteOpen(true);
-    setSearchQ('');
     setSearchRes([]);
     setSelected({});
-  };
-
-  const runSearch = async () => {
-    if (!inviteTarget) return;
-    setSearching(true);
+    // Auto-load providers by the request's category, excluding already-attending
+    const excludeIds = getAttendingProviderIds(reqItem);
     try {
+      setSearching(true);
       const params = {
-        q: searchQ || undefined,
-        category: inviteTarget?.basicInfo?.category,
-        limit: 10
+        category: reqItem?.basicInfo?.category,
+        limit: 30
       };
-      const coords = inviteTarget?.location?.coordinates;
+      const coords = reqItem?.location?.coordinates;
       if (coords && Number.isFinite(coords.lat) && Number.isFinite(coords.lng)) {
         params.lat = coords.lat; params.lng = coords.lng;
       }
       const { data } = await api.get('/client/providers/search', { params });
       const list = Array.isArray(data?.data?.providers) ? data.data.providers : [];
-      setSearchRes(list);
+      // Excluir proveedores que ya están atendiendo y ordenar por rating descendente
+      const filtered = list.filter(p => !excludeIds.has(String(p._id)));
+      filtered.sort((a, b) => {
+        const ra = a.providerProfile?.rating?.average || 0;
+        const rb = b.providerProfile?.rating?.average || 0;
+        if (rb !== ra) return rb - ra;
+        return (b.providerProfile?.rating?.count || 0) - (a.providerProfile?.rating?.count || 0);
+      });
+      setSearchRes(filtered);
     } catch {
       setSearchRes([]);
     } finally { setSearching(false); }
   };
 
   const toggleSelect = (id) => setSelected(prev => ({ ...prev, [id]: !prev[id] }));
+
+  // Helper: obtener IDs de proveedores que ya están atendiendo una solicitud
+  // (notificados vía eligibleProviders + los que enviaron propuesta)
+  const getAttendingProviderIds = (reqItem) => {
+    const ids = new Set();
+    // Proveedores notificados
+    if (Array.isArray(reqItem?.eligibleProviders)) {
+      reqItem.eligibleProviders.forEach(ep => {
+        const pid = ep?.provider?._id || ep?.provider;
+        if (pid) ids.add(String(pid));
+      });
+    }
+    // Proveedores dirigidos
+    if (Array.isArray(reqItem?.selectedProviders)) {
+      reqItem.selectedProviders.forEach(sp => {
+        const pid = sp?._id || sp;
+        if (pid) ids.add(String(pid));
+      });
+    }
+    // Proveedores que enviaron propuesta
+    if (Array.isArray(reqItem?.proposals)) {
+      reqItem.proposals.forEach(prop => {
+        const pid = prop?.provider?._id || prop?.provider;
+        if (pid) ids.add(String(pid));
+      });
+    }
+    return ids;
+  };
 
   // Funciones para eliminar solicitud
   const openDeleteConfirm = (reqItem) => {
@@ -162,9 +199,10 @@ export default function ClientRequests() {
       });
       if (data?.success) {
         toast.success(t('client.requests.deleteSuccess'));
+        // Optimistically remove from local state
+        setRequests(prev => prev.filter(r => r._id !== deleteTarget._id));
         setDeleteConfirmOpen(false);
         setDeleteTarget(null);
-        await load(); // Recargar lista
       } else {
         toast.warning(data?.message || t('client.requests.deleteError'));
       }
@@ -187,6 +225,8 @@ export default function ClientRequests() {
         toast.success(t('client.requests.providersInvited'));
         setInviteOpen(false);
         setInviteTarget(null);
+        // Recargar solicitudes para actualizar contadores de "Atendiendo"
+        await load();
       } else {
         toast.warning(data?.message || t('client.requests.inviteError'));
       }
@@ -202,10 +242,10 @@ export default function ClientRequests() {
       label: t('client.requests.status.published'), 
       icon: (
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      className: 'bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25' 
+      className: 'bg-linear-to-r from-amber-500 to-yellow-500 text-white shadow-lg shadow-amber-500/25' 
     },
     draft: { 
       label: t('client.requests.status.draft'), 
@@ -232,7 +272,7 @@ export default function ClientRequests() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
         </svg>
       ),
-      className: 'bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25' 
+      className: 'bg-linear-to-r from-orange-500 to-red-400 text-white shadow-lg shadow-orange-500/25' 
     }
   };
 
@@ -300,7 +340,7 @@ export default function ClientRequests() {
         </div>
 
         {/* Filtros */}
-        {requests.some(r => r.status === 'archived' || r.status === 'completed') && (
+        {requests.some(r => ['archived', 'completed', 'active', 'cancelled'].includes(r.status) || r.acceptedProposal) && (
           <div className="flex items-center justify-end gap-2 px-1">
             <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
               <input
@@ -309,10 +349,10 @@ export default function ClientRequests() {
                 onChange={(e) => setShowArchived(e.target.checked)}
                 className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
               />
-              {t('client.requests.showArchivedAndCompleted', 'Mostrar finalizadas y archivadas')}
-              {requests.filter(r => r.status === 'archived' || r.status === 'completed').length > 0 && (
+              {t('client.requests.showArchivedAndCompleted')}
+              {requests.filter(r => ['archived', 'completed', 'active', 'cancelled'].includes(r.status) || r.acceptedProposal).length > 0 && (
                 <span className="text-xs text-gray-400">
-                  ({requests.filter(r => r.status === 'archived' || r.status === 'completed').length})
+                  ({requests.filter(r => ['archived', 'completed', 'active', 'cancelled'].includes(r.status) || r.acceptedProposal).length})
                 </span>
               )}
             </label>
@@ -374,10 +414,10 @@ export default function ClientRequests() {
                 >
                   {/* Barra lateral de color según estado */}
                   <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
-                    r.status === 'published' ? 'bg-linear-to-b from-emerald-500 to-teal-500' :
+                    r.status === 'published' ? 'bg-linear-to-b from-amber-500 to-yellow-500' :
                     r.status === 'draft' ? 'bg-linear-to-b from-gray-400 to-gray-500' :
                     r.status === 'active' ? 'bg-linear-to-b from-blue-500 to-cyan-500' :
-                    r.status === 'archived' ? 'bg-linear-to-b from-amber-500 to-orange-500' :
+                    r.status === 'archived' ? 'bg-linear-to-b from-orange-500 to-red-400' :
                     'bg-gray-300'
                   }`}></div>
 
@@ -413,59 +453,6 @@ export default function ClientRequests() {
                             </span>
                           )}
                         </div>
-                        
-                        {/* Información de proveedores - Para solicitudes DIRIGIDAS muestra selectedProviders */}
-                        {r.visibility === 'directed' && Array.isArray(r.selectedProviders) && r.selectedProviders.length > 0 && (
-                          <div className="flex items-center gap-2 mb-2 text-sm">
-                            <div className="flex -space-x-2">
-                              {r.selectedProviders.slice(0, 3).map((prov, idx) => (
-                                <div key={prov._id || idx} className="w-7 h-7 rounded-full bg-linear-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-sm">
-                                  {(prov.providerProfile?.businessName || prov.providerProfile?.firstName || 'P').charAt(0).toUpperCase()}
-                                </div>
-                              ))}
-                              {r.selectedProviders.length > 3 && (
-                                <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium border-2 border-white">
-                                  +{r.selectedProviders.length - 3}
-                                </div>
-                              )}
-                            </div>
-                            <span className="text-gray-600">
-                              {t('client.requests.sentTo')}{' '}
-                              <span className="font-medium text-gray-800">
-                                {r.selectedProviders.map(p => p.providerProfile?.businessName || `${p.providerProfile?.firstName || ''} ${p.providerProfile?.lastName || ''}`.trim() || t('client.proposals.professional')).slice(0, 2).join(', ')}
-                                {r.selectedProviders.length > 2 && ` y ${r.selectedProviders.length - 2} más`}
-                              </span>
-                            </span>
-                          </div>
-                        )}
-                        
-                        {/* Para solicitudes AUTO muestra eligibleProviders notificados */}
-                        {r.visibility !== 'directed' && Array.isArray(r.eligibleProviders) && r.eligibleProviders.filter(ep => ep.notified && ep.provider).length > 0 && (
-                          <div className="flex items-center gap-2 mb-2 text-sm">
-                            <div className="flex -space-x-2">
-                              {r.eligibleProviders.filter(ep => ep.notified && ep.provider).slice(0, 3).map((ep, idx) => {
-                                const prov = ep.provider;
-                                return (
-                                  <div key={prov._id || idx} className="w-7 h-7 rounded-full bg-linear-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-sm">
-                                    {(prov.providerProfile?.businessName || prov.providerProfile?.firstName || 'P').charAt(0).toUpperCase()}
-                                  </div>
-                                );
-                              })}
-                              {r.eligibleProviders.filter(ep => ep.notified && ep.provider).length > 3 && (
-                                <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium border-2 border-white">
-                                  +{r.eligibleProviders.filter(ep => ep.notified && ep.provider).length - 3}
-                                </div>
-                              )}
-                            </div>
-                            <span className="text-gray-600">
-                              {t('client.requests.visibleFor')}{' '}
-                              <span className="font-medium text-gray-800">
-                                {r.eligibleProviders.filter(ep => ep.notified && ep.provider).map(ep => ep.provider.providerProfile?.businessName || `${ep.provider.providerProfile?.firstName || ''} ${ep.provider.providerProfile?.lastName || ''}`.trim() || t('client.proposals.professional')).slice(0, 2).join(', ')}
-                                {r.eligibleProviders.filter(ep => ep.notified && ep.provider).length > 2 && ` y ${r.eligibleProviders.filter(ep => ep.notified && ep.provider).length - 2} más`}
-                              </span>
-                            </span>
-                          </div>
-                        )}
                         
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
                           {r.basicInfo?.category && (
@@ -517,38 +504,119 @@ export default function ClientRequests() {
                           </button>
                         )}
 
-                        {/* Botón Ver elegibles - Muestra cuántos profesionales cumplen los criterios para responder */}
-                        <button
-                          onClick={async () => {
-                            setBusyId(r._id);
-                            try {
-                              const { data } = await api.get(`/client/requests/${r._id}/eligibility`);
-                              const c = data?.data?.totalEligible ?? 0;
-                              setRequests(prev => prev.map(req => 
-                                req._id === r._id ? { ...req, _eligibleCount: c } : req
-                              ));
-                              if (c === 0) toast.warning(t('client.requests.noEligibleProviders'));
-                              else toast.info(t('client.requests.eligibleProvidersCount', { count: c }));
-                            } catch {
-                              toast.error(t('client.requests.eligibilityError'));
-                            } finally {
-                              setBusyId('');
-                            }
-                          }}
-                          disabled={busyId === r._id}
-                          title="Ver cuántos profesionales cumplen los criterios de tu solicitud (categoría, ubicación) y pueden enviar propuestas"
-                          className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-gray-50 hover:border-gray-300 hover:shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                          {t('client.requests.eligible')}
-                          {r._eligibleCount > 0 && (
-                            <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-white bg-teal-500 rounded-full min-w-5">
-                              {r._eligibleCount}
-                            </span>
-                          )}
-                        </button>
+                        {/* Botón Ver atendiendo - Muestra profesionales notificados + con propuesta */}
+                        {(() => {
+                          // Calcular proveedores atendiendo desde datos locales
+                          const attendingMap = new Map();
+                          // Notificados (eligibleProviders con provider populado)
+                          if (Array.isArray(r.eligibleProviders)) {
+                            r.eligibleProviders.forEach(ep => {
+                              const prov = ep?.provider;
+                              if (prov && (prov._id || prov)) {
+                                const pid = String(prov._id || prov);
+                                if (!attendingMap.has(pid)) {
+                                  attendingMap.set(pid, {
+                                    id: pid,
+                                    name: prov.providerProfile?.businessName || '',
+                                    avatar: prov.providerProfile?.avatar || prov.profile?.profileImage || prov.profile?.avatar || '',
+                                    rating: prov.providerProfile?.rating,
+                                    plan: prov.subscription?.plan,
+                                    category: prov.providerProfile?.services?.[0]?.category,
+                                    notified: !!ep.notified,
+                                    hasProposal: false
+                                  });
+                                }
+                              }
+                            });
+                          }
+                          // Dirigidos (selectedProviders)
+                          if (Array.isArray(r.selectedProviders)) {
+                            r.selectedProviders.forEach(sp => {
+                              const pid = String(sp?._id || sp);
+                              if (pid && !attendingMap.has(pid)) {
+                                attendingMap.set(pid, {
+                                  id: pid,
+                                  name: sp?.providerProfile?.businessName || '',
+                                  avatar: sp?.providerProfile?.avatar || sp?.profile?.profileImage || '',
+                                  rating: sp?.providerProfile?.rating,
+                                  plan: sp?.subscription?.plan,
+                                  category: sp?.providerProfile?.services?.[0]?.category,
+                                  notified: true,
+                                  hasProposal: false
+                                });
+                              }
+                            });
+                          }
+                          // Proveedores con propuesta
+                          if (Array.isArray(r.proposals)) {
+                            r.proposals.forEach(prop => {
+                              const prov = prop?.provider;
+                              if (prov) {
+                                const pid = String(prov._id || prov);
+                                if (attendingMap.has(pid)) {
+                                  attendingMap.get(pid).hasProposal = true;
+                                } else {
+                                  attendingMap.set(pid, {
+                                    id: pid,
+                                    name: prov.providerProfile?.businessName || '',
+                                    avatar: prov.providerProfile?.avatar || prov.profile?.profileImage || prov.profile?.avatar || '',
+                                    rating: prov.providerProfile?.rating,
+                                    plan: prov.subscription?.plan || '',
+                                    category: prov.providerProfile?.services?.[0]?.category,
+                                    notified: false,
+                                    hasProposal: true
+                                  });
+                                }
+                              }
+                            });
+                          }
+                          const attendingList = Array.from(attendingMap.values());
+                          const attendingCount = attendingList.length;
+
+                          return (
+                            <button
+                              onClick={() => {
+                                if (showEligibleFor === r._id) {
+                                  setShowEligibleFor(null);
+                                  return;
+                                }
+                                setEligibleData(prev => ({ ...prev, [r._id]: { count: attendingCount, providers: attendingList } }));
+                                setShowEligibleFor(r._id);
+                                if (attendingCount === 0) toast.info(t('client.requests.noAttendingProviders', 'Aún no hay profesionales atendiendo esta solicitud'));
+                              }}
+                              title={t('client.requests.attendingTooltip', 'Ver profesionales que están atendiendo esta solicitud')}
+                              className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl shadow-sm transition-all duration-300 ${
+                                showEligibleFor === r._id 
+                                  ? 'bg-teal-50 border border-teal-300 text-teal-700 shadow-md' 
+                                  : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:shadow-md'
+                              }`}
+                            >
+                              <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                              </svg>
+                              {t('client.requests.attending', 'Atendiendo')}
+                              {attendingCount > 0 && (
+                                <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-white bg-teal-500 rounded-full min-w-5">
+                                  {attendingCount}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })()}
+
+                        {/* Botón Editar - para draft y published */}
+                        {['draft', 'published'].includes(r.status) && (
+                          <button
+                            onClick={() => setEditTarget(r)}
+                            title={t('client.requests.editTooltip', 'Editar los detalles de esta solicitud')}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 hover:border-emerald-300 transition-all duration-300"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            {t('client.requests.edit', 'Editar')}
+                          </button>
+                        )}
 
                         {/* Acciones específicas por estado */}
                         {r.status === 'draft' && (
@@ -628,6 +696,104 @@ export default function ClientRequests() {
                         )}
                       </div>
                     </div>
+
+                    {/* Panel de proveedores atendiendo */}
+                    {showEligibleFor === r._id && eligibleData[r._id] && (
+                      <div className="mt-4 pt-4 border-t border-emerald-100/60">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            {t('client.requests.attendingProvidersCount', { count: eligibleData[r._id].count })}
+                          </h4>
+                          <button 
+                            onClick={() => setShowEligibleFor(null)}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                        {eligibleData[r._id].providers.length > 0 ? (
+                          <div className="grid gap-2">
+                            {eligibleData[r._id].providers.map((ep, idx) => (
+                              <div key={ep.id || idx} className="flex items-center gap-3 p-3 bg-linear-to-r from-teal-50/80 to-emerald-50/80 rounded-xl border border-teal-100/60">
+                                {ep.avatar ? (
+                                  <img src={ep.avatar} alt={ep.name} className="w-10 h-10 rounded-full object-cover border-2 border-teal-200 shadow-sm shrink-0" />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white text-sm font-bold shadow-sm shrink-0">
+                                    {(ep.name || 'P').charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-gray-900 text-sm truncate">
+                                    {ep.name || t('client.requests.professional')}
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-0.5">
+                                    {ep.plan && (
+                                      <span className={`px-1.5 py-0.5 rounded font-medium ${
+                                        ep.plan === 'pro' ? 'bg-purple-100 text-purple-700' :
+                                        ep.plan === 'basic' ? 'bg-blue-100 text-blue-700' :
+                                        'bg-gray-100 text-gray-600'
+                                      }`}>
+                                        {ep.plan.toUpperCase()}
+                                      </span>
+                                    )}
+                                    {ep.rating?.average != null && (
+                                      <span className="flex items-center gap-0.5">
+                                        <svg className="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                        {Number(ep.rating.average).toFixed(1)}
+                                        {ep.rating.count != null && (
+                                          <span className="text-gray-400">({ep.rating.count})</span>
+                                        )}
+                                      </span>
+                                    )}
+                                    {ep.category && (
+                                      <span className="text-teal-600">
+                                        {t(`home.categories.${ep.category}`, ep.category)}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                {/* Status badges */}
+                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                  {ep.hasProposal && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-100 rounded-full">
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                      </svg>
+                                      {t('client.requests.proposalSent', 'Propuesta')}
+                                    </span>
+                                  )}
+                                  {ep.notified && !ep.hasProposal && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-blue-700 bg-blue-100 rounded-full">
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5" />
+                                      </svg>
+                                      {t('client.requests.notifiedStatus', 'Notificado')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-4">
+                            <div className="w-12 h-12 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-2">
+                              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                            </div>
+                            <p className="text-sm text-gray-500">{t('client.requests.noAttendingProviders', 'Aún no hay profesionales atendiendo esta solicitud')}</p>
+                            <p className="text-xs text-gray-400 mt-1">{t('client.requests.noAttendingHint', 'Usa el botón "Invitar" para buscar y enviar tu solicitud a profesionales')}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -648,7 +814,7 @@ export default function ClientRequests() {
               </div>
               <div>
                 <span className="text-lg font-semibold text-gray-900">{t('client.requests.inviteModal.title')}</span>
-                <p className="text-sm text-gray-500 font-normal">{t('client.requests.inviteModal.subtitle')}</p>
+                <p className="text-sm text-gray-500 font-normal">{t('client.requests.inviteModal.autoSubtitle', 'Selecciona los profesionales a quienes deseas enviar tu solicitud')}</p>
               </div>
             </div>
           }
@@ -662,7 +828,7 @@ export default function ClientRequests() {
               </button>
               <button
                 onClick={sendInvites}
-                disabled={busyId === inviteTarget?._id}
+                disabled={busyId === inviteTarget?._id || !Object.values(selected).some(Boolean)}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-blue-500 to-cyan-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {busyId === inviteTarget?._id ? (
@@ -694,110 +860,208 @@ export default function ClientRequests() {
               </div>
             </div>
 
-            {/* Búsqueda */}
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all duration-300"
-                  placeholder={t('client.requests.inviteModal.searchPlaceholder')}
-                  value={searchQ}
-                  onChange={(e) => setSearchQ(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') runSearch(); }}
-                />
+            {/* Contador de profesionales encontrados */}
+            {!searching && searchRes.length > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">
+                  {t('client.requests.inviteModal.foundCount', { count: searchRes.length })}
+                </span>
+                <span className="text-xs text-gray-400">
+                  {t('client.requests.inviteModal.sortedByRating', 'Ordenados por calificación')}
+                </span>
               </div>
-              <button 
-                type="button" 
-                onClick={runSearch} 
-                disabled={searching}
-                className="inline-flex items-center gap-2 px-4 py-3 bg-blue-50 text-blue-600 border border-blue-200 text-sm font-semibold rounded-xl hover:bg-blue-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {searching ? (
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                )}
-                {t('common.search')}
-              </button>
-            </div>
+            )}
 
-            {/* Lista de resultados */}
-            <div className="max-h-72 overflow-auto rounded-xl border border-gray-200 divide-y divide-gray-100">
-              {(!Array.isArray(searchRes) || searchRes.length === 0) && (
-                <div className="p-6 text-center">
-                  <div className="w-12 h-12 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            {/* Loading state */}
+            {searching && (
+              <div className="flex flex-col items-center justify-center py-10">
+                <div className="w-10 h-10 rounded-full border-3 border-blue-100 border-t-blue-500 animate-spin"></div>
+                <p className="mt-3 text-sm text-gray-500">{t('client.requests.inviteModal.loading', 'Buscando profesionales...')}</p>
+              </div>
+            )}
+
+            {/* Lista de profesionales */}
+            <div className="max-h-112 overflow-auto rounded-xl border border-gray-200 divide-y divide-gray-100">
+              {!searching && (!Array.isArray(searchRes) || searchRes.length === 0) && (
+                <div className="p-8 text-center">
+                  <div className="w-14 h-14 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                    <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                     </svg>
                   </div>
-                  <p className="text-sm text-gray-500">{t('client.requests.inviteModal.searchHint')}</p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">{t('client.requests.inviteModal.noResults')}</p>
+                  <p className="text-xs text-gray-400">{t('client.requests.inviteModal.noResultsHint', 'No hay profesionales disponibles en esta categoría por el momento')}</p>
                 </div>
               )}
-              {(Array.isArray(searchRes) ? searchRes : []).map((p) => {
+              {!searching && (Array.isArray(searchRes) ? searchRes : []).map((p) => {
                 const id = p._id;
                 const name = p.providerProfile?.businessName || p.profile?.firstName || p.email;
                 const plan = p.subscription?.plan;
                 const rating = p.providerProfile?.rating?.average;
+                const ratingCount = p.providerProfile?.rating?.count;
+                const description = p.providerProfile?.businessDescription || p.providerProfile?.description || '';
+                const profileImg = p.profile?.profileImage || p.profile?.avatar;
+                const address = p.providerProfile?.serviceArea?.address;
+                const category = p.providerProfile?.services?.[0]?.category;
+                const completedJobs = p.providerProfile?.stats?.completedJobs;
+                const portfolio = Array.isArray(p.providerProfile?.portfolio) ? p.providerProfile.portfolio.filter(item => item.type === 'image') : [];
                 return (
-                  <label 
+                  <div 
                     key={id} 
-                    className={`p-4 flex items-center justify-between gap-4 cursor-pointer transition-all duration-300 ${
-                      selected[id] ? 'bg-blue-50' : 'hover:bg-gray-50'
+                    className={`block p-4 cursor-pointer transition-all duration-300 ${
+                      selected[id] ? 'bg-blue-50/80 ring-1 ring-inset ring-blue-300' : 'hover:bg-gray-50'
                     }`}
+                    onClick={() => toggleSelect(id)}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${
-                        selected[id] ? 'bg-linear-to-br from-blue-500 to-cyan-500' : 'bg-linear-to-br from-gray-400 to-gray-500'
-                      }`}>
-                        {(name || 'P').charAt(0).toUpperCase()}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-medium text-gray-900 truncate">{name}</div>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          {plan && <span className="px-1.5 py-0.5 bg-gray-100 rounded">{plan}</span>}
-                          {rating != null && (
-                            <span className="flex items-center gap-0.5">
-                              <svg className="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
-                              {Number(rating).toFixed(1)}
+                    <div className="flex items-start gap-3">
+                      {/* Avatar */}
+                      {profileImg ? (
+                        <img 
+                          src={profileImg} 
+                          alt={name} 
+                          className={`w-12 h-12 rounded-xl object-cover border-2 shadow-sm shrink-0 ${
+                            selected[id] ? 'border-blue-400' : 'border-gray-200'
+                          }`}
+                        />
+                      ) : (
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-semibold text-base shrink-0 ${
+                          selected[id] ? 'bg-linear-to-br from-blue-500 to-cyan-500' : 'bg-linear-to-br from-gray-400 to-gray-500'
+                        }`}>
+                          {(name || 'P').charAt(0).toUpperCase()}
+                        </div>
+                      )}
+
+                      {/* Info */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-semibold text-gray-900 truncate">{name}</span>
+                          {plan && (
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                              plan === 'pro' ? 'bg-purple-100 text-purple-700' :
+                              plan === 'basic' ? 'bg-blue-100 text-blue-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {plan.toUpperCase()}
                             </span>
                           )}
-                          {rating == null && <span className="text-gray-400">{t('client.requests.noRating')}</span>}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mb-1">
+                          {rating != null ? (
+                            <span className="flex items-center gap-0.5">
+                              <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                              <span className="font-semibold text-amber-600">{Number(rating).toFixed(1)}</span>
+                              {ratingCount != null && <span className="text-gray-400">({ratingCount})</span>}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 italic">{t('client.requests.inviteModal.newProfessional', 'Nuevo')}</span>
+                          )}
+                          {category && (
+                            <span className="text-teal-600">
+                              {t(`home.categories.${category}`, category)}
+                            </span>
+                          )}
+                          {completedJobs > 0 && (
+                            <span className="text-gray-500">
+                              {completedJobs} {t('client.requests.inviteModal.jobs', 'trabajos')}
+                            </span>
+                          )}
+                          {address && (
+                            <span className="flex items-center gap-0.5 text-gray-400">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              </svg>
+                              <span className="truncate max-w-[140px]">{address}</span>
+                            </span>
+                          )}
+                        </div>
+                        {description && (
+                          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{description}</p>
+                        )}
+                        {/* Ver Perfil button */}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setProfileTarget(p); }}
+                          className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          {t('client.requests.inviteModal.viewProfile', 'Ver perfil')}
+                        </button>
+                      </div>
+
+                      {/* Checkbox */}
+                      <div
+                        className="relative shrink-0 mt-1 cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input 
+                          type="checkbox" 
+                          className="sr-only" 
+                          checked={!!selected[id]} 
+                          onChange={() => toggleSelect(id)} 
+                        />
+                        <div
+                          onClick={() => toggleSelect(id)}
+                          className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${
+                          selected[id] 
+                            ? 'bg-blue-500 border-blue-500' 
+                            : 'border-gray-300 hover:border-blue-300'
+                        }`}>
+                          {selected[id] && (
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
                         </div>
                       </div>
                     </div>
-                    <div className="relative">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only peer" 
-                        checked={!!selected[id]} 
-                        onChange={() => toggleSelect(id)} 
-                      />
-                      <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${
-                        selected[id] 
-                          ? 'bg-blue-500 border-blue-500' 
-                          : 'border-gray-300 hover:border-blue-300'
-                      }`}>
-                        {selected[id] && (
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+
+                    {/* Portfolio thumbnails */}
+                    {portfolio.length > 0 && (
+                      <div className="mt-3 ml-15" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
-                        )}
+                          <span className="text-[11px] text-gray-400 font-medium">{t('client.requests.inviteModal.portfolio', 'Trabajos realizados')}</span>
+                        </div>
+                        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+                          {portfolio.slice(0, 5).map((item, idx) => (
+                            <img
+                              key={item._id || idx}
+                              src={item.url}
+                              alt={item.caption || `${name} - ${idx + 1}`}
+                              title={item.caption || ''}
+                              className="w-16 h-16 rounded-lg object-cover border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 shrink-0"
+                              loading="lazy"
+                            />
+                          ))}
+                          {portfolio.length > 5 && (
+                            <div className="w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs font-semibold text-gray-500 shrink-0">
+                              +{portfolio.length - 5}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </label>
+                    )}
+                  </div>
                 );
               })}
             </div>
           </div>
         </Modal>
+
+        {/* Modal de perfil de proveedor (desde invitar) */}
+        <ProviderProfileModal
+          isOpen={!!profileTarget}
+          onClose={() => setProfileTarget(null)}
+          provider={profileTarget}
+          initialTab="about"
+          readOnly
+        />
 
         {/* Modal de confirmación de eliminación */}
         <Modal
@@ -873,6 +1137,17 @@ export default function ClientRequests() {
             </div>
           </div>
         </Modal>
+
+        {/* Modal de edición de solicitud (wizard) */}
+        <RequestWizardModal
+          isOpen={!!editTarget}
+          onClose={() => setEditTarget(null)}
+          editRequest={editTarget}
+          onEditSuccess={(updatedRequest) => {
+            setRequests(prev => prev.map(r => r._id === updatedRequest._id ? { ...r, ...updatedRequest } : r));
+            setEditTarget(null);
+          }}
+        />
       </div>
     </div>
   );

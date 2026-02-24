@@ -196,7 +196,7 @@
     "welcomeClient": "¡Bienvenido! Te has registrado como cliente",
     "tryAgain": "Por favor intenta de nuevo",
     "planUpdated": "Plan actualizado correctamente",
-    "proposalSent": "Propuesta enviada correctamente",
+    "proposalSent": "Estimado enviado correctamente",
     "draftSaved": "Borrador guardado",
     "codeApplied": "Código aplicado correctamente",
     "errorLoadingPlans": "Error al cargar planes",
@@ -229,7 +229,17 @@
     "reject": "Rechazar",
     "accepting": "Aceptando...",
     "proposalAccepted": "¡Propuesta aceptada!",
-    "proposalRejected": "Propuesta rechazada"
+    "proposalRejected": "Propuesta rechazada",
+    "close": "Cerrar",
+    "infoRequestProvider": {
+      "title": "Solicitud de información",
+      "subtitle": "Continúa la conversación o envía una propuesta"
+    },
+    "infoRequestClient": {
+      "title": "Consulta del profesional",
+      "subtitle": "El profesional necesita más detalles sobre tu solicitud",
+      "updateRequest": "Actualizar solicitud"
+    }
   },
   "notifications": {
     "title": "Notificaciones",
@@ -286,8 +296,9 @@
         "message": "El cliente ha rechazado tu propuesta para {{title}}"
       },
       "BOOKING_CONFIRMED": {
-        "title": "¡Tu reserva está confirmada!",
-        "message": "Hemos confirmado tu reserva con el profesional."
+        "title": "¡Tu reserva está confirmada! ✅",
+        "message": "Tu reserva con {{providerName}} ha sido confirmada.",
+        "messageDefault": "Tu reserva ha sido confirmada exitosamente."
       },
       "BOOKING_CANCELLED": {
         "title": "Reserva cancelada",
@@ -611,8 +622,8 @@
       "total": "Total",
       "active": "Activas",
       "showArchived": "Mostrar archivadas",
-      "showArchivedAndCompleted": "Mostrar finalizadas y archivadas",
-      "published": "Publicada",
+      "showArchivedAndCompleted": "Mostrar finalizadas, archivadas y canceladas",
+      "published": "Esperando Propuesta",
       "draft": "Borrador",
       "archived": "Archivada",
       "viewProposals": "Ver propuestas",
@@ -630,7 +641,7 @@
       "visibleFor": "Visible para",
       "directed": "Dirigida",
       "status": {
-        "published": "Publicada",
+        "published": "Esperando Propuesta",
         "draft": "Borrador",
         "active": "Activa",
         "archived": "Archivada"
@@ -640,19 +651,46 @@
       "noEligibleProviders": "No hay proveedores elegibles para esta solicitud",
       "eligibleProvidersCount": "{{count}} proveedores elegibles",
       "eligibilityError": "Error al consultar elegibilidad",
+      "eligibleTooltip": "Ver profesionales elegibles para esta solicitud",
+      "attending": "Atendiendo",
+      "attendingTooltip": "Ver profesionales que están atendiendo esta solicitud",
+      "attendingProvidersCount": "{{count}} profesionales atendiendo",
+      "noAttendingProviders": "Aún no hay profesionales atendiendo esta solicitud",
+      "noAttendingHint": "Usa el botón \"Invitar\" para buscar y enviar tu solicitud a profesionales",
+      "proposalSent": "Propuesta",
+      "notifiedStatus": "Notificado",
       "inviteModal": {
         "title": "Invitar profesionales",
         "subtitle": "Busca y selecciona profesionales para invitar",
+        "autoSubtitle": "Selecciona los profesionales a quienes deseas enviar tu solicitud",
         "searchPlaceholder": "Buscar por nombre o servicio...",
+        "searchHint": "Busca profesionales por nombre, servicio o ubicación",
         "noResults": "No se encontraron profesionales",
-        "sendInvitation": "Enviar invitación"
+        "noResultsHint": "No hay profesionales disponibles en esta categoría por el momento",
+        "foundCount": "{{count}} profesionales encontrados",
+        "sortedByRating": "Ordenados por calificación",
+        "loading": "Buscando profesionales...",
+        "newProfessional": "Nuevo",
+        "portfolio": "Trabajos realizados",
+        "viewProfile": "Ver perfil",
+        "sendInvitation": "Enviar invitación",
+        "sendInvitations": "Enviar invitaciones",
+        "jobs": "trabajos"
       },
       "deleteModal": {
         "title": "Eliminar solicitud",
         "subtitle": "Esta acción no se puede deshacer",
         "warning": "¿Estás seguro de que deseas eliminar esta solicitud?",
-        "confirm": "Sí, eliminar"
-      }
+        "confirm": "Sí, eliminar",
+        "confirmQuestion": "¿Estás seguro de que deseas eliminar esta solicitud? Esta acción es irreversible.",
+        "confirmDelete": "Sí, eliminar solicitud",
+        "deleting": "Eliminando...",
+        "warning1": "Se eliminarán todas las propuestas asociadas",
+        "warning2": "Los profesionales notificados ya no podrán ver tu solicitud",
+        "warning3": "No podrás recuperar esta solicitud después de eliminarla"
+      },
+      "edit": "Editar",
+      "editTooltip": "Editar los detalles de esta solicitud"
     },
     "proposals": {
       "request": "Solicitud",
@@ -687,7 +725,10 @@
       "acceptedSuccess": "¡Propuesta aceptada! Tu reserva ha sido confirmada",
       "acceptError": "Error al aceptar la propuesta",
       "alreadyProcessed": "Esta propuesta ya fue procesada anteriormente",
-      "rejected": "Propuesta rechazada"
+      "rejected": "Propuesta rechazada",
+      "yourRequest": "Tu solicitud",
+      "photo": "Foto",
+      "chatOpenError": "Error al abrir el chat"
     },
     "messages": {
       "title": "Mis Mensajes",
@@ -703,15 +744,35 @@
       "chat": "Chat",
       "provider": "Proveedor",
       "acceptError": "Error al aceptar la propuesta",
-      "rejectError": "Error al rechazar la propuesta"
+      "rejectError": "Error al rechazar la propuesta",
+      "filterAll": "Todos",
+      "filterBookings": "Reservas",
+      "filterEstimates": "Estimados",
+      "filterInquiries": "Consultas",
+      "typeBooking": "Reserva",
+      "typeEstimate": "Estimado",
+      "typeInquiry": "Consulta",
+      "noChatsInFilter": "Sin conversaciones en esta categoría",
+      "showAll": "Ver todas"
     },
     "createRequest": {
       "title": "Crear nueva solicitud",
       "category": "Categoría",
-      "urgency": "Urgencia",
+      "urgency": {
+        "immediate": "Inmediato",
+        "scheduled": "Programado"
+      },
+      "urgencyLabel": "Urgencia del servicio",
       "requestTitle": "Título de la solicitud",
+      "titleLabel": "Título",
       "description": "Descripción",
+      "descriptionLabel": "Descripción del servicio",
       "address": "Dirección",
+      "addressLabel": "Dirección del servicio",
+      "mapLocation": "Ubicación en el mapa",
+      "attachMultimedia": "Adjuntar multimedia",
+      "photosLabel": "Fotos",
+      "videosLabel": "Videos",
       "preferredDate": "Fecha preferida",
       "estimatedBudget": "Presupuesto estimado",
       "calculating": "Calculando...",
@@ -738,6 +799,21 @@
         "descriptionRequired": "La descripción es obligatoria",
         "addressRequired": "La dirección es obligatoria"
       }
+    },
+    "editRequest": {
+      "title": "Editar solicitud",
+      "subtitle": "Actualiza los detalles de tu solicitud de servicio",
+      "notFound": "Solicitud no encontrada",
+      "loadError": "Error al cargar la solicitud",
+      "updateSuccess": "Solicitud actualizada correctamente",
+      "updateError": "Error al actualizar la solicitud",
+      "hasProposalsWarning": "Esta solicitud ya tiene propuestas",
+      "hasProposalsDetail": "No podrás cambiar el título ni la categoría porque ya hay propuestas asociadas.",
+      "categoryLocked": "Categoría bloqueada (tiene propuestas)",
+      "titleLocked": "Título bloqueado (tiene propuestas)",
+      "saveChanges": "Guardar cambios",
+      "saving": "Guardando...",
+      "backToRequests": "Volver a solicitudes"
     }
   },
   "provider": {
@@ -748,15 +824,15 @@
       "noJobsDescription": "Cuando haya solicitudes en tu área, aparecerán aquí",
       "noRequests": "Sin solicitudes disponibles",
       "noRequestsDescription": "Cuando haya solicitudes que coincidan con tus servicios, aparecerán aquí",
-      "sendProposal": "Enviar propuesta",
+      "sendProposal": "Enviar estimado",
       "viewDetails": "Ver detalles",
       "requestsService": "solicita un servicio",
       "notified": "Notificado",
       "directed": "Dirigido a ti",
       "view": "Ver",
-      "propose": "Proponer",
+      "propose": "Estimar",
       "negotiate": "Negociar",
-      "proposalSent": "Propuesta enviada",
+      "proposalSent": "Estimado enviado",
       "serviceRequest": "Solicitud de servicio",
       "providerOnly": "Esta sección es solo para proveedores",
       "errorLoading": "Error al cargar empleos",
@@ -929,13 +1005,16 @@
       "requestDetail": "Detalle de solicitud",
       "files": "archivos",
       "viewMedia": "Ver fotos y videos",
+      "mediaAttachments": "Archivos adjuntos",
+      "photo": "Foto",
+      "viewAll": "Ver todo",
       "detailsTitle": "Detalles del trabajo",
       "detailsSubtitle": "Información proporcionada por el cliente",
       "subcategory": "Subcategoría",
       "location": "Ubicación",
       "preferredDate": "Fecha preferida",
-      "sendProposal": "Enviar propuesta",
-      "sendProposalSubtitle": "Completa los detalles de tu oferta",
+      "sendProposal": "Enviar estimado",
+      "sendProposalSubtitle": "Completa los detalles de tu estimado",
       "loadingPlan": "Cargando información del plan...",
       "active": "Activo",
       "inactive": "Inactivo",
@@ -944,7 +1023,7 @@
       "remainingLeads": "leads restantes",
       "leadsUsed": "Leads utilizados",
       "limitReachedUpgrade": "Has alcanzado tu límite. Mejora tu plan para continuar.",
-      "amountLabel": "Monto de la propuesta",
+      "amountLabel": "Monto del estimado",
       "enableRange": "Usar rango de precios",
       "useFixedPrice": "Usar precio fijo",
       "fixedPriceEnabled": "Precio fijo activo",
@@ -959,17 +1038,17 @@
       "amountMaxRequired": "El monto máximo es requerido",
       "amountMaxMustBeGreater": "El monto máximo debe ser mayor al mínimo",
       "needMoreInfo": "¿Necesitas más información?",
-      "needMoreInfoDesc": "Antes de enviar tu propuesta, puedes contactar al cliente para aclarar dudas sobre el trabajo",
+      "needMoreInfoDesc": "Antes de enviar tu estimado, puedes contactar al cliente para aclarar dudas sobre el trabajo",
       "askClient": "Consultar al cliente",
       "infoRequestModalTitle": "Solicitar más información",
-      "infoRequestModalSubtitle": "Contacta al cliente antes de enviar tu propuesta",
+      "infoRequestModalSubtitle": "Contacta al cliente antes de enviar tu estimado",
       "infoRequestPlaceholder": "Escribe tu pregunta o lo que necesitas saber del cliente...",
       "sendInfoRequest": "Enviar consulta",
       "infoRequestSent": "¡Consulta enviada! El cliente recibirá tu mensaje.",
       "infoRequestError": "Error al enviar la consulta",
       "infoRequestMessageRequired": "Escribe un mensaje para enviar",
       "infoRequestMessageLabel": "Tu mensaje para el cliente",
-      "infoRequestMessagePlaceholder": "¿Qué necesitas saber antes de hacer tu propuesta?",
+      "infoRequestMessagePlaceholder": "¿Qué necesitas saber antes de hacer tu estimado?",
       "infoRequestTipsTitle": "Consejos para tu consulta",
       "infoRequestTips": "Consejos para tu consulta",
       "infoRequestTip1": "Sé específico sobre lo que necesitas saber",
@@ -986,11 +1065,11 @@
       "includesCleanup": "Incluye limpieza",
       "includesCleanupDesc": "La limpieza final está incluida",
       "messageLabel": "Mensaje para el cliente",
-      "messagePlaceholder": "Describe tu propuesta, experiencia y por qué eres la mejor opción...",
+      "messagePlaceholder": "Describe tu estimado, experiencia y por qué eres la mejor opción...",
       "minChars": "caracteres mínimo",
-      "subscriptionInactive": "Tu suscripción no está activa. Actívala para enviar propuestas.",
+      "subscriptionInactive": "Tu suscripción no está activa. Actívala para enviar estimados.",
       "sending": "Enviando...",
-      "sendProposalBtn": "Enviar propuesta",
+      "sendProposalBtn": "Enviar estimado",
       "saveDraft": "Guardar borrador",
       "update": "Actualizar",
       "sendDraft": "Enviar borrador",
@@ -1006,11 +1085,11 @@
       "amountRequired": "El monto es requerido y debe ser mayor a 0",
       "messageRequired": "El mensaje debe tener al menos 10 caracteres",
       "hoursError": "Las horas deben ser mayor a 0",
-      "proposalNotSent": "No se pudo enviar la propuesta",
+      "proposalNotSent": "No se pudo enviar el estimado",
       "requiresSubscription": "Se requiere suscripción activa",
       "planNotAllowed": "Tu plan actual no permite esta acción",
       "leadLimitReached": "Has alcanzado tu límite de leads mensuales",
-      "invalidValidation": "Datos de propuesta inválidos",
+      "invalidValidation": "Datos de estimado inválidos",
       "requestNotAvailable": "Esta solicitud ya no está disponible",
       "draftNotSaved": "No se pudo guardar el borrador",
       "errorSavingDraft": "Error al guardar el borrador",
@@ -1018,12 +1097,12 @@
       "errorUpdatingDraft": "Error al actualizar el borrador",
       "draftNotSent": "No se pudo enviar el borrador",
       "draftNotAvailable": "El borrador ya no está disponible",
-      "proposalNotCancelled": "No se pudo cancelar la propuesta",
-      "errorCancelling": "Error al cancelar la propuesta",
-      "errorSending": "Error al enviar la propuesta",
+      "proposalNotCancelled": "No se pudo cancelar el estimado",
+      "errorCancelling": "Error al cancelar el estimado",
+      "errorSending": "Error al enviar el estimado",
       "yourIncome": "Tu ingreso",
-      "proposalSentTitle": "Propuesta enviada",
-      "proposalSentSubtitle": "Ya has enviado una propuesta para esta solicitud",
+      "proposalSentTitle": "Estimado enviado",
+      "proposalSentSubtitle": "Ya has enviado un estimado para esta solicitud",
       "proposalStatus": {
         "sent": "Enviada",
         "viewed": "Vista por el cliente",
@@ -1032,7 +1111,7 @@
         "draft": "Borrador"
       },
       "sentOn": "Enviada el",
-      "proposedAmount": "Monto propuesto",
+      "proposedAmount": "Monto estimado",
       "hours": "horas",
       "yourMessage": "Tu mensaje",
       "goToMessages": "Ir a mensajes"
@@ -1068,16 +1147,17 @@
       "copyCodeError": "Error al copiar el código"
     },
     "inbox": {
-      "title": "Mi Bandeja",
-      "subtitle": "Gestiona tus propuestas y conversaciones",
+      "title": "Mis Estimados",
+      "subtitle": "Gestiona tus estimados y conversaciones",
       "providerOnly": "Esta sección es solo para proveedores",
-      "errorLoading": "Error al cargar propuestas",
+      "errorLoading": "Error al cargar estimados",
       "errorLoadingChats": "Error al cargar conversaciones",
-      "myProposals": "Mis propuestas",
-      "proposalsCount": "{{count}} propuesta(s)",
-      "noProposals": "Sin propuestas enviadas",
-      "noProposalsDescription": "Cuando envíes una propuesta, aparecerá aquí",
-      "proposal": "Propuesta",
+      "myProposals": "Mis estimados",
+      "proposalsCount": "{{count}} estimado(s)",
+      "noProposals": "Sin estimados enviados",
+      "noProposalsDescription": "Cuando envíes un estimado, aparecerá aquí",
+      "proposal": "Estimado",
+      "estimate": "Estimado",
       "negotiateTooltip": "Iniciar negociación con el cliente",
       "negotiate": "Negociar",
       "viewRequest": "Ver solicitud",
@@ -1089,11 +1169,29 @@
       "selectConversation": "Selecciona una conversación",
       "selectConversationDesc": "Elige una conversación de la lista para ver los mensajes",
       "writeMessage": "Escribe un mensaje...",
-      "negotiateProposal": "Negociar propuesta",
-      "proposalLabel": "Propuesta",
+      "negotiateProposal": "Negociar estimado",
+      "proposalLabel": "Estimado",
       "noPrice": "Sin precio",
       "negotiateInfo": "Negocia los detalles con el cliente antes de cerrar el acuerdo",
-      "close": "Cerrar"
+      "close": "Cerrar",
+      "typeBooking": "Reservas",
+      "typeEstimate": "Estimados",
+      "typeInquiry": "Consultas",
+      "filterAll": "Todos",
+      "filterBookings": "Reservas",
+      "filterEstimates": "Estimados",
+      "filterInquiries": "Consultas",
+      "noChatsInFilter": "Sin conversaciones en esta categoría",
+      "showAll": "Ver todas",
+      "status": {
+        "sent": "Enviado",
+        "pending": "Pendiente",
+        "viewed": "Visto por el cliente",
+        "accepted": "Aceptado",
+        "rejected": "Rechazado",
+        "withdrawn": "Retirado",
+        "draft": "Borrador"
+      }
     }
   },
   "onboarding": {
@@ -1332,7 +1430,9 @@
         "after": "Después"
       },
       "pricing": {
-        "totalAmount": "Monto total"
+        "totalAmount": "Monto total",
+        "estimatedRange": "Rango estimado",
+        "rangeHint": "El monto final se define al completar el servicio"
       },
       "participants": {
         "provider": "Proveedor",
@@ -2116,7 +2216,11 @@
       "noFilesAttached": "No has adjuntado archivos",
       "addPhotosOrVideos": "Agregar fotos o videos",
       "previous": "Anterior",
-      "sendRequest": "Solicitar Estimado"
+      "sendRequest": "Solicitar Estimado",
+      "editRequestTitle": "Editar solicitud • {{category}}",
+      "saveChanges": "Guardar cambios",
+      "updateSuccess": "Solicitud actualizada correctamente",
+      "updateError": "Error al actualizar la solicitud"
     },
     "providerProfile": {
       "professional": "Profesional",

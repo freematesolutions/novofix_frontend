@@ -437,27 +437,9 @@ export default function RequestDetail() {
                   )}
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
-                  {getTranslatedRequestInfo(request, currentLang).title || t('provider.requestDetail.requestDetail')}
+                  {t('provider.requestDetail.requestDetail')}
                 </h1>
-                {/* Eliminar presupuesto del header, ya no es relevante */}
               </div>
-              {/* Quick stats */}
-              {request.media && ((request.media.photos?.length > 0) || (request.media.videos?.length > 0)) && (
-                <button
-                  onClick={() => setShowPhotosModal(true)}
-                  className="group flex items-center gap-3 px-4 py-3 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-all"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-white/30 flex items-center justify-center">
-                    <HiPhotograph className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-white font-semibold">
-                      {(request.media.photos?.length || 0) + (request.media.videos?.length || 0)} {t('provider.requestDetail.files')}
-                    </div>
-                    <div className="text-white/70 text-sm">{t('provider.requestDetail.viewMedia')}</div>
-                  </div>
-                </button>
-              )}
             </div>
           )}
         </div>
@@ -502,6 +484,71 @@ export default function RequestDetail() {
                   <p className="text-gray-700 whitespace-pre-line leading-relaxed">{getTranslatedRequestInfo(request, currentLang).description}</p>
                 </div>
                 
+                {/* Media thumbnails inline */}
+                {request.media && ((request.media.photos?.length > 0) || (request.media.videos?.length > 0)) && (
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <HiPhotograph className="w-5 h-5 text-brand-500" />
+                      <span className="text-sm font-semibold text-gray-700">
+                        {t('provider.requestDetail.mediaAttachments', 'Archivos adjuntos')} ({(request.media.photos?.length || 0) + (request.media.videos?.length || 0)})
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(request.media.photos || []).map((photo, idx) => (
+                        <button
+                          key={`photo-${idx}`}
+                          type="button"
+                          onClick={() => setShowPhotosModal(true)}
+                          className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                        >
+                          <img
+                            src={photo.url || photo}
+                            alt={`${t('provider.requestDetail.photo', 'Foto')} ${idx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                            <HiPhotograph className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                          </div>
+                        </button>
+                      ))}
+                      {(request.media.videos || []).map((video, idx) => (
+                        <button
+                          key={`video-${idx}`}
+                          type="button"
+                          onClick={() => setShowPhotosModal(true)}
+                          className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 shadow-sm hover:shadow-md transition-all group cursor-pointer bg-gray-900"
+                        >
+                          <video
+                            src={video.url || video}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 opacity-80"
+                            muted
+                            preload="metadata"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                              <svg className="w-4 h-4 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                      {/* "Ver todo" button if many media */}
+                      {((request.media.photos?.length || 0) + (request.media.videos?.length || 0)) > 4 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowPhotosModal(true)}
+                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl border-2 border-dashed border-gray-200 hover:border-brand-300 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-brand-600 transition-all"
+                        >
+                          <HiPhotograph className="w-6 h-6" />
+                          <span className="text-xs font-medium">{t('provider.requestDetail.viewAll', 'Ver todo')}</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Info grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {request.basicInfo?.subcategory && (

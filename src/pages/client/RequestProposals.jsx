@@ -252,6 +252,61 @@ export default function ClientRequestProposals() {
           </div>
         )}
 
+        {/* Request summary with media thumbnails */}
+        {!loading && requestMeta && proposals.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 p-5 sm:p-6 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <HiSparkles className="w-5 h-5 text-emerald-500" />
+              <h3 className="text-sm font-semibold text-gray-700">{t('client.proposals.yourRequest', 'Tu solicitud')}</h3>
+            </div>
+            {/* Description */}
+            {(() => {
+              const desc = getTranslatedField(requestMeta?.translations, 'description', requestMeta?.description, currentLang);
+              return desc ? (
+                <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-3">{desc}</p>
+              ) : null;
+            })()}
+            {/* Media thumbnails */}
+            {requestMeta.media && ((requestMeta.media.photos?.length > 0) || (requestMeta.media.videos?.length > 0)) && (
+              <div className="flex flex-wrap gap-2">
+                {(requestMeta.media.photos || []).slice(0, 6).map((photo, idx) => (
+                  <div
+                    key={`photo-${idx}`}
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 border-gray-100 shadow-sm"
+                  >
+                    <img
+                      src={photo.url || photo}
+                      alt={`${t('client.proposals.photo', 'Foto')} ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+                {(requestMeta.media.videos || []).slice(0, 2).map((video, idx) => (
+                  <div
+                    key={`video-${idx}`}
+                    className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 border-gray-100 shadow-sm bg-gray-900"
+                  >
+                    <video
+                      src={video.url || video}
+                      className="w-full h-full object-cover opacity-80"
+                      muted
+                      preload="metadata"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-7 h-7 rounded-full bg-white/90 flex items-center justify-center shadow">
+                        <svg className="w-3.5 h-3.5 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Proposals list */}
         <div className="space-y-4">
           {(Array.isArray(proposals) ? proposals : []).map((p) => {

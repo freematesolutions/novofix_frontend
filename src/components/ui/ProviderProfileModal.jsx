@@ -123,7 +123,7 @@ const TABS = [
   { id: 'reviews', labelKey: 'reviews', icon: '⭐' }
 ];
 
-function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedCategory = null }) {
+function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedCategory = null, readOnly = false }) {
   const { t } = useTranslation();
   const { isAuthenticated, viewRole } = useAuth();
   const toast = useToast();
@@ -336,14 +336,14 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-60 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-10000 transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div 
         ref={modalRef}
-        className="fixed left-2 right-2 top-16 bottom-2 sm:left-4 sm:right-4 sm:top-24 sm:bottom-4 lg:left-8 lg:right-8 lg:top-32 lg:bottom-8 bg-white rounded-2xl shadow-2xl z-60 flex flex-col overflow-hidden animate-modal-enter"
+        className="fixed left-2 right-2 top-16 bottom-2 sm:left-4 sm:right-4 sm:top-24 sm:bottom-4 lg:left-8 lg:right-8 lg:top-32 lg:bottom-8 bg-white rounded-2xl shadow-2xl z-10000 flex flex-col overflow-hidden animate-modal-enter"
       >
         {/* Compact Header with Provider Basic Info */}
         <div className={`relative bg-linear-to-br ${planInfo.gradient} px-4 py-3 sm:px-6 sm:py-4`}>
@@ -402,15 +402,17 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
             </div>
 
             {/* Action buttons - compact, hidden on mobile */}
-            <div className="hidden md:flex items-center gap-2 shrink-0">
-              <button
-                onClick={handleMessage}
-                className="flex items-center gap-1.5 bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-all shadow"
-              >
-                <Icons.Message className="w-4 h-4" />
-                {t('ui.providerProfile.sendRequest')}
-              </button>
-            </div>
+            {!readOnly && (
+              <div className="hidden md:flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleMessage}
+                  className="flex items-center gap-1.5 bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-all shadow"
+                >
+                  <Icons.Message className="w-4 h-4" />
+                  {t('ui.providerProfile.sendRequest')}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -485,15 +487,17 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                   </div>
 
                   {/* Action buttons (shown always on mobile, additional on desktop) */}
-                  <div className="flex flex-col gap-2">
-                    <button
-                      onClick={handleMessage}
-                      className="flex items-center justify-center gap-2 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow"
-                    >
-                      <Icons.Message className="w-4 h-4" />
-                      {t('ui.providerProfile.sendRequest')}
-                    </button>
-                  </div>
+                  {!readOnly && (
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={handleMessage}
+                        className="flex items-center justify-center gap-2 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow"
+                      >
+                        <Icons.Message className="w-4 h-4" />
+                        {t('ui.providerProfile.sendRequest')}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </section>
@@ -852,21 +856,23 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
         </div>
 
         {/* Mobile Action Bar */}
-        <div className="sm:hidden sticky bottom-0 bg-white border-t p-4 flex gap-3">
-          <button
-            onClick={handleMessage}
-            className="flex-1 flex items-center justify-center gap-2 bg-brand-600 text-white px-4 py-3 rounded-xl font-semibold"
-          >
-            <Icons.Message className="w-5 h-5" />
-            {t('ui.providerProfile.sendRequest')}
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="sm:hidden sticky bottom-0 bg-white border-t p-4 flex gap-3">
+            <button
+              onClick={handleMessage}
+              className="flex-1 flex items-center justify-center gap-2 bg-brand-600 text-white px-4 py-3 rounded-xl font-semibold"
+            >
+              <Icons.Message className="w-5 h-5" />
+              {t('ui.providerProfile.sendRequest')}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Portfolio Lightbox */}
       {selectedPortfolioItem && (
         <div 
-          className="fixed inset-0 bg-black/95 z-60 flex items-center justify-center"
+          className="fixed inset-0 bg-black/95 z-10001 flex items-center justify-center"
           onClick={() => setSelectedPortfolioItem(null)}
         >
           <button
@@ -950,6 +956,7 @@ ProviderProfileModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   provider: PropTypes.object,
+  readOnly: PropTypes.bool,
   selectedCategory: PropTypes.string
 };
 

@@ -162,10 +162,11 @@ const CURRENCIES = [
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
-function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null }) {
+function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null, editRequest = null, onEditSuccess = null }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
+  const isEditMode = !!editRequest;
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -208,7 +209,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
 
   // Inicializar categoría: usa initialCategory si viene, o la primera del proveedor
   useEffect(() => {
-    if (provider && isOpen) {
+    if (provider && isOpen && !isEditMode) {
       const providerCategories = provider.providerProfile?.services || [];
       
       // Si viene initialCategory y el proveedor la ofrece, usarla
@@ -231,7 +232,35 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
         selectedProblems: [] // Reset problemas al cambiar categoría
       }));
     }
-  }, [provider, isOpen, initialCategory]);
+  }, [provider, isOpen, initialCategory, isEditMode]);
+
+  // Pre-populate form when editing an existing request
+  useEffect(() => {
+    if (isEditMode && isOpen && editRequest) {
+      const r = editRequest;
+      setFormData({
+        title: r.basicInfo?.title || '',
+        description: r.basicInfo?.description || '',
+        category: r.basicInfo?.category || '',
+        subcategory: r.basicInfo?.subcategory || '',
+        selectedProblems: [],
+        additionalDetails: r.basicInfo?.description || '',
+        urgency: r.basicInfo?.urgency || 'scheduled',
+        address: r.location?.address || '',
+        coordinates: r.location?.coordinates || null,
+        preferredDate: r.scheduling?.preferredDate ? r.scheduling.preferredDate.split('T')[0] : '',
+        budgetAmount: r.budget?.amount || '',
+        currency: r.budget?.currency || 'USD',
+        photos: (r.media?.photos || []).map(p => typeof p === 'string' ? { url: p, cloudinaryId: '', caption: '' } : p),
+        videos: (r.media?.videos || []).map(v => typeof v === 'string' ? { url: v, cloudinaryId: '', caption: '' } : v)
+      });
+      setFormErrors({});
+      // Mark all steps as completed so user can navigate freely
+      setCompletedSteps([0, 1, 2, 3, 4]);
+      // Open directly at Summary (last step) so user can review and update
+      setCurrentStep(4);
+    }
+  }, [isEditMode, isOpen, editRequest]);
 
   // Reset al cerrar
   useEffect(() => {
@@ -318,7 +347,10 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
 
   // Generar descripción automática basada en problemas seleccionados
   const generateAutoDescription = () => {
-    if (formData.selectedProblems.length === 0) return '';
+    if (formData.selectedProblems.length === 0) {
+      // In edit mode, use the existing additional details as description
+      return formData.additionalDetails?.trim() || '';
+    }
     
     const problemNames = formData.selectedProblems.map(problemId => {
       const key = `ui.categoryProblems.${formData.category}.${problemId}.name`;
@@ -340,8 +372,16 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
     
     switch (step) {
       case 0: // Paso de selección de problemas
-        if (!formData.selectedProblems || formData.selectedProblems.length === 0) {
-          errors.selectedProblems = t('ui.categoryProblems.noProblemsSelected');
+        // In edit mode, allow proceeding without problem selection if there's already a description
+        if (!isEditMode) {
+          if (!formData.selectedProblems || formData.selectedProblems.length === 0) {
+            errors.selectedProblems = t('ui.categoryProblems.noProblemsSelected');
+          }
+        } else {
+          // In edit mode, require either problems or existing description/additionalDetails
+          if ((!formData.selectedProblems || formData.selectedProblems.length === 0) && !formData.additionalDetails?.trim()) {
+            errors.selectedProblems = t('ui.categoryProblems.noProblemsSelected');
+          }
         }
         if (!formData.urgency) {
           errors.urgency = t('ui.requestWizard.selectUrgency');
@@ -416,6 +456,11 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
   };
 
   const handleCloseAttempt = () => {
+    // In edit mode, close directly — data is already saved, nothing to lose
+    if (isEditMode) {
+      onClose();
+      return;
+    }
     const hasData = 
       formData.title || 
       formData.description || 
@@ -646,8 +691,8 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
                                formData.coordinates?.lng;
       
       const payload = {
-        title: autoTitle,
-        description: generatedDescription,
+        title: isEditMode ? (formData.title || autoTitle) : autoTitle,
+        description: isEditMode ? (formData.additionalDetails || generatedDescription) : generatedDescription,
         category: formData.category,
         subcategory: formData.subcategory || undefined,
         urgency: formData.urgency,
@@ -664,17 +709,22 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
         visibility: 'auto',
         targetProviders: provider ? [provider._id] : undefined
       };
-      data = await api.post('/client/requests', payload);
+
+      if (isEditMode) {
+        data = await api.put(`/client/requests/${editRequest._id}`, payload);
+      } else {
+        data = await api.post('/client/requests', payload);
+      }
     } catch (err) {
       // Si es timeout pero la solicitud se creó, intentar fallback
       if (err.code === 'ECONNABORTED' && err.message?.includes('timeout')) {
-        toast.info(t('ui.requestWizard.requestMayBeCreated'));
+        toast.info(isEditMode ? t('ui.requestWizard.updateSuccess') : t('ui.requestWizard.requestMayBeCreated'));
         onClose();
-        navigate('/mis-solicitudes');
+        if (!isEditMode) navigate('/mis-solicitudes');
         return;
       } else {
-        console.error('Error creating request:', err);
-        const msg = err?.response?.data?.message || t('ui.requestWizard.createError');
+        console.error(`Error ${isEditMode ? 'updating' : 'creating'} request:`, err);
+        const msg = err?.response?.data?.message || (isEditMode ? t('ui.requestWizard.updateError') : t('ui.requestWizard.createError'));
         toast.error(msg);
         return;
       }
@@ -683,19 +733,26 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
     }
 
     if (data?.data?.success) {
-      const providerName = provider?.providerProfile?.businessName || provider?.profile?.firstName || t('ui.requestWizard.theProvider');
-      toast.success(t('ui.requestWizard.requestSent', { provider: providerName }));
+      if (isEditMode) {
+        toast.success(t('ui.requestWizard.updateSuccess'));
+        onEditSuccess?.(data.data.data?.request || editRequest);
+      } else {
+        const pName = provider?.providerProfile?.businessName || provider?.profile?.firstName || t('ui.requestWizard.theProvider');
+        toast.success(t('ui.requestWizard.requestSent', { provider: pName }));
+      }
       onClose();
-      navigate('/mis-solicitudes');
+      if (!isEditMode) navigate('/mis-solicitudes');
     } else {
-      toast.warning(data?.data?.message || t('ui.requestWizard.couldNotCreate'));
+      toast.warning(data?.data?.message || (isEditMode ? t('ui.requestWizard.updateError') : t('ui.requestWizard.couldNotCreate')));
     }
   };
 
-  if (!isOpen || !provider) return null;
+  if (!isOpen || (!provider && !isEditMode)) return null;
 
-  const providerName = provider.providerProfile?.businessName || provider.profile?.firstName || t('ui.requestWizard.thisProfessional');
-  const providerAvatar = provider.providerProfile?.avatar || provider.profile?.avatar;
+  const providerName = isEditMode 
+    ? (editRequest?.basicInfo?.category || t('ui.requestWizard.service'))
+    : (provider?.providerProfile?.businessName || provider?.profile?.firstName || t('ui.requestWizard.thisProfessional'));
+  const providerAvatar = isEditMode ? null : (provider?.providerProfile?.avatar || provider?.profile?.avatar);
   const step = STEPS[currentStep];
 
   // ============================================================================
@@ -708,7 +765,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
 
       {/* Modal de confirmación de cierre */}
       {showConfirmClose && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 animate-modal-enter">
+        <div className="fixed inset-0 z-10004 flex items-center justify-center p-4 animate-modal-enter">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCancelClose} />
           <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-zoom-in">
             <div className="text-center">
@@ -741,15 +798,15 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
       )}
 
       {/* Modal principal */}
-      <div className="fixed inset-0 z-60 flex items-center justify-center pt-20 pb-4 px-2 sm:pt-24 sm:pb-6 sm:px-4 lg:pt-20 lg:pb-8 lg:px-8">
+      <div className="fixed inset-0 z-10002 flex items-center justify-center pt-20 pb-4 px-2 sm:pt-24 sm:pb-6 sm:px-4 lg:pt-20 lg:pb-8 lg:px-8">
         {/* Backdrop con blur */}
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-modal-enter"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-10002 animate-modal-enter"
           onClick={handleCloseAttempt}
         />
         {/* Modal content */}
         <div 
-          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-full flex flex-col overflow-hidden animate-zoom-in z-60"
+          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-full flex flex-col overflow-hidden animate-zoom-in z-10003"
           onClick={(e) => e.stopPropagation()}
         >
           {/* ============================================================ */}
@@ -786,10 +843,13 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
               {/* Info */}
               <div className="flex-1 min-w-0 text-white">
                 <h2 className="text-base sm:text-lg font-bold truncate pr-8">
-                  {t('ui.requestWizard.requestForCategory', { 
-                    provider: providerName, 
-                    category: formData.category || t('ui.requestWizard.service') 
-                  })}
+                  {isEditMode 
+                    ? t('ui.requestWizard.editRequestTitle', { category: formData.category || t('ui.requestWizard.service') })
+                    : t('ui.requestWizard.requestForCategory', { 
+                        provider: providerName, 
+                        category: formData.category || t('ui.requestWizard.service') 
+                      })
+                  }
                 </h2>
                 <div className="flex items-center gap-2 text-sm text-white/80">
                   <span>{t('ui.requestWizard.stepOf', { current: currentStep + 1, total: STEPS.length })}</span>
@@ -1586,7 +1646,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
                 className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold"
               >
                 <Icons.Send className="w-4 h-4" />
-                <span>{t('ui.requestWizard.sendRequest')}</span>
+                <span>{isEditMode ? t('ui.requestWizard.saveChanges') : t('ui.requestWizard.sendRequest')}</span>
               </Button>
             )}
           </div>
@@ -1599,7 +1659,10 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null 
 RequestWizardModal.propTypes = {
   provider: PropTypes.object,
   isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  initialCategory: PropTypes.string,
+  editRequest: PropTypes.object,
+  onEditSuccess: PropTypes.func
 };
 
 export default RequestWizardModal;

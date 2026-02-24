@@ -1140,10 +1140,30 @@ export default function Bookings() {
                 <div className="lg:col-span-4 space-y-4">
                   {/* Pricing card */}
                   <div className="p-4 rounded-xl bg-linear-to-br from-emerald-50/80 via-teal-50/50 to-cyan-50/30 border border-emerald-100/50">
-                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">{t('shared.bookings.pricing.totalAmount')}</div>
-                    <div className="text-2xl font-bold bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                      {b.proposal?.pricing?.amount ? Intl.NumberFormat('es-AR',{style:'currency', currency: b.proposal?.pricing?.currency || 'USD'}).format(b.proposal.pricing.amount) : '—'}
+                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                      {b.proposal?.pricing?.isRange 
+                        ? t('shared.bookings.pricing.estimatedRange', 'Rango estimado')
+                        : t('shared.bookings.pricing.totalAmount')}
                     </div>
+                    <div className="text-2xl font-bold bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                      {(() => {
+                        const p = b.proposal?.pricing;
+                        if (!p) return '—';
+                        const fmt = (val) => Intl.NumberFormat('es-AR', { style: 'currency', currency: p.currency || 'USD' }).format(val);
+                        if (p.isRange && p.amountMin && p.amountMax) {
+                          return `${fmt(p.amountMin)} — ${fmt(p.amountMax)}`;
+                        }
+                        return p.amount ? fmt(p.amount) : '—';
+                      })()}
+                    </div>
+                    {b.proposal?.pricing?.isRange && (
+                      <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
+                        <svg className="w-3.5 h-3.5 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {t('shared.bookings.pricing.rangeHint', 'El monto final se define al completar el servicio')}
+                      </p>
+                    )}
                   </div>
                   
                   {/* Participants */}
@@ -1454,24 +1474,6 @@ export default function Bookings() {
                   )}
                   {isClient && (
                     <>
-                      {/* Pago pendiente - mostrar en cualquier estado si el pago no está completado */}
-                      {b?.payment?.status !== 'completed' && (
-                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
-                          <div className="flex items-center gap-2 text-amber-700 text-sm font-medium mb-2">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            {t('shared.bookings.payment.pending')}
-                          </div>
-                          {b?.payment?.stripePaymentIntentId && (
-                            <button 
-                              onClick={()=> navigate(`/payment/${b.payment.stripePaymentIntentId}`)} 
-                              className="w-full px-4 py-2 rounded-lg bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all"
-                            >
-                              {t('shared.bookings.payment.payNow')}
-                            </button>
-                          )}
-                        </div>
-                      )}
-                      
                       {/* Botón confirmar finalización - solo para status que permiten completarse */}
                       {['confirmed', 'provider_en_route', 'in_progress'].includes(b.status) && (
                         <button 
