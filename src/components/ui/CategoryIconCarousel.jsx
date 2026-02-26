@@ -61,15 +61,15 @@ function CategoryIconCarousel({
 
   // ─── Espaciado responsive (más compacto) ──────────────────────────
   const getCardSpacing = useCallback(() => {
-    if (typeof window === 'undefined') return 120;
+    if (typeof window === 'undefined') return 150;
     const w = window.innerWidth;
-    if (w >= 1536) return 195;
-    if (w >= 1280) return 180;
-    if (w >= 1024) return 165;
-    if (w >= 768) return 150;
-    if (w >= 640) return 138;
-    if (w >= 480) return 128;
-    return 115;
+    if (w >= 1536) return 240;
+    if (w >= 1280) return 220;
+    if (w >= 1024) return 200;
+    if (w >= 768) return 180;
+    if (w >= 640) return 165;
+    if (w >= 480) return 155;
+    return 140;
   }, []);
 
   // ─── Pausar auto-rotación por N ms ────────────────────────────────
@@ -94,24 +94,24 @@ function CategoryIconCarousel({
       const dist = Math.abs(rel);
 
       // Todas las tarjetas se renderizan; las muy lejanas van a opacity 0
-      const MAX_VISIBLE = 2.8;
+      const MAX_VISIBLE = 2.2;
       const visible = dist <= MAX_VISIBLE;
 
       const translateX = rel * spacing;
-      const translateZ = -dist * 45;
-      const translateY = dist * dist * 4;
+      const translateZ = -dist * 50;
+      const translateY = dist * dist * 5;
       const rotateY = rel * -8;
-      const depthFactor = Math.max(0, 1 - dist * 0.3);
-      const baseScale = 0.68 + depthFactor * 0.32; // 0.68 → 1.0
+      const depthFactor = Math.max(0, 1 - dist * 0.35);
+      const baseScale = 0.65 + depthFactor * 0.35; // 0.65 → 1.0
       const baseZIndex = Math.round(50 + depthFactor * 50);
 
       // Opacidad: fade suave en los bordes, 0 fuera de rango
       let opacity;
       if (!visible) {
         opacity = 0;
-      } else if (dist > 2.0) {
-        // Fade out suave entre 2.0 y 2.8
-        opacity = Math.max(0, 1 - (dist - 1.2) * 0.6) * 0.5;
+      } else if (dist > 1.5) {
+        // Fade out suave entre 1.5 y 2.2
+        opacity = Math.max(0, 1 - (dist - 1.0) * 0.7) * 0.5;
       } else {
         opacity = Math.max(0.35, 1 - dist * 0.3);
       }
@@ -349,7 +349,7 @@ function CategoryIconCarousel({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-44 sm:h-52 md:h-60 lg:h-60 xl:h-72 2xl:h-80 select-none"
+      className="relative w-full h-52 sm:h-60 md:h-72 lg:h-72 xl:h-80 2xl:h-88 select-none"
       style={{ perspective: '1400px', touchAction: 'pan-y' }}
       onMouseEnter={() => { isHoveringRef.current = true; }}
       onMouseDown={handleDragStart}
@@ -416,8 +416,8 @@ function CategoryIconCarousel({
                   transition-[transform,box-shadow] duration-300 ease-out
                   hover:-translate-y-2 hover:shadow-2xl"
                 style={{
-                  width: 'clamp(115px, 24vw, 210px)',
-                  height: 'clamp(130px, 27vw, 230px)',
+                  width: 'clamp(150px, 30vw, 280px)',
+                  height: 'clamp(170px, 34vw, 300px)',
                   boxShadow: '0 15px 40px -10px rgba(0,0,0,0.4), 0 5px 15px -5px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.15)',
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',

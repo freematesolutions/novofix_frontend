@@ -8,30 +8,30 @@ function Footer() {
   const accent = (() => {
     switch (r) {
       case 'provider':
-        return { text600: 'text-brand-600', hoverText700: 'hover:text-brand-700', border200: 'border-brand-200' };
+        return { text: 'text-brand-400', hover: 'hover:text-brand-300', border: 'border-brand-700/40' };
       case 'client':
-        return { text600: 'text-emerald-600', hoverText700: 'hover:text-emerald-700', border200: 'border-emerald-200' };
+        return { text: 'text-emerald-400', hover: 'hover:text-emerald-300', border: 'border-emerald-700/40' };
       case 'admin':
-        return { text600: 'text-indigo-600', hoverText700: 'hover:text-indigo-700', border200: 'border-indigo-200' };
+        return { text: 'text-indigo-400', hover: 'hover:text-indigo-300', border: 'border-indigo-700/40' };
       default:
-        return { text600: 'text-brand-600', hoverText700: 'hover:text-brand-700', border200: 'border-brand-200' };
+        return { text: 'text-brand-400', hover: 'hover:text-brand-300', border: 'border-brand-700/40' };
     }
   })();
   return (
-    <footer className={`border-t bg-white/80 ${accent.border200}`} role="contentinfo">
-      <div className="container mx-auto px-4 py-6 text-sm text-gray-600 flex flex-col md:flex-row gap-2 md:gap-0 items-center justify-between">
+    <footer className={`border-t bg-dark-800 ${accent.border}`} role="contentinfo">
+      <div className="container mx-auto px-4 py-6 text-sm text-gray-400 flex flex-col md:flex-row gap-2 md:gap-0 items-center justify-between">
         <div className="flex items-center gap-2">
           <p>&copy; {new Date().getFullYear()}</p>
           <span className="font-bold">
-            <span className={`${accent.text600}`}>Novo</span>
-            <span className="text-gray-900">Fix</span>
+            <span className={`${accent.text}`}>Novo</span>
+            <span className="text-white">Fix</span>
           </span>
           <span className="hidden sm:inline">- {t('footer.tagline')}</span>
         </div>
         <nav className="flex items-center gap-4" role="navigation" aria-label={t('footer.ariaLabel', 'Enlaces del pie')}>
-          <a href="#accesibilidad" className={`${accent.text600} ${accent.hoverText700}`}>{t('footer.accessibility')}</a>
-          <a href="#privacidad" className={`${accent.text600} ${accent.hoverText700}`}>{t('footer.privacy')}</a>
-          <a href="#soporte" className={`${accent.text600} ${accent.hoverText700}`}>{t('footer.support')}</a>
+          <a href="#accesibilidad" className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.accessibility')}</a>
+          <a href="#privacidad" className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.privacy')}</a>
+          <a href="#soporte" className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.support')}</a>
         </nav>
       </div>
     </footer>

@@ -79,9 +79,9 @@ function Login() {
       case 'provider':
         return 'text-brand-600 hover:text-brand-800 focus:ring-brand-500';
       case 'client':
-        return 'text-emerald-600 hover:text-emerald-800 focus:ring-emerald-500';
+        return 'text-brand-600 hover:text-brand-800 focus:ring-brand-500';
       case 'admin':
-        return 'text-indigo-600 hover:text-indigo-800 focus:ring-indigo-500';
+        return 'text-dark-600 hover:text-dark-800 focus:ring-dark-500';
       default:
         return 'text-gray-500 hover:text-gray-700 focus:ring-gray-500';
     }
@@ -150,11 +150,11 @@ function Login() {
         {/* Card principal con gradiente sutil */}
         <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden">
           {/* Header con gradiente */}
-          <div className="relative bg-linear-to-br from-brand-600 via-brand-700 to-indigo-700 px-6 py-8 text-center">
+          <div className="relative bg-linear-to-br from-dark-700 via-dark-800 to-brand-800 px-6 py-8 text-center">
             {/* Decoración de fondo */}
             <div className="absolute inset-0 overflow-hidden">
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-400/20 rounded-full blur-2xl" />
+              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-400/15 rounded-full blur-2xl" />
             </div>
             
             {/* Icono central */}
@@ -290,7 +290,7 @@ function Login() {
               {/* Botón Submit */}
               <Button 
                 loading={loading} 
-                className="w-full py-3 text-base font-semibold rounded-xl bg-linear-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 transition-all shadow-lg shadow-brand-500/25"
+                className="w-full py-3 text-base font-semibold rounded-xl bg-linear-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 transition-all shadow-lg shadow-brand-500/25"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -320,7 +320,7 @@ function Login() {
             <div className="flex justify-center mt-3">
               <Link
                 to="/registrarse"
-                className="flex items-center gap-2 px-4 py-3 bg-emerald-50 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-all group"
+                className="flex items-center gap-2 px-4 py-3 bg-accent-50 text-accent-700 rounded-xl font-medium hover:bg-accent-100 transition-all group"
               >
                 <Icons.User className="w-5 h-5" />
                 <span className="text-sm">{t('header.registerFree')}</span>
@@ -332,11 +332,11 @@ function Login() {
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
             <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
               <span className="flex items-center gap-1">
-                <Icons.Shield className="w-4 h-4 text-green-500" />
+                <Icons.Shield className="w-4 h-4 text-brand-500" />
                 {t('common.secureConnection', 'Conexión segura')}
               </span>
               <span className="flex items-center gap-1">
-                <Icons.Sparkles className="w-4 h-4 text-amber-500" />
+                <Icons.Sparkles className="w-4 h-4 text-accent-500" />
                 {t('common.trusted', '100% confiable')}
               </span>
             </div>

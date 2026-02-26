@@ -246,7 +246,7 @@ export default function ClientRequests() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      className: 'bg-linear-to-r from-amber-500 to-yellow-500 text-white shadow-lg shadow-amber-500/25' 
+      className: 'bg-linear-to-r from-accent-500 to-accent-400 text-white shadow-lg shadow-accent-500/25' 
     },
     draft: { 
       label: t('client.requests.status.draft'), 
@@ -264,7 +264,7 @@ export default function ClientRequests() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
-      className: 'bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25' 
+      className: 'bg-linear-to-r from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/25' 
     },
     archived: { 
       label: t('client.requests.status.archived'), 
@@ -273,7 +273,7 @@ export default function ClientRequests() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
         </svg>
       ),
-      className: 'bg-linear-to-r from-orange-500 to-red-400 text-white shadow-lg shadow-orange-500/25' 
+      className: 'bg-linear-to-r from-dark-500 to-dark-600 text-white shadow-lg shadow-dark-500/25' 
     }
   };
 
@@ -295,16 +295,16 @@ export default function ClientRequests() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-emerald-50/30">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/30">
       {/* Background decorativo */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-200/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-teal-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-brand-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-brand-200/20 rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Header Premium */}
-        <div className="overflow-hidden rounded-2xl bg-linear-to-br from-emerald-500 via-emerald-600 to-teal-600 p-6 sm:p-8 text-white relative">
+        <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 p-6 sm:p-8 text-white relative">
           {/* Decoración del header */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
           
@@ -348,7 +348,7 @@ export default function ClientRequests() {
                 type="checkbox"
                 checked={showArchived}
                 onChange={(e) => setShowArchived(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
               />
               {t('client.requests.showArchivedAndCompleted')}
               {requests.filter(r => ['archived', 'completed', 'active', 'cancelled'].includes(r.status) || r.acceptedProposal).length > 0 && (
@@ -364,11 +364,11 @@ export default function ClientRequests() {
 
         {/* Loading state premium */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-16 bg-white/60 backdrop-blur-xl rounded-3xl border border-emerald-100/40 shadow-lg">
+          <div className="flex flex-col items-center justify-center py-16 bg-white/60 backdrop-blur-xl rounded-3xl border border-brand-100/40 shadow-lg">
             <div className="relative">
-              <div className="w-16 h-16 rounded-full border-4 border-emerald-100 border-t-emerald-500 animate-spin"></div>
+              <div className="w-16 h-16 rounded-full border-4 border-brand-100 border-t-brand-500 animate-spin"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/20"></div>
+                <div className="w-8 h-8 rounded-full bg-brand-500/20"></div>
               </div>
             </div>
             <p className="mt-4 text-gray-600 font-medium">{t('client.requests.loading')}</p>
@@ -377,11 +377,11 @@ export default function ClientRequests() {
 
         {/* Empty state premium */}
         {!loading && (!Array.isArray(visibleRequests) || visibleRequests.length === 0) && (
-          <div className="relative overflow-hidden bg-white/80 backdrop-blur-xl rounded-3xl border border-dashed border-emerald-200 shadow-lg p-8 sm:p-12 text-center">
-            <div className="absolute inset-0 bg-linear-to-br from-emerald-50/50 via-transparent to-teal-50/50"></div>
+          <div className="relative overflow-hidden bg-white/80 backdrop-blur-xl rounded-3xl border border-dashed border-brand-200 shadow-lg p-8 sm:p-12 text-center">
+            <div className="absolute inset-0 bg-linear-to-br from-brand-50/50 via-transparent to-brand-50/50"></div>
             <div className="relative">
-              <div className="w-20 h-20 mx-auto rounded-3xl bg-linear-to-br from-emerald-100 to-teal-100 flex items-center justify-center mb-6">
-                <svg className="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <div className="w-20 h-20 mx-auto rounded-3xl bg-linear-to-br from-brand-100 to-brand-100 flex items-center justify-center mb-6">
+                <svg className="w-10 h-10 text-brand-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                 </svg>
               </div>
@@ -391,7 +391,7 @@ export default function ClientRequests() {
               </p>
               <button 
                 onClick={() => navigate('/')}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-[1.02]"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-brand-600 to-brand-600 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/30 hover:shadow-xl hover:shadow-brand-500/40 transition-all duration-300 hover:scale-[1.02]"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -410,15 +410,15 @@ export default function ClientRequests() {
               return (
                 <div 
                   key={r._id} 
-                  className="group relative bg-white/80 backdrop-blur-xl rounded-2xl border border-emerald-100/60 shadow-lg shadow-emerald-900/5 hover:shadow-xl hover:shadow-emerald-900/10 transition-all duration-500 hover:-translate-y-1"
+                  className={`group relative bg-white/80 backdrop-blur-xl rounded-2xl border border-brand-100/60 shadow-lg shadow-brand-900/5 hover:shadow-xl hover:shadow-brand-900/10 transition-all duration-500 hover:-translate-y-1 ${openMenuId === r._id ? 'z-30' : 'z-0'}`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {/* Barra lateral de color según estado */}
                   <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
-                    r.status === 'published' ? 'bg-linear-to-b from-amber-500 to-yellow-500' :
+                    r.status === 'published' ? 'bg-linear-to-b from-accent-500 to-accent-400' :
                     r.status === 'draft' ? 'bg-linear-to-b from-gray-400 to-gray-500' :
-                    r.status === 'active' ? 'bg-linear-to-b from-blue-500 to-cyan-500' :
-                    r.status === 'archived' ? 'bg-linear-to-b from-orange-500 to-red-400' :
+                    r.status === 'active' ? 'bg-linear-to-b from-brand-500 to-brand-600' :
+                    r.status === 'archived' ? 'bg-linear-to-b from-dark-500 to-dark-600' :
                     'bg-gray-300'
                   }`}></div>
 
@@ -441,7 +441,7 @@ export default function ClientRequests() {
                             const hasProposals = (r.metadata?.proposalCount > 0 || (Array.isArray(r.proposals) && r.proposals.length > 0)) && !r.acceptedProposal;
                             if (r.status === 'published' && hasProposals) {
                               return (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-linear-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/25">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-linear-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/25">
                                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
@@ -458,7 +458,7 @@ export default function ClientRequests() {
                           })()}
                           {/* Badge de tipo de solicitud */}
                           {r.visibility === 'directed' && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-accent-50 text-accent-700 border border-accent-200">
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                               </svg>
@@ -470,7 +470,7 @@ export default function ClientRequests() {
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
                           {r.basicInfo?.category && (
                             <span className="inline-flex items-center gap-1.5">
-                              <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                               </svg>
                               {r.basicInfo.category ? t(`home.categories.${r.basicInfo.category}`) : r.basicInfo.category}
@@ -478,7 +478,7 @@ export default function ClientRequests() {
                           )}
                           {r.basicInfo?.urgency && (
                             <span className="inline-flex items-center gap-1.5">
-                              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <svg className="w-4 h-4 text-accent-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
                               {r.basicInfo.urgency ? t(`urgency.${r.basicInfo.urgency}`) : r.basicInfo.urgency}
@@ -501,7 +501,7 @@ export default function ClientRequests() {
                         {(r.metadata?.proposalCount > 0 || (Array.isArray(r.proposals) && r.proposals.length > 0)) && (
                           <button
                             onClick={() => navigate(`/mis-solicitudes/${r._id}/propuestas`)}
-                            className="relative inline-flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-emerald-500 to-teal-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/35 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                            className="relative inline-flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-brand-500 to-brand-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/35 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -510,7 +510,7 @@ export default function ClientRequests() {
                             <span className="hidden sm:inline">{t('client.requests.viewProposals')}</span>
                             <span className="sm:hidden">{t('client.requests.proposals', 'Propuestas')}</span>
                             {(r.metadata?.proposalCount > 0 && !r.acceptedProposal) && (
-                              <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-emerald-700 bg-white rounded-full min-w-5 animate-pulse">
+                              <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-brand-700 bg-white rounded-full min-w-5 animate-pulse">
                                 {r.metadata.proposalCount}
                               </span>
                             )}
@@ -596,16 +596,16 @@ export default function ClientRequests() {
                               title={t('client.requests.attendingTooltip', 'Ver profesionales que están atendiendo esta solicitud')}
                               className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold rounded-xl shadow-sm transition-all duration-300 ${
                                 showEligibleFor === r._id 
-                                  ? 'bg-teal-50 border border-teal-300 text-teal-700 shadow-md' 
+                                  ? 'bg-brand-50 border border-brand-300 text-brand-700 shadow-md' 
                                   : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:shadow-md'
                               }`}
                             >
-                              <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                               </svg>
                               <span className="hidden sm:inline">{t('client.requests.attending', 'Atendiendo')}</span>
                               {attendingCount > 0 && (
-                                <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-white bg-teal-500 rounded-full min-w-5">
+                                <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-white bg-brand-500 rounded-full min-w-5">
                                   {attendingCount}
                                 </span>
                               )}
@@ -636,9 +636,9 @@ export default function ClientRequests() {
                                 {r.status === 'published' && (
                                   <button
                                     onClick={() => { setOpenMenuId(null); openInvite(r); }}
-                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700 transition-colors"
                                   >
-                                    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                                     </svg>
                                     {t('client.requests.invite')}
@@ -648,9 +648,9 @@ export default function ClientRequests() {
                                 {['draft', 'published'].includes(r.status) && (
                                   <button
                                     onClick={() => { setOpenMenuId(null); setEditTarget(r); }}
-                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700 transition-colors"
                                   >
-                                    <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
                                     {t('client.requests.edit', 'Editar')}
@@ -661,9 +661,9 @@ export default function ClientRequests() {
                                   <button
                                     onClick={() => { setOpenMenuId(null); doAction(r._id, 'publish'); }}
                                     disabled={busyId === r._id}
-                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors disabled:opacity-50"
+                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700 transition-colors disabled:opacity-50"
                                   >
-                                    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                     </svg>
                                     {t('client.requests.publish')}
@@ -674,9 +674,9 @@ export default function ClientRequests() {
                                   <button
                                     onClick={() => { setOpenMenuId(null); doAction(r._id, 'archive'); }}
                                     disabled={busyId === r._id}
-                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors disabled:opacity-50"
+                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-700 transition-colors disabled:opacity-50"
                                   >
-                                    <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 text-accent-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                     </svg>
                                     {t('client.requests.archive')}
@@ -687,9 +687,9 @@ export default function ClientRequests() {
                                   <button
                                     onClick={() => { setOpenMenuId(null); doAction(r._id, 'republish'); }}
                                     disabled={busyId === r._id}
-                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors disabled:opacity-50"
+                                    className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700 transition-colors disabled:opacity-50"
                                   >
-                                    <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
                                     {t('client.requests.republish')}
@@ -721,10 +721,10 @@ export default function ClientRequests() {
 
                     {/* Panel de proveedores atendiendo */}
                     {showEligibleFor === r._id && eligibleData[r._id] && (
-                      <div className="mt-4 pt-4 border-t border-emerald-100/60">
+                      <div className="mt-4 pt-4 border-t border-brand-100/60">
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                            <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                             {t('client.requests.attendingProvidersCount', { count: eligibleData[r._id].count })}
@@ -741,11 +741,11 @@ export default function ClientRequests() {
                         {eligibleData[r._id].providers.length > 0 ? (
                           <div className="grid gap-2">
                             {eligibleData[r._id].providers.map((ep, idx) => (
-                              <div key={ep.id || idx} className="flex items-center gap-3 p-3 bg-linear-to-r from-teal-50/80 to-emerald-50/80 rounded-xl border border-teal-100/60">
+                              <div key={ep.id || idx} className="flex items-center gap-3 p-3 bg-linear-to-r from-brand-50/80 to-brand-50/80 rounded-xl border border-brand-100/60">
                                 {ep.avatar ? (
-                                  <img src={ep.avatar} alt={ep.name} className="w-10 h-10 rounded-full object-cover border-2 border-teal-200 shadow-sm shrink-0" />
+                                  <img src={ep.avatar} alt={ep.name} className="w-10 h-10 rounded-full object-cover border-2 border-brand-200 shadow-sm shrink-0" />
                                 ) : (
-                                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white text-sm font-bold shadow-sm shrink-0">
+                                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-brand-400 to-brand-500 flex items-center justify-center text-white text-sm font-bold shadow-sm shrink-0">
                                     {(ep.name || 'P').charAt(0).toUpperCase()}
                                   </div>
                                 )}
@@ -756,8 +756,8 @@ export default function ClientRequests() {
                                   <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-0.5">
                                     {ep.plan && (
                                       <span className={`px-1.5 py-0.5 rounded font-medium ${
-                                        ep.plan === 'pro' ? 'bg-purple-100 text-purple-700' :
-                                        ep.plan === 'basic' ? 'bg-blue-100 text-blue-700' :
+                                        ep.plan === 'pro' ? 'bg-brand-100 text-brand-700' :
+                                        ep.plan === 'basic' ? 'bg-gray-100 text-gray-700' :
                                         'bg-gray-100 text-gray-600'
                                       }`}>
                                         {ep.plan.toUpperCase()}
@@ -765,7 +765,7 @@ export default function ClientRequests() {
                                     )}
                                     {ep.rating?.average != null && (
                                       <span className="flex items-center gap-0.5">
-                                        <svg className="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg className="w-3 h-3 text-accent-400" fill="currentColor" viewBox="0 0 20 20">
                                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                         </svg>
                                         {Number(ep.rating.average).toFixed(1)}
@@ -775,7 +775,7 @@ export default function ClientRequests() {
                                       </span>
                                     )}
                                     {ep.category && (
-                                      <span className="text-teal-600">
+                                      <span className="text-brand-600">
                                         {t(`home.categories.${ep.category}`, ep.category)}
                                       </span>
                                     )}
@@ -784,7 +784,7 @@ export default function ClientRequests() {
                                 {/* Status badges */}
                                 <div className="flex flex-col items-end gap-1 shrink-0">
                                   {ep.hasProposal && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-100 rounded-full">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-brand-700 bg-brand-100 rounded-full">
                                       <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                       </svg>
@@ -792,7 +792,7 @@ export default function ClientRequests() {
                                     </span>
                                   )}
                                   {ep.notified && !ep.hasProposal && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-blue-700 bg-blue-100 rounded-full">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-brand-700 bg-brand-100 rounded-full">
                                       <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5" />
                                       </svg>
@@ -829,7 +829,7 @@ export default function ClientRequests() {
           onClose={() => setInviteOpen(false)}
           title={
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/25">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
@@ -851,7 +851,7 @@ export default function ClientRequests() {
               <button
                 onClick={sendInvites}
                 disabled={busyId === inviteTarget?._id || !Object.values(selected).some(Boolean)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-blue-500 to-cyan-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-brand-500 to-brand-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-brand-500/25 hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {busyId === inviteTarget?._id ? (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -867,17 +867,17 @@ export default function ClientRequests() {
         >
           <div className="space-y-4">
             {/* Info de la solicitud */}
-            <div className="p-4 bg-linear-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
+            <div className="p-4 bg-linear-to-r from-brand-50 to-brand-50 rounded-xl border border-brand-100">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <div className="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
                 <div>
                   <span className="font-semibold text-gray-900">{getTranslatedRequestInfo(inviteTarget, currentLang).title}</span>
                   <span className="mx-2 text-gray-300">·</span>
-                  <span className="text-emerald-600 font-medium">{inviteTarget?.basicInfo?.category}</span>
+                  <span className="text-brand-600 font-medium">{inviteTarget?.basicInfo?.category}</span>
                 </div>
               </div>
             </div>
@@ -897,7 +897,7 @@ export default function ClientRequests() {
             {/* Loading state */}
             {searching && (
               <div className="flex flex-col items-center justify-center py-10">
-                <div className="w-10 h-10 rounded-full border-3 border-blue-100 border-t-blue-500 animate-spin"></div>
+                <div className="w-10 h-10 rounded-full border-3 border-brand-100 border-t-brand-500 animate-spin"></div>
                 <p className="mt-3 text-sm text-gray-500">{t('client.requests.inviteModal.loading', 'Buscando profesionales...')}</p>
               </div>
             )}
@@ -931,7 +931,7 @@ export default function ClientRequests() {
                   <div 
                     key={id} 
                     className={`block p-4 cursor-pointer transition-all duration-300 ${
-                      selected[id] ? 'bg-blue-50/80 ring-1 ring-inset ring-blue-300' : 'hover:bg-gray-50'
+                      selected[id] ? 'bg-brand-50/80 ring-1 ring-inset ring-brand-300' : 'hover:bg-gray-50'
                     }`}
                     onClick={() => toggleSelect(id)}
                   >
@@ -942,12 +942,12 @@ export default function ClientRequests() {
                           src={profileImg} 
                           alt={name} 
                           className={`w-12 h-12 rounded-xl object-cover border-2 shadow-sm shrink-0 ${
-                            selected[id] ? 'border-blue-400' : 'border-gray-200'
+                            selected[id] ? 'border-brand-400' : 'border-gray-200'
                           }`}
                         />
                       ) : (
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-semibold text-base shrink-0 ${
-                          selected[id] ? 'bg-linear-to-br from-blue-500 to-cyan-500' : 'bg-linear-to-br from-gray-400 to-gray-500'
+                          selected[id] ? 'bg-linear-to-br from-brand-500 to-brand-600' : 'bg-linear-to-br from-gray-400 to-gray-500'
                         }`}>
                           {(name || 'P').charAt(0).toUpperCase()}
                         </div>
@@ -959,8 +959,8 @@ export default function ClientRequests() {
                           <span className="font-semibold text-gray-900 truncate">{name}</span>
                           {plan && (
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                              plan === 'pro' ? 'bg-purple-100 text-purple-700' :
-                              plan === 'basic' ? 'bg-blue-100 text-blue-700' :
+                              plan === 'pro' ? 'bg-brand-100 text-brand-700' :
+                              plan === 'basic' ? 'bg-gray-100 text-gray-700' :
                               'bg-gray-100 text-gray-600'
                             }`}>
                               {plan.toUpperCase()}
@@ -970,17 +970,17 @@ export default function ClientRequests() {
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mb-1">
                           {rating != null ? (
                             <span className="flex items-center gap-0.5">
-                              <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-3.5 h-3.5 text-accent-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                               </svg>
-                              <span className="font-semibold text-amber-600">{Number(rating).toFixed(1)}</span>
+                              <span className="font-semibold text-accent-600">{Number(rating).toFixed(1)}</span>
                               {ratingCount != null && <span className="text-gray-400">({ratingCount})</span>}
                             </span>
                           ) : (
                             <span className="text-gray-400 italic">{t('client.requests.inviteModal.newProfessional', 'Nuevo')}</span>
                           )}
                           {category && (
-                            <span className="text-teal-600">
+                            <span className="text-brand-600">
                               {t(`home.categories.${category}`, category)}
                             </span>
                           )}
@@ -1005,7 +1005,7 @@ export default function ClientRequests() {
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setProfileTarget(p); }}
-                          className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                          className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-semibold text-brand-600 hover:text-brand-700 hover:underline transition-colors"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -1029,8 +1029,8 @@ export default function ClientRequests() {
                           onClick={() => toggleSelect(id)}
                           className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${
                           selected[id] 
-                            ? 'bg-blue-500 border-blue-500' 
-                            : 'border-gray-300 hover:border-blue-300'
+                            ? 'bg-brand-500 border-brand-500' 
+                            : 'border-gray-300 hover:border-brand-300'
                         }`}>
                           {selected[id] && (
                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
@@ -1057,7 +1057,7 @@ export default function ClientRequests() {
                               src={item.url}
                               alt={item.caption || `${name} - ${idx + 1}`}
                               title={item.caption || ''}
-                              className="w-16 h-16 rounded-lg object-cover border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 shrink-0"
+                              className="w-16 h-16 rounded-lg object-cover border border-gray-200 hover:border-brand-300 hover:shadow-md transition-all duration-200 shrink-0"
                               loading="lazy"
                             />
                           ))}

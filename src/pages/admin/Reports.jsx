@@ -20,7 +20,7 @@ function BarChart({ data, height = 200, className = '' }) {
         return (
           <div key={idx} className="flex-1 flex flex-col items-center gap-2">
             <div 
-              className="w-full bg-linear-to-t from-brand-500 to-cyan-400 rounded-t-lg transition-all duration-500 hover:from-brand-600 hover:to-cyan-500 group relative"
+              className="w-full bg-linear-to-t from-brand-500 to-brand-400 rounded-t-lg transition-all duration-500 hover:from-brand-600 hover:to-brand-500 group relative"
               style={{ height: `${Math.max(barHeight, 5)}%` }}
             >
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -63,17 +63,17 @@ function LineChart({ data, height = 200, className = '' }) {
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full" preserveAspectRatio="none">
         <defs>
           <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
+            <stop offset="0%" stopColor="#008080" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#008080" stopOpacity="0" />
           </linearGradient>
         </defs>
         {/* Area fill */}
         <path d={areaD} fill="url(#lineGradient)" />
         {/* Line */}
-        <path d={pathD} fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={pathD} fill="none" stroke="#008080" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         {/* Points */}
         {points.map((p, idx) => (
-          <circle key={idx} cx={p.x} cy={p.y} r="3" fill="#7c3aed" className="hover:r-4 transition-all" />
+          <circle key={idx} cx={p.x} cy={p.y} r="3" fill="#008080" className="hover:r-4 transition-all" />
         ))}
       </svg>
       {/* X-axis labels */}
@@ -102,7 +102,7 @@ function DonutChart({ data, size = 120, className = '' }) {
 
   const radius = size / 2 - 10;
   const circumference = 2 * Math.PI * radius;
-  const colors = ['#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+  const colors = ['#008080', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
   return (
     <div className={`relative ${className}`} style={{ width: size, height: size }}>
@@ -176,9 +176,9 @@ export default function AdminReports() {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Header Section */}
-      <div className="relative overflow-hidden bg-linear-to-br from-indigo-600 via-indigo-700 to-purple-700 rounded-2xl p-8 text-white">
+      <div className="relative overflow-hidden bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 rounded-2xl p-8 text-white">
         <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-        <div className="absolute bottom-0 left-0 w-56 h-56 bg-purple-400/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4"></div>
+        <div className="absolute bottom-0 left-0 w-56 h-56 bg-brand-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4"></div>
         <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
@@ -186,7 +186,7 @@ export default function AdminReports() {
             </div>
             <div>
               <h1 className="text-2xl font-bold mb-1">{t('admin.reports.title')}</h1>
-              <p className="text-indigo-200 text-sm">{t('admin.reports.subtitle')}</p>
+              <p className="text-gray-300 text-sm">{t('admin.reports.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -214,7 +214,7 @@ export default function AdminReports() {
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center gap-3 py-16">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center animate-pulse">
+          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dark-600 to-dark-700 flex items-center justify-center animate-pulse">
             <Spinner size="sm" className="text-white" />
           </div>
           <span className="text-gray-600 font-medium">{t('admin.reports.loading')}</span>
@@ -229,7 +229,7 @@ export default function AdminReports() {
         <>
           {/* Period Badge */}
           <div className="flex items-center justify-between">
-            <span className="px-4 py-2 bg-indigo-100 text-indigo-700 text-sm font-semibold rounded-xl">
+            <span className="px-4 py-2 bg-dark-100 text-dark-700 text-sm font-semibold rounded-xl">
               📊 {periodLabels[period]}
             </span>
             <button
@@ -256,25 +256,25 @@ export default function AdminReports() {
               icon={<HiUserAdd className="w-6 h-6" />}
               label={t('admin.reports.metrics.newUsers')}
               value={data.metrics?.newUsers || 0}
-              gradient="from-blue-500 to-indigo-500"
+              gradient="from-dark-600 to-dark-700"
             />
             <MetricCard
               icon={<HiClipboardList className="w-6 h-6" />}
               label={t('admin.reports.metrics.newRequests')}
               value={data.metrics?.newServiceRequests || 0}
-              gradient="from-amber-500 to-orange-500"
+              gradient="from-accent-500 to-accent-600"
             />
             <MetricCard
               icon={<HiCheckCircle className="w-6 h-6" />}
               label={t('admin.reports.metrics.completedBookings')}
               value={data.metrics?.completedBookings || 0}
-              gradient="from-emerald-500 to-teal-500"
+              gradient="from-brand-500 to-brand-600"
             />
             <MetricCard
               icon={<HiCurrencyDollar className="w-6 h-6" />}
               label={t('admin.reports.metrics.revenue')}
               value={fmtCurrency(data.metrics?.revenue)}
-              gradient="from-purple-500 to-pink-500"
+              gradient="from-dark-600 to-dark-700"
               isText
             />
           </div>
@@ -285,7 +285,7 @@ export default function AdminReports() {
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="p-5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-linear-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dark-600 to-dark-700 flex items-center justify-center">
                     <HiTrendingUp className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -317,7 +317,7 @@ export default function AdminReports() {
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="p-5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-500 to-teal-500 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center">
                     <HiChartBar className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -339,7 +339,7 @@ export default function AdminReports() {
                     <div className="space-y-2">
                       {data.metrics.bookingsByStatus.map((s, idx) => (
                         <div key={idx} className="flex items-center gap-2 text-sm">
-                          <span className={`w-3 h-3 rounded-full ${['bg-purple-500','bg-cyan-500','bg-emerald-500','bg-amber-500','bg-red-500'][idx % 5]}`}></span>
+                          <span className={`w-3 h-3 rounded-full ${['bg-dark-500','bg-brand-500','bg-brand-500','bg-accent-500','bg-red-500'][idx % 5]}`}></span>
                           <span className="text-gray-600 capitalize">{s._id || 'Otros'}</span>
                           <span className="font-semibold text-gray-900">{s.count}</span>
                         </div>
@@ -361,7 +361,7 @@ export default function AdminReports() {
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="p-5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-linear-to-br from-accent-500 to-accent-600 flex items-center justify-center">
                     <HiChartBar className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -404,7 +404,7 @@ export default function AdminReports() {
                       className="p-4 bg-linear-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200"
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full capitalize">
+                        <span className="px-3 py-1 bg-dark-100 text-dark-700 text-xs font-bold rounded-full capitalize">
                           {m._id || t('admin.reports.providerMetrics.noPlan')}
                         </span>
                         <span className="text-xs text-gray-500">{m.count} {t('admin.reports.providerMetrics.providers')}</span>
@@ -437,7 +437,7 @@ export default function AdminReports() {
       {/* No Data State */}
       {!loading && !error && !data && (
         <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-dark-600 to-dark-700 flex items-center justify-center">
             <HiDocumentReport className="w-8 h-8 text-white" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-2">{t('admin.reports.noData.title')}</h3>

@@ -1,4 +1,4 @@
-﻿import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { getSocket, on as socketOn, emit as socketEmit, setGlobalUserId, getGlobalUserId } from '@/state/socketClient.js';
 import { useAuth } from '@/state/AuthContext.jsx';
@@ -134,7 +134,7 @@ function NotificationDropdownItem({ notification: n, index, onMarkRead, onNaviga
             )}
             {actionUrl && (
               <button
-                className="text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-2 py-0.5 rounded transition-colors flex items-center gap-1"
+                className="text-xs font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-2 py-0.5 rounded transition-colors flex items-center gap-1"
                 onClick={(e) => { e.stopPropagation(); onNavigate(actionUrl); }}
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -504,38 +504,25 @@ function Header() {
   }, [location.pathname, viewRole, centerActiveNav]);
 
   const LinkClass = (isActive) => {
-    // Color neutro (no activo) por rol con estilos premium mejorados
+    // Color neutro — coherente para client+provider (brand), admin (dark)
     const neutralByRole = role === 'guest'
-      ? 'text-gray-600'
-      : (viewRole === 'provider'
-          ? 'text-brand-600'
-          : viewRole === 'client'
-            ? 'text-emerald-600'
-            : viewRole === 'admin'
-              ? 'text-indigo-600'
-              : 'text-gray-600');
-    
-    // Estilos activos premium con gradientes y efectos de sombra mejorados
+      ? 'text-gray-300'
+      : viewRole === 'admin'
+        ? 'text-dark-300'
+        : 'text-brand-300';
+    // Estilos activos — coherente: brand para client+provider, dark para admin
     const activeByRole = role === 'guest'
       ? 'bg-gray-900 text-white shadow-lg ring-1 ring-gray-700/50'
-      : (viewRole === 'provider'
-          ? 'bg-brand-600 text-white shadow-lg ring-1 ring-brand-500/40'
-          : viewRole === 'client'
-            ? 'bg-emerald-600 text-white shadow-lg ring-1 ring-emerald-500/40'
-            : viewRole === 'admin'
-              ? 'bg-purple-600 text-white shadow-lg ring-1 ring-purple-500/40'
-              : 'bg-gray-700 text-white shadow-lg');
+      : viewRole === 'admin'
+        ? 'bg-dark-600 text-white shadow-lg ring-1 ring-dark-500/40'
+        : 'bg-brand-600 text-white shadow-lg ring-1 ring-brand-500/40';
     
-    // Hover states mejorados con transiciones suaves
+    // Hover states — coherente: brand para client+provider, dark para admin
     const hoverByRole = role === 'guest'
-      ? 'hover:bg-gray-100/80 hover:text-gray-900 hover:shadow-md hover:scale-[1.02]'
-      : (viewRole === 'provider'
-          ? 'hover:bg-linear-to-r hover:from-brand-50 hover:to-cyan-50 hover:text-brand-700 hover:shadow-md hover:scale-[1.02] hover:ring-1 hover:ring-brand-200'
-          : viewRole === 'client'
-            ? 'hover:bg-linear-to-r hover:from-emerald-50 hover:to-teal-50 hover:text-emerald-700 hover:shadow-md hover:scale-[1.02] hover:ring-1 hover:ring-emerald-200'
-            : viewRole === 'admin'
-              ? 'hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-700 hover:shadow-md hover:scale-[1.02] hover:ring-1 hover:ring-indigo-200'
-              : 'hover:bg-gray-50 hover:text-gray-900 hover:shadow-md hover:scale-[1.02]');
+      ? 'hover:bg-white/10 hover:text-white hover:shadow-md hover:scale-[1.02]'
+      : viewRole === 'admin'
+        ? 'hover:bg-linear-to-r hover:from-dark-500/20 hover:to-dark-400/10 hover:text-dark-300 hover:shadow-md hover:scale-[1.02] hover:ring-1 hover:ring-dark-400/30'
+        : 'hover:bg-linear-to-r hover:from-brand-500/20 hover:to-brand-400/10 hover:text-brand-300 hover:shadow-md hover:scale-[1.02] hover:ring-1 hover:ring-brand-400/30';
     
     // En resoluciones intermedias (md a lg) solo mostrar iconos más grandes, en lg+ mostrar texto
     return `nav-link-tooltip group relative px-3 py-2 md:px-4 md:py-2.5 lg:px-3.5 lg:py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out backdrop-blur-sm ${isActive ? `${activeByRole}` : `${neutralByRole} ${hoverByRole}`}`;
@@ -575,13 +562,13 @@ function Header() {
       className={({isActive}) => showLabel 
         ? `flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 ease-out ${isActive 
             ? (viewRole === 'provider' 
-                ? 'bg-linear-to-r from-brand-50 via-brand-50 to-cyan-50 text-brand-700 ring-2 ring-brand-200/60 shadow-sm' 
+                ? 'bg-linear-to-r from-brand-500/20 via-brand-400/15 to-brand-500/10 text-brand-300 ring-2 ring-brand-400/30 shadow-sm' 
               : viewRole === 'client' 
-                ? 'bg-linear-to-r from-emerald-50 via-emerald-50 to-teal-50 text-emerald-700 ring-2 ring-emerald-200/60 shadow-sm' 
+                ? 'bg-linear-to-r from-brand-500/20 via-brand-400/15 to-brand-500/10 text-brand-300 ring-2 ring-brand-400/30 shadow-sm' 
               : viewRole === 'admin' 
-                ? 'bg-linear-to-r from-indigo-50 via-indigo-50 to-purple-50 text-indigo-700 ring-2 ring-indigo-200/60 shadow-sm' 
-              : 'bg-gray-100 text-gray-900 ring-2 ring-gray-200/60 shadow-sm') 
-            : 'text-gray-700 hover:bg-linear-to-r hover:from-gray-50/80 hover:to-gray-100/80 hover:text-gray-900 hover:shadow-sm'}`
+                ? 'bg-linear-to-r from-dark-500/20 via-dark-400/15 to-dark-500/10 text-dark-300 ring-2 ring-dark-400/30 shadow-sm' 
+              : 'bg-white/15 text-white ring-2 ring-white/20 shadow-sm') 
+            : 'text-gray-300 hover:bg-linear-to-r hover:from-white/5 hover:to-white/10 hover:text-white hover:shadow-sm'}`
         : LinkClass(isActive)
       }
     >
@@ -590,13 +577,13 @@ function Header() {
         <>
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ease-out ${isActive 
             ? (viewRole === 'provider' 
-                ? 'bg-linear-to-br from-brand-500 to-cyan-500 text-white shadow-lg shadow-brand-500/30' 
+                ? 'bg-linear-to-br from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-500/30' 
               : viewRole === 'client' 
-                ? 'bg-linear-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30' 
+                ? 'bg-linear-to-br from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-500/30' 
               : viewRole === 'admin' 
-                ? 'bg-linear-to-br from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30' 
+                ? 'bg-linear-to-br from-dark-500 to-dark-700 text-white shadow-lg shadow-dark-500/30' 
               : 'bg-linear-to-br from-gray-600 to-gray-700 text-white shadow-lg shadow-gray-500/30') 
-            : 'bg-linear-to-br from-gray-100 to-gray-200 text-gray-500 group-hover:from-emerald-100 group-hover:to-teal-100 group-hover:text-emerald-600 group-hover:shadow-md'}`}>
+            : 'bg-linear-to-br from-white/10 to-white/5 text-gray-400 group-hover:from-brand-500/20 group-hover:to-brand-400/10 group-hover:text-brand-400 group-hover:shadow-md'}`}>
             <span className="[&>svg]:w-5 [&>svg]:h-5">{icon}</span>
           </div>
           <div className="flex-1 flex flex-col gap-0.5">
@@ -604,8 +591,8 @@ function Header() {
             {isActive && (
               <span className={`text-[10px] font-medium uppercase tracking-wide ${
                 viewRole === 'provider' ? 'text-brand-500' 
-                : viewRole === 'client' ? 'text-emerald-500' 
-                : viewRole === 'admin' ? 'text-indigo-500' 
+                : viewRole === 'client' ? 'text-brand-500' 
+                : viewRole === 'admin' ? 'text-dark-500' 
                 : 'text-gray-500'
               }`}>
                 Activo
@@ -680,7 +667,7 @@ function Header() {
                 badge={(() => {
                   const visible = getVisibleCount('client.requestsOpen', Number(counters?.client?.requestsOpen||0));
                   return visible > 0 && (
-                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-emerald-500 to-teal-500 text-white min-w-5 shadow-lg shadow-emerald-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30 animate-pulse-badge">
                       {visible > 99 ? '99+' : visible}
                     </span>
                   );
@@ -698,7 +685,7 @@ function Header() {
                 badge={(() => {
                   const visible = getVisibleCount('client.bookingsUpcoming', Number(counters?.client?.bookingsUpcoming||0));
                   return visible > 0 && (
-                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-teal-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-teal-500/40 ring-2 ring-white/30">
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30">
                       {visible > 99 ? '99+' : visible}
                     </span>
                   );
@@ -715,7 +702,7 @@ function Header() {
                 badge={(() => {
                   const visible = getVisibleCount('client.chatsUnread', Number(counters?.client?.chatsUnread||0));
                   return visible > 0 && (
-                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-violet-500 to-purple-500 text-white min-w-5 shadow-lg shadow-violet-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-dark-500 to-dark-600 text-white min-w-5 shadow-lg shadow-dark-500/40 ring-2 ring-white/30 animate-pulse-badge">
                       {visible > 99 ? '99+' : visible}
                     </span>
                   );
@@ -732,7 +719,7 @@ function Header() {
                 badge={(() => {
                   const visible = getVisibleCount('provider.jobs', Number(counters?.provider?.jobs||0));
                   return visible > 0 && (
-                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30">
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30">
                       {visible > 99 ? '99+' : visible}
                     </span>
                   );
@@ -754,7 +741,7 @@ function Header() {
                 badge={(() => {
                   const visible = getVisibleCount('client.requestsOpen', Number(counters?.client?.requestsOpen||0));
                   return visible > 0 && (
-                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-emerald-500 to-teal-500 text-white min-w-5 shadow-lg shadow-emerald-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30 animate-pulse-badge">
                       {visible > 99 ? '99+' : visible}
                     </span>
                   );
@@ -772,7 +759,7 @@ function Header() {
                 badge={(() => {
                   const visible = getVisibleCount('client.bookingsUpcoming', Number(counters?.client?.bookingsUpcoming||0));
                   return visible > 0 && (
-                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-teal-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-teal-500/40 ring-2 ring-white/30">
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30">
                       {visible > 99 ? '99+' : visible}
                     </span>
                   );
@@ -789,7 +776,7 @@ function Header() {
                 badge={(() => {
                   const visible = getVisibleCount('client.chatsUnread', Number(counters?.client?.chatsUnread||0));
                   return visible > 0 && (
-                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-violet-500 to-purple-500 text-white min-w-5 shadow-lg shadow-violet-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                    <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-dark-500 to-dark-600 text-white min-w-5 shadow-lg shadow-dark-500/40 ring-2 ring-white/30 animate-pulse-badge">
                       {visible > 99 ? '99+' : visible}
                     </span>
                   );
@@ -822,7 +809,7 @@ function Header() {
             badge={(() => {
               const visible = getVisibleCount('provider.jobs', Number(counters?.provider?.jobs||0));
               return visible > 0 && (
-                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/30 animate-pulse-badge">
+                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/30 animate-pulse-badge">
                   {visible > 99 ? '99+' : visible}
                 </span>
               );
@@ -837,7 +824,7 @@ function Header() {
             badge={(() => {
               const visible = getVisibleCount('provider.proposalsActive', Number(counters?.provider?.proposalsActive||0));
               return visible > 0 && (
-                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-cyan-500 to-blue-500 text-white min-w-5 shadow-lg shadow-cyan-500/30">
+                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/30">
                   {visible > 99 ? '99+' : visible}
                 </span>
               );
@@ -866,7 +853,7 @@ function Header() {
             badge={(() => {
               const visible = getVisibleCount('provider.services', Number(counters?.provider?.services||0));
               return visible > 0 && (
-                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white min-w-5 shadow-lg shadow-brand-500/30">
+                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/30">
                   {visible > 99 ? '99+' : visible}
                 </span>
               );
@@ -913,15 +900,15 @@ function Header() {
             className={({ isActive }) =>
               `group relative flex items-center gap-2 px-3.5 py-2 rounded-xl font-medium text-sm transition-all duration-300 ${
                 isActive
-                  ? 'bg-linear-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25'
-                  : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/80'
+                  ? 'bg-linear-to-r from-dark-500 to-dark-700 text-white shadow-lg shadow-dark-500/25'
+                  : 'text-dark-300 hover:text-white hover:bg-white/10'
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <span className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20' : 'bg-indigo-100 group-hover:bg-indigo-200'}`}>
-                  <svg className={`w-4 h-4 ${isActive ? 'text-white' : 'text-indigo-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                  <svg className={`w-4 h-4 ${isActive ? 'text-white' : 'text-dark-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </span>
@@ -935,19 +922,19 @@ function Header() {
             className={({ isActive }) =>
               `group relative flex items-center gap-2 px-3.5 py-2 rounded-xl font-medium text-sm transition-all duration-300 ${
                 isActive
-                  ? 'bg-linear-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25'
-                  : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/80'
+                  ? 'bg-linear-to-r from-dark-500 to-dark-700 text-white shadow-lg shadow-dark-500/25'
+                  : 'text-dark-300 hover:text-white hover:bg-white/10'
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <span className={`relative flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20' : 'bg-indigo-100 group-hover:bg-indigo-200'}`}>
-                  <svg className={`w-4 h-4 ${isActive ? 'text-white' : 'text-indigo-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className={`relative flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                  <svg className={`w-4 h-4 ${isActive ? 'text-white' : 'text-dark-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
                   {unreadAdmin > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-5 h-5 px-1 text-[10px] font-bold bg-red-500 text-white rounded-full shadow-lg animate-pulse ring-2 ring-white">
+                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-5 h-5 px-1 text-[10px] font-bold bg-linear-to-r from-brand-500 to-brand-600 text-white rounded-full shadow-lg shadow-brand-500/40 ring-2 ring-white/30 animate-pulse-badge">
                       {unreadAdmin > 99 ? '99+' : unreadAdmin}
                     </span>
                   )}
@@ -962,15 +949,15 @@ function Header() {
             className={({ isActive }) =>
               `group relative flex items-center gap-2 px-3.5 py-2 rounded-xl font-medium text-sm transition-all duration-300 ${
                 isActive
-                  ? 'bg-linear-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25'
-                  : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/80'
+                  ? 'bg-linear-to-r from-dark-500 to-dark-700 text-white shadow-lg shadow-dark-500/25'
+                  : 'text-dark-300 hover:text-white hover:bg-white/10'
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <span className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20' : 'bg-indigo-100 group-hover:bg-indigo-200'}`}>
-                  <svg className={`w-4 h-4 ${isActive ? 'text-white' : 'text-indigo-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                  <svg className={`w-4 h-4 ${isActive ? 'text-white' : 'text-dark-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </span>
@@ -1013,7 +1000,7 @@ function Header() {
         navigate('/empleos', { replace: true });
       }
     } else if (target === 'client') {
-      navigate('/', { replace: true });
+      navigate('/mis-solicitudes', { replace: true });
     }
     
     // 3. Cambiar el rol (esto también desactiva el flag de transición)
@@ -1040,9 +1027,9 @@ function Header() {
       case 'provider':
         return 'text-brand-700';
       case 'client':
-        return 'text-emerald-700';
+        return 'text-brand-700';
       case 'admin':
-        return 'text-indigo-700';
+        return 'text-dark-700';
       default:
         return 'text-gray-700';
     }
@@ -1066,27 +1053,27 @@ function Header() {
         };
       case 'client':
         return {
-          text600: 'text-emerald-600',
-          hoverText700: 'hover:text-emerald-700',
-          bg600: 'bg-emerald-600',
-          hoverBg700: 'hover:bg-emerald-700',
-          ring500: 'focus:ring-emerald-500',
-          hoverRing500: 'hover:ring-emerald-500',
-          border200: 'border-emerald-200',
-          border300: 'border-emerald-300',
-          hoverBg50: 'hover:bg-emerald-50'
+          text600: 'text-brand-600',
+          hoverText700: 'hover:text-brand-700',
+          bg600: 'bg-brand-600',
+          hoverBg700: 'hover:bg-brand-700',
+          ring500: 'focus:ring-brand-500',
+          hoverRing500: 'hover:ring-brand-500',
+          border200: 'border-brand-200',
+          border300: 'border-brand-300',
+          hoverBg50: 'hover:bg-brand-50'
         };
       case 'admin':
         return {
-          text600: 'text-indigo-600',
-          hoverText700: 'hover:text-indigo-700',
-          bg600: 'bg-indigo-600',
-          hoverBg700: 'hover:bg-indigo-700',
-          ring500: 'focus:ring-indigo-500',
-          hoverRing500: 'hover:ring-indigo-500',
-          border200: 'border-indigo-200',
-          border300: 'border-indigo-300',
-          hoverBg50: 'hover:bg-indigo-50'
+          text600: 'text-dark-200',
+          hoverText700: 'hover:text-white',
+          bg600: 'bg-dark-600',
+          hoverBg700: 'hover:bg-dark-700',
+          ring500: 'focus:ring-dark-400',
+          hoverRing500: 'hover:ring-dark-400',
+          border200: 'border-white/20',
+          border300: 'border-white/30',
+          hoverBg50: 'hover:bg-dark-50'
         };
       default: // guest (negro)
         return {
@@ -1472,9 +1459,9 @@ function Header() {
   }
   return (
     <>
-    <header ref={headerRef} className="header-glass bg-white/70 backdrop-blur-2xl border-b border-gray-100/80 sticky top-0 z-50 transition-all duration-500 shadow-sm hover:shadow-md" role="banner">
+    <header ref={headerRef} className="header-glass bg-dark-800/95 backdrop-blur-2xl border-b border-white/10 sticky top-0 z-50 transition-all duration-500 shadow-sm hover:shadow-md" role="banner">
       {/* Subtle gradient overlay for depth */}
-      <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent pointer-events-none"></div>
+      <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/5 to-transparent pointer-events-none"></div>
       
       {/* Primera fila: Logo + Navegación/SearchBar + Usuario + Selector de idioma */}
       <div className="relative container mx-auto px-2 sm:px-4 lg:px-6 min-h-14 sm:min-h-16 py-2 flex items-center justify-between gap-2 sm:gap-4">
@@ -1493,6 +1480,8 @@ function Header() {
               if (location.pathname === targetPath && targetPath === '/' && !hasSearchParams) {
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                // Forzar reset del estado de Home (búsqueda, categorías, etc.)
+                window.dispatchEvent(new CustomEvent('home:reset'));
               }
               // Si hay search params, dejamos que la navegación ocurra normalmente
               // para que resetHome limpie el estado en Home.jsx
@@ -1502,7 +1491,7 @@ function Header() {
             {/* Logo icon mejorado con efectos premium */}
             <div className="relative">
               {/* Glow effect animado */}
-              <div className="absolute inset-0 bg-linear-to-br from-brand-400/40 to-cyan-400/40 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 group-hover:scale-125 animate-pulse-slow"></div>
+              <div className="absolute inset-0 bg-linear-to-br from-brand-400/40 to-accent-400/40 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 group-hover:scale-125 animate-pulse-slow"></div>
               <div className="absolute inset-0 bg-brand-500/20 rounded-full blur-lg group-hover:blur-xl transition-all duration-300 group-hover:scale-110"></div>
               {/* Logo NovoFix - SVG optimizado */}
               <img 
@@ -1513,8 +1502,8 @@ function Header() {
             </div>
             {/* Brand name con efecto hover y gradiente mejorado */}
             <span className={`text-xl sm:text-2xl font-bold tracking-tight transition-all duration-300 ${searchBarState.show ? 'hidden sm:inline' : ''}`}>
-              <span className="bg-linear-to-r from-brand-600 via-brand-500 to-cyan-500 bg-clip-text text-transparent group-hover:from-brand-700 group-hover:via-brand-600 group-hover:to-cyan-600 transition-all duration-300">Novo</span>
-              <span className="text-gray-800 group-hover:text-gray-900 transition-colors duration-300">Fix</span>
+              <span className="bg-linear-to-r from-brand-400 via-brand-300 to-accent-400 bg-clip-text text-transparent group-hover:from-brand-300 group-hover:via-brand-200 group-hover:to-accent-300 transition-all duration-300">Novo</span>
+              <span className="text-white group-hover:text-white transition-colors duration-300">Fix</span>
             </span>
           </Link>
           {/* Selector de idioma */}
@@ -1527,7 +1516,7 @@ function Header() {
             <div className="flex-1 min-w-0 max-w-md animate-fade-in">
               {/* SearchBar compacto unificado para categorías y búsquedas */}
               <form onSubmit={(e) => { e.preventDefault(); if (searchBarState.onSearch) searchBarState.onSearch({ type: 'text', query: e.target.elements.search.value }); }} className="flex gap-0 sm:gap-2 items-center">
-                <div className="animated-placeholder-wrapper flex-1 min-w-0 border border-gray-200/80 rounded-lg sm:rounded-xl bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md hover:border-brand-200 transition-all duration-300">
+                <div className="animated-placeholder-wrapper flex-1 min-w-0 border border-white/15 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-sm shadow-sm hover:shadow-md hover:border-brand-400/40 transition-all duration-300">
                   <input
                     ref={searchInputRef}
                     name="search"
@@ -1548,8 +1537,8 @@ function Header() {
                 <button
                   ref={accountToggleRef}
                   type="submit"
-                  className="bg-linear-to-r from-brand-600 to-brand-500 text-white w-6 h-6 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl hover:from-brand-700 hover:to-brand-600 shadow-md shadow-brand-500/25 hover:shadow-lg hover:shadow-brand-500/30 transition-all duration-300 flex items-center justify-center shrink-0 hover:scale-105 active:scale-95"
-                  aria-label="Buscar"
+                  className="bg-linear-to-r from-brand-600 to-brand-500 text-white w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl hover:from-brand-700 hover:to-brand-600 shadow-md shadow-brand-500/25 hover:shadow-lg hover:shadow-brand-500/30 transition-all duration-300 flex items-center justify-center shrink-0 hover:scale-105 active:scale-95"
+                  aria-label={t('header.searchButton')}
                 >
                   <svg className="w-3 h-3 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1564,9 +1553,9 @@ function Header() {
             <div className={`relative hidden md:block ${searchBarState.show ? 'shrink min-w-0 max-w-xs lg:max-w-sm' : 'flex-1 min-w-0'}`}>
               <nav
                 ref={navRef}
-                className={`flex items-center text-sm overflow-x-auto whitespace-nowrap no-scrollbar scroll-smooth pr-8 pl-8 w-full py-2 ${searchBarState.show ? 'gap-2' : 'gap-1'}`}
+                className={`flex items-center text-sm overflow-x-auto whitespace-nowrap no-scrollbar scroll-smooth pr-8 pl-8 w-full py-2 isolate ${searchBarState.show ? 'gap-2' : 'gap-1'}`}
                 role="navigation"
-                aria-label="Menú principal"
+                aria-label={t('header.mainMenu')}
               >
                 <RoleLinks />
               </nav>
@@ -1574,8 +1563,8 @@ function Header() {
               {canScrollNavLeft && (
                 <button
                   type="button"
-                  className="hidden md:flex items-center justify-center absolute left-0 top-1/2 -translate-y-1/2 z-20 h-7 w-7 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg text-gray-600 hover:text-brand-600 hover:bg-white hover:border-brand-300 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 transition-all duration-200 hover:scale-110"
-                  aria-label="Desplazar menú a la izquierda"
+                  className="hidden md:flex items-center justify-center absolute left-0 top-1/2 -translate-y-1/2 z-30 h-7 w-7 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 shadow-lg text-gray-300 hover:text-brand-400 hover:bg-white/20 hover:border-brand-400/40 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 transition-all duration-200 hover:scale-110"
+                  aria-label={t('header.scrollLeft')}
                   onClick={() => {
                     navRef.current?.scrollBy({ left: -100, behavior: 'smooth' });
                     setTimeout(updateNavScrollState, 400);
@@ -1587,8 +1576,8 @@ function Header() {
               {canScrollNavRight && (
                 <button
                   type="button"
-                  className="hidden md:flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 z-20 h-7 w-7 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg text-gray-600 hover:text-brand-600 hover:bg-white hover:border-brand-300 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 transition-all duration-200 hover:scale-110"
-                  aria-label="Desplazar menú a la derecha"
+                  className="hidden md:flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 z-30 h-7 w-7 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 shadow-lg text-gray-300 hover:text-brand-400 hover:bg-white/20 hover:border-brand-400/40 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 transition-all duration-200 hover:scale-110"
+                  aria-label={t('header.scrollRight')}
                   onClick={() => {
                     navRef.current?.scrollBy({ left: 100, behavior: 'smooth' });
                     setTimeout(updateNavScrollState, 400);
@@ -1606,14 +1595,14 @@ function Header() {
               <button
                 type="button"
                 aria-label={t('header.notifications')}
-                className={`inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl border-2 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md ${accent.text600} ${accent.hoverText700} focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} ${accent.border200} hover:border-brand-300 transition-all duration-300 hover:scale-105`}
+                className={`inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl border-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 shadow-sm hover:shadow-md ${accent.text600} ${accent.hoverText700} focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} ${accent.border200} hover:border-brand-400/40 transition-all duration-300 hover:scale-105`}
                 onClick={() => setNotifOpen(v => !v)}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
                   <path d="M12 2a6 6 0 00-6 6v2.586l-.707.707A1 1 0 005 13h14a1 1 0 00.707-1.707L19 10.586V8a6 6 0 00-6-6zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                 </svg>
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center text-[10px] leading-none font-bold px-1.5 py-0.5 rounded-full bg-linear-to-r from-red-500 to-red-600 text-white min-w-5 shadow-lg shadow-red-500/30 ring-2 ring-white animate-bounce-subtle">
+                  <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30 animate-pulse-badge">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
@@ -1693,8 +1682,8 @@ function Header() {
           {/* Mobile menu button */}
           <button
             type="button"
-            className={`md:hidden inline-flex items-center justify-center rounded-xl p-2 sm:p-2.5 border-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} ${accent.text600} ${accent.hoverText700} ${open ? `bg-gray-100 ${accent.border300} shadow-inner` : `bg-white/90 backdrop-blur-sm ${accent.border200} shadow-sm hover:shadow-md`} ${!isAuthenticated ? 'ml-auto' : ''} shrink-0 hover:scale-105 active:scale-95`}
-            aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+            className={`md:hidden inline-flex items-center justify-center rounded-xl p-2 sm:p-2.5 border-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-white/40 text-white hover:text-white ${open ? 'bg-white/20 border-white/40 shadow-inner' : 'bg-white/10 backdrop-blur-sm border-white/20 shadow-sm hover:shadow-md hover:bg-white/20 hover:border-white/30'} ${!isAuthenticated ? 'ml-auto' : ''} shrink-0 hover:scale-105 active:scale-95`}
+            aria-label={open ? t('header.closeMenu') : t('header.openMenu')}
             aria-expanded={open}
             aria-controls="mobile-menu"
             ref={mobileToggleRef}
@@ -1725,7 +1714,7 @@ function Header() {
                 </Link>
                 <Link 
                   to="/registrarse" 
-                  className="group inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-xl border-2 border-gray-200 bg-white/80 backdrop-blur-sm text-gray-700 hover:border-brand-300 hover:text-brand-600 hover:bg-brand-50/50 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="group inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white hover:border-brand-400/40 hover:text-brand-300 hover:bg-white/15 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 active:scale-95"
                 >
                   <svg className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -1737,12 +1726,12 @@ function Header() {
               <>
                 {/* Role switch (md+), placed before bell and account */}
                 {roles?.includes('client') && roles?.includes('provider') && (
-                  <div className="hidden md:flex items-center bg-gray-100/80 backdrop-blur-sm rounded-xl p-1 text-xs whitespace-nowrap shadow-inner" role="tablist" aria-label={t('header.switchMode', { mode: '' })}>
+                  <div className="hidden md:flex items-center bg-white/15 backdrop-blur-md rounded-xl p-1 text-xs whitespace-nowrap shadow-inner border border-white/20 ring-1 ring-white/10" role="tablist" aria-label={t('header.switchMode', { mode: '' })}>
                     <button
                       type="button"
                       role="tab"
                       aria-selected={viewRole === 'client'}
-                      className={`relative px-3 py-1.5 rounded-lg font-medium transition-all duration-300 ${viewRole === 'client' ? 'bg-white text-emerald-700 shadow-md ring-1 ring-emerald-200' : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50/50'}`}
+                      className={`relative px-3.5 py-2 rounded-lg font-semibold transition-all duration-300 ${viewRole === 'client' ? 'bg-white/25 text-white shadow-lg ring-1 ring-white/30' : 'text-gray-300 hover:text-white hover:bg-white/10'}`}
                       onClick={() => switchToRole('client')}
                     >
                       <span className="flex items-center gap-1.5">
@@ -1756,7 +1745,7 @@ function Header() {
                       type="button"
                       role="tab"
                       aria-selected={viewRole === 'provider'}
-                      className={`relative px-3 py-1.5 rounded-lg font-medium transition-all duration-300 ${viewRole === 'provider' ? 'bg-white text-brand-700 shadow-md ring-1 ring-brand-200' : 'text-gray-600 hover:text-brand-600 hover:bg-brand-50/50'}`}
+                      className={`relative px-3.5 py-2 rounded-lg font-semibold transition-all duration-300 ${viewRole === 'provider' ? 'bg-white/25 text-white shadow-lg ring-1 ring-white/30' : 'text-gray-300 hover:text-white hover:bg-white/10'}`}
                       onClick={() => switchToRole('provider')}
                     >
                       <span className="flex items-center gap-1.5">
@@ -1782,14 +1771,14 @@ function Header() {
                   <button
                     type="button"
                     aria-label={t('header.notifications')}
-                    className={`group inline-flex items-center justify-center w-10 h-10 rounded-xl border-2 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md ${accent.text600} ${accent.hoverText700} focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} ${accent.border200} hover:border-brand-300 transition-all duration-300 hover:scale-105`}
+                    className={`group inline-flex items-center justify-center w-10 h-10 rounded-xl border-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 shadow-sm hover:shadow-md ${accent.text600} ${accent.hoverText700} focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} ${accent.border200} hover:border-brand-400/40 transition-all duration-300 hover:scale-105`}
                     onClick={() => setNotifOpen(v => !v)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12">
                       <path d="M12 2a6 6 0 00-6 6v2.586l-.707.707A1 1 0 005 13h14a1 1 0 00.707-1.707L19 10.586V8a6 6 0 00-6-6zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                     </svg>
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center text-[10px] leading-none font-bold px-1.5 py-0.5 rounded-full bg-linear-to-r from-red-500 to-red-600 text-white min-w-5 shadow-lg shadow-red-500/30 ring-2 ring-white animate-bounce-subtle">
+                      <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30 animate-pulse-badge">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
@@ -1873,17 +1862,17 @@ function Header() {
                 <button
                   type="button"
                   onClick={()=>setAccountOpen((v)=>!v)}
-                  className={`group inline-flex items-center gap-2.5 px-3 py-2 text-sm rounded-xl border-2 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-lg ${accent.text600} ${accent.hoverText700} focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} ${accountOpen ? `${accent.border300} shadow-md` : 'border-gray-200 hover:border-brand-200'} min-w-0 max-w-[40vw] md:max-w-[28vw] lg:max-w-[22vw] 2xl:max-w-[20vw] transition-all duration-300 hover:scale-[1.02]`}
+                  className={`group inline-flex items-center gap-2.5 px-3 py-2 text-sm rounded-xl border-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 shadow-sm hover:shadow-lg ${accent.text600} ${accent.hoverText700} focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} ${accountOpen ? `${accent.border300} shadow-md` : 'border-white/15 hover:border-brand-400/30'} min-w-0 max-w-[40vw] md:max-w-[28vw] lg:max-w-[22vw] 2xl:max-w-[20vw] transition-all duration-300 hover:scale-[1.02]`}
                   aria-haspopup="menu"
                   aria-expanded={accountOpen}
-                  aria-label={`Menú de cuenta: ${firstName || email || 'Cuenta'}`}
+                  aria-label={t('header.accountMenu', { name: firstName || email || 'Account' })}
                 >
                   {/* Avatar o iniciales con ring mejorado */}
-                  <div className={`relative w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-offset-1 transition-all duration-300 group-hover:ring-offset-2 ${viewRole === 'provider' ? 'ring-brand-400 bg-linear-to-br from-brand-100 to-brand-50' : viewRole === 'client' ? 'ring-emerald-400 bg-linear-to-br from-emerald-100 to-emerald-50' : viewRole === 'admin' ? 'ring-indigo-400 bg-linear-to-br from-indigo-100 to-indigo-50' : 'ring-gray-300 bg-linear-to-br from-gray-100 to-gray-50'}`}>
+                  <div className={`relative w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-offset-1 transition-all duration-300 group-hover:ring-offset-2 ${viewRole === 'provider' ? 'ring-brand-400 bg-linear-to-br from-brand-100 to-brand-50' : viewRole === 'client' ? 'ring-brand-400 bg-linear-to-br from-brand-100 to-brand-50' : viewRole === 'admin' ? 'ring-dark-400 bg-linear-to-br from-dark-100 to-dark-50' : 'ring-gray-300 bg-linear-to-br from-gray-100 to-gray-50'}`}>
                     {user?.profile?.avatar ? (
                       <img src={user.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
-                      <span className={`text-sm font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-emerald-700' : viewRole === 'admin' ? 'text-indigo-700' : 'text-gray-600'}`}>{initials}</span>
+                      <span className={`text-sm font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-brand-700' : viewRole === 'admin' ? 'text-dark-700' : 'text-gray-600'}`}>{initials}</span>
                     )}
                     {/* Online indicator */}
                     <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full ring-2 ring-white"></div>
@@ -1891,14 +1880,14 @@ function Header() {
                   {/* Nombre completo truncado en pantallas grandes */}
                   <div className="hidden lg:flex flex-col items-start min-w-0">
                     <span
-                      className="font-semibold text-gray-900 truncate max-w-[20vw] lg:max-w-[20ch] xl:max-w-[28ch]"
+                      className="font-semibold text-white truncate max-w-[20vw] lg:max-w-[20ch] xl:max-w-[28ch]"
                       title={firstName || email || 'Cuenta'}
                     >
                       {firstName || email || 'Cuenta'}
                     </span>
                     {/* Chip de modo actual inline */}
                     {role !== 'guest' && (
-                      <span className={`text-[10px] font-medium ${viewRole === 'provider' ? 'text-brand-600' : viewRole === 'client' ? 'text-emerald-600' : viewRole === 'admin' ? 'text-indigo-600' : 'text-gray-500'}`}>
+                      <span className={`text-[10px] font-medium ${viewRole === 'provider' ? 'text-brand-600' : viewRole === 'client' ? 'text-brand-600' : viewRole === 'admin' ? 'text-dark-600' : 'text-gray-500'}`}>
                         {viewRole === 'provider' ? t('header.modeProfessional') : viewRole === 'client' ? t('header.modeClient') : viewRole === 'admin' ? t('header.modeAdmin') : t('header.modeUser')}
                       </span>
                     )}
@@ -1912,13 +1901,13 @@ function Header() {
                     className={`absolute right-0 mt-3 w-72 rounded-2xl border bg-white/95 backdrop-blur-xl shadow-2xl py-0 z-50 ${accent.border200} ring-1 ring-black/5 overflow-hidden animate-slide-down`}
                   >
                     {/* Header del menú con info del usuario mejorado */}
-                    <div className={`px-4 py-4 bg-linear-to-br ${viewRole === 'provider' ? 'from-brand-50 to-brand-100/50' : viewRole === 'client' ? 'from-emerald-50 to-emerald-100/50' : viewRole === 'admin' ? 'from-indigo-50 to-indigo-100/50' : 'from-gray-50 to-gray-100/50'}`}>
+                    <div className={`px-4 py-4 bg-linear-to-br ${viewRole === 'provider' ? 'from-brand-50 to-brand-100/50' : viewRole === 'client' ? 'from-brand-50 to-brand-100/50' : viewRole === 'admin' ? 'from-dark-50 to-dark-100/50' : 'from-gray-50 to-gray-100/50'}`}>
                       <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-white shadow-lg ${viewRole === 'provider' ? 'bg-brand-100' : viewRole === 'client' ? 'bg-emerald-100' : viewRole === 'admin' ? 'bg-indigo-100' : 'bg-gray-100'}`}>
+                        <div className={`w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-white shadow-lg ${viewRole === 'provider' ? 'bg-brand-100' : viewRole === 'client' ? 'bg-brand-100' : viewRole === 'admin' ? 'bg-dark-100' : 'bg-gray-100'}`}>
                           {user?.profile?.avatar ? (
                             <img src={user.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
                           ) : (
-                            <span className={`text-lg font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-emerald-700' : viewRole === 'admin' ? 'text-indigo-700' : 'text-gray-600'}`}>{initials}</span>
+                            <span className={`text-lg font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-brand-700' : viewRole === 'admin' ? 'text-dark-700' : 'text-gray-600'}`}>{initials}</span>
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -1936,7 +1925,7 @@ function Header() {
                               const chipLabel = viewRole === 'provider' ? t('header.professional') : viewRole === 'client' ? t('header.client') : viewRole === 'admin' ? 'Admin' : t('header.mode');
                               return (
                                 <span
-                                  className={`inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 text-[10px] font-medium rounded-full ${viewRole === 'provider' ? 'bg-brand-100 text-brand-700' : viewRole === 'client' ? 'bg-emerald-100 text-emerald-700' : viewRole === 'admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600'} ${isLocked ? 'ring-1 ring-yellow-400' : ''}`}
+                                  className={`inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 text-[10px] font-medium rounded-full ${viewRole === 'provider' ? 'bg-brand-100 text-brand-700' : viewRole === 'client' ? 'bg-brand-100 text-brand-700' : viewRole === 'admin' ? 'bg-dark-100 text-dark-700' : 'bg-gray-100 text-gray-600'} ${isLocked ? 'ring-1 ring-yellow-400' : ''}`}
                                 >
                                   {isLocked && (
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3 text-yellow-600">
@@ -1986,8 +1975,8 @@ function Header() {
                       <>
                         <div className="my-2 mx-4 border-t border-gray-100"></div>
                         <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 group" onClick={()=>{ const next = viewRole === 'client' ? 'provider' : 'client'; switchToRole(next); setAccountOpen(false); }}>
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${viewRole === 'client' ? 'bg-brand-50 group-hover:bg-brand-100' : 'bg-emerald-50 group-hover:bg-emerald-100'}`}>
-                            <svg className={`w-4 h-4 transition-colors ${viewRole === 'client' ? 'text-brand-600' : 'text-emerald-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${viewRole === 'client' ? 'bg-brand-50 group-hover:bg-brand-100' : 'bg-brand-50 group-hover:bg-brand-100'}`}>
+                            <svg className={`w-4 h-4 transition-colors ${viewRole === 'client' ? 'text-brand-600' : 'text-brand-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                             </svg>
                           </div>
@@ -2032,23 +2021,23 @@ function Header() {
         ref={mobileMenuRef}
         inert={!open}
         className={
-          `md:hidden border-t bg-white/95 backdrop-blur-xl overflow-y-auto transition-all duration-300 ease-out ${accent.border200} ` +
+          `md:hidden border-t bg-dark-800/98 backdrop-blur-xl overflow-y-auto transition-all duration-300 ease-out ${accent.border200} ` +
           (open ? 'max-h-[calc(100vh-4rem)] opacity-100 translate-y-0 shadow-xl' : 'max-h-0 opacity-0 -translate-y-4 pointer-events-none')
         }
       >
   <div className={`container mx-auto ${role === 'guest' ? 'pl-4 pr-0' : 'px-4'} py-4 flex flex-col gap-3 text-sm min-w-0`}>
-          <nav role="navigation" aria-label="Menú principal móvil" className="contents">
+          <nav role="navigation" aria-label={t('header.mobileMenu')} className="contents">
           
           {/* User info section for mobile - Premium design */}
           {isAuthenticated && role !== 'guest' && (
-            <div className={`pb-4 mb-3 border-b border-gray-100 -mx-4 px-4 bg-linear-to-br ${viewRole === 'provider' ? 'from-brand-50/50 to-transparent' : viewRole === 'client' ? 'from-emerald-50/50 to-transparent' : viewRole === 'admin' ? 'from-indigo-50/50 to-transparent' : 'from-gray-50/50 to-transparent'}`}>
+            <div className={`pb-4 mb-3 border-b border-white/10 -mx-4 px-4 bg-linear-to-br ${viewRole === 'provider' ? 'from-brand-500/10 to-transparent' : viewRole === 'client' ? 'from-brand-500/10 to-transparent' : viewRole === 'admin' ? 'from-dark-500/10 to-transparent' : 'from-white/5 to-transparent'}`}>
               <div className="flex items-center gap-4">
                 {/* Avatar mejorado */}
-                <div className={`relative w-14 h-14 rounded-2xl bg-gray-200 overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-offset-2 shadow-lg ${viewRole === 'provider' ? 'ring-brand-400' : viewRole === 'client' ? 'ring-emerald-400' : viewRole === 'admin' ? 'ring-indigo-400' : 'ring-gray-300'}`}>
+                <div className={`relative w-14 h-14 rounded-2xl bg-gray-200 overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-offset-2 shadow-lg ${viewRole === 'provider' ? 'ring-brand-400' : viewRole === 'client' ? 'ring-brand-400' : viewRole === 'admin' ? 'ring-dark-400' : 'ring-gray-300'}`}>
                   {user?.profile?.avatar ? (
                     <img src={user.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
-                    <span className={`text-lg font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-emerald-700' : viewRole === 'admin' ? 'text-indigo-700' : 'text-gray-600'}`}>{initials}</span>
+                    <span className={`text-lg font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-brand-700' : viewRole === 'admin' ? 'text-dark-700' : 'text-gray-600'}`}>{initials}</span>
                   )}
                   {/* Online indicator */}
                   <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full ring-2 ring-white"></div>
@@ -2056,10 +2045,10 @@ function Header() {
                 
                 {/* User info */}
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-gray-900 text-base truncate">
+                  <div className="font-bold text-white text-base truncate">
                     {firstName && lastName ? `${firstName} ${lastName}` : firstName || email || 'Usuario'}
                   </div>
-                  <div className="text-xs text-gray-500 truncate">{email}</div>
+                  <div className="text-xs text-gray-400 truncate">{email}</div>
                   
                   {/* Role badge mejorado */}
                   <div className="flex items-center gap-2 mt-2">
@@ -2073,7 +2062,7 @@ function Header() {
                       const chipLabel = viewRole==='provider' ? t('header.professional') : viewRole==='client' ? t('header.client') : viewRole==='admin' ? 'Admin' : t('header.mode');
                       return (
                         <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full shadow-sm ${viewRole==='provider' ? 'bg-linear-to-r from-brand-500 to-brand-600 text-white' : viewRole==='client' ? 'bg-linear-to-r from-emerald-500 to-emerald-600 text-white' : viewRole==='admin' ? 'bg-linear-to-r from-indigo-500 to-indigo-600 text-white' : 'bg-gray-200 text-gray-700'} ${isLocked ? 'ring-2 ring-yellow-300 ring-offset-1' : ''}`}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full shadow-sm ${viewRole==='provider' ? 'bg-linear-to-r from-brand-500 to-brand-600 text-white' : viewRole==='client' ? 'bg-linear-to-r from-brand-500 to-brand-600 text-white' : viewRole==='admin' ? 'bg-linear-to-r from-dark-500 to-dark-600 text-white' : 'bg-white/15 text-gray-300'} ${isLocked ? 'ring-2 ring-yellow-300 ring-offset-1' : ''}`}
                         >
                           {isLocked && (
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3">
@@ -2092,10 +2081,10 @@ function Header() {
           
           {/* Visible role switch for multi-role users (mobile) - Mejorado */}
           {roles?.includes('client') && roles?.includes('provider') && (
-            <div className="flex items-center gap-2 mb-3 p-1 bg-gray-100/80 rounded-xl" aria-label={t('header.switchMode', { mode: '' })}>
+            <div className="flex items-center gap-2 mb-3 p-1.5 bg-white/15 backdrop-blur-md rounded-xl border border-white/20 ring-1 ring-white/10 shadow-inner" aria-label={t('header.switchMode', { mode: '' })}>
               <button
                 type="button"
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 ${viewRole === 'client' ? 'bg-white text-emerald-700 shadow-md ring-1 ring-emerald-200' : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50/50'}`}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-300 ${viewRole === 'client' ? 'bg-white/25 text-white shadow-lg ring-1 ring-white/30' : 'text-gray-300 hover:text-white hover:bg-white/10'}`}
                 onClick={() => switchToRole('client')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2105,7 +2094,7 @@ function Header() {
               </button>
               <button
                 type="button"
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 ${viewRole === 'provider' ? 'bg-white text-brand-700 shadow-md ring-1 ring-brand-200' : 'text-gray-600 hover:text-brand-600 hover:bg-brand-50/50'}`}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-300 ${viewRole === 'provider' ? 'bg-white/25 text-white shadow-lg ring-1 ring-white/30' : 'text-gray-300 hover:text-white hover:bg-white/10'}`}
                 onClick={() => switchToRole('provider')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2129,7 +2118,7 @@ function Header() {
           </div>
           
           {/* Bottom section */}
-          <div className="pt-4 border-t border-gray-100 mt-3">
+          <div className="pt-4 border-t border-white/10 mt-3">
             {role === 'guest' ? (
               <div className="flex flex-col gap-3">
                 <Link to="/login" onClick={closeMenu} className="group inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-xl text-white bg-linear-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 shadow-lg shadow-brand-500/25 transition-all duration-300">
@@ -2138,7 +2127,7 @@ function Header() {
                   </svg>
                   {t('header.login')}
                 </Link>
-                <Link to="/registrarse" onClick={closeMenu} className="group inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-brand-300 hover:text-brand-600 hover:bg-brand-50 transition-all duration-300">
+                <Link to="/registrarse" onClick={closeMenu} className="group inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-xl border-2 border-white/20 bg-white/10 text-white hover:border-brand-400/40 hover:text-brand-300 hover:bg-white/15 transition-all duration-300">
                   <svg className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                   </svg>
@@ -2147,9 +2136,9 @@ function Header() {
               </div>
             ) : (
               <div className="flex flex-col gap-1">
-                <Link to="/perfil" onClick={closeMenu} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
-                  <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-brand-50 transition-colors">
-                    <svg className="w-4 h-4 text-gray-500 group-hover:text-brand-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <Link to="/perfil" onClick={closeMenu} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/10 rounded-xl transition-all duration-200">
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-brand-500/20 transition-colors">
+                    <svg className="w-4 h-4 text-gray-400 group-hover:text-brand-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
@@ -2157,17 +2146,17 @@ function Header() {
                 </Link>
                 {viewRole === 'provider' && (
                   <>
-                    <Link to="/portafolio" onClick={closeMenu} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
-                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-brand-50 transition-colors">
-                        <svg className="w-4 h-4 text-gray-500 group-hover:text-brand-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <Link to="/portafolio" onClick={closeMenu} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/10 rounded-xl transition-all duration-200">
+                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-brand-500/20 transition-colors">
+                        <svg className="w-4 h-4 text-gray-400 group-hover:text-brand-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
                       <span className="font-medium">{t('header.myPortfolio')}</span>
                     </Link>
-                    <Link to="/plan" onClick={closeMenu} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
-                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-brand-50 transition-colors">
-                        <svg className="w-4 h-4 text-gray-500 group-hover:text-brand-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <Link to="/plan" onClick={closeMenu} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/10 rounded-xl transition-all duration-200">
+                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-brand-500/20 transition-colors">
+                        <svg className="w-4 h-4 text-gray-400 group-hover:text-brand-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                       </div>
@@ -2177,18 +2166,18 @@ function Header() {
                 )}
                 {roles?.includes('client') && roles?.includes('provider') && (
                   <>
-                    <div className="my-2 border-t border-gray-100"></div>
-                    <button onClick={()=>{ const next = viewRole === 'client' ? 'provider' : 'client'; switchToRole(next); closeMenu(); }} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${viewRole === 'client' ? 'bg-brand-50 group-hover:bg-brand-100' : 'bg-emerald-50 group-hover:bg-emerald-100'}`}>
-                        <svg className={`w-4 h-4 transition-colors ${viewRole === 'client' ? 'text-brand-600' : 'text-emerald-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="my-2 border-t border-white/10"></div>
+                    <button onClick={()=>{ const next = viewRole === 'client' ? 'provider' : 'client'; switchToRole(next); closeMenu(); }} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/10 rounded-xl transition-all duration-200">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${viewRole === 'client' ? 'bg-brand-500/20 group-hover:bg-brand-500/30' : 'bg-brand-500/20 group-hover:bg-brand-500/30'}`}>
+                        <svg className={`w-4 h-4 transition-colors ${viewRole === 'client' ? 'text-brand-400' : 'text-brand-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
                       </div>
                       <span className="font-medium">{t('header.switchToMode')} {viewRole === 'client' ? t('header.professional') : t('header.client')}</span>
                     </button>
-                    <button onClick={()=>{ clearViewRoleLock(); toast.info(t('header.autoModeRestored')); closeMenu(); }} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200">
-                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-yellow-50 transition-colors">
-                        <svg className="w-4 h-4 text-gray-500 group-hover:text-yellow-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button onClick={()=>{ clearViewRoleLock(); toast.info(t('header.autoModeRestored')); closeMenu(); }} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/10 rounded-xl transition-all duration-200">
+                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors">
+                        <svg className="w-4 h-4 text-gray-400 group-hover:text-yellow-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                       </div>
@@ -2196,10 +2185,10 @@ function Header() {
                     </button>
                   </>
                 )}
-                <div className="my-2 border-t border-gray-100"></div>
-                <button onClick={()=>{ setConfirmOut(true); closeMenu(); }} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200">
-                  <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
-                    <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="my-2 border-t border-white/10"></div>
+                <button onClick={()=>{ setConfirmOut(true); closeMenu(); }} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-200">
+                  <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
+                    <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
                   </div>

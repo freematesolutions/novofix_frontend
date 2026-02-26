@@ -259,7 +259,7 @@ const MessageBubble = memo(({
     >
       {/* Avatar (for received messages) */}
       {!isMine && showAvatar && (
-        <div className="w-8 h-8 rounded-full bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center text-white text-xs font-semibold shrink-0 shadow-lg shadow-brand-500/20">
+        <div className="w-8 h-8 rounded-full bg-linear-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-xs font-semibold shrink-0 shadow-lg shadow-brand-500/20">
           {(userName || 'U').charAt(0).toUpperCase()}
         </div>
       )}
@@ -350,7 +350,7 @@ const MessageBubble = memo(({
               className={`
                 relative px-4 py-2.5 rounded-2xl text-sm transition-all
                 ${isMine 
-                  ? 'bg-linear-to-r from-brand-500 to-cyan-500 text-white rounded-br-md shadow-lg shadow-brand-500/20' 
+                  ? 'bg-linear-to-r from-brand-500 to-brand-700 text-white rounded-br-md shadow-lg shadow-brand-500/20' 
                   : 'bg-white border border-gray-100 text-gray-900 rounded-bl-md shadow-sm'
                 }
               `}
@@ -363,7 +363,7 @@ const MessageBubble = memo(({
                   {formatTime(timestamp)}
                 </span>
                 {isMine && (
-                  <span className={`${status === 'read' ? 'text-cyan-300' : 'text-white/50'}`}>
+                  <span className={`${status === 'read' ? 'text-accent-300' : 'text-white/50'}`}>
                     {status === 'read' ? <Icons.DoubleCheck className="w-3 h-3" /> : <Icons.Check />}
                   </span>
                 )}
@@ -391,7 +391,7 @@ const MessageBubble = memo(({
           {/* Quick action buttons - visible on hover (desktop) */}
           <div 
             className={`
-              absolute top-0 opacity-0 group-hover:opacity-100 transition-opacity z-10
+              absolute top-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity z-10
               flex items-center gap-1 bg-white rounded-lg shadow-lg border border-gray-100 p-0.5
               ${isMine ? 'left-0 -translate-x-full -ml-2' : 'right-0 translate-x-full ml-2'}
             `}
@@ -1104,9 +1104,9 @@ function ChatRoom({
     <div className={`flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden ${className}`}>
       {/* Header */}
       {showHeader && (
-        <div className="px-4 py-3 border-b border-gray-100 bg-linear-to-r from-brand-50/50 to-cyan-50/30">
+        <div className="px-4 py-3 border-b border-gray-100 bg-linear-to-r from-brand-50/50 to-brand-100/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-brand-500/20">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-semibold shadow-lg shadow-brand-500/20">
               {chatTitle.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
@@ -1124,11 +1124,11 @@ function ChatRoom({
 
       {/* Panel de propuesta aceptable - Solo para clientes con propuesta pendiente */}
       {proposalInfo && userRole === 'client' && proposalInfo.status === 'pending' && onAcceptProposal && (
-        <div className="px-4 py-3 border-b border-gray-100 bg-linear-to-br from-emerald-50 via-green-50 to-teal-50">
+        <div className="px-4 py-3 border-b border-gray-100 bg-linear-to-br from-accent-50 via-accent-50/50 to-accent-100/30">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             {/* Icono y información */}
             <div className="flex items-center gap-3 flex-1">
-              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-accent-500 to-accent-600 flex items-center justify-center text-white shadow-lg shadow-accent-500/25">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -1137,7 +1137,7 @@ function ChatRoom({
                 <p className="text-sm font-medium text-gray-900">
                   {t('chat.proposalPending', 'Propuesta pendiente de {{provider}}', { provider: proposalInfo.providerName || t('chat.provider', 'proveedor') })}
                 </p>
-                <p className="text-lg font-bold text-emerald-600">
+                <p className="text-lg font-bold text-accent-600">
                   {proposalInfo.isRange 
                     ? `${proposalInfo.currency || 'US$'} ${proposalInfo.amountMin?.toLocaleString()} - ${proposalInfo.amountMax?.toLocaleString()}`
                     : `${proposalInfo.currency || 'US$'} ${proposalInfo.amount?.toLocaleString()}`
@@ -1160,7 +1160,7 @@ function ChatRoom({
               <button
                 onClick={() => onAcceptProposal(proposalInfo.proposalId)}
                 disabled={isAcceptingProposal}
-                className="flex-1 sm:flex-initial px-4 py-2.5 text-sm font-semibold text-white bg-linear-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg shadow-emerald-500/25 hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 sm:flex-initial px-4 py-2.5 text-sm font-semibold text-dark-900 bg-linear-to-r from-accent-500 to-accent-600 rounded-xl shadow-lg shadow-accent-500/25 hover:from-accent-600 hover:to-accent-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isAcceptingProposal ? (
                   <>
@@ -1259,10 +1259,10 @@ function ChatRoom({
         if (!showProviderActions) return null;
         
         return (
-          <div className="px-4 py-3 border-t border-gray-100 bg-linear-to-r from-brand-50/50 to-cyan-50/30">
+          <div className="px-4 py-3 border-t border-gray-100 bg-linear-to-r from-brand-50/50 to-brand-100/30">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center text-white shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white shadow-sm">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -1283,7 +1283,7 @@ function ChatRoom({
                 <button
                   type="button"
                   onClick={() => navigate(`/empleos/${serviceRequestId}`)}
-                  className="px-3 py-1.5 text-sm font-semibold text-white bg-linear-to-r from-brand-600 to-cyan-500 rounded-xl shadow-sm hover:from-brand-700 hover:to-cyan-600 transition-colors"
+                  className="px-3 py-1.5 text-sm font-semibold text-white bg-linear-to-r from-brand-600 to-brand-700 rounded-xl shadow-sm hover:from-brand-700 hover:to-brand-800 transition-colors"
                 >
                   {t('provider.requestDetail.sendProposal', 'Enviar estimado')}
                 </button>
@@ -1301,10 +1301,10 @@ function ChatRoom({
         if (!showClientActions) return null;
         
         return (
-          <div className="px-4 py-3 border-t border-gray-100 bg-linear-to-r from-emerald-50/50 to-teal-50/30">
+          <div className="px-4 py-3 border-t border-gray-100 bg-linear-to-r from-accent-50/50 to-accent-100/30">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-accent-500 to-accent-600 flex items-center justify-center text-white shadow-sm">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
@@ -1331,7 +1331,7 @@ function ChatRoom({
                       navigate(`/mis-solicitudes`);
                     }
                   }}
-                  className="px-3 py-1.5 text-sm font-semibold text-white bg-linear-to-r from-emerald-600 to-teal-500 rounded-xl shadow-sm hover:from-emerald-700 hover:to-teal-600 transition-colors"
+                  className="px-3 py-1.5 text-sm font-semibold text-dark-900 bg-linear-to-r from-accent-500 to-accent-600 rounded-xl shadow-sm hover:from-accent-600 hover:to-accent-700 transition-colors"
                 >
                   {t('chat.infoRequestClient.updateRequest', 'Actualizar solicitud')}
                 </button>

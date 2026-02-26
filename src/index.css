@@ -564,25 +564,6 @@ body { margin: 0; }
 	overflow: visible;
 }
 
-.nav-link::before,
-.nav-link-tooltip::before {
-	content: '';
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	width: 100%;
-	height: 2px;
-	background: linear-gradient(90deg, currentColor, transparent);
-	transform: translateX(-100%);
-	transition: transform 0.3s ease;
-	opacity: 0.3;
-}
-
-.nav-link:hover::before,
-.nav-link-tooltip:hover::before {
-	transform: translateX(0);
-}
-
 /* Navigation tooltip styles - usando title nativo */
 .nav-link-tooltip {
 	position: relative;
@@ -590,7 +571,7 @@ body { margin: 0; }
 }
 
 .nav-link-tooltip:hover {
-	z-index: 50;
+	z-index: 2;
 }
 
 /* Border-l-3 utility for notification indicator */
@@ -633,7 +614,7 @@ body { margin: 0; }
 	box-shadow: 
 		0 30px 60px -15px rgba(0,0,0,0.6),
 		0 0 0 3px rgba(255,255,255,0.5),
-		0 0 60px -10px rgba(59,130,246,0.5),
+		0 0 60px -10px rgba(0,128,128,0.5),
 		inset 0 2px 6px rgba(255,255,255,0.3) !important;
 }
 
@@ -664,7 +645,7 @@ body { margin: 0; }
 		box-shadow: 
 			0 25px 50px -15px rgba(0,0,0,0.55),
 			0 0 0 3px rgba(255,255,255,0.4),
-			0 0 50px -10px rgba(59,130,246,0.4) !important;
+			0 0 50px -10px rgba(0,128,128,0.4) !important;
 	}
 
 	.carousel-card:active .carousel-card-label {

@@ -112,9 +112,9 @@ export default function AdminUsers() {
 
   const getRoleInfo = (r) => {
     const info = {
-      client: { label: t('admin.users.roles.client'), icon: <HiUserAdd className="w-3.5 h-3.5" />, color: 'bg-emerald-100 text-emerald-700' },
+      client: { label: t('admin.users.roles.client'), icon: <HiUserAdd className="w-3.5 h-3.5" />, color: 'bg-brand-100 text-brand-700' },
       provider: { label: t('admin.users.roles.provider'), icon: <HiBriefcase className="w-3.5 h-3.5" />, color: 'bg-brand-100 text-brand-700' },
-      admin: { label: t('admin.users.roles.admin'), icon: <HiShieldCheck className="w-3.5 h-3.5" />, color: 'bg-indigo-100 text-indigo-700' },
+      admin: { label: t('admin.users.roles.admin'), icon: <HiShieldCheck className="w-3.5 h-3.5" />, color: 'bg-indigo-100 text-brand-700' },
     };
     return info[r] || { label: r, icon: null, color: 'bg-gray-100 text-gray-700' };
   };
@@ -135,9 +135,9 @@ export default function AdminUsers() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header Section */}
-      <div className="relative overflow-hidden bg-linear-to-br from-indigo-600 via-indigo-700 to-purple-700 rounded-2xl p-8 text-white">
+      <div className="relative overflow-hidden bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 rounded-2xl p-8 text-white">
         <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-        <div className="absolute bottom-0 left-0 w-56 h-56 bg-purple-400/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4"></div>
+        <div className="absolute bottom-0 left-0 w-56 h-56 bg-brand-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4"></div>
         <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
@@ -145,7 +145,7 @@ export default function AdminUsers() {
             </div>
             <div>
               <h1 className="text-2xl font-bold mb-1">{t('admin.users.title')}</h1>
-              <p className="text-indigo-200 text-sm">{t('admin.users.subtitle')}</p>
+              <p className="text-gray-300 text-sm">{t('admin.users.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -176,7 +176,7 @@ export default function AdminUsers() {
           </div>
           <div className="flex flex-wrap gap-3">
             <select 
-              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all"
               value={roleFilter} 
               onChange={(e) => setRoleFilter(e.target.value)}
             >
@@ -186,7 +186,7 @@ export default function AdminUsers() {
               <option value="admin">{t('admin.users.roles.admin')}</option>
             </select>
             <select 
-              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all"
               value={statusFilter} 
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -210,16 +210,16 @@ export default function AdminUsers() {
 
       {/* Bulk Actions */}
       {selected.size > 0 && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4">
+        <div className="bg-brand-50 border border-brand-200 rounded-2xl p-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <span className="text-sm font-medium text-indigo-700">
+            <span className="text-sm font-medium text-brand-700">
               {selected.size} {t('admin.users.bulk.selected', { count: selected.size })}
             </span>
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => bulkUpdateActive(true)}
                 disabled={updating === 'bulk'}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50"
               >
                 {updating === 'bulk' ? <Spinner size="xs" /> : <HiCheck className="w-4 h-4" />}
                 {t('admin.users.bulk.activate')}
@@ -245,7 +245,7 @@ export default function AdminUsers() {
             <label className="flex items-center gap-2 cursor-pointer">
               <input 
                 type="checkbox" 
-                className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                 checked={selected.size === items.length && items.length > 0} 
                 onChange={selectAll} 
               />
@@ -262,17 +262,17 @@ export default function AdminUsers() {
             return (
               <div 
                 key={u._id} 
-                className={`p-4 transition-all hover:bg-gray-50 ${selected.has(u._id) ? 'bg-indigo-50/50' : ''}`}
+                className={`p-4 transition-all hover:bg-gray-50 ${selected.has(u._id) ? 'bg-brand-50/50' : ''}`}
               >
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4 min-w-0">
                     <input 
                       type="checkbox" 
-                      className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                       checked={selected.has(u._id)} 
                       onChange={() => toggleSelect(u._id)} 
                     />
-                    <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dark-600 to-dark-700 flex items-center justify-center text-white font-bold text-sm shrink-0">
                       {(u.profile?.firstName?.[0] || u.email?.[0] || '?').toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -290,13 +290,13 @@ export default function AdminUsers() {
                     </span>
                     {/* Status */}
                     <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
-                      u.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                      u.isActive ? 'bg-brand-100 text-brand-700' : 'bg-red-100 text-red-700'
                     }`}>
                       {u.isActive ? t('admin.users.status.active') : t('admin.users.status.inactive')}
                     </span>
                     {/* Role Selector */}
                     <select 
-                      className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+                      className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all disabled:opacity-50"
                       disabled={updating === u._id} 
                       value={u.role} 
                       onChange={(e) => updateRole(u, e.target.value)}
@@ -320,7 +320,7 @@ export default function AdminUsers() {
                         <button 
                           onClick={() => toggleActive(u, true)}
                           disabled={updating === u._id}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-xs font-medium rounded-lg transition-all disabled:opacity-50"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-brand-100 hover:bg-brand-200 text-brand-700 text-xs font-medium rounded-lg transition-all disabled:opacity-50"
                         >
                           {updating === u._id ? <Spinner size="xs" /> : <HiCheck className="w-3.5 h-3.5" />}
                           {t('admin.users.actions.activate')}
@@ -364,7 +364,7 @@ export default function AdminUsers() {
                       onClick={() => setPage(pageNum)}
                       className={`w-9 h-9 text-sm font-medium rounded-lg transition-colors ${
                         page === pageNum
-                          ? 'bg-linear-to-r from-indigo-500 to-purple-500 text-white'
+                          ? 'bg-linear-to-r from-dark-600 to-dark-700 text-white'
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >

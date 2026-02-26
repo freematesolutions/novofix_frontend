@@ -309,7 +309,7 @@ export default function CreateRequest() {
               {!eligibility.loading && eligibility.count !== null && (
                 eligibility.count === 0
                   ? <span className="text-red-600">{t('client.createRequest.noProvidersEligibility')}</span>
-                  : <span className="text-green-700">{t('client.createRequest.eligibleProviders', { count: eligibility.count })}</span>
+                  : <span className="text-brand-700">{t('client.createRequest.eligibleProviders', { count: eligibility.count })}</span>
               )}
               {!eligibility.loading && eligibility.count === null && <span>{t('client.createRequest.eligibilityError')}</span>}
             </div>
@@ -324,7 +324,7 @@ export default function CreateRequest() {
           
           {(!eligibility.loading && Array.isArray(eligibility.providers) && eligibility.providers.length > 0) && (
               <div className="mt-3 text-xs">
-                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="mb-3 p-3 bg-brand-50 border border-brand-200 rounded-md">
                   <div className="flex items-center justify-between gap-3 mb-2">
                     <label className="flex items-center gap-2 text-sm font-medium text-gray-900 cursor-pointer">
                       <input
@@ -336,20 +336,20 @@ export default function CreateRequest() {
                             setSelectedProviders([]);
                           }
                         }}
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-brand-600 rounded focus:ring-brand-500"
                       />
                       <span>{t('client.createRequest.sendToAllProviders')}</span>
                     </label>
                   </div>
                   {!sendToAll && (
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-blue-200">
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-brand-200">
                       <span className="text-xs text-gray-600">
                         {t('client.createRequest.selectedCount', { selected: selectedProviders.length, total: eligibility.providers.length })}
                       </span>
                       <button
                         type="button"
                         onClick={toggleSelectAll}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        className="text-xs text-brand-600 hover:text-brand-800 font-medium"
                       >
                         {selectedProviders.length === eligibility.providers.length ? t('client.createRequest.deselectAll') : t('client.createRequest.selectAll')}
                       </button>
@@ -363,7 +363,7 @@ export default function CreateRequest() {
                       p.canReceiveLeads === false 
                         ? 'bg-yellow-50 border-yellow-200' 
                         : selectedProviders.includes(p._id) && !sendToAll
-                        ? 'bg-blue-50 border-blue-300'
+                        ? 'bg-brand-50 border-brand-300'
                         : 'bg-white border-gray-200'
                     }`}>
                       <div className="flex items-start justify-between gap-2">
@@ -374,7 +374,7 @@ export default function CreateRequest() {
                               checked={selectedProviders.includes(p._id)}
                               onChange={() => toggleProviderSelection(p._id)}
                               disabled={p.canReceiveLeads === false}
-                              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                           </div>
                         )}
@@ -391,8 +391,8 @@ export default function CreateRequest() {
                             )}
                             {p.plan && (
                               <span className={`px-1.5 py-0.5 rounded font-medium ${
-                                p.plan === 'pro' ? 'bg-purple-100 text-purple-700' :
-                                p.plan === 'basic' ? 'bg-blue-100 text-blue-700' :
+                                p.plan === 'pro' ? 'bg-brand-100 text-brand-700' :
+                                p.plan === 'basic' ? 'bg-gray-100 text-gray-700' :
                                 'bg-gray-100 text-gray-600'
                               }`}>
                                 {p.plan.toUpperCase()}
@@ -414,7 +414,7 @@ export default function CreateRequest() {
                           {/* Score */}
                           <div className="text-right">
                             <div className="text-[10px] text-gray-500 uppercase">Score</div>
-                            <div className="text-sm font-bold text-emerald-600">{p.score?.toFixed(1) || 'N/A'}</div>
+                            <div className="text-sm font-bold text-brand-600">{p.score?.toFixed(1) || 'N/A'}</div>
                           </div>
                           
                           {/* Portfolio badge and button */}
@@ -426,7 +426,7 @@ export default function CreateRequest() {
                                 portfolio: p.portfolio,
                                 providerName: p.businessName || p.profile?.firstName || 'Proveedor'
                               })}
-                              className="flex items-center gap-1 px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded text-[10px] font-medium transition-colors"
+                              className="flex items-center gap-1 px-2 py-1 bg-accent-100 hover:bg-accent-200 text-accent-700 rounded text-[10px] font-medium transition-colors"
                               title="Ver portafolio"
                             >
                               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -715,7 +715,7 @@ export default function CreateRequest() {
             </MediaUploader>
           </div>
           {uploadingMedia && (
-            <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-md">
+            <div className="flex items-center gap-2 text-sm text-brand-600 bg-brand-50 px-3 py-2 rounded-md">
               <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

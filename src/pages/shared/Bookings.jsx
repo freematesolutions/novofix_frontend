@@ -831,20 +831,20 @@ export default function Bookings() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-emerald-50/30">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/30">
       {/* Background decorativo */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-teal-200/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-emerald-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-brand-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-brand-200/20 rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Encabezado Premium con esquinas redondeadas - diferenciado por rol */}
         <div
-          className={`overflow-hidden rounded-2xl ${isProvider ? 'bg-linear-to-br from-brand-500 via-brand-600 to-cyan-600' : isClient ? 'bg-linear-to-br from-emerald-500 via-emerald-600 to-teal-600' : 'bg-linear-to-br from-gray-600 via-gray-700 to-gray-800'} p-6 sm:p-8 text-white relative`}
+          className={`overflow-hidden rounded-2xl ${isProvider ? 'bg-linear-to-br from-dark-700 via-dark-800 to-dark-900' : isClient ? 'bg-linear-to-br from-dark-700 via-dark-800 to-dark-900' : 'bg-linear-to-br from-gray-600 via-gray-700 to-gray-800'} p-6 sm:p-8 text-white relative`}
         >
           {/* Decoración del header */}
-          <div className={`absolute top-0 right-0 w-64 h-64 ${isProvider ? 'bg-cyan-400/20' : 'bg-teal-400/20'} rounded-full blur-2xl -translate-y-1/2 translate-x-1/4 pointer-events-none`}></div>
+          <div className={`absolute top-0 right-0 w-64 h-64 ${isProvider ? 'bg-brand-400/20' : 'bg-dark-400/20'} rounded-full blur-2xl -translate-y-1/2 translate-x-1/4 pointer-events-none`}></div>
           
           <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -864,7 +864,7 @@ export default function Bookings() {
                 <h1 className="text-2xl sm:text-3xl font-bold">
                   {isProvider ? t('shared.bookings.title.provider') : t('shared.bookings.title.client')}
                 </h1>
-                <p className={`text-sm mt-0.5 ${isProvider ? 'text-brand-100' : 'text-emerald-100'}`}>
+                <p className={`text-sm mt-0.5 ${isProvider ? 'text-brand-100' : 'text-gray-300'}`}>
                   {isProvider 
                     ? t('shared.bookings.subtitle.provider') 
                     : t('shared.bookings.subtitle.client')}
@@ -900,13 +900,13 @@ export default function Bookings() {
             {/* Estado */}
             <div className="flex flex-col w-full sm:w-auto">
               <label className="text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {t('shared.bookings.filters.status')}
               </label>
               <select 
-                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300 min-w-45" 
+                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all duration-300 min-w-45" 
                 value={statusFilter} 
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -923,14 +923,14 @@ export default function Bookings() {
             <div className="flex gap-3 w-full sm:w-auto">
               <div className="flex flex-col flex-1 sm:flex-initial">
                 <label className="text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   {t('shared.bookings.filters.from')}
                 </label>
                 <input 
                   type="date" 
-                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300" 
+                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all duration-300" 
                   value={dateFrom} 
                   onChange={(e) => setDateFrom(e.target.value)} 
                 />
@@ -939,7 +939,7 @@ export default function Bookings() {
                 <label className="text-xs font-medium text-gray-600 mb-1.5">{t('shared.bookings.filters.to')}</label>
                 <input 
                   type="date" 
-                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300" 
+                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all duration-300" 
                   value={dateTo} 
                   onChange={(e) => setDateTo(e.target.value)} 
                 />
@@ -949,7 +949,7 @@ export default function Bookings() {
             {/* Búsqueda */}
             <div className="flex-1 flex flex-col w-full lg:w-auto">
               <label className="text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 {t('shared.bookings.filters.search')}
@@ -958,7 +958,7 @@ export default function Bookings() {
                 <input 
                   type="text" 
                   placeholder={t('shared.bookings.filters.searchPlaceholder')} 
-                  className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 transition-all duration-300" 
+                  className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all duration-300" 
                   value={search} 
                   onChange={(e) => setSearch(e.target.value)} 
                 />
@@ -987,11 +987,11 @@ export default function Bookings() {
         
         {/* Loading state premium */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-16 bg-white/60 backdrop-blur-xl rounded-3xl border border-teal-100/40 shadow-lg">
+          <div className="flex flex-col items-center justify-center py-16 bg-white/60 backdrop-blur-xl rounded-3xl border border-brand-100/40 shadow-lg">
             <div className="relative">
-              <div className="w-16 h-16 rounded-full border-4 border-teal-100 border-t-teal-500 animate-spin"></div>
+              <div className="w-16 h-16 rounded-full border-4 border-brand-100 border-t-brand-500 animate-spin"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full bg-teal-500/20"></div>
+                <div className="w-8 h-8 rounded-full bg-brand-500/20"></div>
               </div>
             </div>
             <p className="mt-4 text-gray-600 font-medium">{t('shared.bookings.loading')}</p>
@@ -1000,11 +1000,11 @@ export default function Bookings() {
 
         {/* Empty state premium */}
         {!loading && (!filtered || filtered.length === 0) && (
-          <div className="relative overflow-hidden bg-white/80 backdrop-blur-xl rounded-3xl border border-dashed border-teal-200 shadow-lg p-8 sm:p-12 text-center">
-            <div className="absolute inset-0 bg-linear-to-br from-teal-50/50 via-transparent to-emerald-50/50"></div>
+          <div className="relative overflow-hidden bg-white/80 backdrop-blur-xl rounded-3xl border border-dashed border-brand-200 shadow-lg p-8 sm:p-12 text-center">
+            <div className="absolute inset-0 bg-linear-to-br from-brand-50/50 via-transparent to-brand-50/50"></div>
             <div className="relative">
-              <div className="w-20 h-20 mx-auto rounded-3xl bg-linear-to-br from-teal-100 to-emerald-100 flex items-center justify-center mb-6">
-                <svg className="w-10 h-10 text-teal-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <div className="w-20 h-20 mx-auto rounded-3xl bg-linear-to-br from-brand-100 to-brand-100 flex items-center justify-center mb-6">
+                <svg className="w-10 h-10 text-brand-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
               </div>
@@ -1020,21 +1020,21 @@ export default function Bookings() {
         {filtered.map((b) => {
           // Status configuration for premium badges
           const statusConfig = {
-            pending: { color: 'from-amber-500 to-orange-500', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: '⏳', labelKey: 'shared.bookings.status.pending' },
-            confirmed: { color: 'from-blue-500 to-cyan-500', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: '✓', labelKey: 'shared.bookings.status.confirmed' },
-            in_progress: { color: 'from-indigo-500 to-purple-500', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', icon: '🔄', labelKey: 'shared.bookings.status.inProgress' },
-            completed: { color: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: '✅', labelKey: 'shared.bookings.status.completed' },
+            pending: { color: 'from-accent-500 to-accent-600', bg: 'bg-accent-50', text: 'text-accent-700', border: 'border-accent-200', icon: '⏳', labelKey: 'shared.bookings.status.pending' },
+            confirmed: { color: 'from-brand-500 to-brand-600', bg: 'bg-brand-50', text: 'text-brand-700', border: 'border-brand-200', icon: '✓', labelKey: 'shared.bookings.status.confirmed' },
+            in_progress: { color: 'from-accent-500 to-accent-600', bg: 'bg-accent-50', text: 'text-accent-700', border: 'border-accent-200', icon: '🔄', labelKey: 'shared.bookings.status.inProgress' },
+            completed: { color: 'from-brand-500 to-brand-600', bg: 'bg-brand-50', text: 'text-brand-700', border: 'border-brand-200', icon: '✅', labelKey: 'shared.bookings.status.completed' },
             cancelled: { color: 'from-red-500 to-rose-500', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: '✗', labelKey: 'shared.bookings.status.cancelled' },
           };
           const currentStatus = statusConfig[b.status] || statusConfig.pending;
           
           return (
-            <div key={b._id} className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 overflow-hidden">
+            <div key={b._id} className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-brand-500/10 transition-all duration-300 overflow-hidden">
               {/* Status color bar */}
               <div className={`absolute top-0 left-0 w-1.5 h-full bg-linear-to-b ${currentStatus.color} rounded-l-2xl`} />
               
               {/* Premium corner accent */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-linear-to-br from-emerald-500/5 via-teal-500/3 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-linear-to-br from-brand-500/5 via-brand-500/3 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <div className="p-5 pl-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Column 1: Service Info */}
@@ -1042,7 +1042,7 @@ export default function Bookings() {
                   {/* Header with title and status */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-lg leading-tight truncate group-hover:text-emerald-700 transition-colors">
+                      <h3 className="font-semibold text-gray-900 text-lg leading-tight truncate group-hover:text-brand-700 transition-colors">
                         {getTranslatedRequestInfo(b.serviceRequest, currentLang).title || t('shared.bookings.service')}
                       </h3>
                       <div className="flex items-center gap-2 mt-1.5">
@@ -1058,7 +1058,7 @@ export default function Bookings() {
                   <div className="space-y-2">
                     {b.schedule?.scheduledDate && (
                       <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-linear-to-br from-teal-50 to-emerald-50 text-teal-600">
+                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-linear-to-br from-brand-50 to-brand-50 text-brand-600">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
@@ -1068,7 +1068,7 @@ export default function Bookings() {
                     )}
                     {b.serviceRequest?.location?.address && (
                       <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-linear-to-br from-emerald-50 to-cyan-50 text-emerald-600">
+                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-linear-to-br from-brand-50 to-brand-50 text-brand-600">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1083,7 +1083,7 @@ export default function Bookings() {
                   {(b?.serviceEvidence && (b.serviceEvidence.before?.length || b.serviceEvidence.during?.length || b.serviceEvidence.after?.length)) && (
                     <div className="pt-3 border-t border-gray-100 space-y-3">
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         {t('shared.bookings.evidence.title')}
@@ -1092,7 +1092,7 @@ export default function Bookings() {
                         const items = b.serviceEvidence?.[section] || [];
                         if (!items.length) return null;
                         const label = section === 'before' ? t('shared.bookings.evidence.before') : section === 'during' ? t('shared.bookings.evidence.during') : t('shared.bookings.evidence.after');
-                        const sectionColor = section === 'before' ? 'amber' : section === 'during' ? 'blue' : 'emerald';
+                        const sectionColor = section === 'before' ? 'amber' : section === 'during' ? 'brand' : 'green';
                         return (
                           <div key={section}>
                             <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-${sectionColor}-50 text-${sectionColor}-700 mb-2`}>
@@ -1105,7 +1105,7 @@ export default function Bookings() {
                                   const imageItems = items.filter(it=> isMediaImage(it.url)).map(it=> ({ url: it.url, kind: 'image' }));
                                   const imageIndex = imageItems.findIndex(it=> it.url === url);
                                   return (
-                                    <button type="button" key={idx} onClick={()=> openLightbox(imageItems, imageIndex)} className="group/thumb w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-emerald-300 bg-gray-50 transition-all hover:scale-105 hover:shadow-lg">
+                                    <button type="button" key={idx} onClick={()=> openLightbox(imageItems, imageIndex)} className="group/thumb w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 bg-gray-50 transition-all hover:scale-105 hover:shadow-lg">
                                       <img src={url} alt={ev.description || 'evidencia'} className="w-full h-full object-cover"/>
                                     </button>
                                   );
@@ -1114,13 +1114,13 @@ export default function Bookings() {
                                   const videoItems = items.filter(it=> isMediaVideo(it.url)).map(it=> ({ url: it.url, kind: 'video' }));
                                   const videoIndex = videoItems.findIndex(it=> it.url === url);
                                   return (
-                                    <button type="button" key={idx} onClick={()=> openLightbox(videoItems, videoIndex)} className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-200 hover:border-indigo-300 bg-linear-to-br from-gray-800 to-gray-900 text-white text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
+                                    <button type="button" key={idx} onClick={()=> openLightbox(videoItems, videoIndex)} className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-200 hover:border-brand-300 bg-linear-to-br from-gray-800 to-gray-900 text-white text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
                                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                     </button>
                                   );
                                 }
                                 return (
-                                  <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-teal-300 bg-gray-50 text-gray-500 text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
+                                  <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 bg-gray-50 text-gray-500 text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                   </a>
                                 );
@@ -1139,13 +1139,13 @@ export default function Bookings() {
                 {/* Column 2: Pricing & Participants */}
                 <div className="lg:col-span-4 space-y-4">
                   {/* Pricing card */}
-                  <div className="p-4 rounded-xl bg-linear-to-br from-emerald-50/80 via-teal-50/50 to-cyan-50/30 border border-emerald-100/50">
+                  <div className="p-4 rounded-xl bg-linear-to-br from-brand-50/80 via-brand-50/50 to-brand-50/30 border border-brand-100/50">
                     <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
                       {b.proposal?.pricing?.isRange 
                         ? t('shared.bookings.pricing.estimatedRange', 'Rango estimado')
                         : t('shared.bookings.pricing.totalAmount')}
                     </div>
-                    <div className="text-2xl font-bold bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                    <div className="text-2xl font-bold bg-linear-to-r from-brand-600 to-brand-600 bg-clip-text text-transparent">
                       {(() => {
                         const p = b.proposal?.pricing;
                         if (!p) return '—';
@@ -1158,7 +1158,7 @@ export default function Bookings() {
                     </div>
                     {b.proposal?.pricing?.isRange && (
                       <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
-                        <svg className="w-3.5 h-3.5 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="w-3.5 h-3.5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         {t('shared.bookings.pricing.rangeHint', 'El monto final se define al completar el servicio')}
@@ -1169,7 +1169,7 @@ export default function Bookings() {
                   {/* Participants */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 border border-gray-100">
-                      <div className="flex items-center justify-center w-9 h-9 rounded-full bg-linear-to-br from-cyan-500 to-teal-500 text-white text-sm font-medium shadow-lg shadow-teal-500/20">
+                      <div className="flex items-center justify-center w-9 h-9 rounded-full bg-linear-to-br from-brand-500 to-brand-600 text-white text-sm font-medium shadow-lg shadow-brand-500/20">
                         {(b.provider?.providerProfile?.businessName || '?')[0].toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1178,7 +1178,7 @@ export default function Bookings() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 border border-gray-100">
-                      <div className="flex items-center justify-center w-9 h-9 rounded-full bg-linear-to-br from-emerald-500 to-green-500 text-white text-sm font-medium shadow-lg shadow-emerald-500/20">
+                      <div className="flex items-center justify-center w-9 h-9 rounded-full bg-linear-to-br from-brand-500 to-brand-600 text-white text-sm font-medium shadow-lg shadow-brand-500/20">
                         {(b.client?.profile?.firstName || b.client?.email || '?')[0].toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1190,22 +1190,22 @@ export default function Bookings() {
                   
                   {/* Review Summary */}
                   {reviewsByBooking[b._id] !== undefined && reviewsByBooking[b._id] !== null && (
-                    <div className="p-4 rounded-xl bg-linear-to-br from-amber-50/80 to-yellow-50/50 border border-amber-100/50">
+                    <div className="p-4 rounded-xl bg-linear-to-br from-accent-50/80 to-accent-50/50 border border-accent-100/50">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                          <svg className="w-4 h-4 text-accent-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                           <span className="text-sm font-medium text-gray-700">{t('shared.bookings.review.serviceReview')}</span>
                         </div>
                         {reviewsByBooking[b._id].status === 'flagged' && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">{t('shared.bookings.review.inModeration')}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent-100 text-accent-700 font-medium">{t('shared.bookings.review.inModeration')}</span>
                         )}
                       </div>
                       {reviewsByBooking[b._id].status === 'flagged' && (
-                        <div className="text-[11px] text-amber-600 mb-2 p-2 rounded-lg bg-amber-100/50">{t('shared.bookings.review.moderationNote')}</div>
+                        <div className="text-[11px] text-accent-600 mb-2 p-2 rounded-lg bg-accent-100/50">{t('shared.bookings.review.moderationNote')}</div>
                       )}
-                      <div className="flex items-center gap-1 text-lg font-bold text-amber-600 mb-1">
+                      <div className="flex items-center gap-1 text-lg font-bold text-accent-600 mb-1">
                         {reviewsByBooking[b._id].rating?.overall || '—'}
-                        <svg className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        <svg className="w-5 h-5 text-accent-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                       </div>
                       {reviewsByBooking[b._id].review?.comment && (
                         <p className="text-xs text-gray-600 line-clamp-2 italic">"{getTranslatedReviewInfo(reviewsByBooking[b._id], currentLang).comment}"</p>
@@ -1242,14 +1242,14 @@ export default function Bookings() {
                           </div>
                           {isProvider && (
                             <div className="mt-2 flex items-center gap-2">
-                              <button onClick={()=> openEditResponse(reviewsByBooking[b._id])} className="text-xs text-teal-600 hover:text-teal-700 font-medium hover:underline">{t('shared.bookings.actions.edit')}</button>
+                              <button onClick={()=> openEditResponse(reviewsByBooking[b._id])} className="text-xs text-brand-600 hover:text-brand-700 font-medium hover:underline">{t('shared.bookings.actions.edit')}</button>
                               <button onClick={()=> handleDeleteResponse(reviewsByBooking[b._id])} className="text-xs text-red-500 hover:text-red-600 font-medium hover:underline">{t('shared.bookings.actions.delete')}</button>
                             </div>
                           )}
                         </div>
                       ) : (
                         isProvider && (
-                          <button onClick={()=> openResponse(reviewsByBooking[b._id])} className="mt-2 text-xs text-teal-600 hover:text-teal-700 font-medium hover:underline flex items-center gap-1">
+                          <button onClick={()=> openResponse(reviewsByBooking[b._id])} className="mt-2 text-xs text-brand-600 hover:text-brand-700 font-medium hover:underline flex items-center gap-1">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                             {t('shared.bookings.actions.respondReview')}
                           </button>
@@ -1288,7 +1288,7 @@ export default function Bookings() {
                   {isProvider && b.status === 'completed' && !clientReviewedIds.has(b._id) && (
                     <button 
                       onClick={() => openClientReview(b)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white text-sm font-medium shadow-lg shadow-teal-500/25 transition-all flex items-center justify-center gap-2"
+                      className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center gap-2"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -1299,9 +1299,9 @@ export default function Bookings() {
                   
                   {/* Para PROVEEDORES: Ya calificó al cliente - mostrar calificación enviada */}
                   {isProvider && clientReviewedIds.has(b._id) && sentClientReviews[b._id] && (
-                    <div className="w-full p-3 rounded-xl bg-teal-50 border border-teal-200 space-y-2">
+                    <div className="w-full p-3 rounded-xl bg-brand-50 border border-brand-200 space-y-2">
                       {/* Header con checkmark */}
-                      <div className="flex items-center gap-2 text-teal-700 font-medium text-sm">
+                      <div className="flex items-center gap-2 text-brand-700 font-medium text-sm">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                         {t('shared.bookings.review.clientReviewSent')}
                       </div>
@@ -1311,7 +1311,7 @@ export default function Bookings() {
                         <span className="text-xs text-gray-600">{t('shared.bookings.modal.overallRating')}:</span>
                         <div className="flex items-center gap-0.5">
                           {[1,2,3,4,5].map((s) => (
-                            <svg key={s} className={`w-3.5 h-3.5 ${s <= (sentClientReviews[b._id]?.rating?.overall || 0) ? 'text-amber-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+                            <svg key={s} className={`w-3.5 h-3.5 ${s <= (sentClientReviews[b._id]?.rating?.overall || 0) ? 'text-accent-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
                               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                             </svg>
                           ))}
@@ -1343,7 +1343,7 @@ export default function Bookings() {
                       {reviewsByBooking[b._id] === null && !reviewedIds.has(b._id) && (
                         <button 
                           onClick={()=> openReview(b)} 
-                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-white text-sm font-medium shadow-lg shadow-accent-500/25 transition-all flex items-center justify-center gap-2"
                         >
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                           ⭐ {t('shared.bookings.actions.leaveReview')}
@@ -1354,7 +1354,7 @@ export default function Bookings() {
                       {reviewsByBooking[b._id] === undefined && !reviewLoadingMap[b._id] && !reviewedIds.has(b._id) && (
                         <button 
                           onClick={()=> openReview(b)} 
-                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-white text-sm font-medium shadow-lg shadow-accent-500/25 transition-all flex items-center justify-center gap-2"
                         >
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                           ⭐ {t('shared.bookings.actions.leaveReview')}
@@ -1363,7 +1363,7 @@ export default function Bookings() {
                       
                       {/* Ya se envió reseña en esta sesión */}
                       {reviewedIds.has(b._id) && (
-                        <div className="w-full px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium flex items-center justify-center gap-2">
+                        <div className="w-full px-4 py-2.5 rounded-xl bg-brand-50 border border-brand-200 text-sm text-brand-700 font-medium flex items-center justify-center gap-2">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                           ✓ {t('shared.bookings.review.reviewSent')}
                         </div>
@@ -1397,10 +1397,10 @@ export default function Bookings() {
                           disabled={updating === b._id}
                           className={`w-full px-4 py-2.5 rounded-xl text-white text-sm font-medium shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${
                             b.status === 'confirmed' 
-                              ? 'bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-blue-500/25 hover:shadow-blue-500/40'
+                              ? 'bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 shadow-brand-500/25 hover:shadow-brand-500/40'
                               : b.status === 'provider_en_route'
-                              ? 'bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/25 hover:shadow-amber-500/40'
-                              : 'bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-emerald-500/25 hover:shadow-emerald-500/40'
+                              ? 'bg-linear-to-r from-accent-500 to-accent-600 hover:from-amber-600 hover:to-orange-600 shadow-accent-500/25 hover:shadow-amber-500/40'
+                              : 'bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-green-500/25 hover:shadow-green-500/40'
                           }`}
                         >
                           {updating === b._id ? (
@@ -1414,7 +1414,7 @@ export default function Bookings() {
                       
                       {/* Estado completado - badge de éxito */}
                       {b.status === 'completed' && (
-                        <div className="w-full px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-medium flex items-center justify-center gap-2">
+                        <div className="w-full px-4 py-2.5 rounded-xl bg-brand-50 border border-brand-200 text-sm text-brand-700 font-medium flex items-center justify-center gap-2">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           {t('shared.bookings.status.serviceCompleted')}
                         </div>
@@ -1424,7 +1424,7 @@ export default function Bookings() {
                       {b.status !== 'completed' && b.status !== 'cancelled' && (
                         <div className="relative">
                           <select 
-                            className="w-full appearance-none px-4 py-2.5 pr-10 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm font-medium text-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 cursor-pointer" 
+                            className="w-full appearance-none px-4 py-2.5 pr-10 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm font-medium text-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 cursor-pointer" 
                             value="" 
                             onChange={(e)=> updateStatus(b._id, e.target.value)} 
                             disabled={updating === b._id}
@@ -1451,7 +1451,7 @@ export default function Bookings() {
                         onClick={()=> openEvidence(b)} 
                         className="w-full px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm font-medium text-gray-700 transition-all flex items-center justify-center gap-2"
                       >
-                        <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         {t('shared.bookings.actions.uploadEvidence')}
                       </button>
                       
@@ -1460,7 +1460,7 @@ export default function Bookings() {
                         <button 
                           onClick={()=> openBookingChat(b)} 
                           disabled={chatLoading === b._id}
-                          className="w-full px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-sm font-medium text-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                          className="w-full px-4 py-2.5 rounded-xl bg-brand-50 hover:bg-brand-100 border border-brand-200 text-sm font-medium text-brand-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                           {chatLoading === b._id ? (
                             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
@@ -1479,7 +1479,7 @@ export default function Bookings() {
                         <button 
                           onClick={()=>confirmCompletion(b._id)} 
                           disabled={updating === b._id}
-                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-sm font-medium shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                           {updating === b._id ? (
                             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
@@ -1495,7 +1495,7 @@ export default function Bookings() {
                         <button 
                           onClick={()=> openBookingChat(b)} 
                           disabled={chatLoading === b._id}
-                          className="w-full px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-sm font-medium text-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                          className="w-full px-4 py-2.5 rounded-xl bg-brand-50 hover:bg-brand-100 border border-brand-200 text-sm font-medium text-brand-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                           {chatLoading === b._id ? (
                             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
@@ -1520,15 +1520,15 @@ export default function Bookings() {
           <button 
             disabled={page <= 1} 
             onClick={()=> setPage((p)=> Math.max(1, p - 1))}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-teal-300 hover:bg-teal-50/30 text-sm font-medium text-gray-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-brand-300 hover:bg-brand-50/30 text-sm font-medium text-gray-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             {t('shared.bookings.pagination.previous')}
           </button>
           
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-100">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-brand-50 to-brand-50 border border-brand-100">
             <span className="text-sm text-gray-600">{t('shared.bookings.pagination.page')}</span>
-            <span className="text-sm font-bold bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{page}</span>
+            <span className="text-sm font-bold bg-linear-to-r from-brand-600 to-brand-600 bg-clip-text text-transparent">{page}</span>
             <span className="text-sm text-gray-600">{t('shared.bookings.pagination.of')}</span>
             <span className="text-sm font-medium text-gray-700">{pages}</span>
           </div>
@@ -1536,7 +1536,7 @@ export default function Bookings() {
           <button 
             disabled={page >= pages} 
             onClick={()=> setPage((p)=> Math.min(pages, p + 1))}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-teal-300 hover:bg-teal-50/30 text-sm font-medium text-gray-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-brand-300 hover:bg-brand-50/30 text-sm font-medium text-gray-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200"
           >
             {t('shared.bookings.pagination.next')}
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -1551,8 +1551,8 @@ export default function Bookings() {
           <UploadProgress {...evidenceProgress} />
           
           {/* Header decorativo */}
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-teal-50 via-emerald-50 to-cyan-50 border border-teal-100/50">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-teal-500 to-emerald-500 text-white shadow-lg shadow-teal-500/25">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-brand-50 via-brand-50 to-brand-50 border border-brand-100/50">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/25">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -1566,7 +1566,7 @@ export default function Bookings() {
           {/* Tipo de evidencia */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
               {t('shared.bookings.modal.serviceStage')}
@@ -1574,8 +1574,8 @@ export default function Bookings() {
             <div className="grid grid-cols-3 gap-3">
               {[
                 { value: 'before', labelKey: 'shared.bookings.evidence.before', icon: '🏠', bgActive: 'bg-amber-50', borderActive: 'border-amber-400', textActive: 'text-amber-700', shadow: 'shadow-amber-500/10' },
-                { value: 'during', labelKey: 'shared.bookings.evidence.during', icon: '🔧', bgActive: 'bg-blue-50', borderActive: 'border-blue-400', textActive: 'text-blue-700', shadow: 'shadow-blue-500/10' },
-                { value: 'after', labelKey: 'shared.bookings.evidence.after', icon: '✨', bgActive: 'bg-emerald-50', borderActive: 'border-emerald-400', textActive: 'text-emerald-700', shadow: 'shadow-emerald-500/10' }
+                { value: 'during', labelKey: 'shared.bookings.evidence.during', icon: '🔧', bgActive: 'bg-brand-50', borderActive: 'border-brand-400', textActive: 'text-brand-700', shadow: 'shadow-brand-500/10' },
+                { value: 'after', labelKey: 'shared.bookings.evidence.after', icon: '✨', bgActive: 'bg-green-50', borderActive: 'border-green-400', textActive: 'text-green-700', shadow: 'shadow-green-500/10' }
               ].map((opt) => (
                 <button
                   key={opt.value}
@@ -1598,7 +1598,7 @@ export default function Bookings() {
           {/* Zona de upload drag & drop */}
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
               {t('shared.bookings.modal.filesLabel')}
@@ -1617,10 +1617,10 @@ export default function Bookings() {
               />
               <div className={`flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed transition-all ${
                 evidencePreviews.length > 0 
-                  ? 'border-teal-300 bg-teal-50/30' 
-                  : 'border-gray-300 bg-gray-50 hover:border-teal-400 hover:bg-teal-50/30'
+                  ? 'border-brand-300 bg-brand-50/30' 
+                  : 'border-gray-300 bg-gray-50 hover:border-brand-400 hover:bg-brand-50/30'
               }`}>
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-teal-400 to-emerald-500 text-white mb-4 shadow-lg shadow-teal-500/25">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-brand-400 to-brand-500 text-white mb-4 shadow-lg shadow-brand-500/25">
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
@@ -1660,7 +1660,7 @@ export default function Bookings() {
                 {evidencePreviews.map((preview, idx) => (
                   <div key={idx} className="group relative">
                     {/* Preview container */}
-                    <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 group-hover:border-teal-300 transition-all shadow-sm">
+                    <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 group-hover:border-brand-300 transition-all shadow-sm">
                       {preview.type === 'video' ? (
                         <video
                           src={preview.url}
@@ -1687,8 +1687,8 @@ export default function Bookings() {
                       {/* Badge de tipo */}
                       <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-medium ${
                         preview.type === 'video' 
-                          ? 'bg-purple-500 text-white' 
-                          : 'bg-teal-500 text-white'
+                          ? 'bg-dark-500 text-white' 
+                          : 'bg-brand-500 text-white'
                       }`}>
                         {preview.type === 'video' ? `🎬 ${t('shared.bookings.modal.video')}` : `📷 ${t('shared.bookings.modal.image')}`}
                       </div>
@@ -1712,7 +1712,7 @@ export default function Bookings() {
                       value={evidenceCaptions[idx] || ''}
                       onChange={(e) => updateEvidenceCaption(idx, e.target.value)}
                       disabled={evidenceLoading}
-                      className="mt-2 w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 disabled:opacity-50 disabled:bg-gray-50"
+                      className="mt-2 w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 disabled:opacity-50 disabled:bg-gray-50"
                     />
                   </div>
                 ))}
@@ -1732,7 +1732,7 @@ export default function Bookings() {
             <button 
               onClick={handleUploadEvidence} 
               disabled={evidenceLoading || evidenceFiles.length === 0}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white text-sm font-medium shadow-lg shadow-teal-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {evidenceLoading ? (
                 <>
@@ -1755,7 +1755,7 @@ export default function Bookings() {
         <div className="space-y-5">
           {/* Header decorativo */}
           <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-amber-50 via-yellow-50 to-orange-50 border border-amber-100/50">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-amber-400 to-yellow-500 text-white shadow-lg shadow-amber-500/25">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-amber-400 to-yellow-500 text-white shadow-lg shadow-accent-500/25">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
               </svg>
@@ -1769,7 +1769,7 @@ export default function Bookings() {
           {/* Calificaciones */}
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg className="w-4 h-4 text-accent-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
               {t('shared.bookings.modal.ratings')}
             </label>
             
@@ -1785,7 +1785,7 @@ export default function Bookings() {
                       onClick={() => handleOverallChange(n)}
                       className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
                         reviewOverall >= n 
-                          ? 'text-amber-400 scale-110' 
+                          ? 'text-accent-400 scale-110' 
                           : 'text-gray-300 hover:text-amber-200'
                       }`}
                     >
@@ -1825,7 +1825,7 @@ export default function Bookings() {
           {/* Título */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-accent-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
               </svg>
               {t('shared.bookings.modal.titleOptional')}
@@ -1841,7 +1841,7 @@ export default function Bookings() {
           {/* Comentario */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-accent-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
               </svg>
               {t('shared.bookings.modal.comment')}
@@ -1858,7 +1858,7 @@ export default function Bookings() {
           {/* Fotos */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-accent-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               {t('shared.bookings.modal.photosOptional')}
@@ -1873,9 +1873,9 @@ export default function Bookings() {
           </div>
 
           {/* ========== SECCIÓN FEEDBACK DE LA PLATAFORMA (Opcional) ========== */}
-          <div className="space-y-3 p-4 rounded-xl bg-linear-to-br from-brand-50 via-cyan-50 to-teal-50 border border-brand-100">
+          <div className="space-y-3 p-4 rounded-xl bg-linear-to-br from-brand-50 via-brand-50 to-brand-50 border border-brand-100">
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-teal-500 text-white">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-brand-600 text-white">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
@@ -1924,7 +1924,7 @@ export default function Bookings() {
                       onClick={() => setWouldRecommend(true)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                         wouldRecommend 
-                          ? 'bg-emerald-500 text-white shadow-sm' 
+                          ? 'bg-green-500 text-white shadow-sm' 
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -1967,7 +1967,7 @@ export default function Bookings() {
             <button 
               onClick={handleSubmitReview} 
               disabled={reviewLoading}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white text-sm font-medium shadow-lg shadow-amber-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-white text-sm font-medium shadow-lg shadow-accent-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {reviewLoading ? (
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
@@ -2012,7 +2012,7 @@ export default function Bookings() {
                     key={idx} 
                     className={`w-2 h-2 rounded-full transition-all ${
                       idx === lightboxIndex 
-                        ? 'bg-teal-500 scale-125' 
+                        ? 'bg-brand-500 scale-125' 
                         : 'bg-gray-300'
                     }`} 
                   />
@@ -2035,8 +2035,8 @@ export default function Bookings() {
       <Modal open={responseOpen} onClose={()=> setResponseOpen(false)} title={responseMode === 'edit' ? t('shared.bookings.modal.editResponse') : t('shared.bookings.modal.respondReviewTitle')}>
         <div className="space-y-5">
           {/* Header decorativo */}
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-teal-50 via-cyan-50 to-emerald-50 border border-teal-100/50">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/25">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-brand-50 via-brand-50 to-brand-50 border border-brand-100/50">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/25">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
               </svg>
@@ -2051,7 +2051,7 @@ export default function Bookings() {
           {responseReview?.review?.comment && (
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                <svg className="w-4 h-4 text-accent-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                 {t('shared.bookings.modal.clientComment')}
               </label>
               <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-100 text-sm text-gray-700 italic">
@@ -2063,7 +2063,7 @@ export default function Bookings() {
           {/* Alerta de moderación */}
           {responseReview?.status === 'flagged' && (
             <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
-              <svg className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-accent-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <div>
@@ -2076,7 +2076,7 @@ export default function Bookings() {
           {/* Tu respuesta */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
               </svg>
               {t('shared.bookings.modal.yourResponse')}
@@ -2084,7 +2084,7 @@ export default function Bookings() {
             <textarea 
               rows={4} 
               maxLength={800} 
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 resize-none transition-all" 
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 resize-none transition-all" 
               value={responseComment} 
               onChange={(e)=> setResponseComment(e.target.value)} 
               placeholder={t('shared.bookings.modal.responsePlaceholder')}
@@ -2094,7 +2094,7 @@ export default function Bookings() {
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 {t('shared.bookings.modal.responseHint')}
               </p>
-              <span className={`text-xs font-medium ${responseComment.length > 700 ? 'text-amber-600' : 'text-gray-400'}`}>{responseComment.length}/800</span>
+              <span className={`text-xs font-medium ${responseComment.length > 700 ? 'text-accent-600' : 'text-gray-400'}`}>{responseComment.length}/800</span>
             </div>
           </div>
           
@@ -2109,7 +2109,7 @@ export default function Bookings() {
             <button 
               onClick={handleSubmitResponse} 
               disabled={responseLoading}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white text-sm font-medium shadow-lg shadow-teal-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {responseLoading ? (
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
@@ -2126,8 +2126,8 @@ export default function Bookings() {
       <Modal open={clientReviewOpen} onClose={() => setClientReviewOpen(false)} title={t('shared.bookings.modal.clientReviewTitle')}>
         <div className="space-y-5">
           {/* Header decorativo */}
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-teal-50 via-cyan-50 to-blue-50 border border-teal-100/50">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/25">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-brand-50 via-brand-50 to-brand-50 border border-brand-100/50">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/25">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
@@ -2141,10 +2141,10 @@ export default function Bookings() {
           {/* Calificación general */}
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-teal-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <svg className="w-4 h-4 text-brand-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
               {t('shared.bookings.modal.overallRating')}
             </label>
-            <div className="p-4 rounded-xl bg-linear-to-br from-teal-50 to-cyan-50 border border-teal-100">
+            <div className="p-4 rounded-xl bg-linear-to-br from-brand-50 to-brand-50 border border-brand-100">
               <div className="flex items-center justify-center gap-1">
                 {[1,2,3,4,5].map(n => (
                   <button 
@@ -2153,8 +2153,8 @@ export default function Bookings() {
                     onClick={() => handleClientOverallChange(n)}
                     className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
                       clientReviewOverall >= n 
-                        ? 'text-teal-500 scale-110' 
-                        : 'text-gray-300 hover:text-teal-300'
+                        ? 'text-brand-500 scale-110' 
+                        : 'text-gray-300 hover:text-brand-300'
                     }`}
                   >
                     <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
@@ -2178,7 +2178,7 @@ export default function Bookings() {
                     <span className="text-[10px] sm:text-xs font-medium text-gray-600 truncate">{t(cat.labelKey)}</span>
                   </div>
                   <select 
-                    className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 transition-all" 
+                    className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 transition-all" 
                     value={clientReviewCats[cat.key]} 
                     onChange={(e) => handleClientCategoryChange(cat.key, Number(e.target.value))}
                   >
@@ -2192,14 +2192,14 @@ export default function Bookings() {
           {/* Comentario opcional */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
               </svg>
               {t('shared.bookings.modal.commentOptional')}
             </label>
             <textarea 
               rows={3}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 resize-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 resize-none transition-all"
               value={clientReviewComment}
               onChange={(e) => setClientReviewComment(e.target.value)}
               placeholder={t('shared.bookings.modal.clientCommentPlaceholder')}
@@ -2207,9 +2207,9 @@ export default function Bookings() {
           </div>
 
           {/* ========== SECCIÓN FEEDBACK DE LA PLATAFORMA (Proveedor) ========== */}
-          <div className="space-y-3 p-4 rounded-xl bg-linear-to-br from-brand-50 via-cyan-50 to-teal-50 border border-brand-100">
+          <div className="space-y-3 p-4 rounded-xl bg-linear-to-br from-brand-50 via-brand-50 to-brand-50 border border-brand-100">
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-teal-500 text-white">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-brand-600 text-white">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
@@ -2257,7 +2257,7 @@ export default function Bookings() {
                       onClick={() => setProviderWouldRecommend(true)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                         providerWouldRecommend 
-                          ? 'bg-emerald-500 text-white shadow-sm' 
+                          ? 'bg-green-500 text-white shadow-sm' 
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -2300,7 +2300,7 @@ export default function Bookings() {
             <button 
               onClick={handleSubmitClientReview}
               disabled={clientReviewLoading}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white text-sm font-medium shadow-lg shadow-teal-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {clientReviewLoading ? (
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
@@ -2320,7 +2320,7 @@ export default function Bookings() {
             <>
               {/* Información del proveedor */}
               <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
-                <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white font-bold">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-dark-400 to-dark-600 flex items-center justify-center text-white font-bold">
                   🔧
                 </div>
                 <div>
@@ -2334,7 +2334,7 @@ export default function Bookings() {
                 <p className="text-sm text-gray-500 mb-2">{t('shared.bookings.modal.overallRating')}</p>
                 <div className="flex items-center justify-center gap-1">
                   {[1,2,3,4,5].map((s) => (
-                    <svg key={s} className={`w-8 h-8 ${s <= (viewClientReviewData.rating?.overall || 0) ? 'text-amber-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+                    <svg key={s} className={`w-8 h-8 ${s <= (viewClientReviewData.rating?.overall || 0) ? 'text-accent-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                   ))}
@@ -2350,7 +2350,7 @@ export default function Bookings() {
                       <span className="text-gray-600 truncate">{t(`shared.bookings.modal.client${key.charAt(0).toUpperCase() + key.slice(1)}`)}</span>
                       <div className="flex items-center gap-0.5 shrink-0">
                         {[1,2,3,4,5].map((s) => (
-                          <svg key={s} className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${s <= value ? 'text-amber-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+                          <svg key={s} className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${s <= value ? 'text-accent-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                           </svg>
                         ))}

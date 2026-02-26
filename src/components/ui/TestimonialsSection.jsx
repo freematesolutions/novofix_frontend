@@ -57,8 +57,8 @@ const TestimonialCard = ({ testimonial }) => {
 
   // Role badge colors
   const roleBadgeStyles = isProvider
-    ? 'bg-linear-to-r from-purple-100 to-indigo-100 text-purple-700 border-purple-200'
-    : 'bg-linear-to-r from-emerald-100 to-teal-100 text-emerald-700 border-emerald-200';
+    ? 'bg-linear-to-r from-dark-100 to-dark-100 text-dark-700 border-dark-200'
+    : 'bg-linear-to-r from-brand-100 to-brand-100 text-brand-700 border-brand-200';
 
   const roleIcon = isProvider ? (
     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -84,7 +84,7 @@ const TestimonialCard = ({ testimonial }) => {
               className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100"
             />
           ) : (
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-bold ring-2 ring-gray-100 ${isProvider ? 'bg-linear-to-br from-purple-400 to-indigo-500' : 'bg-linear-to-br from-emerald-400 to-teal-500'}`}>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-bold ring-2 ring-gray-100 ${isProvider ? 'bg-linear-to-br from-dark-400 to-dark-500' : 'bg-linear-to-br from-brand-400 to-brand-500'}`}>
               {testimonial.userName?.charAt(0) || (isProvider ? 'P' : 'C')}
             </div>
           )}
@@ -100,20 +100,20 @@ const TestimonialCard = ({ testimonial }) => {
 
         {/* For Clients: Show their review/rating about the provider */}
         {!isProvider && comment && (
-          <div className="mb-3 rounded-lg p-3 border bg-linear-to-r from-emerald-50 to-teal-50 border-emerald-100">
+          <div className="mb-3 rounded-lg p-3 border bg-linear-to-r from-brand-50 to-brand-50 border-brand-100">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-brand-600" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
                 </svg>
-                <span className="text-xs font-semibold text-emerald-700">
+                <span className="text-xs font-semibold text-brand-700">
                   {t('testimonials.aboutProvider', { name: testimonial.providerName || t('testimonials.roleProvider') })}
                 </span>
               </div>
               {testimonial.rating?.overall && (
                 <div className="flex items-center gap-1">
                   <StarRating rating={testimonial.rating.overall} size="xs" />
-                  <span className="text-xs font-medium text-emerald-700">{testimonial.rating.overall.toFixed(1)}</span>
+                  <span className="text-xs font-medium text-brand-700">{testimonial.rating.overall.toFixed(1)}</span>
                 </div>
               )}
             </div>
@@ -125,20 +125,20 @@ const TestimonialCard = ({ testimonial }) => {
 
         {/* For Providers: Show their review/rating about the client */}
         {isProvider && comment && (
-          <div className="mb-3 rounded-lg p-3 border bg-linear-to-r from-amber-50 to-orange-50 border-amber-100">
+          <div className="mb-3 rounded-lg p-3 border bg-linear-to-r from-accent-50 to-accent-50 border-accent-100">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-accent-600" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                 </svg>
-                <span className="text-xs font-semibold text-amber-700">
+                <span className="text-xs font-semibold text-accent-700">
                   {t('testimonials.aboutClient', { name: testimonial.clientName || t('testimonials.roleClient') })}
                 </span>
               </div>
               {clientRating && (
                 <div className="flex items-center gap-1">
                   <StarRating rating={clientRating} size="xs" />
-                  <span className="text-xs font-medium text-amber-700">{clientRating.toFixed(1)}</span>
+                  <span className="text-xs font-medium text-accent-700">{clientRating.toFixed(1)}</span>
                 </div>
               )}
             </div>
@@ -153,7 +153,7 @@ const TestimonialCard = ({ testimonial }) => {
           <div className={`mb-3 rounded-lg p-3 border ${isProvider ? 'bg-linear-to-r from-purple-50 to-indigo-50 border-purple-100' : 'bg-linear-to-r from-brand-50 to-cyan-50 border-brand-100'}`}>
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
-                <svg className={`w-4 h-4 ${isProvider ? 'text-purple-600' : 'text-brand-600'}`} fill="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-4 h-4 ${isProvider ? 'text-dark-600' : 'text-brand-600'}`} fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
                 <span className={`text-xs font-semibold ${isProvider ? 'text-purple-700' : 'text-brand-700'}`}>
@@ -842,7 +842,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
     client_review: {
       color: 'emerald',
       bgColor: 'bg-emerald-500',
-      textColor: 'text-emerald-600',
+      textColor: 'text-brand-600',
       borderColor: 'border-emerald-200',
       bgLight: 'bg-emerald-50',
       icon: (
@@ -854,7 +854,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
     provider_review: {
       color: 'amber',
       bgColor: 'bg-amber-500',
-      textColor: 'text-amber-600',
+      textColor: 'text-accent-600',
       borderColor: 'border-amber-200',
       bgLight: 'bg-amber-50',
       icon: (
@@ -866,7 +866,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
     portfolio: {
       color: 'purple',
       bgColor: 'bg-purple-500',
-      textColor: 'text-purple-600',
+      textColor: 'text-dark-600',
       borderColor: 'border-purple-200',
       bgLight: 'bg-purple-50',
       icon: (
@@ -1182,17 +1182,17 @@ function TestimonialsSection() {
   return (
     <div id="testimonials-section" className="py-8 scroll-mt-20">
       {/* Section Header */}
-      <div className="text-center mb-10">
+      <div className="mb-10">
         <div className="inline-flex items-center gap-2 bg-linear-to-r from-amber-100 to-yellow-100 px-4 py-2 rounded-full border border-amber-200 mb-4">
-          <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-accent-600" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
           </svg>
-          <span className="text-sm font-semibold text-amber-700">{t('testimonials.badge')}</span>
+          <span className="text-sm font-semibold text-accent-700">{t('testimonials.badge')}</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
           {t('testimonials.title')}
         </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-lg text-gray-600 max-w-2xl">
           {t('testimonials.subtitle')}
         </p>
       </div>
@@ -1239,14 +1239,14 @@ function TestimonialsSection() {
           )}
 
           {/* Platform Impact Stats */}
-          <div className="mt-12 bg-linear-to-br from-brand-50 via-white to-cyan-50 rounded-2xl p-8 border border-brand-100">
+          <div className="mt-12 bg-linear-to-br from-brand-50 via-white to-accent-50 rounded-2xl p-8 border border-brand-100">
             <div className="text-center mb-6">
               <h3 className="text-xl font-bold text-gray-900 mb-2">{t('testimonials.platformImpact')}</h3>
               <p className="text-gray-600">{t('testimonials.platformImpactDesc')}</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center">
+                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -1255,7 +1255,7 @@ function TestimonialsSection() {
                 <p className="text-sm text-gray-600">{t('testimonials.stat1')}</p>
               </div>
               <div className="text-center">
-                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
+                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-dark-500 to-dark-700 rounded-xl flex items-center justify-center">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -1264,7 +1264,7 @@ function TestimonialsSection() {
                 <p className="text-sm text-gray-600">{t('testimonials.stat2')}</p>
               </div>
               <div className="text-center">
-                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center">
+                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-accent-400 to-accent-600 rounded-xl flex items-center justify-center">
                   <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
                   </svg>
@@ -1273,7 +1273,7 @@ function TestimonialsSection() {
                 <p className="text-sm text-gray-600">{t('testimonials.stat3')}</p>
               </div>
               <div className="text-center">
-                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center">
+                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>

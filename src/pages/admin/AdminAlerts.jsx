@@ -88,9 +88,9 @@ export default function AdminAlerts() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header Section */}
-      <div className="overflow-hidden bg-linear-to-br from-purple-600 via-fuchsia-600 to-indigo-600 rounded-2xl p-8 text-white relative">
+      <div className="overflow-hidden bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 rounded-2xl p-8 text-white relative">
         <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-56 h-56 bg-purple-400/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-56 h-56 bg-brand-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
         <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
@@ -98,13 +98,13 @@ export default function AdminAlerts() {
             </div>
             <div>
               <h1 className="text-2xl font-bold mb-1">{t('admin.alerts.title')}</h1>
-              <p className="text-indigo-200 text-sm">{t('admin.alerts.subtitle')}</p>
+              <p className="text-gray-300 text-sm">{t('admin.alerts.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl">
               <p className="text-2xl font-bold">{unreadCount}</p>
-              <p className="text-xs text-indigo-200">{t('admin.alerts.unread')}</p>
+              <p className="text-xs text-gray-300">{t('admin.alerts.unread')}</p>
             </div>
             <button
               onClick={markAll}
@@ -131,11 +131,11 @@ export default function AdminAlerts() {
           {items.map(n => (
             <div 
               key={n.id || n._id || Math.random()} 
-              className={`p-4 transition-all duration-200 hover:bg-gray-50 ${!n.read ? 'bg-indigo-50/40 border-l-4 border-l-indigo-500' : ''}`}
+              className={`p-4 transition-all duration-200 hover:bg-gray-50 ${!n.read ? 'bg-brand-50/40 border-l-4 border-l-brand-500' : ''}`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${n.read ? 'bg-gray-100' : 'bg-linear-to-br from-indigo-500 to-purple-500'}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${n.read ? 'bg-gray-100' : 'bg-linear-to-br from-dark-600 to-dark-700'}`}>
                     <HiBell className={`w-5 h-5 ${n.read ? 'text-gray-500' : 'text-white'}`} />
                   </div>
                   <div className="min-w-0">
@@ -157,7 +157,7 @@ export default function AdminAlerts() {
                 {!n.read && (
                   <button 
                     onClick={() => markRead(n._id || n.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-100 hover:bg-indigo-200 rounded-lg transition-colors shrink-0"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-brand-600 bg-brand-100 hover:bg-brand-200 rounded-lg transition-colors shrink-0"
                   >
                     <HiCheck className="w-3.5 h-3.5" />
                     {t('admin.alerts.markRead')}
@@ -198,7 +198,7 @@ export default function AdminAlerts() {
                       onClick={() => setPage(pageNum)}
                       className={`w-9 h-9 text-sm font-medium rounded-lg transition-colors ${
                         page === pageNum
-                          ? 'bg-linear-to-r from-indigo-500 to-purple-500 text-white'
+                          ? 'bg-linear-to-r from-dark-600 to-dark-700 text-white'
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
@@ -224,7 +224,7 @@ export default function AdminAlerts() {
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dark-600 to-dark-700 flex items-center justify-center">
               <HiCog className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -261,7 +261,7 @@ export default function AdminAlerts() {
             <Button 
               onClick={savePrefs} 
               loading={savingPrefs}
-              className="bg-linear-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white"
+              className="bg-linear-to-r from-dark-600 to-dark-700 hover:from-indigo-600 hover:to-purple-600 text-white"
             >
               {t('admin.alerts.preferences.save')}
             </Button>
@@ -275,10 +275,10 @@ export default function AdminAlerts() {
 function PreferenceToggle({ icon, label, description, checked, onChange }) {
   return (
     <label className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-      checked ? 'border-indigo-500 bg-indigo-50/50' : 'border-gray-200 hover:border-gray-300'
+      checked ? 'border-brand-500 bg-brand-50/50' : 'border-gray-200 hover:border-gray-300'
     }`}>
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-        checked ? 'bg-linear-to-br from-indigo-500 to-purple-500 text-white' : 'bg-gray-100 text-gray-500'
+        checked ? 'bg-linear-to-br from-dark-600 to-dark-700 text-white' : 'bg-gray-100 text-gray-500'
       }`}>
         {icon}
       </div>
@@ -286,7 +286,7 @@ function PreferenceToggle({ icon, label, description, checked, onChange }) {
         <p className="font-medium text-gray-900">{label}</p>
         <p className="text-xs text-gray-500">{description}</p>
       </div>
-      <div className={`relative w-11 h-6 rounded-full transition-colors ${checked ? 'bg-indigo-500' : 'bg-gray-300'}`}>
+      <div className={`relative w-11 h-6 rounded-full transition-colors ${checked ? 'bg-brand-500' : 'bg-gray-300'}`}>
         <input
           type="checkbox"
           className="sr-only"

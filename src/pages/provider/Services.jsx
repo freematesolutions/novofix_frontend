@@ -17,6 +17,7 @@ export default function Services() {
   const [error, setError] = useState('');
 
   const [mainService, setMainService] = useState({ category: '', name: '', experience: 0, subcategories: '' });
+  const [isMainServiceLocked, setIsMainServiceLocked] = useState(false);
   const [additionalServices, setAdditionalServices] = useState([]);
   const [customAdditional, setCustomAdditional] = useState('');
 
@@ -42,6 +43,7 @@ export default function Services() {
         experience: Number(main.experience) || 0,
         subcategories: Array.isArray(main.subcategories) ? main.subcategories.join(', ') : ''
       });
+      setIsMainServiceLocked(!!main.category);
       const additional = (profile?.additionalServices && profile.additionalServices.length > 0)
         ? profile.additionalServices
         : list.slice(1).map(s => s.category).filter(Boolean);
@@ -149,13 +151,13 @@ export default function Services() {
   return (
     <div className="max-w-5xl mx-auto space-y-6 p-4 sm:p-6">
       {/* Premium Header */}
-      <div className="overflow-hidden rounded-2xl bg-linear-to-br from-brand-500 via-brand-600 to-cyan-600 p-6 sm:p-8 text-white relative">
+      <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 p-6 sm:p-8 text-white relative">
         {/* Decorative elements (non-interactive) */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative flex items-start gap-4">
-          <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-linear-to-br from-brand-500 to-cyan-500 text-white shadow-xl shadow-brand-500/25">
+          <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 text-white shadow-xl shadow-brand-500/25">
             <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
@@ -170,17 +172,33 @@ export default function Services() {
       {error && <Alert type="error">{error}</Alert>}
 
       {/* Main Service Form */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <div className={`bg-white rounded-2xl border shadow-sm p-6 ${isMainServiceLocked ? 'border-gray-200 bg-gray-50/50' : 'border-gray-100'}`}>
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-brand-100 to-cyan-100 text-brand-600">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
+          <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${isMainServiceLocked ? 'bg-linear-to-br from-gray-100 to-gray-200 text-gray-500' : 'bg-linear-to-br from-brand-100 to-brand-200 text-brand-600'}`}>
+            {isMainServiceLocked ? (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+            )}
           </div>
-          <h3 className="text-lg font-semibold text-gray-900">{t('provider.services.mainServiceTitle')}</h3>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-900">{t('provider.services.mainServiceTitle')}</h3>
+            {isMainServiceLocked && (
+              <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 20.5a8.5 8.5 0 100-17 8.5 8.5 0 000 17z" />
+                </svg>
+                {t('provider.services.mainServiceLocked', 'Tu servicio principal no puede ser modificado una vez configurado')}
+              </p>
+            )}
+          </div>
         </div>
         
-        <form className="space-y-5" onSubmit={saveMainService}>
+        <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Category */}
             <div className="space-y-2">
@@ -190,16 +208,22 @@ export default function Services() {
                 </svg>
                 {t('provider.services.mainCategory')}
               </label>
-              <select
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 transition-all"
-                value={mainService.category}
-                onChange={(e)=>setMainService((s)=>({ ...s, category: e.target.value }))}
-              >
-                <option value="">{t('provider.services.selectMainCategory')}</option>
-                {categoryOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+              {isMainServiceLocked ? (
+                <div className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-100 text-sm text-gray-600 cursor-not-allowed">
+                  {mainService.category ? t(`home.categories.${mainService.category}`, mainService.category) : '—'}
+                </div>
+              ) : (
+                <select
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 transition-all"
+                  value={mainService.category}
+                  onChange={(e)=>setMainService((s)=>({ ...s, category: e.target.value }))}
+                >
+                  <option value="">{t('provider.services.selectMainCategory')}</option>
+                  {categoryOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {/* Service name */}
@@ -211,10 +235,12 @@ export default function Services() {
                 {t('provider.services.mainServiceName')}
               </label>
               <input
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 transition-all"
+                className={`w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm placeholder-gray-400 transition-all ${isMainServiceLocked ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : 'bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300'}`}
                 value={mainService.name}
                 onChange={(e)=>setMainService((s)=>({ ...s, name: e.target.value }))}
                 placeholder={t('provider.services.mainServicePlaceholder')}
+                disabled={isMainServiceLocked}
+                readOnly={isMainServiceLocked}
               />
             </div>
             
@@ -229,10 +255,12 @@ export default function Services() {
               <input
                 type="number"
                 min="0"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 transition-all"
+                className={`w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm placeholder-gray-400 transition-all ${isMainServiceLocked ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : 'bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300'}`}
                 value={mainService.experience}
                 onChange={(e)=>setMainService((s)=>({ ...s, experience: e.target.value }))}
                 placeholder="0"
+                disabled={isMainServiceLocked}
+                readOnly={isMainServiceLocked}
               />
             </div>
           </div>
@@ -246,37 +274,49 @@ export default function Services() {
               {t('provider.services.subcategories')}
             </label>
             <input
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 transition-all"
+              className={`w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm placeholder-gray-400 transition-all ${isMainServiceLocked ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : 'bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300'}`}
               placeholder={t('provider.services.subcategoriesPlaceholder')}
               value={mainService.subcategories}
               onChange={(e)=>setMainService((s)=>({ ...s, subcategories: e.target.value }))}
+              disabled={isMainServiceLocked}
+              readOnly={isMainServiceLocked}
             />
           </div>
           
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                {t('provider.services.saving')}
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-                {t('provider.services.saveMainService')}
-              </>
-            )}
-          </button>
-        </form>
+          {isMainServiceLocked ? (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-dark-50 border border-dark-100 text-dark-600 text-sm">
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              {t('provider.services.mainServiceLockedNotice', 'El servicio principal está bloqueado y no puede ser editado. Solo puedes gestionar tus servicios adicionales.')}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={saveMainService}
+              disabled={loading}
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                  {t('provider.services.saving')}
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                  {t('provider.services.saveMainService')}
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Additional Services */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-cyan-100 to-blue-100 text-cyan-600">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-brand-100 to-brand-200 text-brand-600">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
@@ -296,7 +336,7 @@ export default function Services() {
               className={`
                 px-3 py-2 rounded-md text-sm font-medium transition-colors
                 ${additionalServices.includes(opt.value)
-                  ? 'bg-emerald-600 text-white'
+                  ? 'bg-brand-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }
               `}
@@ -323,9 +363,9 @@ export default function Services() {
         {additionalServices.length > 0 ? (
           <div className="flex flex-wrap gap-2 mb-5">
             {additionalServices.map(svc => (
-              <span key={svc} className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs border border-emerald-100">
+              <span key={svc} className="inline-flex items-center gap-1 px-3 py-1 bg-brand-50 text-brand-700 rounded-full text-xs border border-brand-100">
                 {t(`home.categories.${svc}`, svc)}
-                <button type="button" onClick={() => toggleAdditional(svc)} className="hover:text-emerald-900">×</button>
+                <button type="button" onClick={() => toggleAdditional(svc)} className="hover:text-brand-900">×</button>
               </span>
             ))}
           </div>

@@ -22,9 +22,9 @@ function variantClasses(type) {
       };
     default:
       return {
-        container: 'border-blue-200 bg-blue-50/80 text-blue-800',
+        container: 'border-brand-200 bg-brand-50/80 text-brand-800',
         icon: HiInformationCircle,
-        iconColor: 'text-blue-500'
+        iconColor: 'text-brand-500'
       };
   }
 }

@@ -40,7 +40,7 @@ export default function ResetPassword() {
     return { 
       score: passed, 
       percentage: (passed / PASSWORD_REQUIREMENTS.length) * 100,
-      color: passed <= 1 ? 'bg-red-500' : passed <= 2 ? 'bg-amber-500' : passed <= 3 ? 'bg-yellow-500' : 'bg-green-500',
+      color: passed <= 1 ? 'bg-red-500' : passed <= 2 ? 'bg-accent-500' : passed <= 3 ? 'bg-accent-500' : 'bg-brand-500',
       label: passed <= 1 ? 'Débil' : passed <= 2 ? 'Regular' : passed <= 3 ? 'Buena' : 'Fuerte'
     };
   }, [password]);
@@ -65,7 +65,7 @@ export default function ResetPassword() {
   // Vista de enlace inválido
   if (!token || !uid) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-brand-50/30 flex items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/20 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md text-center">
           <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
@@ -77,7 +77,7 @@ export default function ResetPassword() {
             </p>
             <Link 
               to="/forgot-password"
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-xl font-medium shadow-lg shadow-brand-500/25 transition-all duration-200"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-linear-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white rounded-xl font-medium shadow-lg shadow-brand-500/25 transition-all duration-200"
             >
               <HiArrowLeft className="w-4 h-4" />
               Solicitar nuevo enlace
@@ -91,11 +91,11 @@ export default function ResetPassword() {
   // Vista de éxito
   if (status.success) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-brand-50/30 flex items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/20 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md text-center">
           <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-              <HiCheckCircle className="w-8 h-8 text-green-600" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-100 rounded-full mb-4">
+              <HiCheckCircle className="w-8 h-8 text-brand-600" />
             </div>
             <h1 className="text-xl font-bold text-gray-900 mb-2">¡Contraseña actualizada!</h1>
             <p className="text-sm text-gray-600 mb-4">{status.success}</p>
@@ -110,17 +110,17 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-brand-50/30 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/20 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Card principal */}
         <div className="relative">
           {/* Efecto de brillo */}
-          <div className="absolute -inset-1 bg-linear-to-r from-brand-500 via-indigo-500 to-purple-500 rounded-3xl blur-lg opacity-20"></div>
+          <div className="absolute -inset-1 bg-linear-to-r from-brand-500 via-accent-500 to-dark-600 rounded-3xl blur-lg opacity-20"></div>
           
           <div className="relative bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
             {/* Header con gradiente */}
             <div className="relative overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-r from-brand-600 via-brand-700 to-indigo-700"></div>
+              <div className="absolute inset-0 bg-linear-to-r from-dark-700 via-dark-800 to-brand-800"></div>
               <div className="absolute inset-0 opacity-50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}></div>
               
               <div className="relative px-6 py-8 text-center">
@@ -170,8 +170,8 @@ export default function ResetPassword() {
                         <span className="text-gray-500">Fortaleza:</span>
                         <span className={`font-medium ${
                           passwordStrength.score <= 1 ? 'text-red-600' : 
-                          passwordStrength.score <= 2 ? 'text-amber-600' : 
-                          passwordStrength.score <= 3 ? 'text-yellow-600' : 'text-green-600'
+                          passwordStrength.score <= 2 ? 'text-accent-600' : 
+                          passwordStrength.score <= 3 ? 'text-accent-600' : 'text-brand-600'
                         }`}>{passwordStrength.label}</span>
                       </div>
                       <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -190,7 +190,7 @@ export default function ResetPassword() {
                         <div 
                           key={req.id}
                           className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${
-                            req.test(password) ? 'text-green-600' : 'text-gray-400'
+                            req.test(password) ? 'text-brand-600' : 'text-gray-400'
                           }`}
                         >
                           {req.test(password) ? (
@@ -213,7 +213,7 @@ export default function ResetPassword() {
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <HiShieldCheck className={`w-5 h-5 transition-colors duration-200 ${
-                        confirm && passwordsMatch ? 'text-green-500' : 
+                        confirm && passwordsMatch ? 'text-brand-500' : 
                         confirm && !passwordsMatch ? 'text-red-400' : 
                         'text-gray-400 group-focus-within:text-brand-500'
                       }`} />
@@ -222,7 +222,7 @@ export default function ResetPassword() {
                       id="confirm"
                       type={showConfirm ? 'text' : 'password'}
                       className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl transition-all duration-200 placeholder:text-gray-400 text-gray-900 focus:outline-none focus:ring-0 ${
-                        confirm && passwordsMatch ? 'border-green-300 bg-green-50/50' :
+                        confirm && passwordsMatch ? 'border-brand-300 bg-brand-50/50' :
                         confirm && !passwordsMatch ? 'border-red-300 bg-red-50/50' :
                         'border-gray-200 hover:border-gray-300 focus:border-brand-500 focus:bg-brand-50/20'
                       }`}
@@ -245,7 +245,7 @@ export default function ResetPassword() {
                     </p>
                   )}
                   {confirm && passwordsMatch && (
-                    <p className="flex items-center gap-1.5 text-xs text-green-600">
+                    <p className="flex items-center gap-1.5 text-xs text-brand-600">
                       <HiCheck className="w-3.5 h-3.5" />
                       Las contraseñas coinciden
                     </p>

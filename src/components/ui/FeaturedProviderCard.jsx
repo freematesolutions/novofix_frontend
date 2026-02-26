@@ -76,14 +76,14 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
         className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden h-full flex flex-col"
       >
         {/* Top gradient accent */}
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-brand-400 via-brand-500 to-cyan-500"></div>
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-brand-400 via-brand-500 to-brand-500"></div>
 
         {/* Header Section with Avatar and Badges */}
         <div className="relative p-5 pb-3">
           {/* Plan & Score Badges */}
           <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
             {score > 0 && (
-              <div className="flex items-center gap-1 bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg">
+              <div className="flex items-center gap-1 bg-brand-50 text-brand-600 px-2 py-1 rounded-lg">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                 </svg>
@@ -108,7 +108,7 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
               )}
               {/* Verified badge */}
               <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full shadow-md flex items-center justify-center">
-                <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-brand-500" fill="currentColor" viewBox="0 0 24 24">
                   <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
                 </svg>
               </div>
@@ -170,10 +170,10 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
                 onClick={handlePortfolioClick}
                 className="flex items-center gap-1.5 bg-purple-50 px-2.5 py-1.5 rounded-lg hover:bg-purple-100 transition-colors"
               >
-                <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-dark-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span className="text-xs text-purple-700 font-medium">{portfolio.length} {t('home.featuredProviders.works')}</span>
+                <span className="text-xs text-dark-700 font-medium">{portfolio.length} {t('home.featuredProviders.works')}</span>
               </button>
             )}
           </div>

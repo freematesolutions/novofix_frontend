@@ -65,17 +65,17 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-brand-50/30 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/20 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Card principal */}
         <div className="relative">
           {/* Efecto de brillo detrás */}
-          <div className="absolute -inset-1 bg-linear-to-r from-brand-500 via-indigo-500 to-purple-500 rounded-3xl blur-lg opacity-20"></div>
+          <div className="absolute -inset-1 bg-linear-to-r from-brand-500 via-accent-500 to-dark-600 rounded-3xl blur-lg opacity-20"></div>
           
           <div className="relative bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
             {/* Header con gradiente */}
             <div className="relative overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-r from-brand-600 via-brand-700 to-indigo-700"></div>
+              <div className="absolute inset-0 bg-linear-to-r from-dark-700 via-dark-800 to-brand-800"></div>
               <div className="absolute inset-0 opacity-50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}></div>
               
               <div className="relative px-6 py-8 text-center">
@@ -156,17 +156,17 @@ export default function ForgotPassword() {
                 </form>
               ) : (
                 /* Estado de éxito */
-                <div className="text-center py-4">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                    <HiCheckCircle className="w-8 h-8 text-green-600" />
+                <div className="text-center py-4" role="status" aria-live="polite">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-100 rounded-full mb-4">
+                    <HiCheckCircle className="w-8 h-8 text-brand-600" aria-hidden="true" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('auth.checkYourEmail', '¡Revisa tu correo!')}</h3>
                   <p className="text-sm text-gray-600 mb-6">
                     {t('auth.resetEmailSentTo', { email, defaultValue: `Si ${email} está registrado, recibirás un enlace para restablecer tu contraseña.` })}
                   </p>
                   
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-                    <p className="text-xs text-amber-700">
+                  <div className="bg-accent-50 border border-accent-200 rounded-xl p-4 mb-6">
+                    <p className="text-xs text-accent-700">
                       💡 {t('auth.checkSpamFolder', 'Revisa también tu carpeta de spam si no lo encuentras en unos minutos.')}
                     </p>
                   </div>
@@ -185,7 +185,7 @@ export default function ForgotPassword() {
         </div>
 
         {/* Información de seguridad */}
-        <div className="mt-6 grid grid-cols-3 gap-3">
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="flex flex-col items-center text-center p-3 bg-white/50 rounded-xl border border-gray-100">
             <HiShieldCheck className="w-5 h-5 text-brand-500 mb-1" />
             <span className="text-xs text-gray-600">{t('common.secureConnection')}</span>

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { HiCheckCircle, HiExclamation, HiExclamationCircle, HiInformationCircle, HiX, HiChat, HiChevronDown, HiChevronUp } from 'react-icons/hi';
+import { useTranslation } from 'react-i18next';
 
 const ToastContext = createContext(null);
 
@@ -34,26 +35,27 @@ const toastVariants = {
     progressBar: 'bg-amber-500'
   },
   info: {
-    bg: 'bg-white border-blue-200',
+    bg: 'bg-white border-brand-200',
     icon: HiInformationCircle,
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600',
-    text: 'text-blue-800',
-    progressBar: 'bg-blue-500'
+    iconBg: 'bg-brand-100',
+    iconColor: 'text-brand-600',
+    text: 'text-brand-800',
+    progressBar: 'bg-brand-500'
   },
   chat: {
-    bg: 'bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200',
+    bg: 'bg-linear-to-r from-dark-50 to-dark-100 border-dark-200',
     icon: HiChat,
-    iconBg: 'bg-violet-100',
-    iconColor: 'text-violet-600',
-    text: 'text-violet-800',
-    progressBar: 'bg-violet-500'
+    iconBg: 'bg-dark-100',
+    iconColor: 'text-dark-500',
+    text: 'text-dark-700',
+    progressBar: 'bg-dark-500'
   }
 };
 
 // Componente individual de Toast con capacidad de expandir mensajes largos
 function ToastItem({ toast: t, index, onRemove }) {
   const [expanded, setExpanded] = useState(false);
+  const { t: tr } = useTranslation();
   const variant = toastVariants[t.type] || toastVariants.info;
   const IconComponent = variant.icon;
   
@@ -100,18 +102,18 @@ function ToastItem({ toast: t, index, onRemove }) {
                 onClick={() => setExpanded(!expanded)}
                 className={`ml-1 inline-flex items-center gap-0.5 text-xs font-medium transition-colors duration-200 ${
                   t.type === 'chat' 
-                    ? 'text-violet-600 hover:text-violet-700' 
+                    ? 'text-dark-500 hover:text-dark-600' 
                     : 'text-brand-600 hover:text-brand-700'
                 }`}
               >
                 {expanded ? (
                   <>
-                    Ver menos
+                    {tr('common.viewLess')}
                     <HiChevronUp className="w-3.5 h-3.5" />
                   </>
                 ) : (
                   <>
-                    Ver más
+                    {tr('common.viewMore')}
                     <HiChevronDown className="w-3.5 h-3.5" />
                   </>
                 )}
@@ -128,7 +130,7 @@ function ToastItem({ toast: t, index, onRemove }) {
               }}
               className={`mt-2 text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-200
                 ${t.type === 'chat' 
-                  ? 'bg-violet-100 text-violet-700 hover:bg-violet-200' 
+                  ? 'bg-dark-100 text-dark-600 hover:bg-dark-200' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
             >
@@ -141,7 +143,7 @@ function ToastItem({ toast: t, index, onRemove }) {
         <button 
           onClick={() => onRemove(t.id)}
           className="shrink-0 p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors duration-200"
-          aria-label="Cerrar notificación"
+          aria-label={tr('common.close')}
         >
           <HiX className="w-4 h-4" />
         </button>
@@ -192,7 +194,7 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={api}>
       {children}
-      <div className="fixed top-4 right-4 z-99999 space-y-3 w-96 max-w-[calc(100vw-2rem)]">
+      <div className="fixed top-4 right-4 z-99999 space-y-3 w-96 max-w-[calc(100vw-2rem)]" aria-live="polite" aria-atomic="false">
         {toasts.map((t, index) => (
           <ToastItem 
             key={t.id} 

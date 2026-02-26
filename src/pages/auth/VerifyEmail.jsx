@@ -184,21 +184,21 @@ const VerifyEmail = () => {
   const displayEmail = pendingVerification?.email || email;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] bg-linear-to-br from-blue-50 via-white to-cyan-50 p-4 sm:p-8">
+    <div className="flex flex-col items-center justify-center min-h-[80vh] bg-linear-to-br from-gray-50 via-white to-brand-50/20 p-4 sm:p-8">
       <div className="relative bg-white/90 shadow-2xl rounded-3xl px-6 py-10 sm:px-12 sm:py-12 max-w-lg w-full text-center border border-gray-100 animate-fade-in">
         <div className="flex justify-center mb-6">
-          <div className="bg-linear-to-br from-cyan-400 via-blue-400 to-blue-600 rounded-full p-4 shadow-lg animate-bounce-in">
+          <div className="bg-linear-to-br from-brand-400 via-brand-500 to-brand-700 rounded-full p-4 shadow-lg animate-bounce-in">
             <svg className="w-10 h-10 text-white drop-shadow-xl" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M16 12H8m8 0a8 8 0 11-16 0 8 8 0 0116 0zm-8 4v-4m0 0V8m0 4h4" />
             </svg>
           </div>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold mb-2 text-blue-700 tracking-tight">Verifica tu correo electrónico</h2>
+        <h2 className="text-2xl sm:text-3xl font-extrabold mb-2 text-brand-700 tracking-tight">Verifica tu correo electrónico</h2>
         
         {/* Mostrar email pendiente */}
         {pendingVerification?.email && (
-          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-700">
+          <div className="mb-4 p-3 bg-brand-50 rounded-lg">
+            <p className="text-sm text-brand-700">
               <strong>Email pendiente:</strong> {pendingVerification.email}
             </p>
           </div>
@@ -213,23 +213,23 @@ const VerifyEmail = () => {
 
         {/* Bloque de verificación MODO DEMO */}
         {isDemoMode && verificationUrl && status === 'idle' && (
-          <div className="mb-6 p-4 bg-linear-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-xl">
+          <div className="mb-6 p-4 bg-linear-to-r from-accent-50 to-accent-50 border-2 border-accent-200 rounded-xl">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-2xl">🎯</span>
-              <h3 className="text-lg font-bold text-amber-800">Modo Demo</h3>
+              <h3 className="text-lg font-bold text-accent-800">Modo Demo</h3>
             </div>
-            <p className="text-sm text-amber-700 mb-4">
+            <p className="text-sm text-accent-700 mb-4">
               En producción, este enlace llegaría a tu bandeja de entrada. 
               Para esta demostración, haz clic en el botón:
             </p>
             <a 
               href={verificationUrl}
-              className="inline-flex items-center justify-center gap-2 w-full bg-linear-to-r from-amber-500 to-yellow-500 text-white font-semibold py-3 px-6 rounded-xl hover:from-amber-600 hover:to-yellow-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="inline-flex items-center justify-center gap-2 w-full bg-linear-to-r from-accent-500 to-accent-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-accent-600 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <Icons.Check className="w-5 h-5" />
               Verificar mi cuenta
             </a>
-            <p className="text-xs text-amber-600 mt-3 italic">
+            <p className="text-xs text-accent-600 mt-3 italic">
               ✨ Este enlace simula el que recibirías por email
             </p>
           </div>
@@ -239,15 +239,15 @@ const VerifyEmail = () => {
         {status === 'pending' && (
           <div className="flex flex-col items-center gap-2 mb-6">
             <Spinner className="mx-auto" />
-            <span className="text-blue-500 font-medium animate-pulse">Verificando enlace...</span>
+            <span className="text-brand-500 font-medium animate-pulse">Verificando enlace...</span>
           </div>
         )}
         {status === 'success' && (
           <div className="flex flex-col items-center gap-2 mb-6">
-            <svg className="w-8 h-8 text-green-500 mx-auto animate-bounce" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+            <svg className="w-8 h-8 text-brand-500 mx-auto animate-bounce" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-            <div className="text-green-600 font-semibold">{message}</div>
+            <div className="text-brand-600 font-semibold">{message}</div>
           </div>
         )}
         {status === 'error' && (
@@ -265,7 +265,7 @@ const VerifyEmail = () => {
             <p className="mb-2 text-gray-700">¿No recibiste el correo? Ingresa tu email para reenviar el enlace de verificación.</p>
             <input
               type="email"
-              className="input input-bordered w-full mb-1 text-base focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition"
+              className="input input-bordered w-full mb-1 text-base focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition"
               placeholder="Tu email"
               value={pendingVerification?.email ?? email}
               onChange={(e) => setEmail(e.target.value)}
@@ -274,11 +274,11 @@ const VerifyEmail = () => {
             <Button 
               onClick={handleResend} 
               disabled={resending || !email || countdown > 0} 
-              className="w-full mb-1 bg-linear-to-r from-cyan-500 to-blue-500 text-white font-semibold shadow-md hover:from-cyan-600 hover:to-blue-600 transition"
+              className="w-full mb-1 bg-linear-to-r from-brand-500 to-brand-600 text-white font-semibold shadow-md hover:from-brand-600 hover:to-brand-700 transition"
             >
               {resending ? 'Enviando...' : countdown > 0 ? `Reenviar en ${countdown}s` : 'Reenviar email de verificación'}
             </Button>
-            {resent && <div className="text-green-600 text-sm">¡Email reenviado! Revisa tu bandeja de entrada.</div>}
+            {resent && <div className="text-brand-600 text-sm">¡Email reenviado! Revisa tu bandeja de entrada.</div>}
           </div>
         )}
 
@@ -286,19 +286,19 @@ const VerifyEmail = () => {
         <div className="mt-6 flex flex-col gap-3 w-full max-w-xs mx-auto">
           <Button
             onClick={() => navigate('/login')}
-            className="w-full px-4 py-3 rounded-xl font-semibold bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow-lg hover:from-blue-600 hover:to-cyan-600 hover:shadow-xl transition-all duration-200"
+            className="w-full px-4 py-3 rounded-xl font-semibold bg-linear-to-r from-brand-600 to-brand-700 text-white shadow-lg hover:from-brand-700 hover:to-brand-800 hover:shadow-xl transition-all duration-200"
           >
             Inicia sesión
           </Button>
           <Button
             onClick={() => navigate('/')}
-            className="w-full px-4 py-3 rounded-xl font-semibold bg-linear-to-r from-gray-600 to-gray-700 text-white shadow-lg hover:from-gray-700 hover:to-gray-800 hover:shadow-xl transition-all duration-200"
+            className="w-full px-4 py-3 rounded-xl font-semibold bg-linear-to-r from-dark-600 to-dark-700 text-white shadow-lg hover:from-dark-700 hover:to-dark-800 hover:shadow-xl transition-all duration-200"
           >
             Ir al inicio
           </Button>
         </div>
 
-        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-24 h-2 bg-linear-to-r from-cyan-400 via-blue-400 to-blue-600 rounded-full blur-sm opacity-60"></div>
+        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-24 h-2 bg-linear-to-r from-brand-400 via-brand-500 to-brand-700 rounded-full blur-sm opacity-60"></div>
       </div>
     </div>
   );

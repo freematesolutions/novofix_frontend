@@ -201,8 +201,8 @@ export default function Inbox() {
     booking: {
       label: t('provider.inbox.typeBooking', 'Reservas'),
       icon: '📅',
-      color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-      dot: 'bg-emerald-500'
+      color: 'text-brand-600 bg-brand-50 border-brand-200',
+      dot: 'bg-brand-500'
     },
     proposal_negotiation: {
       label: t('provider.inbox.typeEstimate', 'Estimados'),
@@ -213,14 +213,14 @@ export default function Inbox() {
     info_request: {
       label: t('provider.inbox.typeInquiry', 'Consultas'),
       icon: '💬',
-      color: 'text-amber-600 bg-amber-50 border-amber-200',
-      dot: 'bg-amber-500'
+      color: 'text-accent-600 bg-accent-50 border-accent-200',
+      dot: 'bg-accent-500'
     },
     inquiry: {
       label: t('provider.inbox.typeInquiry', 'Consultas'),
       icon: '💬',
-      color: 'text-amber-600 bg-amber-50 border-amber-200',
-      dot: 'bg-amber-500'
+      color: 'text-accent-600 bg-accent-50 border-accent-200',
+      dot: 'bg-accent-500'
     }
   }), [t]);
 
@@ -260,12 +260,12 @@ export default function Inbox() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 p-4 sm:p-6">
+    <main className="max-w-7xl mx-auto space-y-6 p-4 sm:p-6">
       {/* Premium Header */}
-      <div className="overflow-hidden rounded-2xl bg-linear-to-br from-brand-500 via-brand-600 to-cyan-600 p-6 sm:p-8 text-white relative">
+      <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-brand-800 p-6 sm:p-8 text-white relative">
         {/* Decorative elements (non-interactive) */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-400/20 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative flex items-start gap-4">
           <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm text-white shadow-xl shadow-brand-500/25">
@@ -285,7 +285,7 @@ export default function Inbox() {
       {/* Propuestas resumidas */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="flex items-center gap-3 p-5 border-b border-gray-100">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-brand-100 to-cyan-100 text-brand-600">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-brand-100 to-brand-200 text-brand-600">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -323,10 +323,10 @@ export default function Inbox() {
             const clientName = clientProfile ? `${clientProfile.firstName || ''} ${clientProfile.lastName || ''}`.trim() : '';
             
             const statusConfig = {
-              sent: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: '⏳', label: t('provider.inbox.status.sent', 'Enviado') },
-              pending: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: '⏳', label: t('provider.inbox.status.pending', 'Pendiente') },
-              viewed: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: '👁️', label: t('provider.inbox.status.viewed', 'Visto por el cliente') },
-              accepted: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: '✓', label: t('provider.inbox.status.accepted', 'Aceptado') },
+              sent: { bg: 'bg-accent-50', text: 'text-accent-700', border: 'border-accent-200', icon: '⏳', label: t('provider.inbox.status.sent', 'Enviado') },
+              pending: { bg: 'bg-accent-50', text: 'text-accent-700', border: 'border-accent-200', icon: '⏳', label: t('provider.inbox.status.pending', 'Pendiente') },
+              viewed: { bg: 'bg-brand-50', text: 'text-brand-700', border: 'border-brand-200', icon: '👁️', label: t('provider.inbox.status.viewed', 'Visto por el cliente') },
+              accepted: { bg: 'bg-accent-50', text: 'text-accent-700', border: 'border-accent-200', icon: '✓', label: t('provider.inbox.status.accepted', 'Aceptado') },
               rejected: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: '✗', label: t('provider.inbox.status.rejected', 'Rechazado') },
               withdrawn: { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', icon: '↩', label: t('provider.inbox.status.withdrawn', 'Retirado') },
               draft: { bg: 'bg-gray-50', text: 'text-gray-500', border: 'border-gray-200', icon: '📝', label: t('provider.inbox.status.draft', 'Borrador') },
@@ -347,7 +347,7 @@ export default function Inbox() {
                     {/* Client name */}
                     {clientName && (
                       <div className="flex items-center gap-2 text-sm">
-                        <div className="w-6 h-6 rounded-full bg-linear-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm">
+                        <div className="w-6 h-6 rounded-full bg-linear-to-br from-accent-400 to-accent-600 flex items-center justify-center text-white text-[10px] font-bold shadow-sm">
                           {clientName.charAt(0).toUpperCase()}
                         </div>
                         <span className="text-gray-600">
@@ -357,7 +357,7 @@ export default function Inbox() {
                     )}
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                       {(amount || (amountMin && amountMax)) && (
-                        <span className="inline-flex items-center gap-1.5 font-medium text-emerald-600">
+                        <span className="inline-flex items-center gap-1.5 font-medium text-accent-600">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           {amountMin && amountMax
                             ? `${Intl.NumberFormat('es-AR',{style:'currency',currency}).format(amountMin)} - ${Intl.NumberFormat('es-AR',{style:'currency',currency}).format(amountMax)}`
@@ -381,10 +381,10 @@ export default function Inbox() {
                         onClick={() => openNegotiationChat(p)}
                         disabled={loadingNegotiationChat && negotiationProposal?._id === p._id}
                         title={t('provider.inbox.negotiateTooltip')}
-                        className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 hover:border-blue-300 hover:bg-blue-100 text-sm font-medium text-blue-600 transition-all flex items-center gap-2 disabled:opacity-50"
+                        className="px-4 py-2 rounded-xl bg-brand-50 border border-brand-200 hover:border-brand-300 hover:bg-brand-100 text-sm font-medium text-brand-600 transition-all flex items-center gap-2 disabled:opacity-50"
                       >
                         {loadingNegotiationChat && negotiationProposal?._id === p._id ? (
-                          <Spinner size="sm" className="text-blue-600" />
+                          <Spinner size="sm" className="text-brand-600" />
                         ) : (
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
                         )}
@@ -414,9 +414,9 @@ export default function Inbox() {
         {/* Chats List */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           {/* Header with filter tabs */}
-          <div className="p-4 border-b border-gray-100 bg-linear-to-r from-brand-50/50 to-cyan-50/30">
+          <div className="p-4 border-b border-gray-100 bg-linear-to-r from-brand-50/50 to-brand-100/30">
             <div className="flex items-center gap-3 mb-3">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-cyan-500 text-white">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-brand-700 text-white">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>
               </div>
               <span className="font-semibold text-gray-900">{t('provider.inbox.conversations')}</span>
@@ -430,7 +430,7 @@ export default function Inbox() {
                   onClick={() => setActiveFilter(tab.key)}
                   className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     activeFilter === tab.key
-                      ? 'bg-linear-to-r from-brand-500 to-cyan-500 text-white shadow-md shadow-brand-500/20'
+                      ? 'bg-linear-to-r from-brand-500 to-brand-700 text-white shadow-md shadow-brand-500/20'
                       : 'bg-white text-gray-600 border border-gray-200 hover:border-brand-300 hover:text-brand-600'
                   }`}
                 >
@@ -474,7 +474,7 @@ export default function Inbox() {
                     <div className="relative shrink-0">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-semibold text-white ${
                         isActive 
-                          ? 'bg-linear-to-br from-brand-500 to-cyan-500' 
+                          ? 'bg-linear-to-br from-brand-500 to-brand-700' 
                           : 'bg-linear-to-br from-gray-400 to-gray-500'
                       }`}>
                         {initial}
@@ -489,7 +489,7 @@ export default function Inbox() {
                           {name}
                         </h4>
                         {unread > 0 && (
-                          <span className="shrink-0 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white shadow-md">
+                          <span className="shrink-0 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full bg-linear-to-r from-brand-500 to-brand-700 text-white shadow-md">
                             {unread > 9 ? '9+' : unread}
                           </span>
                         )}
@@ -546,7 +546,7 @@ export default function Inbox() {
         <div className="lg:col-span-2">
           {!selectedChat ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-125 flex flex-col items-center justify-center p-8">
-              <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-brand-100 to-cyan-100 flex items-center justify-center mb-4">
+              <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-brand-100 to-brand-200 flex items-center justify-center mb-4">
                 <svg className="w-10 h-10 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('provider.inbox.selectConversation')}</h3>
@@ -576,7 +576,7 @@ export default function Inbox() {
         size="xl"
         title={
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/25">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
             </div>
             <div>
@@ -618,6 +618,6 @@ export default function Inbox() {
           </button>
         </div>
       </Modal>
-    </div>
+    </main>
   );
 }

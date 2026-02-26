@@ -20,11 +20,11 @@ import { HiStar, HiTrendingUp, HiTrendingDown, HiChat, HiClock, HiCheckCircle, H
 
 // Category labels with icons
 const CATEGORY_CONFIG = {
-  professionalism: { label: 'Profesionalismo', icon: '👔', color: 'from-blue-500 to-indigo-500' },
-  quality: { label: 'Calidad del trabajo', icon: '⭐', color: 'from-amber-500 to-orange-500' },
-  punctuality: { label: 'Puntualidad', icon: '⏰', color: 'from-emerald-500 to-teal-500' },
-  communication: { label: 'Comunicación', icon: '💬', color: 'from-purple-500 to-pink-500' },
-  value: { label: 'Relación calidad-precio', icon: '💰', color: 'from-cyan-500 to-blue-500' }
+  professionalism: { label: 'Profesionalismo', icon: '👔', color: 'from-brand-500 to-brand-600' },
+  quality: { label: 'Calidad del trabajo', icon: '⭐', color: 'from-accent-500 to-accent-600' },
+  punctuality: { label: 'Puntualidad', icon: '⏰', color: 'from-brand-600 to-brand-700' },
+  communication: { label: 'Comunicación', icon: '💬', color: 'from-brand-400 to-brand-500' },
+  value: { label: 'Relación calidad-precio', icon: '💰', color: 'from-brand-500 to-brand-700' }
 };
 
 // Stat Card Component
@@ -38,7 +38,7 @@ const StatCard = ({ icon, label, value, subvalue, trend, gradient, className = '
       <div className="text-2xl font-bold text-gray-900 mb-0.5">{value}</div>
       <div className="text-sm text-gray-500">{label}</div>
       {(trend !== undefined && trend !== null) && (
-        <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${trend >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+        <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${trend >= 0 ? 'text-brand-600' : 'text-red-500'}`}>
           {trend >= 0 ? <HiTrendingUp className="w-3.5 h-3.5" /> : <HiTrendingDown className="w-3.5 h-3.5" />}
           <span>{trend >= 0 ? '+' : ''}{trend}% vs previous month</span>
         </div>
@@ -65,7 +65,7 @@ const CategoryScoreBar = ({ category, score, average, t }) => {
             <span className="text-sm font-bold text-gray-900">{score?.toFixed(1) || '0.0'}</span>
             {diff !== 0 && (
               <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                diff > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                diff > 0 ? 'bg-brand-100 text-brand-700' : 'bg-red-100 text-red-700'
               }`}>
                 {diff > 0 ? '+' : ''}{diff.toFixed(1)}
               </span>
@@ -137,15 +137,15 @@ const ReviewInsights = ({ stats, reviewsWithoutResponse, t }) => {
           <div 
             key={idx}
             className={`flex items-start gap-3 p-3 rounded-xl ${
-              insight.type === 'warning' ? 'bg-amber-50 border border-amber-100' :
-              insight.type === 'improvement' ? 'bg-blue-50 border border-blue-100' :
-              'bg-emerald-50 border border-emerald-100'
+              insight.type === 'warning' ? 'bg-accent-50 border border-accent-100' :
+              insight.type === 'improvement' ? 'bg-accent-50 border border-accent-100' :
+              'bg-brand-50 border border-brand-100'
             }`}
           >
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-              insight.type === 'warning' ? 'bg-amber-100 text-amber-600' :
-              insight.type === 'improvement' ? 'bg-blue-100 text-blue-600' :
-              'bg-emerald-100 text-emerald-600'
+              insight.type === 'warning' ? 'bg-accent-100 text-accent-600' :
+              insight.type === 'improvement' ? 'bg-accent-100 text-accent-600' :
+              'bg-brand-100 text-brand-600'
             }`}>
               {insight.icon}
             </div>
@@ -220,9 +220,9 @@ export default function ProviderReviews() {
   return (
     <div className="max-w-7xl mx-auto space-y-6 p-4 sm:p-6">
       {/* Header */}
-      <div className="overflow-hidden rounded-2xl bg-linear-to-br from-amber-500 via-orange-500 to-rose-500 p-6 sm:p-8 text-white relative">
+      <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 p-6 sm:p-8 text-white relative">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-yellow-400/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
         
         <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-start gap-4">
@@ -231,7 +231,7 @@ export default function ProviderReviews() {
             </div>
             <div>
               <h1 className="text-2xl font-bold mb-1">{t('provider.reviews.title')}</h1>
-              <p className="text-amber-100 text-sm">{t('provider.reviews.subtitle')}</p>
+              <p className="text-gray-300 text-sm">{t('provider.reviews.subtitle')}</p>
             </div>
           </div>
           
@@ -253,7 +253,7 @@ export default function ProviderReviews() {
       {loading && (
         <div className="flex items-center justify-center py-16">
           <div className="text-center">
-            <Spinner size="lg" className="text-amber-500 mx-auto mb-3" />
+            <Spinner size="lg" className="text-brand-500 mx-auto mb-3" />
             <p className="text-gray-600">{t('provider.reviews.loading')}</p>
           </div>
         </div>
@@ -269,28 +269,28 @@ export default function ProviderReviews() {
               label={t('provider.reviews.averageRating')}
               value={averageRating.toFixed(1)}
               subvalue={t('provider.reviews.outOfStars')}
-              gradient="from-amber-500 to-orange-500"
+              gradient="from-accent-500 to-accent-600"
             />
             <StatCard
               icon={<HiChat className="w-5 h-5" />}
               label={t('provider.reviews.totalReviews')}
               value={totalReviews}
               subvalue={totalReviews === 1 ? t('provider.reviews.reviewReceived') : t('provider.reviews.reviewsReceived')}
-              gradient="from-blue-500 to-indigo-500"
+              gradient="from-brand-500 to-brand-600"
             />
             <StatCard
               icon={<HiCheckCircle className="w-5 h-5" />}
               label={t('provider.reviews.responded')}
               value={totalReviews - reviewsWithoutResponse}
               subvalue={`${totalReviews > 0 ? Math.round(((totalReviews - reviewsWithoutResponse) / totalReviews) * 100) : 0}% ${t('provider.reviews.responseRate')}`}
-              gradient="from-emerald-500 to-teal-500"
+              gradient="from-brand-600 to-brand-700"
             />
             <StatCard
               icon={<HiExclamation className="w-5 h-5" />}
               label={t('provider.reviews.unanswered')}
               value={reviewsWithoutResponse}
               subvalue={t('provider.reviews.waitingResponse')}
-              gradient="from-rose-500 to-pink-500"
+              gradient="from-accent-500 to-accent-600"
             />
           </div>
 
@@ -301,7 +301,7 @@ export default function ProviderReviews() {
               {/* Category Breakdown */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white">
+                  <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white">
                     <HiChartBar className="w-4 h-4" />
                   </div>
                   {t('provider.reviews.categoryScores')}
@@ -338,11 +338,11 @@ export default function ProviderReviews() {
                         <div key={stars} className="flex items-center gap-3">
                           <div className="flex items-center gap-1 w-12">
                             <span className="text-sm font-medium text-gray-700">{stars}</span>
-                            <HiStar className="w-4 h-4 text-amber-400" />
+                            <HiStar className="w-4 h-4 text-accent-400" />
                           </div>
                           <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                             <div 
-                              className="h-full bg-linear-to-r from-amber-400 to-amber-500 rounded-full transition-all duration-500"
+                              className="h-full bg-linear-to-r from-accent-400 to-accent-500 rounded-full transition-all duration-500"
                               style={{ width: `${count}%` }}
                             />
                           </div>

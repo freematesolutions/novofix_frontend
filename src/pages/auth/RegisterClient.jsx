@@ -168,10 +168,10 @@ function RegisterClient() {
       color = 'from-red-500 to-red-400';
     } else if (score <= 4) {
       label = t('auth.passwordStrength.fair');
-      color = 'from-amber-500 to-yellow-400';
+      color = 'from-accent-500 to-accent-400';
     } else {
       label = t('auth.passwordStrength.strong');
-      color = 'from-green-500 to-emerald-400';
+      color = 'from-brand-500 to-brand-400';
     }
 
     setPasswordStrength({ score, label, color });
@@ -264,10 +264,10 @@ function RegisterClient() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-lg">
         <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="relative bg-linear-to-br from-emerald-500 via-emerald-600 to-teal-600 px-6 py-8 text-center">
+          <div className="relative bg-linear-to-br from-dark-700 via-dark-800 to-brand-800 px-6 py-8 text-center">
             <div className="absolute inset-0 overflow-hidden">
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-400/20 rounded-full blur-2xl" />
+              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-400/15 rounded-full blur-2xl" />
             </div>
             
             <div className="relative inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur rounded-2xl mb-4">
@@ -293,7 +293,7 @@ function RegisterClient() {
 
           <div className="p-6">
             <form onSubmit={onSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="client-firstName" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
                     <span className="text-base">👤</span> {t('auth.firstName')}
@@ -312,7 +312,7 @@ function RegisterClient() {
                       transition-all duration-200 focus:outline-none
                       ${touched.firstName && errors.firstName 
                         ? 'border-red-300 bg-red-50 focus:border-red-500' 
-                        : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}
+                        : 'border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'}
                     `}
                   />
                   {touched.firstName && errors.firstName && (
@@ -337,7 +337,7 @@ function RegisterClient() {
                       transition-all duration-200 focus:outline-none
                       ${touched.lastName && errors.lastName 
                         ? 'border-red-300 bg-red-50 focus:border-red-500' 
-                        : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}
+                        : 'border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'}
                     `}
                   />
                   {touched.lastName && errors.lastName && (
@@ -348,7 +348,7 @@ function RegisterClient() {
 
               <div>
                 <label htmlFor="client-email" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                  <Icons.Mail className="w-4 h-4 text-emerald-500" /> {t('auth.email')}
+                  <Icons.Mail className="w-4 h-4 text-brand-500" /> {t('auth.email')}
                 </label>
                 <div className="relative">
                   <input
@@ -366,17 +366,17 @@ function RegisterClient() {
                       w-full border-2 rounded-xl px-4 py-2.5 pr-10 text-gray-900 placeholder:text-gray-400
                       transition-all duration-200 focus:outline-none
                       ${touched.email && errors.email ? 'border-red-300 bg-red-50' : 
-                        emailValidation.isValid === true ? 'border-green-500 bg-green-50/50' : 
+                        emailValidation.isValid === true ? 'border-brand-500 bg-brand-50/50' : 
                         emailValidation.isValid === false ? 'border-red-500 bg-red-50' : 
-                        'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}
+                        'border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'}
                     `}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
                     {emailValidation.checking && (
-                      <div className="w-5 h-5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-brand-600 border-t-transparent rounded-full animate-spin" />
                     )}
                     {!emailValidation.checking && emailValidation.isValid === true && (
-                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                      <div className="w-5 h-5 bg-brand-500 rounded-full flex items-center justify-center">
                         <Icons.Check className="w-3 h-3 text-white" />
                       </div>
                     )}
@@ -392,7 +392,7 @@ function RegisterClient() {
                 )}
                 {!errors.email && emailValidation.message && (
                   <p className={`text-xs mt-1 ${
-                    emailValidation.isValid === true ? 'text-green-600' : 
+                    emailValidation.isValid === true ? 'text-brand-600' : 
                     emailValidation.isValid === false ? 'text-red-600' : 'text-gray-500'
                   }`}>
                     {emailValidation.message}
@@ -402,7 +402,7 @@ function RegisterClient() {
 
               <div>
                 <label htmlFor="client-phone" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                  <Icons.Phone className="w-4 h-4 text-emerald-500" /> {t('auth.phone')}
+                  <Icons.Phone className="w-4 h-4 text-brand-500" /> {t('auth.phone')}
                   <span className="text-gray-400 text-xs">({t('common.optional')})</span>
                 </label>
                 <input 
@@ -413,13 +413,13 @@ function RegisterClient() {
                   inputMode="tel" 
                   id="client-phone" 
                   placeholder={t('auth.phonePlaceholder')}
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all" 
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all" 
                 />
               </div>
 
               <div>
                 <label htmlFor="client-password" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                  <Icons.Lock className="w-4 h-4 text-emerald-500" /> {t('auth.password')}
+                  <Icons.Lock className="w-4 h-4 text-brand-500" /> {t('auth.password')}
                 </label>
                 <div className="relative">
                   <input
@@ -437,7 +437,7 @@ function RegisterClient() {
                       transition-all duration-200 focus:outline-none
                       ${touched.password && errors.password 
                         ? 'border-red-300 bg-red-50 focus:border-red-500' 
-                        : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}
+                        : 'border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'}
                     `}
                   />
                   <button
@@ -467,7 +467,7 @@ function RegisterClient() {
                       </div>
                       <span className={`text-xs font-semibold ${
                         passwordStrength.score <= 2 ? 'text-red-600' :
-                        passwordStrength.score <= 4 ? 'text-amber-600' : 'text-green-600'
+                        passwordStrength.score <= 4 ? 'text-accent-600' : 'text-brand-600'
                       }`}>
                         {passwordStrength.label}
                       </span>
@@ -479,10 +479,10 @@ function RegisterClient() {
                         return (
                           <div 
                             key={req.id}
-                            className={`flex items-center gap-1.5 text-xs ${passed ? 'text-green-600' : 'text-gray-400'}`}
+                            className={`flex items-center gap-1.5 text-xs ${passed ? 'text-brand-600' : 'text-gray-400'}`}
                           >
                             {passed ? (
-                              <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center">
+                              <div className="w-4 h-4 bg-brand-100 rounded-full flex items-center justify-center">
                                 <Icons.Check className="w-2.5 h-2.5" />
                               </div>
                             ) : (
@@ -501,7 +501,7 @@ function RegisterClient() {
 
               <Button 
                 loading={localLoading} 
-                className="w-full py-3 text-base font-semibold rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg shadow-emerald-500/25"
+                className="w-full py-3 text-base font-semibold rounded-xl bg-linear-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-dark-900 transition-all shadow-lg shadow-accent-500/25"
               >
                 {localLoading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -552,8 +552,8 @@ function RegisterClient() {
           <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
             <p className="text-center text-xs text-gray-500">
               {t('auth.termsAgree')}{' '}
-              <a href="/terminos" className="text-emerald-600 hover:underline">{t('footer.terms')}</a> {t('common.and')}{' '}
-              <a href="/privacidad" className="text-emerald-600 hover:underline">{t('footer.privacy')}</a>
+              <a href="/terminos" className="text-brand-600 hover:underline">{t('footer.terms')}</a> {t('common.and')}{' '}
+              <a href="/privacidad" className="text-brand-600 hover:underline">{t('footer.privacy')}</a>
             </p>
           </div>
         </div>

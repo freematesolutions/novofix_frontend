@@ -181,7 +181,7 @@ function ReviewResponseModal({
       {/* Modal */}
       <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="bg-linear-to-r from-brand-500 via-brand-600 to-cyan-600 p-6 text-white relative overflow-hidden shrink-0">
+        <div className="bg-linear-to-r from-dark-700 via-dark-800 to-brand-800 p-6 text-white relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
           
           <div className="relative flex items-start justify-between">
@@ -215,7 +215,7 @@ function ReviewResponseModal({
           {/* Original Review Preview */}
           <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-brand-500/20">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-semibold shadow-lg shadow-brand-500/20">
                 {clientInitial}
               </div>
               <div className="flex-1">
@@ -334,14 +334,14 @@ function ReviewResponseModal({
               </div>
 
               {/* Tips */}
-              <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                <h5 className="font-medium text-blue-900 text-sm mb-2 flex items-center gap-2">
+              <div className="bg-brand-50 rounded-xl p-4 border border-brand-100">
+                <h5 className="font-medium text-brand-900 text-sm mb-2 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
                   {t('ui.reviewResponse.tipsTitle')}
                 </h5>
-                <ul className="text-xs text-blue-800 space-y-1">
+                <ul className="text-xs text-brand-800 space-y-1">
                   <li>• {t('ui.reviewResponse.tip1')}</li>
                   <li>• {t('ui.reviewResponse.tip2')}</li>
                   <li>• {t('ui.reviewResponse.tip3')}</li>
@@ -366,7 +366,7 @@ function ReviewResponseModal({
               onClick={handleSubmit}
               loading={loading}
               disabled={!isValidLength}
-              className="bg-linear-to-r from-brand-500 to-cyan-500 text-white"
+              className="bg-linear-to-r from-brand-500 to-brand-700 text-white"
             >
               <Icons.Check className="w-4 h-4 mr-2" />
               {hasExistingResponse ? t('ui.reviewResponse.saveChanges') : t('ui.reviewResponse.sendResponse')}

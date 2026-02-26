@@ -235,7 +235,7 @@ function GuestConversionModal({
       color = 'from-amber-500 to-yellow-400';
     } else {
       label = t('ui.guestConversion.passwordStrength.strong');
-      color = 'from-green-500 to-emerald-400';
+      color = 'from-green-500 to-brand-400';
     }
 
     setPasswordStrength({ score, label, color });
@@ -403,12 +403,12 @@ function GuestConversionModal({
     <>
       {/* Backdrop - z-index muy alto para estar sobre el header */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-10002 transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Modal Container - centrado, margen superior en modal para evitar header */}
-      <div className="fixed inset-0 z-101 flex items-start justify-center px-3 pb-3 sm:p-4 overflow-y-auto">
+      <div className="fixed inset-0 z-10003 flex items-start justify-center px-3 pb-3 sm:p-4 overflow-y-auto">
         <div 
           className="relative w-full max-w-md max-h-[calc(100vh-6rem)] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col mt-20"
           onClick={(e) => e.stopPropagation()}
@@ -420,7 +420,7 @@ function GuestConversionModal({
           {mode === 'choice' && (
             <>
               {/* Header con info del proveedor */}
-              <div className="relative bg-linear-to-br from-brand-600 via-brand-700 to-indigo-700 px-4 sm:px-5 py-3 sm:py-4 text-center shrink-0">
+              <div className="relative bg-linear-to-br from-dark-700 via-dark-800 to-brand-800 px-4 sm:px-5 py-3 sm:py-4 text-center shrink-0">
                 {/* Decoración de fondo */}
                 <div className="absolute inset-0 overflow-hidden">
                   <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
@@ -493,7 +493,7 @@ function GuestConversionModal({
                 {/* Action Buttons */}
                 <button
                   onClick={() => { setMode('register'); setTouched({}); setErrors({}); }}
-                  className="w-full flex items-center justify-center gap-2 sm:gap-3 px-4 py-3 sm:py-3.5 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/25"
+                  className="w-full flex items-center justify-center gap-2 sm:gap-3 px-4 py-3 sm:py-3.5 bg-linear-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-dark-900 font-semibold rounded-xl transition-all shadow-lg shadow-accent-500/25"
                 >
                   <Icons.UserPlus className="w-5 h-5" />
                   <span>{t('ui.guestConversion.createFreeAccount')}</span>
@@ -531,7 +531,7 @@ function GuestConversionModal({
           {mode === 'login' && (
             <>
               {/* Header */}
-              <div className="relative bg-linear-to-br from-brand-600 via-brand-700 to-indigo-700 px-4 sm:px-5 py-3 sm:py-4 text-center shrink-0">
+              <div className="relative bg-linear-to-br from-dark-700 via-dark-800 to-brand-800 px-4 sm:px-5 py-3 sm:py-4 text-center shrink-0">
                 <div className="absolute inset-0 overflow-hidden">
                   <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
                   <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-400/20 rounded-full blur-2xl" />
@@ -679,7 +679,7 @@ function GuestConversionModal({
                   {/* Botón Submit */}
                   <Button 
                     loading={loading} 
-                    className="w-full py-2.5 sm:py-3 text-base font-semibold rounded-xl bg-linear-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 transition-all shadow-lg shadow-brand-500/25"
+                    className="w-full py-2.5 sm:py-3 text-base font-semibold rounded-xl bg-linear-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 transition-all shadow-lg shadow-brand-500/25"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -708,7 +708,7 @@ function GuestConversionModal({
                 <button
                   type="button"
                   onClick={() => { setMode('register'); setTouched({}); setErrors({}); }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition-all"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-accent-50 text-accent-700 rounded-xl font-medium hover:bg-accent-100 transition-all"
                 >
                   <Icons.UserPlus className="w-5 h-5" />
                   <span className="text-sm">{t('ui.guestConversion.registerFree')}</span>
@@ -737,10 +737,10 @@ function GuestConversionModal({
           {mode === 'register' && (
             <>
               {/* Header */}
-              <div className="relative bg-linear-to-br from-emerald-500 via-emerald-600 to-teal-600 px-4 sm:px-5 py-3 sm:py-4 text-center shrink-0">
+              <div className="relative bg-linear-to-br from-dark-700 via-dark-800 to-brand-800 px-4 sm:px-5 py-3 sm:py-4 text-center shrink-0">
                 <div className="absolute inset-0 overflow-hidden">
                   <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-                  <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-400/20 rounded-full blur-2xl" />
+                  <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-400/20 rounded-full blur-2xl" />
                 </div>
                 
                 {/* Close button */}
@@ -778,7 +778,7 @@ function GuestConversionModal({
                 <button
                   type="button"
                   onClick={() => { setMode('choice'); setTouched({}); setErrors({}); }}
-                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-emerald-600 mb-2 sm:mb-3"
+                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-brand-600 mb-2 sm:mb-3"
                 >
                   <Icons.ChevronLeft className="w-4 h-4" />
                   Volver
@@ -805,7 +805,7 @@ function GuestConversionModal({
                           transition-all duration-200 focus:outline-none text-sm sm:text-base
                           ${touched.firstName && errors.firstName 
                             ? 'border-red-300 bg-red-50 focus:border-red-500' 
-                            : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}
+                            : 'border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'}
                         `}
                       />
                       {touched.firstName && errors.firstName && (
@@ -830,7 +830,7 @@ function GuestConversionModal({
                           transition-all duration-200 focus:outline-none text-sm sm:text-base
                           ${touched.lastName && errors.lastName 
                             ? 'border-red-300 bg-red-50 focus:border-red-500' 
-                            : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}
+                            : 'border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'}
                         `}
                       />
                       {touched.lastName && errors.lastName && (
@@ -842,7 +842,7 @@ function GuestConversionModal({
                   {/* Email */}
                   <div>
                     <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1 sm:mb-1.5">
-                      <Icons.Mail className="w-4 h-4 text-emerald-500" /> Correo electrónico
+                      <Icons.Mail className="w-4 h-4 text-brand-500" /> Correo electrónico
                     </label>
                     <div className="relative">
                       <input
@@ -861,12 +861,12 @@ function GuestConversionModal({
                           ${touched.email && errors.email ? 'border-red-300 bg-red-50' : 
                             emailValidation.isValid === true ? 'border-green-500 bg-green-50/50' : 
                             emailValidation.isValid === false ? 'border-red-500 bg-red-50' : 
-                            'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}
+                            'border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'}
                         `}
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
                         {emailValidation.checking && (
-                          <div className="w-5 h-5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                          <div className="w-5 h-5 border-2 border-brand-600 border-t-transparent rounded-full animate-spin" />
                         )}
                         {!emailValidation.checking && emailValidation.isValid === true && (
                           <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
@@ -913,7 +913,7 @@ function GuestConversionModal({
                   {/* Password */}
                   <div>
                     <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1 sm:mb-1.5">
-                      <Icons.Lock className="w-4 h-4 text-emerald-500" /> Contraseña
+                      <Icons.Lock className="w-4 h-4 text-brand-500" /> Contraseña
                     </label>
                     <div className="relative">
                       <input
@@ -931,7 +931,7 @@ function GuestConversionModal({
                           transition-all duration-200 focus:outline-none text-sm sm:text-base
                           ${touched.password && errors.password 
                             ? 'border-red-300 bg-red-50 focus:border-red-500' 
-                            : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}
+                            : 'border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'}
                         `}
                       />
                       <PasswordToggle
@@ -995,7 +995,7 @@ function GuestConversionModal({
                   <Button 
                     loading={loading} 
                     disabled={emailValidation.isValid === false}
-                    className="w-full py-2.5 sm:py-3 text-base font-semibold rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-2.5 sm:py-3 text-base font-semibold rounded-xl bg-linear-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 transition-all shadow-lg shadow-accent-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -1035,8 +1035,8 @@ function GuestConversionModal({
               <div className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-50 border-t border-gray-100 shrink-0">
                 <p className="text-center text-xs text-gray-500">
                   Al registrarte, aceptas nuestros{' '}
-                  <a href="/terminos" className="text-emerald-600 hover:underline">Términos</a> y{' '}
-                  <a href="/privacidad" className="text-emerald-600 hover:underline">Privacidad</a>
+                  <a href="/terminos" className="text-brand-600 hover:underline">Términos</a> y{' '}
+                  <a href="/privacidad" className="text-brand-600 hover:underline">Privacidad</a>
                 </p>
               </div>
             </>

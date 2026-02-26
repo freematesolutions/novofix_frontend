@@ -498,7 +498,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                           e.target.nextElementSibling.style.display = 'flex';
                         }}
                       />
-                      <div className="hidden absolute inset-0 bg-linear-to-br from-blue-500 to-purple-600 items-center justify-center">
+                      <div className="hidden absolute inset-0 bg-linear-to-br from-brand-500 to-dark-600 items-center justify-center">
                         <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
                         </svg>

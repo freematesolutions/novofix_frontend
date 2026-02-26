@@ -17,7 +17,7 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
   return (
     <div
       onClick={handleClick}
-      className={`group relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-500 h-105 flex flex-col ${
+      className={`group relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-500 flex flex-col ${
         disabled 
           ? 'cursor-not-allowed opacity-90' 
           : 'cursor-pointer hover:shadow-2xl hover:-translate-y-2'
@@ -70,7 +70,7 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
       {/* Contenido inferior */}
       <div className="flex-1 flex flex-col p-6 bg-white">
         {/* Descripción */}
-        <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3 flex-1">
+        <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
           {translatedDescription}
         </p>
 

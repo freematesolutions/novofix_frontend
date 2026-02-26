@@ -53,13 +53,13 @@ export default function Calendar() {
   return (
     <div className="max-w-5xl mx-auto space-y-6 p-4 sm:p-6">
       {/* Premium Header */}
-      <div className="overflow-hidden rounded-2xl bg-linear-to-br from-brand-500 via-brand-600 to-cyan-600 p-6 sm:p-8 text-white relative">
+      <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 p-6 sm:p-8 text-white relative">
         {/* Decorative elements (non-interactive) */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative flex items-start gap-4">
-          <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-linear-to-br from-brand-500 to-cyan-500 text-white shadow-xl shadow-brand-500/25">
+          <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 text-white shadow-xl shadow-brand-500/25">
             <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
@@ -76,7 +76,7 @@ export default function Calendar() {
       {/* Date Selector */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <div className="flex items-center gap-3 mb-5">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-brand-100 to-cyan-100 text-brand-600">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-brand-100 to-brand-200 text-brand-600">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -103,7 +103,7 @@ export default function Calendar() {
           <button
             onClick={() => load(date)}
             disabled={loading}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -124,7 +124,7 @@ export default function Calendar() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-cyan-100 to-blue-100 text-cyan-600">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-brand-100 to-brand-200 text-brand-600">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -138,9 +138,9 @@ export default function Calendar() {
           </div>
           
           {slots.length > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-100">
-              <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span className="text-xs font-medium text-emerald-700">{t('provider.calendar.available')}</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-linear-to-r from-brand-50 to-brand-100 border border-brand-200">
+              <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span className="text-xs font-medium text-brand-700">{t('provider.calendar.available')}</span>
             </div>
           )}
         </div>
@@ -169,9 +169,9 @@ export default function Calendar() {
             {slots.map((s, idx) => (
               <div 
                 key={idx} 
-                className="group relative flex items-center justify-center px-4 py-3 rounded-xl bg-linear-to-br from-brand-50/50 to-cyan-50/30 border border-brand-100 hover:border-brand-300 hover:shadow-md hover:shadow-brand-500/10 transition-all duration-300"
+                className="group relative flex items-center justify-center px-4 py-3 rounded-xl bg-linear-to-br from-brand-50/50 to-brand-100/30 border border-brand-100 hover:border-brand-300 hover:shadow-md hover:shadow-brand-500/10 transition-all duration-300"
               >
-                <div className="absolute inset-0 bg-linear-to-br from-brand-500/0 to-cyan-500/0 group-hover:from-brand-500/5 group-hover:to-cyan-500/5 rounded-xl transition-all" />
+                <div className="absolute inset-0 bg-linear-to-br from-brand-500/0 to-brand-600/0 group-hover:from-brand-500/5 group-hover:to-brand-600/5 rounded-xl transition-all" />
                 <div className="relative flex items-center gap-2">
                   <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

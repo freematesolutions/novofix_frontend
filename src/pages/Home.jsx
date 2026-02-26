@@ -34,6 +34,9 @@ function Home() {
   const [carouselIndex, setCarouselIndex] = useState(0); // Índice independiente del carrusel
   const [searchResults, setSearchResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [detectedCategories, setDetectedCategories] = useState([]);
+  // Info inline para cuando no hay profesionales (se muestra en el SearchBar, no navega a resultados)
+  const [noResultsInfo, setNoResultsInfo] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [allCategories, setAllCategories] = useState([]);
   const [categoryProviders, setCategoryProviders] = useState([]);
@@ -212,10 +215,25 @@ function Home() {
       setSearchResults(null);
       setSelectedCategory(null);
       setCategoryProviders([]);
+      setDetectedCategories([]);
+      setNoResultsInfo(null);
       // Limpiar el flag y los params de URL
       navigate('/', { replace: true, state: {} });
     }
   }, [location.state, navigate]);
+
+  // Escuchar evento de reset desde el Header (cuando logo se clickea estando en /)
+  useEffect(() => {
+    const handleHomeReset = () => {
+      setSearchResults(null);
+      setSelectedCategory(null);
+      setCategoryProviders([]);
+      setDetectedCategories([]);
+      setNoResultsInfo(null);
+    };
+    window.addEventListener('home:reset', handleHomeReset);
+    return () => window.removeEventListener('home:reset', handleHomeReset);
+  }, []);
 
   // Obtener servicios activos y categorías
   useEffect(() => {
@@ -334,32 +352,48 @@ useEffect(() => {
   // NOTA: El carrusel de iconos ahora maneja su propia animación CONTINUA internamente
   // mediante requestAnimationFrame en CategoryIconCarousel.jsx (estilo Encarta)
 
-  // Manejar búsqueda
+  // Manejar búsqueda — combinada (texto + filtros, no mutuamente excluyentes)
+  // Solo navega a página de resultados si hay profesionales; si no, muestra feedback inline en el SearchBar
   const handleSearch = useCallback(async (searchData) => {
     setIsSearching(true);
-    setSelectedCategory(null); // Limpiar categoría seleccionada
+    setSelectedCategory(null);
+    setDetectedCategories([]);
+    setNoResultsInfo(null);
     try {
-      // Usar endpoint público para búsqueda (funciona para guest y autenticados)
       const endpoint = '/guest/providers/search';
-      
-      if (searchData.type === 'text') {
-        // Búsqueda por texto
-        const { data } = await api.get(endpoint, {
-          params: { q: searchData.query, limit: 50 }
-        });
-        setSearchResults(data?.data?.providers || []);
-      } else if (searchData.type === 'filters') {
-        // Búsqueda por filtros
-        const params = {};
-        if (searchData.filters.category) params.category = searchData.filters.category;
-        if (searchData.filters.urgency) params.urgency = searchData.filters.urgency;
-        // Para ubicación necesitaríamos geocodificación, por ahora solo buscamos por categoría
-        const { data } = await api.get(endpoint, { params });
-        setSearchResults(data?.data?.providers || []);
+      const params = { limit: 50 };
+
+      // Búsqueda combinada: texto + filtros simultáneos
+      if (searchData.query) params.q = searchData.query;
+      if (searchData.filters?.category) params.category = searchData.filters.category;
+      if (searchData.filters?.location) params.location = searchData.filters.location;
+      if (searchData.filters?.urgency) params.urgency = searchData.filters.urgency;
+
+      // Fallback para tipos legacy ('text', 'filters') de otros componentes
+      if (searchData.type === 'text' && !params.q) params.q = searchData.query;
+      if (searchData.type === 'filters' && searchData.filters) {
+        if (searchData.filters.category && !params.category) params.category = searchData.filters.category;
+        if (searchData.filters.location && !params.location) params.location = searchData.filters.location;
+        if (searchData.filters.urgency && !params.urgency) params.urgency = searchData.filters.urgency;
+      }
+
+      const { data } = await api.get(endpoint, { params });
+      const providers = data?.data?.providers || [];
+      const detected = data?.data?.detectedCategories || [];
+
+      if (providers.length > 0) {
+        // Hay profesionales → mostrar página de resultados
+        setSearchResults(providers);
+        setDetectedCategories(detected);
+        setNoResultsInfo(null);
+      } else {
+        // Sin profesionales → NO navegar a resultados, mostrar feedback inline en SearchBar
+        setSearchResults(null);
+        setNoResultsInfo({ detectedCategories: detected, query: params.q || '' });
       }
     } catch {
-      // console.error('Error searching:', error);
-      setSearchResults([]);
+      setSearchResults(null);
+      setNoResultsInfo({ detectedCategories: [], query: '' });
     } finally {
       setIsSearching(false);
     }
@@ -374,6 +408,8 @@ useEffect(() => {
       // Si solo hay resultados de búsqueda, limpiar el estado
       setSearchResults(null);
       setSelectedCategory(null);
+      setDetectedCategories([]);
+      setNoResultsInfo(null);
     }
   }, [selectedCategory, navigate]);
 
@@ -434,7 +470,7 @@ useEffect(() => {
   };
 
   return (
-    <section className="space-y-12 w-full">
+    <main className="space-y-12 w-full">
       {/* Navegación flotante creativa - Solo visible al hacer scroll */}
       {!searchResults && !selectedCategory && showFloatingNav && (
         <nav className="fixed right-4 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-2 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200/50 p-2 transition-all duration-300">
@@ -451,6 +487,7 @@ useEffect(() => {
                 }`}
                 title={t(section.labelKey)}
                 aria-label={t(section.labelKey)}
+                aria-current={isActive ? 'true' : undefined}
               >
                 {/* Iconos SVG para cada sección */}
                 {section.icon === 'home' && (
@@ -569,7 +606,7 @@ useEffect(() => {
                     />
                     
                     {/* Overlay oscuro dinámico con gradiente */}
-                    <div className="absolute inset-0 bg-linear-to-br from-gray-900/70 via-brand-900/65 to-gray-900/70" />
+                    <div className="absolute inset-0 bg-linear-to-br from-dark-900/75 via-dark-800/65 to-dark-900/75" />
                     
                     {/* Overlay con patrón de puntos para textura */}
                     <div 
@@ -583,7 +620,7 @@ useEffect(() => {
                 ))
               ) : (
                 // Fallback mientras cargan las imágenes
-                <div className="absolute inset-0 bg-linear-to-br from-brand-600 via-brand-500 to-cyan-500">
+                <div className="absolute inset-0 bg-linear-to-br from-dark-800 via-brand-700 to-brand-600">
                   <div className="absolute inset-0 bg-black/20" />
                 </div>
               )}
@@ -592,8 +629,8 @@ useEffect(() => {
             {/* Efectos de luz animados - ocultos en móvil para mejor rendimiento */}
             <div className="hidden sm:block absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 2 }}>
               <div className="absolute top-0 left-1/4 w-72 md:w-96 h-72 md:h-96 bg-brand-400/20 rounded-full mix-blend-overlay filter blur-3xl animate-blob"></div>
-              <div className="absolute top-0 right-1/4 w-72 md:w-96 h-72 md:h-96 bg-cyan-400/20 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-2000"></div>
-              <div className="absolute bottom-0 left-1/3 w-72 md:w-96 h-72 md:h-96 bg-purple-400/20 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-4000"></div>
+              <div className="absolute top-0 right-1/4 w-72 md:w-96 h-72 md:h-96 bg-accent-400/20 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-2000"></div>
+              <div className="absolute bottom-0 left-1/3 w-72 md:w-96 h-72 md:h-96 bg-brand-300/20 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-4000"></div>
             </div>
 
             {/* Contenido principal - Layout con distribución óptima */}
@@ -613,9 +650,28 @@ useEffect(() => {
                 </div>
               </div>
 
+              {/* Buscador hero — glass pill standalone creativo */}
+              <div className="w-full max-w-xs sm:max-w-md md:max-w-xl lg:max-w-lg xl:max-w-2xl mx-auto shrink-0 px-4">
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-linear-to-r from-brand-400/20 via-accent-400/15 to-brand-400/20 rounded-2xl blur-lg opacity-60 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div 
+                    className="relative rounded-xl sm:rounded-2xl overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))',
+                      backdropFilter: 'blur(16px)',
+                      WebkitBackdropFilter: 'blur(16px)',
+                      border: '1px solid rgba(255,255,255,0.18)',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)'
+                    }}
+                  >
+                    <SearchBar onSearch={handleSearch} variant="hero" noResultsInfo={noResultsInfo} onClearNoResults={() => setNoResultsInfo(null)} providerCountByCategory={providerCountByCategory} />
+                  </div>
+                </div>
+              </div>
+
               {/* Carrusel de tarjetas con imágenes de categorías */}
               {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
-                <div className="w-full max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-xl xl:max-w-4xl 2xl:max-w-5xl mx-auto px-2 sm:px-4 shrink-0 overflow-hidden">
+                <div className="w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-2xl xl:max-w-5xl 2xl:max-w-6xl mx-auto px-2 sm:px-4 shrink-0 overflow-hidden">
                   <CategoryIconCarousel
                     categories={allCategoriesWithProviders}
                     currentIndex={carouselIndex}
@@ -627,46 +683,31 @@ useEffect(() => {
                 </div>
               )}
 
-              {/* Contenedor glassmorphism: Solo Buscador + Stats */}
+              {/* Contenedor glassmorphism: Stats */}
               <div 
-                className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-3 sm:gap-4 p-3 sm:p-5 rounded-2xl"
+                className="w-full max-w-3xl shrink-0 p-3 sm:p-4 rounded-2xl"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.2))',
+                  background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.15))',
                   backdropFilter: 'blur(16px)',
                   WebkitBackdropFilter: 'blur(16px)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  boxShadow: '0 4px 24px rgba(0, 0, 0, 0.2)'
                 }}
               >
-                {/* Buscador hero */}
-                <div className="w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-sm xl:max-w-2xl px-2 sm:px-0">
-                  <div 
-                    className="p-0.5 rounded-lg sm:rounded-xl lg:rounded-lg xl:rounded-xl"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(10px)',
-                      WebkitBackdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)'
-                    }}
-                  >
-                    <SearchBar onSearch={handleSearch} variant="hero" placeholder={t('searchBar.placeholder')} buttonLabel={t('searchBar.button')} />
-                  </div>
-                </div>
-
                 {/* Stats destacados */}
                 <div className="flex items-center justify-center gap-3 sm:gap-4 lg:gap-3">
                   <div className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105">
-                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">{SERVICE_CATEGORIES_WITH_DESCRIPTION.length}+</span>
+                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-accent-300 transition-colors">{SERVICE_CATEGORIES_WITH_DESCRIPTION.length}+</span>
                     <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.services')}</span>
                   </div>
                   <div className="w-px h-8 bg-white/30"></div>
                   <div className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105">
-                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">{totalUniqueProviders > 0 ? totalUniqueProviders : '—'}+</span>
+                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-accent-300 transition-colors">{totalUniqueProviders > 0 ? totalUniqueProviders : '—'}+</span>
                     <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.professionals')}</span>
                   </div>
                   <div className="w-px h-8 bg-white/30"></div>
                   <div className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105">
-                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-purple-300 transition-colors">{totalClients > 0 ? totalClients : '—'}+</span>
+                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-accent-300 transition-colors">{totalClients > 0 ? totalClients : '—'}+</span>
                     <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.clients')}</span>
                   </div>
                 </div>
@@ -690,11 +731,11 @@ useEffect(() => {
                 }}
                 aria-label="Ver más contenido"
               >
-                <span className="text-xs sm:text-sm lg:text-xs text-white font-semibold group-hover:text-yellow-300 transition-colors">
+                <span className="text-xs sm:text-sm lg:text-xs text-white font-semibold group-hover:text-accent-300 transition-colors">
                   {t('home.exploreBadge')}
                 </span>
                 <svg 
-                  className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 text-white animate-bounce group-hover:text-yellow-300 transition-colors" 
+                  className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 text-white animate-bounce group-hover:text-accent-300 transition-colors" 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24"
@@ -726,6 +767,28 @@ useEffect(() => {
       {searchResults !== null && !isSearching && (
         <div className="w-full">
           <div className="bg-white rounded-xl border p-6">
+            {/* Badge de categorías detectadas por búsqueda inteligente */}
+            {detectedCategories.length > 0 && (
+              <div className="mb-4 p-3 bg-brand-50 border border-brand-200 rounded-xl">
+                <p className="text-xs text-brand-600 font-medium mb-2 flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  {t('home.detectedCategoriesLabel')}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {detectedCategories.map((cat) => (
+                    <span
+                      key={cat}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-100 text-brand-700 border border-brand-200"
+                    >
+                      🎯 {t(`categories.${cat}`, cat)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">
                 {searchResults.length > 0 
@@ -736,6 +799,7 @@ useEffect(() => {
                 onClick={() => {
                   setSearchResults(null);
                   setSelectedCategory(null);
+                  setDetectedCategories([]);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-linear-to-r from-brand-100 to-brand-50 text-brand-700 font-semibold border border-brand-200 hover:from-brand-200 hover:to-brand-100 hover:text-brand-900 transition-all text-xs sm:text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
@@ -877,14 +941,14 @@ useEffect(() => {
                   featuredSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }}
-              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-linear-to-r from-brand-500 to-brand-600 text-white shadow-lg"
+              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-accent-500 hover:bg-accent-600 text-dark-900 font-bold shadow-lg"
               aria-label={t('home.featuredProviders.viewFeatured')}
             >
-              <span className="text-sm font-semibold group-hover:text-white transition-colors">
+              <span className="text-sm font-semibold transition-colors">
                 {t('home.featuredProviders.viewFeatured')}
               </span>
               <svg 
-                className="w-5 h-5 text-white animate-bounce transition-colors" 
+                className="w-5 h-5 text-dark-900 animate-bounce transition-colors" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -910,11 +974,11 @@ useEffect(() => {
             </div>
             {/* Badge de cantidad */}
             {featuredProviders.length > 0 && (
-              <div className="hidden sm:flex items-center gap-2 bg-linear-to-r from-amber-100 to-yellow-100 px-4 py-2 rounded-full border border-amber-200">
-                <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+              <div className="hidden sm:flex items-center gap-2 bg-linear-to-r from-accent-100 to-accent-50 px-4 py-2 rounded-full border border-accent-200">
+                <svg className="w-5 h-5 text-accent-600" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
-                <span className="text-sm font-semibold text-amber-700">
+                <span className="text-sm font-semibold text-accent-700">
                   {t('home.featuredProviders.topRated', { count: featuredProviders.length })}
                 </span>
               </div>
@@ -1026,14 +1090,14 @@ useEffect(() => {
                   testimonialsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }}
-              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-linear-to-r from-brand-500 to-brand-600 text-white shadow-lg"
+              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-accent-500 hover:bg-accent-600 text-dark-900 font-bold shadow-lg"
               aria-label={t('testimonials.viewTestimonials')}
             >
-              <span className="text-sm font-semibold group-hover:text-white transition-colors">
+              <span className="text-sm font-semibold transition-colors">
                 {t('testimonials.viewTestimonials')}
               </span>
               <svg 
-                className="w-5 h-5 text-white animate-bounce transition-colors" 
+                className="w-5 h-5 text-dark-900 animate-bounce transition-colors" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -1054,11 +1118,11 @@ useEffect(() => {
       {searchResults === null && !selectedCategory && (
         <div id="mission-vision-section" className="py-12 scroll-mt-20">
           {/* Header de la sección */}
-          <div className="text-center mb-12">
+          <div className="mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
               {t('home.missionVision.title')}
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-2xl">
               {t('home.missionVision.subtitle')}
             </p>
           </div>
@@ -1066,14 +1130,14 @@ useEffect(() => {
           {/* Misión y Visión - Cards principales */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             {/* Card de Misión */}
-            <div className="group relative bg-linear-to-br from-brand-50 via-blue-50 to-cyan-50 rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden border border-brand-100/50">
+            <div className="group relative bg-linear-to-br from-brand-50 via-brand-50/50 to-accent-50/30 rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden border border-brand-100/50">
               {/* Decoraciones de fondo */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-brand-200/20 rounded-full -mr-32 -mt-32 group-hover:scale-125 transition-transform duration-700"></div>
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-cyan-200/20 rounded-full -ml-20 -mb-20 group-hover:scale-125 transition-transform duration-700"></div>
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-accent-200/20 rounded-full -ml-20 -mb-20 group-hover:scale-125 transition-transform duration-700"></div>
               
               <div className="relative z-10">
                 {/* Icono */}
-                <div className="w-16 h-16 bg-linear-to-br from-brand-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                <div className="w-16 h-16 bg-linear-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
@@ -1121,14 +1185,14 @@ useEffect(() => {
             </div>
 
             {/* Card de Visión */}
-            <div className="group relative bg-linear-to-br from-purple-50 via-indigo-50 to-pink-50 rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden border border-purple-100/50">
+            <div className="group relative bg-linear-to-br from-accent-50 via-accent-50/30 to-brand-50/30 rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden border border-accent-100/50">
               {/* Decoraciones de fondo */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-purple-200/20 rounded-full -mr-32 -mt-32 group-hover:scale-125 transition-transform duration-700"></div>
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-pink-200/20 rounded-full -ml-20 -mb-20 group-hover:scale-125 transition-transform duration-700"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-accent-200/20 rounded-full -mr-32 -mt-32 group-hover:scale-125 transition-transform duration-700"></div>
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-brand-200/20 rounded-full -ml-20 -mb-20 group-hover:scale-125 transition-transform duration-700"></div>
               
               <div className="relative z-10">
                 {/* Icono */}
-                <div className="w-16 h-16 bg-linear-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                <div className="w-16 h-16 bg-linear-to-br from-accent-500 to-accent-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -1138,7 +1202,7 @@ useEffect(() => {
                 {/* Título */}
                 <div className="flex items-center gap-3 mb-4">
                   <h3 className="text-2xl font-bold text-gray-900">{t('home.missionVision.visionTitle')}</h3>
-                  <div className="flex-1 h-px bg-linear-to-r from-purple-300 to-transparent"></div>
+                  <div className="flex-1 h-px bg-linear-to-r from-accent-300 to-transparent"></div>
                 </div>
                 
                 {/* Contenido */}
@@ -1149,24 +1213,24 @@ useEffect(() => {
                 {/* Puntos clave de la visión */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-6 h-6 bg-accent-100 rounded-full flex items-center justify-center shrink-0">
+                      <svg className="w-4 h-4 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
                     <span className="text-gray-600">{t('home.missionVision.visionPoint1')}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-6 h-6 bg-accent-100 rounded-full flex items-center justify-center shrink-0">
+                      <svg className="w-4 h-4 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
                     <span className="text-gray-600">{t('home.missionVision.visionPoint2')}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-6 h-6 bg-accent-100 rounded-full flex items-center justify-center shrink-0">
+                      <svg className="w-4 h-4 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
@@ -1193,8 +1257,8 @@ useEffect(() => {
               </div>
 
               {/* Valor 2 - Excelencia */}
-              <div className="group bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-amber-200 text-center">
-                <div className="w-12 h-12 mx-auto bg-linear-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+              <div className="group bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-accent-200 text-center">
+                <div className="w-12 h-12 mx-auto bg-linear-to-br from-accent-400 to-accent-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                   </svg>
@@ -1204,8 +1268,8 @@ useEffect(() => {
               </div>
 
               {/* Valor 3 - Transparencia */}
-              <div className="group bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-blue-200 text-center">
-                <div className="w-12 h-12 mx-auto bg-linear-to-br from-blue-400 to-cyan-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+              <div className="group bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-brand-200 text-center">
+                <div className="w-12 h-12 mx-auto bg-linear-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -1216,8 +1280,8 @@ useEffect(() => {
               </div>
 
               {/* Valor 4 - Innovación */}
-              <div className="group bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-purple-200 text-center">
-                <div className="w-12 h-12 mx-auto bg-linear-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+              <div className="group bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-dark-200 text-center">
+                <div className="w-12 h-12 mx-auto bg-linear-to-br from-dark-600 to-dark-800 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
@@ -1243,7 +1307,7 @@ useEffect(() => {
             }}
           >
             {/* Overlay para oscurecer y mejorar contraste */}
-            <div className="absolute inset-0 bg-linear-to-br from-gray-900/80 via-brand-900/60 to-gray-900/80 pointer-events-none z-0" />
+            <div className="absolute inset-0 bg-linear-to-br from-dark-900/80 via-dark-800/60 to-dark-900/80 pointer-events-none z-0" />
 
             <div className="relative z-10">
               <div className="flex justify-between items-center mb-4">
@@ -1316,7 +1380,7 @@ useEffect(() => {
       )}
 
 
-    </section>
+    </main>
   );
 }
 

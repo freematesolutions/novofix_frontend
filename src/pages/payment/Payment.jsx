@@ -49,11 +49,11 @@ function PaymentInner({ amount, currency }) {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-emerald-50/30 py-8 px-4">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/30 py-8 px-4">
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/30 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-brand-500 to-brand-600 rounded-2xl shadow-lg shadow-brand-500/30 mb-4">
             <HiCreditCard className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('payment.title')}</h1>
@@ -62,13 +62,13 @@ function PaymentInner({ amount, currency }) {
 
         {/* Card principal */}
         <div className="relative">
-          <div className="absolute -inset-1 bg-linear-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-3xl blur-lg opacity-20"></div>
+          <div className="absolute -inset-1 bg-linear-to-r from-brand-500 via-brand-500 to-brand-600 rounded-3xl blur-lg opacity-20"></div>
           
           <div className="relative bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
             {/* Resumen del monto */}
             {formattedAmount && (
-              <div className="bg-linear-to-r from-emerald-500 to-teal-600 p-6 text-center">
-                <p className="text-emerald-100 text-sm mb-1">{t('payment.totalToPay')}</p>
+              <div className="bg-linear-to-r from-brand-500 to-brand-600 p-6 text-center">
+                <p className="text-brand-100 text-sm mb-1">{t('payment.totalToPay')}</p>
                 <p className="text-3xl font-bold text-white">{formattedAmount}</p>
               </div>
             )}
@@ -84,7 +84,7 @@ function PaymentInner({ amount, currency }) {
               )}
 
               {/* Stripe Payment Element */}
-              <div className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50/50 transition-all duration-200 focus-within:border-emerald-400 focus-within:bg-white">
+              <div className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50/50 transition-all duration-200 focus-within:border-brand-400 focus-within:bg-white">
                 <PaymentElement 
                   options={{
                     layout: 'tabs'
@@ -95,12 +95,12 @@ function PaymentInner({ amount, currency }) {
               {/* Indicadores de seguridad */}
               <div className="flex items-center justify-center gap-4 pt-2">
                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <HiLockClosed className="w-4 h-4 text-emerald-500" />
+                  <HiLockClosed className="w-4 h-4 text-brand-500" />
                   <span>{t('payment.security.ssl')}</span>
                 </div>
                 <div className="w-px h-4 bg-gray-300"></div>
                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <HiShieldCheck className="w-4 h-4 text-emerald-500" />
+                  <HiShieldCheck className="w-4 h-4 text-brand-500" />
                   <span>{t('payment.security.secure')}</span>
                 </div>
               </div>
@@ -113,7 +113,7 @@ function PaymentInner({ amount, currency }) {
                   className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold transition-all duration-200 ${
                     !stripe || submitting
                       ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                      : 'bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 hover:-translate-y-0.5'
+                      : 'bg-linear-to-r from-brand-500 to-brand-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30 hover:-translate-y-0.5'
                   }`}
                 >
                   {submitting ? (
@@ -144,15 +144,15 @@ function PaymentInner({ amount, currency }) {
         {/* Badges de confianza */}
         <div className="mt-8 grid grid-cols-3 gap-3">
           <div className="flex flex-col items-center text-center p-4 bg-white/70 rounded-xl border border-gray-100 shadow-sm">
-            <HiShieldCheck className="w-6 h-6 text-emerald-500 mb-2" />
+            <HiShieldCheck className="w-6 h-6 text-brand-500 mb-2" />
             <span className="text-xs font-medium text-gray-700">{t('payment.badges.secure')}</span>
           </div>
           <div className="flex flex-col items-center text-center p-4 bg-white/70 rounded-xl border border-gray-100 shadow-sm">
-            <HiLightningBolt className="w-6 h-6 text-emerald-500 mb-2" />
+            <HiLightningBolt className="w-6 h-6 text-brand-500 mb-2" />
             <span className="text-xs font-medium text-gray-700">{t('payment.badges.instant')}</span>
           </div>
           <div className="flex flex-col items-center text-center p-4 bg-white/70 rounded-xl border border-gray-100 shadow-sm">
-            <HiCurrencyDollar className="w-6 h-6 text-emerald-500 mb-2" />
+            <HiCurrencyDollar className="w-6 h-6 text-brand-500 mb-2" />
             <span className="text-xs font-medium text-gray-700">{t('payment.badges.noExtra')}</span>
           </div>
         </div>
@@ -213,7 +213,7 @@ export default function Payment() {
   // Estado: Falta configuración
   if (!publishableKey) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-amber-50/30 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-amber-50/30 flex items-center justify-center px-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-2xl shadow-xl border border-amber-200 p-8 text-center">
             <div className="inline-flex items-center justify-center w-14 h-14 bg-amber-100 rounded-full mb-4">
@@ -232,7 +232,7 @@ export default function Payment() {
   // Estado: Cargando
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/30 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
             <Spinner size="md" className="text-emerald-600" />
@@ -246,7 +246,7 @@ export default function Payment() {
   // Estado: Error
   if (error) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-red-50/30 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-red-50/30 flex items-center justify-center px-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-2xl shadow-xl border border-red-200 p-8 text-center">
             <div className="inline-flex items-center justify-center w-14 h-14 bg-red-100 rounded-full mb-4">

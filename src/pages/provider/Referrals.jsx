@@ -95,9 +95,9 @@ export default function Referrals() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header Section */}
-      <div className="overflow-hidden bg-linear-to-br from-brand-500 via-brand-600 to-cyan-600 rounded-2xl p-8 text-white relative">
+      <div className="overflow-hidden bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 rounded-2xl p-8 text-white relative">
         <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-56 h-56 bg-cyan-400/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-56 h-56 bg-brand-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
         <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
@@ -133,7 +133,7 @@ export default function Referrals() {
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center">
                 <HiShare className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -153,7 +153,7 @@ export default function Referrals() {
               </div>
               <button
                 onClick={copyCode}
-                className="p-4 bg-linear-to-br from-brand-500 to-cyan-500 text-white rounded-xl hover:from-brand-600 hover:to-cyan-600 transition-all shadow-lg hover:shadow-xl"
+                className="p-4 bg-linear-to-br from-brand-500 to-brand-600 text-white rounded-xl hover:from-brand-600 hover:to-brand-700 transition-all shadow-lg hover:shadow-xl"
                 title={t('provider.referrals.copyCode')}
               >
                 <HiClipboardCopy className="w-6 h-6" />
@@ -173,8 +173,8 @@ export default function Referrals() {
                   onClick={copyLink}
                   className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all ${
                     copied 
-                      ? 'bg-emerald-500 text-white' 
-                      : 'bg-linear-to-r from-brand-500 to-cyan-500 text-white hover:from-brand-600 hover:to-cyan-600 shadow-md hover:shadow-lg'
+                      ? 'bg-brand-500 text-white' 
+                      : 'bg-linear-to-r from-brand-500 to-brand-600 text-white hover:from-brand-600 hover:to-brand-700 shadow-md hover:shadow-lg'
                   }`}
                 >
                   {copied ? (
@@ -206,10 +206,10 @@ export default function Referrals() {
           {/* Referrals Count */}
           <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center">
                 <HiUsers className="w-6 h-6 text-white" />
               </div>
-              <span className="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Total</span>
+              <span className="px-2.5 py-1 bg-brand-100 text-brand-700 text-xs font-semibold rounded-full">Total</span>
             </div>
             <p className="text-3xl font-bold text-gray-900 mb-1">{data.referralsCount}</p>
             <p className="text-sm text-gray-500">{t('provider.referrals.referredProfessionals')}</p>
@@ -218,17 +218,17 @@ export default function Referrals() {
           {/* Discount Months */}
           <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-brand-500 to-brand-700 flex items-center justify-center">
                 <HiCalendar className="w-6 h-6 text-white" />
               </div>
-              <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">50% OFF</span>
+              <span className="px-2.5 py-1 bg-brand-100 text-brand-700 text-xs font-semibold rounded-full">50% OFF</span>
             </div>
             <p className="text-3xl font-bold text-gray-900 mb-1">{data.discountMonths} <span className="text-lg text-gray-400 font-normal">{t('provider.referrals.months')}</span></p>
             <p className="text-sm text-gray-500">{t('provider.referrals.accumulatedDiscount')}</p>
             {/* Progress bar */}
             <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-linear-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-500" 
+                className="h-full bg-linear-to-r from-brand-500 to-brand-600 rounded-full transition-all duration-500" 
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -238,10 +238,10 @@ export default function Referrals() {
           {/* Limit Info */}
           <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-accent-500 to-accent-600 flex items-center justify-center">
                 <HiShieldCheck className="w-6 h-6 text-white" />
               </div>
-              <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">{t('provider.referrals.maximum')}</span>
+              <span className="px-2.5 py-1 bg-accent-100 text-accent-700 text-xs font-semibold rounded-full">{t('provider.referrals.maximum')}</span>
             </div>
             <p className="text-3xl font-bold text-gray-900 mb-1">3 <span className="text-lg text-gray-400 font-normal">{t('provider.referrals.months')}</span></p>
             <p className="text-sm text-gray-500">{t('provider.referrals.discountLimit')}</p>
@@ -256,7 +256,7 @@ export default function Referrals() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center shrink-0">
                 <span className="text-white font-bold text-sm">1</span>
               </div>
               <div>
@@ -265,7 +265,7 @@ export default function Referrals() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center shrink-0">
                 <span className="text-white font-bold text-sm">2</span>
               </div>
               <div>
@@ -274,7 +274,7 @@ export default function Referrals() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-cyan-500 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center shrink-0">
                 <span className="text-white font-bold text-sm">3</span>
               </div>
               <div>

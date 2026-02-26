@@ -29,16 +29,16 @@ const getNotificationStyle = (type, title, message) => {
   const text = `${title || ''} ${message || ''}`.toLowerCase();
   
   if (type === 'payment' || text.includes('pago') || text.includes('transacción')) {
-    return { icon: HiCurrencyDollar, bgColor: 'bg-emerald-100', iconColor: 'text-emerald-600', borderColor: 'border-emerald-200' };
+    return { icon: HiCurrencyDollar, bgColor: 'bg-green-100', iconColor: 'text-green-600', borderColor: 'border-green-200' };
   }
   if (type === 'booking' || text.includes('reserva') || text.includes('cita')) {
-    return { icon: HiCalendar, bgColor: 'bg-blue-100', iconColor: 'text-blue-600', borderColor: 'border-blue-200' };
+    return { icon: HiCalendar, bgColor: 'bg-brand-100', iconColor: 'text-brand-600', borderColor: 'border-brand-200' };
   }
   if (type === 'review' || text.includes('reseña') || text.includes('calificación')) {
-    return { icon: HiStar, bgColor: 'bg-amber-100', iconColor: 'text-amber-600', borderColor: 'border-amber-200' };
+    return { icon: HiStar, bgColor: 'bg-accent-100', iconColor: 'text-accent-600', borderColor: 'border-accent-200' };
   }
   if (type === 'message' || text.includes('mensaje')) {
-    return { icon: HiChat, bgColor: 'bg-purple-100', iconColor: 'text-purple-600', borderColor: 'border-purple-200' };
+    return { icon: HiChat, bgColor: 'bg-dark-100', iconColor: 'text-dark-500', borderColor: 'border-dark-200' };
   }
   if (type === 'alert' || text.includes('alerta') || text.includes('urgente')) {
     return { icon: HiExclamation, bgColor: 'bg-red-100', iconColor: 'text-red-600', borderColor: 'border-red-200' };
@@ -136,10 +136,10 @@ export default function Notifications() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-brand-50/30">
+    <main className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/30">
       {/* Header con gradiente premium */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-r from-brand-600 via-brand-700 to-indigo-700"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-dark-700 via-dark-800 to-brand-800"></div>
         <div className="absolute inset-0 opacity-50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}></div>
         
         <div className="relative max-w-4xl mx-auto px-4 py-8 sm:py-12">
@@ -329,8 +329,8 @@ export default function Notifications() {
         {/* Preferencias de notificación */}
         <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 overflow-hidden">
           <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 bg-gray-50/50">
-            <div className="p-2 bg-indigo-100 rounded-lg">
-              <HiCog className="w-5 h-5 text-indigo-600" />
+            <div className="p-2 bg-brand-100 rounded-lg">
+              <HiCog className="w-5 h-5 text-brand-600" />
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">{t('shared.notifications.preferences.title')}</h3>
@@ -453,6 +453,6 @@ export default function Notifications() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

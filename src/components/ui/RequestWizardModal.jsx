@@ -101,7 +101,7 @@ const STEPS = [
     shortTitleKey: 'photosVideos',
     descriptionKey: 'mediaHint',
     icon: '📸',
-    color: 'from-purple-500 to-pink-500'
+    color: 'from-dark-500 to-dark-700'
   },
   { 
     id: 'location', 
@@ -109,7 +109,7 @@ const STEPS = [
     shortTitleKey: 'location',
     descriptionKey: 'locationHint',
     icon: '📍',
-    color: 'from-emerald-500 to-teal-500'
+    color: 'from-brand-500 to-brand-700'
   },
   { 
     id: 'date', 
@@ -125,7 +125,7 @@ const STEPS = [
     shortTitleKey: 'summary',
     descriptionKey: 'summaryHint',
     icon: '📋',
-    color: 'from-green-500 to-emerald-500'
+    color: 'from-accent-500 to-accent-600'
   }
 ];
 
@@ -138,7 +138,7 @@ const URGENCY_OPTIONS = [
     labelKey: 'scheduled', 
     descriptionKey: 'scheduledDesc',
     icon: '🗓️',
-    color: 'border-blue-200 bg-blue-50 hover:border-blue-400'
+    color: 'border-brand-200 bg-brand-50 hover:border-brand-400'
   },
   { 
     value: 'immediate', 
@@ -1070,11 +1070,11 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
               {currentStep === 1 && (
                 <div className="space-y-5">
                   {/* Tip banner */}
-                  <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <Icons.Sparkles className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 bg-brand-50 border border-brand-200 rounded-xl p-4">
+                    <Icons.Sparkles className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-blue-800">{t('ui.requestWizard.tip')}</p>
-                      <p className="text-sm text-blue-700">{t('ui.requestWizard.compressionTip')}</p>
+                      <p className="text-sm font-medium text-brand-800">{t('ui.requestWizard.tip')}</p>
+                      <p className="text-sm text-brand-700">{t('ui.requestWizard.compressionTip')}</p>
                     </div>
                   </div>
 
@@ -1082,14 +1082,14 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                     {/* Photos upload */}
                     <div className="bg-gray-50 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-3">
-                        <Icons.Photo className="w-5 h-5 text-purple-600" />
+                        <Icons.Photo className="w-5 h-5 text-brand-600" />
                         <label className="text-sm font-semibold text-gray-700">{t('ui.requestWizard.photos')}</label>
                         <span className="text-xs text-gray-400">({t('ui.requestWizard.optional')})</span>
                       </div>
                       
                       <label className={`
                         flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors
-                        ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50/50'}
+                        ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-gray-300 hover:border-brand-400 hover:bg-brand-50/50'}
                       `}>
                         <Icons.Upload className="w-8 h-8 text-gray-400 mb-2" />
                         <span className="text-sm text-gray-600 text-center">
@@ -1207,13 +1207,13 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                 <div className="space-y-5">
                   {/* Banner informativo según si es obligatorio u opcional */}
                   {!locationRequired && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+                    <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 flex items-start gap-3">
                       <span className="text-xl">💻</span>
                       <div>
-                        <p className="text-sm font-medium text-blue-800">
+                        <p className="text-sm font-medium text-brand-800">
                           {t('ui.requestWizard.locationOptionalTitle')}
                         </p>
-                        <p className="text-sm text-blue-700">
+                        <p className="text-sm text-brand-700">
                           {t('ui.requestWizard.locationOptionalDesc')}
                         </p>
                       </div>

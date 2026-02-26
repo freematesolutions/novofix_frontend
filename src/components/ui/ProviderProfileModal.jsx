@@ -91,18 +91,18 @@ const Icons = {
 const planConfig = {
   pro: { 
     label: 'PRO', 
-    gradient: 'from-purple-500 to-purple-700',
-    bgLight: 'bg-purple-50',
-    textColor: 'text-purple-600',
-    ring: 'ring-purple-400',
+    gradient: 'from-dark-500 to-dark-700',
+    bgLight: 'bg-dark-50',
+    textColor: 'text-dark-600',
+    ring: 'ring-dark-400',
     icon: '👑'
   },
   basic: { 
     label: 'BASIC', 
-    gradient: 'from-blue-500 to-blue-600',
-    bgLight: 'bg-blue-50',
-    textColor: 'text-blue-600',
-    ring: 'ring-blue-400',
+    gradient: 'from-brand-500 to-brand-600',
+    bgLight: 'bg-brand-50',
+    textColor: 'text-brand-600',
+    ring: 'ring-brand-400',
     icon: '⭐'
   },
   free: { 
@@ -381,7 +381,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
             <div className="flex-1 min-w-0 text-white">
               <div className="flex items-center gap-2 mb-1">
                 <h1 className="text-lg sm:text-xl font-bold truncate">{businessName}</h1>
-                <Icons.Verified className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-300 shrink-0" />
+                <Icons.Verified className="w-4 h-4 sm:w-5 sm:h-5 text-accent-300 shrink-0" />
               </div>
               
               {/* Rating inline */}
@@ -393,7 +393,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                 </div>
                 
                 {score > 0 && (
-                  <span className="text-emerald-300 font-medium shrink-0">Score: {score.toFixed(1)}</span>
+                  <span className="text-accent-300 font-medium shrink-0">Score: {score.toFixed(1)}</span>
                 )}
                 
                 <span className="hidden sm:inline text-white/70">•</span>
@@ -469,10 +469,10 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                 {/* Location & Contact */}
                 <div className="space-y-3">
                   {/* Location card */}
-                  <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-xl p-4">
+                  <div className="bg-linear-to-br from-brand-50 to-brand-100 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Icons.Location className="w-4 h-4 text-blue-600" />
+                      <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center">
+                        <Icons.Location className="w-4 h-4 text-brand-600" />
                       </div>
                       <h3 className="font-semibold text-gray-900 text-sm">{t('ui.providerProfile.location')}</h3>
                     </div>
@@ -505,7 +505,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
             {/* ========== SERVICES SECTION ========== */}
             <section ref={sectionRefs.services} id="services" className="pt-1">
               <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-gray-900 mb-4">
-                <span className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center text-sm">🛠️</span>
+                <span className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">🛠️</span>
                 {t('ui.providerProfile.servicesOffered')}
               </h2>
 
@@ -558,7 +558,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                       )}
 
                       {/* Hover effect checkmark */}
-                      <div className="absolute top-3 right-3 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-3 right-3 w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Icons.Check className="w-3 h-3 text-white" />
                       </div>
                     </div>
@@ -569,7 +569,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                     {additionalServices.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {additionalServices.map((svc) => (
-                          <span key={svc} className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-100">
+                          <span key={svc} className="px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-medium border border-brand-100">
                             {t(`home.categories.${svc}`, svc)}
                           </span>
                         ))}

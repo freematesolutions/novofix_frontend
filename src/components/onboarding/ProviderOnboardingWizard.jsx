@@ -173,7 +173,7 @@ export default function ProviderOnboardingWizard() {
           {/* Header de progreso */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-linear-to-br from-brand-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+              <div className="w-10 h-10 bg-linear-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center shadow-md">
                 <Icons.Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -195,7 +195,7 @@ export default function ProviderOnboardingWizard() {
           {/* Barra de progreso moderna */}
           <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden mb-5">
             <div 
-              className="absolute inset-y-0 left-0 bg-linear-to-r from-brand-500 via-brand-600 to-indigo-600 rounded-full transition-all duration-500 ease-out"
+              className="absolute inset-y-0 left-0 bg-linear-to-r from-brand-500 via-brand-600 to-brand-700 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${completionPercentage}%` }}
             >
               <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
@@ -230,7 +230,7 @@ export default function ProviderOnboardingWizard() {
                       ${isCompleted 
                         ? 'bg-linear-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30' 
                         : isCurrent 
-                          ? 'bg-linear-to-br from-brand-500 to-indigo-600 text-white shadow-lg shadow-brand-500/30 ring-4 ring-brand-100' 
+                          ? 'bg-linear-to-br from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-500/30 ring-4 ring-brand-100' 
                           : canNavigate 
                             ? 'bg-gray-200 text-gray-600' 
                             : 'bg-gray-100 text-gray-400'}
@@ -270,7 +270,7 @@ export default function ProviderOnboardingWizard() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header con diseño moderno */}
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-brand-500 to-indigo-600 rounded-2xl mb-4 shadow-xl shadow-brand-500/25">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-brand-500 to-brand-700 rounded-2xl mb-4 shadow-xl shadow-brand-500/25">
             {StepIcon && <StepIcon className="w-8 h-8 text-white" />}
           </div>
           
@@ -285,9 +285,9 @@ export default function ProviderOnboardingWizard() {
           </p>
           
           {/* Tiempo estimado badge */}
-          <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full">
-            <Icons.Clock className="w-4 h-4 text-amber-600" />
-            <span className="text-sm font-medium text-amber-700">
+          <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-accent-50 border border-accent-200 rounded-full">
+            <Icons.Clock className="w-4 h-4 text-accent-600" />
+            <span className="text-sm font-medium text-accent-700">
               {t('onboarding.estimatedTimeRemaining', { count: estimatedMinutes })}
             </span>
           </div>
@@ -327,13 +327,13 @@ export default function ProviderOnboardingWizard() {
 
         {/* Footer info mejorado */}
         <div className="mt-8 grid sm:grid-cols-2 gap-4">
-          <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-              <Icons.Save className="w-4 h-4 text-blue-600" />
+          <div className="flex items-start gap-3 p-4 bg-brand-50 rounded-xl border border-brand-100">
+            <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center shrink-0">
+              <Icons.Save className="w-4 h-4 text-brand-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-blue-800">{t('onboarding.autoSave.title')}</p>
-              <p className="text-xs text-blue-600 mt-0.5">
+              <p className="text-sm font-medium text-brand-800">{t('onboarding.autoSave.title')}</p>
+              <p className="text-xs text-brand-600 mt-0.5">
                 {t('onboarding.autoSave.description')}
               </p>
             </div>
@@ -379,20 +379,20 @@ export default function ProviderOnboardingWizard() {
             rounded-xl shadow-2xl px-4 py-3 max-w-sm backdrop-blur-sm
             ${toast.type === 'error' 
               ? 'bg-red-50/95 border border-red-200' 
-              : 'bg-blue-50/95 border border-blue-200'}
+              : 'bg-brand-50/95 border border-brand-200'}
           `}>
             <div className="flex items-start gap-3">
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                toast.type === 'error' ? 'bg-red-100' : 'bg-blue-100'
+                toast.type === 'error' ? 'bg-red-100' : 'bg-brand-100'
               }`}>
                 {toast.type === 'error' 
                   ? <Icons.X className="w-4 h-4 text-red-600" />
-                  : <Icons.Info className="w-4 h-4 text-blue-600" />
+                  : <Icons.Info className="w-4 h-4 text-brand-600" />
                 }
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-medium ${
-                  toast.type === 'error' ? 'text-red-800' : 'text-blue-800'
+                  toast.type === 'error' ? 'text-red-800' : 'text-brand-800'
                 }`}>
                   {toast.message}
                 </p>

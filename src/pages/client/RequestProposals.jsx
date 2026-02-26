@@ -148,9 +148,9 @@ export default function ClientRequestProposals() {
     switch (plan?.toLowerCase()) {
       case 'premium':
       case 'pro':
-        return 'bg-linear-to-r from-purple-500 to-pink-500 text-white';
+        return 'bg-linear-to-r from-accent-500 to-accent-600 text-white';
       case 'business':
-        return 'bg-linear-to-r from-amber-500 to-orange-500 text-white';
+        return 'bg-linear-to-r from-accent-500 to-accent-600 text-white';
       default:
         return 'bg-gray-100 text-gray-700';
     }
@@ -159,7 +159,7 @@ export default function ClientRequestProposals() {
   return (
     <div className="min-h-screen bg-gray-50/50">
       {/* Hero Header con gradiente premium */}
-      <div className="bg-linear-to-br from-emerald-500 via-emerald-600 to-teal-600 overflow-hidden relative">
+      <div className="bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 overflow-hidden relative">
         {/* Elementos decorativos */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse pointer-events-none"></div>
@@ -225,7 +225,7 @@ export default function ClientRequestProposals() {
         {loading && (
           <div className="flex items-center justify-center py-16">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg animate-pulse">
+              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg animate-pulse">
                 <Spinner size="lg" className="text-white" />
               </div>
               <p className="text-gray-600 font-medium">{t('client.proposals.loading')}</p>
@@ -244,7 +244,7 @@ export default function ClientRequestProposals() {
             </p>
             <button
               onClick={() => navigate('/mis-solicitudes')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-100 text-emerald-700 font-medium rounded-xl hover:bg-emerald-200 transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-100 text-brand-700 font-medium rounded-xl hover:bg-brand-200 transition-colors"
             >
               <HiArrowLeft className="w-5 h-5" />
               {t('client.proposals.backToRequests')}
@@ -256,7 +256,7 @@ export default function ClientRequestProposals() {
         {!loading && requestMeta && proposals.length > 0 && (
           <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 p-5 sm:p-6 mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <HiSparkles className="w-5 h-5 text-emerald-500" />
+              <HiSparkles className="w-5 h-5 text-brand-500" />
               <h3 className="text-sm font-semibold text-gray-700">{t('client.proposals.yourRequest', 'Tu solicitud')}</h3>
             </div>
             {/* Description */}
@@ -344,7 +344,7 @@ export default function ClientRequestProposals() {
                           {avatar ? (
                             <img src={avatar} alt={providerName} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-emerald-400 to-teal-500">
+                            <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-brand-400 to-brand-500">
                               <HiUserCircle className="w-10 h-10 text-white/80" />
                             </div>
                           )}
@@ -352,7 +352,7 @@ export default function ClientRequestProposals() {
                         {/* Verified badge */}
                         {plan && plan.toLowerCase() !== 'free' && (
                           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full shadow-md flex items-center justify-center">
-                            <HiBadgeCheck className="w-5 h-5 text-emerald-500" />
+                            <HiBadgeCheck className="w-5 h-5 text-brand-500" />
                           </div>
                         )}
                       </div>
@@ -370,7 +370,7 @@ export default function ClientRequestProposals() {
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-sm">
                           {typeof score === 'number' && (
-                            <div className="flex items-center gap-1 text-amber-600">
+                            <div className="flex items-center gap-1 text-accent-600">
                               <HiStar className="w-4 h-4 fill-current" />
                               <span className="font-medium">{Math.round(score)}</span>
                               <span className="text-gray-400">score</span>
@@ -390,13 +390,13 @@ export default function ClientRequestProposals() {
                     <div className="sm:text-right">
                       <div className="inline-flex flex-col items-end gap-1">
                         {isRange && (
-                          <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                          <span className="text-xs font-medium text-accent-600 bg-accent-50 px-2 py-0.5 rounded-full">
                             {t('client.proposals.priceRange')}
                           </span>
                         )}
-                        <div className={`inline-flex items-center gap-2 px-4 py-2 border rounded-xl ${isRange ? 'bg-linear-to-r from-purple-50 to-violet-50 border-purple-100' : 'bg-linear-to-r from-emerald-50 to-teal-50 border-emerald-100'}`}>
-                          <HiCurrencyDollar className={`w-5 h-5 ${isRange ? 'text-purple-600' : 'text-emerald-600'}`} />
-                          <span className={`text-lg sm:text-xl font-bold ${isRange ? 'text-purple-700' : 'text-emerald-700'}`}>
+                        <div className={`inline-flex items-center gap-2 px-4 py-2 border rounded-xl ${isRange ? 'bg-linear-to-r from-accent-50 to-accent-50 border-accent-100' : 'bg-linear-to-r from-brand-50 to-brand-50 border-brand-100'}`}>
+                          <HiCurrencyDollar className={`w-5 h-5 ${isRange ? 'text-accent-600' : 'text-brand-600'}`} />
+                          <span className={`text-lg sm:text-xl font-bold ${isRange ? 'text-accent-700' : 'text-brand-700'}`}>
                             {formatPrice()}
                           </span>
                         </div>
@@ -418,7 +418,7 @@ export default function ClientRequestProposals() {
                     <button
                       onClick={() => accept(p._id)}
                       disabled={accepting === p._id}
-                      className="group/btn relative flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden"
+                      className="group/btn relative flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-brand-500 to-brand-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden"
                     >
                       <span className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></span>
                       <span className="relative flex items-center gap-2">
@@ -448,10 +448,10 @@ export default function ClientRequestProposals() {
                       onClick={() => openNegotiationChat(p)}
                       disabled={loadingChat && activeProposal?._id === p._id}
                       title="Conversar con el profesional para negociar términos o resolver dudas"
-                      className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 font-medium rounded-xl hover:bg-blue-100 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-brand-50 text-brand-600 font-medium rounded-xl hover:bg-brand-100 transition-colors disabled:opacity-50"
                     >
                       {loadingChat && activeProposal?._id === p._id ? (
-                        <Spinner size="sm" className="text-blue-600" />
+                        <Spinner size="sm" className="text-brand-600" />
                       ) : (
                         <HiChat className="w-5 h-5" />
                       )}
@@ -466,9 +466,9 @@ export default function ClientRequestProposals() {
 
         {/* Quick tips card */}
         {proposals.length > 0 && (
-          <div className="mt-8 p-6 bg-linear-to-br from-emerald-50 via-white to-teal-50 border border-emerald-100 rounded-2xl">
+          <div className="mt-8 p-6 bg-linear-to-br from-brand-50 via-white to-brand-50 border border-brand-100 rounded-2xl">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shrink-0">
                 <HiShieldCheck className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -488,7 +488,7 @@ export default function ClientRequestProposals() {
           size="xl"
           title={
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/25">
                 <HiChat className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -539,7 +539,7 @@ export default function ClientRequestProposals() {
                   if (activeProposal) accept(activeProposal._id);
                 }}
                 disabled={accepting === activeProposal?._id}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-brand-500 to-brand-600 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
               >
                 <HiCheckCircle className="w-4 h-4" />
                 {t('client.proposals.chatModal.acceptProposal')}

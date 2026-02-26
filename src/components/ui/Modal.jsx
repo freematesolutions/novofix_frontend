@@ -1,12 +1,14 @@
 import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { HiX } from 'react-icons/hi';
+import { useTranslation } from 'react-i18next';
 
 // Accessible modal dialog with focus management
 // - Unmounts when closed to avoid aria-hidden warnings on focused descendants
 // - Traps focus within the dialog while open
 // - Restores focus to the previously focused element on close
 function Modal({ open, title, children, onClose, actions, size = 'md', icon: IconComponent }) {
+  const { t } = useTranslation();
   const dialogRef = useRef(null);
   const lastFocusedRef = useRef(null);
   const onCloseRef = useRef(onClose);
@@ -137,7 +139,7 @@ function Modal({ open, title, children, onClose, actions, size = 'md', icon: Ico
                 <button
                   onClick={onClose}
                   className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors duration-200"
-                  aria-label="Cerrar"
+                  aria-label={t('common.close')}
                 >
                   <HiX className="w-5 h-5" />
                 </button>

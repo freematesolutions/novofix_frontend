@@ -1,16 +1,41 @@
 /* stylelint-disable at-rule-no-unknown */
 /* Tailwind v4 theme tokens for custom brand color */
 @theme {
-  --color-brand-50: #f0f9ff;
-  --color-brand-100: #e0f2fe;
-  --color-brand-200: #bae6fd;
-  --color-brand-300: #7dd3fc;
-  --color-brand-400: #38bdf8;
-  --color-brand-500: #0ea5e9;
-  --color-brand-600: #0284c7;
-  --color-brand-700: #0369a1;
-  --color-brand-800: #075985;
-  --color-brand-900: #0c4a6e;
+  /* Brand — Teal (#008080) */
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-200: #99f0e4;
+  --color-brand-300: #5edfcf;
+  --color-brand-400: #2cc9b6;
+  --color-brand-500: #0dae9c;
+  --color-brand-600: #008080;
+  --color-brand-700: #006b6b;
+  --color-brand-800: #005555;
+  --color-brand-900: #004040;
+
+  /* Accent — Mustard (#E1AD01) */
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #f5c518;
+  --color-accent-500: #E1AD01;
+  --color-accent-600: #c49400;
+  --color-accent-700: #a37800;
+  --color-accent-800: #855f00;
+  --color-accent-900: #6b4b00;
+
+  /* Dark — Charcoal (#2F353B) */
+  --color-dark-50: #f6f7f8;
+  --color-dark-100: #e2e4e7;
+  --color-dark-200: #c5c9cf;
+  --color-dark-300: #a1a8b1;
+  --color-dark-400: #7d8694;
+  --color-dark-500: #5e6772;
+  --color-dark-600: #4a525c;
+  --color-dark-700: #3d444d;
+  --color-dark-800: #2F353B;
+  --color-dark-900: #252a2f;
 }
 
 /* Animaciones personalizadas para Hero Section */

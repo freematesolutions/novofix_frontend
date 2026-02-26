@@ -182,13 +182,13 @@ export default function EditRequest() {
   const canEditTitle = !hasProposals;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-emerald-50/30">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/30">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {/* Indicador de progreso */}
         <UploadProgress {...uploadProgress} />
 
         {/* Header */}
-        <div className="overflow-hidden rounded-2xl bg-linear-to-br from-emerald-500 via-emerald-600 to-teal-600 p-6 text-white relative">
+        <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 p-6 text-white relative">
           <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
           <div className="relative flex items-center gap-4">
             <button
@@ -201,7 +201,7 @@ export default function EditRequest() {
             </button>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold">{t('client.editRequest.title', 'Editar solicitud')}</h1>
-              <p className="text-sm text-emerald-100 mt-0.5">
+              <p className="text-sm text-brand-100 mt-0.5">
                 {t('client.editRequest.subtitle', 'Actualiza los detalles de tu solicitud')}
               </p>
             </div>
@@ -210,20 +210,20 @@ export default function EditRequest() {
 
         {/* Warning if has proposals */}
         {hasProposals && (
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 flex items-start gap-3">
-            <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <div className="p-4 bg-accent-50 border border-accent-200 rounded-xl text-sm text-accent-800 flex items-start gap-3">
+            <svg className="w-5 h-5 text-accent-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div>
               <p className="font-semibold">{t('client.editRequest.hasProposalsWarning', 'Esta solicitud ya tiene propuestas')}</p>
-              <p className="mt-1 text-amber-700">{t('client.editRequest.hasProposalsDetail', 'No podrás cambiar el título ni la categoría, pero sí puedes actualizar la descripción, fotos, ubicación y presupuesto.')}</p>
+              <p className="mt-1 text-accent-700">{t('client.editRequest.hasProposalsDetail', 'No podrás cambiar el título ni la categoría, pero sí puedes actualizar la descripción, fotos, ubicación y presupuesto.')}</p>
             </div>
           </div>
         )}
 
         {error && <Alert type="error">{error}</Alert>}
 
-        <form onSubmit={onSubmit} className={`space-y-5 bg-white/80 backdrop-blur-xl rounded-2xl border border-emerald-100/60 shadow-lg p-6 ${loading ? 'opacity-70 pointer-events-none' : ''}`}>
+        <form onSubmit={onSubmit} className={`space-y-5 bg-white/80 backdrop-blur-xl rounded-2xl border border-brand-100/60 shadow-lg p-6 ${loading ? 'opacity-70 pointer-events-none' : ''}`}>
           {/* Categoría y urgencia */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -239,7 +239,7 @@ export default function EditRequest() {
             <div>
               <label className="block text-sm font-medium text-gray-700">{t('client.createRequest.urgencyLabel')}</label>
               <select
-                className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all"
+                className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all"
                 value={form.urgency}
                 onChange={(e) => setForm(f => ({ ...f, urgency: e.target.value }))}
               >
@@ -253,7 +253,7 @@ export default function EditRequest() {
             <label className="block text-sm font-medium text-gray-700">{t('client.createRequest.titleLabel')}</label>
             <input
               className={`mt-1 w-full border rounded-xl px-3 py-2.5 transition-all ${
-                !canEditTitle ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400'
+                !canEditTitle ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-gray-200 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400'
               }`}
               value={form.title}
               onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
@@ -268,7 +268,7 @@ export default function EditRequest() {
             <label className="block text-sm font-medium text-gray-700">{t('client.createRequest.descriptionLabel')}</label>
             <textarea
               rows={5}
-              className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all"
+              className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all"
               value={form.description}
               onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
             />
@@ -282,7 +282,7 @@ export default function EditRequest() {
             {/* Photos */}
             <div>
               <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 {t('client.createRequest.photosLabel')}
@@ -350,7 +350,7 @@ export default function EditRequest() {
             {/* Videos */}
             <div>
               <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
                 {t('client.createRequest.videosLabel')}
@@ -416,7 +416,7 @@ export default function EditRequest() {
               />
             </div>
             {uploadingMedia && (
-              <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-xl">
+              <div className="flex items-center gap-2 text-sm text-brand-600 bg-brand-50 px-3 py-2 rounded-xl">
                 <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 {t('client.createRequest.uploadingFiles')}
               </div>
@@ -436,7 +436,7 @@ export default function EditRequest() {
           <div>
             <label className="block text-sm font-medium text-gray-700">{t('client.createRequest.addressLabel')}</label>
             <input
-              className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all"
+              className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all"
               value={form.address}
               onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))}
             />
@@ -449,7 +449,7 @@ export default function EditRequest() {
               <label className="block text-sm font-medium text-gray-700">{t('client.createRequest.preferredDate')}</label>
               <input
                 type="date"
-                className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all"
+                className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all"
                 value={form.preferredDate}
                 onChange={(e) => setForm(f => ({ ...f, preferredDate: e.target.value }))}
               />
@@ -471,7 +471,7 @@ export default function EditRequest() {
                   type="number"
                   min="1"
                   step="0.01"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all"
                   value={form.budgetAmount}
                   onChange={(e) => setForm(f => ({ ...f, budgetAmount: e.target.value }))}
                 />
@@ -485,7 +485,7 @@ export default function EditRequest() {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/35 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-brand-500 to-brand-600 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/35 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>

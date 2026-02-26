@@ -255,8 +255,8 @@ export default function Messages() {
     booking: {
       label: t('client.messages.typeBooking', 'Reservas'),
       icon: '📅',
-      color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-      dot: 'bg-emerald-500'
+      color: 'text-brand-600 bg-brand-50 border-brand-200',
+      dot: 'bg-brand-500'
     },
     proposal_negotiation: {
       label: t('client.messages.typeEstimate', 'Estimados'),
@@ -267,14 +267,14 @@ export default function Messages() {
     info_request: {
       label: t('client.messages.typeInquiry', 'Consultas'),
       icon: '💬',
-      color: 'text-amber-600 bg-amber-50 border-amber-200',
-      dot: 'bg-amber-500'
+      color: 'text-accent-600 bg-accent-50 border-accent-200',
+      dot: 'bg-accent-500'
     },
     inquiry: {
       label: t('client.messages.typeInquiry', 'Consultas'),
       icon: '💬',
-      color: 'text-amber-600 bg-amber-50 border-amber-200',
-      dot: 'bg-amber-500'
+      color: 'text-accent-600 bg-accent-50 border-accent-200',
+      dot: 'bg-accent-500'
     }
   }), [t]);
 
@@ -325,13 +325,13 @@ export default function Messages() {
   const totalUnread = Object.values(unreadCounts).reduce((sum, n) => sum + n, 0);
 
   return (
-  <>
+  <main>
     <div className="max-w-7xl mx-auto space-y-6 p-4 sm:p-6">
       {/* Premium Header */}
-      <div className="overflow-hidden rounded-2xl bg-linear-to-br from-brand-500 via-brand-600 to-cyan-600 p-6 sm:p-8 text-white relative">
+      <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-brand-800 p-6 sm:p-8 text-white relative">
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-400/20 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative flex items-start gap-4">
           <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm text-white shadow-xl shadow-brand-500/25">
@@ -364,9 +364,9 @@ export default function Messages() {
           selectedChatId ? 'hidden lg:block' : 'block'
         }`}>
           {/* Header */}
-          <div className="p-4 border-b border-gray-100 bg-linear-to-r from-brand-50/50 to-cyan-50/30">
+          <div className="p-4 border-b border-gray-100 bg-linear-to-r from-brand-50/50 to-brand-100/30">
             <div className="flex items-center gap-3 mb-3">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-cyan-500 text-white">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-brand-700 text-white">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                 </svg>
@@ -382,7 +382,7 @@ export default function Messages() {
                   onClick={() => setActiveFilter(tab.key)}
                   className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     activeFilter === tab.key
-                      ? 'bg-linear-to-r from-brand-500 to-cyan-500 text-white shadow-md shadow-brand-500/20'
+                      ? 'bg-linear-to-r from-brand-500 to-brand-700 text-white shadow-md shadow-brand-500/20'
                       : 'bg-white text-gray-600 border border-gray-200 hover:border-brand-300 hover:text-brand-600'
                   }`}
                 >
@@ -436,7 +436,7 @@ export default function Messages() {
                       <div className="relative shrink-0">
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-semibold text-white ${
                           isActive 
-                            ? 'bg-linear-to-br from-brand-500 to-cyan-500' 
+                            ? 'bg-linear-to-br from-brand-500 to-brand-700' 
                             : 'bg-linear-to-br from-gray-400 to-gray-500'
                         }`}>
                           {initial}
@@ -456,7 +456,7 @@ export default function Messages() {
                             {name}
                           </h4>
                           {unread > 0 && (
-                            <span className="shrink-0 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full bg-linear-to-r from-brand-500 to-cyan-500 text-white shadow-md">
+                            <span className="shrink-0 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold rounded-full bg-linear-to-r from-brand-500 to-brand-700 text-white shadow-md">
                               {unread > 9 ? '9+' : unread}
                             </span>
                           )}
@@ -570,7 +570,7 @@ export default function Messages() {
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-125 lg:h-150 flex flex-col items-center justify-center p-8">
-              <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-brand-100 to-cyan-100 flex items-center justify-center mb-4">
+              <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-brand-100 to-brand-200 flex items-center justify-center mb-4">
                 <svg className="w-10 h-10 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
@@ -606,6 +606,6 @@ export default function Messages() {
         setEditTarget(null);
       }}
     />
-  </>
+  </main>
   );
 }
