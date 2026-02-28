@@ -30,7 +30,6 @@ function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, viewRole } = useAuth();
   // const [activeServices, setActiveServices] = useState([]);
-  const [currentServiceIndex, setCurrentServiceIndex] = useState(0);
   const [carouselIndex, setCarouselIndex] = useState(0); // Índice independiente del carrusel
   const [searchResults, setSearchResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -339,15 +338,7 @@ useEffect(() => {
   }
 }, [sortedCategoriesForCards, searchResults, selectedCategory, dataLoaded]);
 
-  // Rotar fondo del hero cada 8 segundos (lento para mejor UX visual)
-  // El fondo NO se pausa cuando el mouse está sobre el carrusel - son independientes
-  useEffect(() => {
-    if (allCategoriesWithProviders.length === 0 || !firstImageLoaded) return;
-    const interval = setInterval(() => {
-      setCurrentServiceIndex((prev) => (prev + 1) % allCategoriesWithProviders.length);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [allCategoriesWithProviders.length, firstImageLoaded]);
+  // NOTA: El fondo del hero ahora es un degradado sólido de marca (sin rotación de imágenes)
 
   // NOTA: El carrusel de iconos ahora maneja su propia animación CONTINUA internamente
   // mediante requestAnimationFrame en CategoryIconCarousel.jsx (estilo Encarta)
@@ -582,48 +573,27 @@ useEffect(() => {
             id="hero-section"
             className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-[480px] sm:min-h-[540px] md:min-h-[600px] lg:min-h-[580px] xl:min-h-[680px] 2xl:min-h-[760px] scroll-mt-20"
           >
-            {/* Contenedor de imágenes de fondo con transiciones suaves */}
+            {/* Fondo degradado sólido de marca — sin imágenes para no competir con el carrusel */}
             <div className="absolute inset-0">
-              {allCategoriesWithProviders.length > 0 && firstImageLoaded ? (
-                allCategoriesWithProviders.map((service, index) => (
-                  <div
-                    key={service.category + '-' + index}
-                    className="absolute inset-0 transition-all duration-1000 ease-in-out"
-                    style={{
-                      opacity: index === currentServiceIndex ? 1 : 0,
-                      transform: index === currentServiceIndex 
-                        ? 'scale(1)' 
-                        : 'scale(1.1)',
-                      zIndex: index === currentServiceIndex ? 1 : 0
-                    }}
-                  >
-                    {/* Imagen de fondo */}
-                    <div
-                      className="absolute inset-0 bg-cover bg-center"
-                      style={{
-                        backgroundImage: `url(${CATEGORY_IMAGES[service.category] || CATEGORY_IMAGES['Otro']})`,
-                      }}
-                    />
-                    
-                    {/* Overlay oscuro dinámico con gradiente */}
-                    <div className="absolute inset-0 bg-linear-to-br from-dark-900/75 via-dark-800/65 to-dark-900/75" />
-                    
-                    {/* Overlay con patrón de puntos para textura */}
-                    <div 
-                      className="absolute inset-0 opacity-10"
-                      style={{
-                        backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-                        backgroundSize: '20px 20px'
-                      }}
-                    />
-                  </div>
-                ))
-              ) : (
-                // Fallback mientras cargan las imágenes
-                <div className="absolute inset-0 bg-linear-to-br from-dark-800 via-brand-700 to-brand-600">
-                  <div className="absolute inset-0 bg-black/20" />
-                </div>
-              )}
+              {/* Degradado principal: Charcoal → Teal profundo → Teal medio */}
+              <div className="absolute inset-0 bg-linear-to-br from-dark-900 via-brand-900 to-brand-700" />
+              
+              {/* Capa sutil de acento para darle calidez */}
+              <div 
+                className="absolute inset-0 opacity-[0.07]"
+                style={{
+                  background: 'radial-gradient(ellipse at 80% 20%, var(--color-accent-500) 0%, transparent 60%)'
+                }}
+              />
+              
+              {/* Patrón de puntos para textura sutil */}
+              <div 
+                className="absolute inset-0 opacity-[0.04]"
+                style={{
+                  backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+                  backgroundSize: '20px 20px'
+                }}
+              />
             </div>
 
             {/* Efectos de luz animados - ocultos en móvil para mejor rendimiento */}
@@ -640,7 +610,7 @@ useEffect(() => {
               <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-1.5 sm:gap-2 lg:gap-1.5 pt-2">
                 {/* Título principal - texto blanco plano sin animación */}
                 <div className="text-center w-full pb-1 sm:pb-2">
-                  <h1 className="text-lg sm:text-xl md:text-2xl lg:text-xl xl:text-4xl 2xl:text-5xl font-extrabold text-white leading-tight drop-shadow-2xl">
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight drop-shadow-2xl">
                     {t('home.title1')}
                     <br />
                     <span className="text-white">
@@ -842,7 +812,7 @@ useEffect(() => {
         <div id="services-section" className="py-8 scroll-mt-20">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2">
                 {t('header.exploreServices')}
               </h2>
               <p className="text-gray-600">
@@ -941,14 +911,14 @@ useEffect(() => {
                   featuredSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }}
-              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-accent-500 hover:bg-accent-600 text-dark-900 font-bold shadow-lg"
+              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-linear-to-r from-brand-500 to-brand-600 text-white font-bold shadow-lg"
               aria-label={t('home.featuredProviders.viewFeatured')}
             >
-              <span className="text-sm font-semibold transition-colors">
+              <span className="text-sm font-semibold group-hover:text-white transition-colors">
                 {t('home.featuredProviders.viewFeatured')}
               </span>
               <svg 
-                className="w-5 h-5 text-dark-900 animate-bounce transition-colors" 
+                className="w-5 h-5 text-white animate-bounce transition-colors" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -965,7 +935,7 @@ useEffect(() => {
         <div id="featured-providers-section" className="py-8 scroll-mt-20">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2">
                 {t('home.featuredProviders.title')}
               </h2>
               <p className="text-gray-600">
@@ -1090,14 +1060,14 @@ useEffect(() => {
                   testimonialsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }}
-              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-accent-500 hover:bg-accent-600 text-dark-900 font-bold shadow-lg"
+              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-linear-to-r from-brand-500 to-brand-600 text-white font-bold shadow-lg"
               aria-label={t('testimonials.viewTestimonials')}
             >
-              <span className="text-sm font-semibold transition-colors">
+              <span className="text-sm font-semibold group-hover:text-white transition-colors">
                 {t('testimonials.viewTestimonials')}
               </span>
               <svg 
-                className="w-5 h-5 text-dark-900 animate-bounce transition-colors" 
+                className="w-5 h-5 text-white animate-bounce transition-colors" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -1119,7 +1089,7 @@ useEffect(() => {
         <div id="mission-vision-section" className="py-12 scroll-mt-20">
           {/* Header de la sección */}
           <div className="mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-4">
               {t('home.missionVision.title')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl">

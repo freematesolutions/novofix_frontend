@@ -59,17 +59,19 @@ function CategoryIconCarousel({
     });
   }, [categories]);
 
-  // ─── Espaciado responsive (más compacto) ──────────────────────────
+  // ─── Espaciado responsive (amplio, siempre mayor que el ancho de tarjeta) ─
   const getCardSpacing = useCallback(() => {
-    if (typeof window === 'undefined') return 150;
+    if (typeof window === 'undefined') return 200;
     const w = window.innerWidth;
-    if (w >= 1536) return 240;
-    if (w >= 1280) return 220;
-    if (w >= 1024) return 200;
-    if (w >= 768) return 180;
-    if (w >= 640) return 165;
-    if (w >= 480) return 155;
-    return 140;
+    // El ancho de tarjeta es clamp(150px, 30vw, 280px)
+    // El spacing debe ser >= ancho de tarjeta + margen visual
+    if (w >= 1536) return 340;
+    if (w >= 1280) return 320;
+    if (w >= 1024) return 300;
+    if (w >= 768)  return 260;
+    if (w >= 640)  return 230;
+    if (w >= 480)  return 210;
+    return 195;
   }, []);
 
   // ─── Pausar auto-rotación por N ms ────────────────────────────────
@@ -93,27 +95,27 @@ function CategoryIconCarousel({
 
       const dist = Math.abs(rel);
 
-      // Todas las tarjetas se renderizan; las muy lejanas van a opacity 0
-      const MAX_VISIBLE = 2.2;
+      // Mostrar menos tarjetas para que se noten mejor con más separación
+      const MAX_VISIBLE = 1.6;
       const visible = dist <= MAX_VISIBLE;
 
       const translateX = rel * spacing;
-      const translateZ = -dist * 50;
-      const translateY = dist * dist * 5;
-      const rotateY = rel * -8;
-      const depthFactor = Math.max(0, 1 - dist * 0.35);
-      const baseScale = 0.65 + depthFactor * 0.35; // 0.65 → 1.0
+      const translateZ = -dist * 80;
+      const translateY = dist * dist * 8;
+      const rotateY = rel * -12;
+      const depthFactor = Math.max(0, 1 - dist * 0.45);
+      const baseScale = 0.55 + depthFactor * 0.45; // 0.55 → 1.0
       const baseZIndex = Math.round(50 + depthFactor * 50);
 
-      // Opacidad: fade suave en los bordes, 0 fuera de rango
+      // Opacidad: fade más agresivo para que la tarjeta central destaque
       let opacity;
       if (!visible) {
         opacity = 0;
-      } else if (dist > 1.5) {
-        // Fade out suave entre 1.5 y 2.2
-        opacity = Math.max(0, 1 - (dist - 1.0) * 0.7) * 0.5;
+      } else if (dist > 1.2) {
+        // Fade out suave entre 1.2 y 1.6
+        opacity = Math.max(0, 1 - (dist - 0.8) * 0.8) * 0.4;
       } else {
-        opacity = Math.max(0.35, 1 - dist * 0.3);
+        opacity = Math.max(0.3, 1 - dist * 0.4);
       }
 
       return {
@@ -164,7 +166,7 @@ function CategoryIconCarousel({
       return;
     }
 
-    const speed = 0.00028; // ~30 s por vuelta completa
+    const speed = 0.00022; // ~38 s por vuelta completa — más suave, sin saltos
 
     const animate = (now) => {
       // Pausar por hover, drag activo o pausa manual
@@ -439,11 +441,11 @@ function CategoryIconCarousel({
                   <div className="absolute inset-0 bg-linear-to-br from-gray-200 via-gray-300 to-gray-200 animate-pulse" />
                 )}
 
-                {/* Overlay gradiente inferior */}
+                {/* Overlay gradiente inferior — equilibrado para dar profundidad a la imagen */}
                 <div
                   className="absolute inset-0"
                   style={{
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.1) 60%, transparent 100%)'
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.05) 55%, transparent 100%)'
                   }}
                 />
 
@@ -465,19 +467,27 @@ function CategoryIconCarousel({
                   </div>
                 )}
 
-                {/* Nombre de categoría + contador */}
-                <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 z-10">
+                {/* Nombre de categoría + contador — footer charcoal con acento mustard */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 z-10 px-3 py-2.5 sm:px-4 sm:py-3 border-t-2 border-accent-400/50 rounded-b-2xl sm:rounded-b-3xl"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(47,53,59,0.92), rgba(37,42,47,0.88))',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                    boxShadow: '0 -2px 10px rgba(0,0,0,0.15)'
+                  }}
+                >
                   <h3
-                    className="carousel-card-label font-bold text-white text-center leading-tight drop-shadow-lg text-sm sm:text-base md:text-lg"
-                    style={{ textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4)' }}
+                    className="carousel-card-label font-bold text-white text-center leading-tight text-sm sm:text-base md:text-lg"
+                    style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}
                   >
                     {service.translatedName}
                   </h3>
 
                   {!isDisabled && service.providerCount > 0 && (
                     <p
-                      className="text-white/90 text-center mt-1 text-xs sm:text-sm font-medium"
-                      style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}
+                      className="text-white/90 text-center mt-0.5 text-xs sm:text-sm font-medium"
+                      style={{ textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}
                     >
                       {service.providerCount}{' '}
                       {service.providerCount === 1

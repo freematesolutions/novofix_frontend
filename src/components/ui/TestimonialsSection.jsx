@@ -25,7 +25,8 @@ const StarRating = ({ rating, size = 'sm' }) => {
 };
 
 // Testimonial Card Component
-const TestimonialCard = ({ testimonial }) => {
+// variant: 'all' (default) | 'service' (only user-to-user reviews) | 'platform' (only NovoFix feedback)
+const TestimonialCard = ({ testimonial, variant = 'all' }) => {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language?.split('-')[0] || 'es';
 
@@ -99,7 +100,7 @@ const TestimonialCard = ({ testimonial }) => {
         </div>
 
         {/* For Clients: Show their review/rating about the provider */}
-        {!isProvider && comment && (
+        {variant !== 'platform' && !isProvider && comment && (
           <div className="mb-3 rounded-lg p-3 border bg-linear-to-r from-brand-50 to-brand-50 border-brand-100">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
@@ -124,7 +125,7 @@ const TestimonialCard = ({ testimonial }) => {
         )}
 
         {/* For Providers: Show their review/rating about the client */}
-        {isProvider && comment && (
+        {variant !== 'platform' && isProvider && comment && (
           <div className="mb-3 rounded-lg p-3 border bg-linear-to-r from-accent-50 to-accent-50 border-accent-100">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
@@ -149,7 +150,7 @@ const TestimonialCard = ({ testimonial }) => {
         )}
 
         {/* Platform Feedback (main content for provider testimonials, optional for clients) */}
-        {testimonial.hasPlatformFeedback && platformComment && (
+        {variant !== 'service' && testimonial.hasPlatformFeedback && platformComment && (
           <div className={`mb-3 rounded-lg p-3 border ${isProvider ? 'bg-linear-to-r from-purple-50 to-indigo-50 border-purple-100' : 'bg-linear-to-r from-brand-50 to-cyan-50 border-brand-100'}`}>
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
@@ -178,8 +179,9 @@ const TestimonialCard = ({ testimonial }) => {
 };
 
 // Testimonials Carousel Component - Auto-scroll horizontal with pause on hover/touch
+// Supports direction: 'ltr' (left-to-right, default) or 'rtl' (right-to-left)
 // Optimized for mobile touch interactions
-const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
+const TestimonialsCarousel = ({ testimonials, onImageClick: _onImageClick, direction = 'ltr', title, icon, variant = 'all' }) => {
   const { t } = useTranslation();
   const containerRef = useRef(null);
   const scrollRef = useRef(null);
@@ -187,6 +189,7 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const lastTimeRef = useRef(0);
+  const initializedRef = useRef(false);
   
   // Refs for touch/drag handling (using refs to avoid stale closures)
   const isDraggingRef = useRef(false);
@@ -221,7 +224,23 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
     };
   }, []);
 
-  // Auto-scroll animation
+  // Initialize scroll position for RTL direction
+  useEffect(() => {
+    if (direction !== 'rtl' || !scrollRef.current || testimonials.length <= 1) return;
+    const initPosition = () => {
+      const container = scrollRef.current;
+      if (container && container.scrollWidth > container.clientWidth) {
+        container.scrollLeft = container.scrollWidth - container.clientWidth;
+        initializedRef.current = true;
+      } else if (!initializedRef.current) {
+        setTimeout(initPosition, 100);
+      }
+    };
+    initializedRef.current = false;
+    requestAnimationFrame(() => { requestAnimationFrame(initPosition); });
+  }, [direction, testimonials]);
+
+  // Auto-scroll animation — supports LTR and RTL
   useEffect(() => {
     const shouldAnimate = scrollRef.current && !isHovering && !isDraggingRef.current && !isPaused && testimonials.length > 1;
     
@@ -233,6 +252,9 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
       lastTimeRef.current = 0;
       return;
     }
+
+    // For RTL, wait for initialization
+    if (direction === 'rtl' && !initializedRef.current) return;
 
     const animate = (currentTime) => {
       // Check again inside animation loop
@@ -253,28 +275,38 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
 
       const container = scrollRef.current;
       if (container) {
-        // Scroll from left to right
-        container.scrollLeft += scrollSpeed * (deltaTime / 16.67); // Normalize to 60fps
-        
-        // Reset to beginning when reaching the end (infinite loop)
         const maxScroll = container.scrollWidth - container.clientWidth;
-        if (container.scrollLeft >= maxScroll) {
-          container.scrollLeft = 0;
+        if (direction === 'rtl') {
+          // Scroll from right to left (decrement scrollLeft)
+          container.scrollLeft -= scrollSpeed * (deltaTime / 16.67);
+          if (container.scrollLeft <= 0) {
+            container.scrollLeft = maxScroll;
+          }
+        } else {
+          // Scroll from left to right (increment scrollLeft)
+          container.scrollLeft += scrollSpeed * (deltaTime / 16.67);
+          if (container.scrollLeft >= maxScroll) {
+            container.scrollLeft = 0;
+          }
         }
       }
 
       animationRef.current = requestAnimationFrame(animate);
     };
 
-    animationRef.current = requestAnimationFrame(animate);
+    const startDelay = direction === 'rtl' ? 200 : 0;
+    const startTimer = setTimeout(() => {
+      animationRef.current = requestAnimationFrame(animate);
+    }, startDelay);
 
     return () => {
+      clearTimeout(startTimer);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
       }
     };
-  }, [isHovering, isPaused, testimonials.length]);
+  }, [isHovering, isPaused, testimonials.length, direction]);
 
   // Momentum scrolling after touch release
   const applyMomentum = useCallback(() => {
@@ -461,13 +493,18 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
     ? [...testimonials, ...testimonials, ...testimonials] // Triple for small sets
     : [...testimonials, ...testimonials]; // Double for larger sets
 
+  // Default title and icon
+  const defaultIcon = (
+    <svg className="w-6 h-6 text-brand-500" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/>
+    </svg>
+  );
+
   return (
     <div className="mb-10" ref={containerRef}>
       <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <svg className="w-6 h-6 text-brand-500" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/>
-        </svg>
-        {t('testimonials.userReviews')}
+        {icon || defaultIcon}
+        {title || t('testimonials.userReviews')}
       </h3>
       
       {/* Carousel Container */}
@@ -497,6 +534,7 @@ const TestimonialsCarousel = ({ testimonials, onImageClick }) => {
           >
             <TestimonialCard 
               testimonial={testimonial}
+              variant={variant}
             />
           </div>
         ))}
@@ -1129,6 +1167,7 @@ function TestimonialsSection() {
         const { data } = await api.get('/guest/testimonials/featured', {
           params: { limit: 20 }
         });
+        console.log('[TestimonialsSection] API response:', data);
         if (data?.data) {
           setTestimonials(data.data.testimonials || []);
           setWorkPhotos(data.data.workPhotos || []);
@@ -1177,25 +1216,35 @@ function TestimonialsSection() {
     }
   };
 
+  // Separate testimonials: service reviews (user-to-user) vs platform feedback (about NovoFix)
+  // Use 'item' instead of 't' to avoid shadowing the i18n translation function
+  const serviceTestimonials = testimonials.filter(item => {
+    // Has a service review comment (about the provider/client)
+    if (item.review?.comment) return true;
+    // Or has translated review content
+    if (item.translations && typeof item.translations === 'object') {
+      return Object.values(item.translations).some(
+        lang => lang && typeof lang === 'object' && !!lang.comment
+      );
+    }
+    return false;
+  });
+  const platformTestimonials = testimonials.filter(item =>
+    !!(item.hasPlatformFeedback && item.platformFeedback?.comment)
+  );
+
+  // Debug logging — remove once confirmed working
+  if (!loading && testimonials.length > 0) {
+    console.log('[TestimonialsSection] total:', testimonials.length,
+      '| service:', serviceTestimonials.length,
+      '| platform:', platformTestimonials.length,
+      '| sample:', JSON.stringify(testimonials[0], null, 2).slice(0, 500));
+  }
+
   const isEmpty = !loading && testimonials.length === 0 && workPhotos.length === 0;
 
   return (
-    <div id="testimonials-section" className="py-8 scroll-mt-20">
-      {/* Section Header */}
-      <div className="mb-10">
-        <div className="inline-flex items-center gap-2 bg-linear-to-r from-amber-100 to-yellow-100 px-4 py-2 rounded-full border border-amber-200 mb-4">
-          <svg className="w-5 h-5 text-accent-600" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-          </svg>
-          <span className="text-sm font-semibold text-accent-700">{t('testimonials.badge')}</span>
-        </div>
-        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
-          {t('testimonials.title')}
-        </h2>
-        <p className="text-lg text-gray-600 max-w-2xl">
-          {t('testimonials.subtitle')}
-        </p>
-      </div>
+    <div id="testimonials-section" className="py-4 scroll-mt-20">
 
       {/* Loading State */}
       {loading && (
@@ -1221,8 +1270,40 @@ function TestimonialsSection() {
             </div>
           ) : (
             <>
-              {/* Testimonials Carousel - Opiniones de usuarios primero */}
-              {testimonials.length > 0 && (
+              {/* Carousel 1: Service Reviews (client↔provider) — left to right */}
+              {serviceTestimonials.length > 0 && (
+                <TestimonialsCarousel 
+                  testimonials={serviceTestimonials}
+                  onImageClick={handleImageClick}
+                  direction="ltr"
+                  variant="service"
+                  title={t('testimonials.serviceReviewsTitle')}
+                  icon={
+                    <svg className="w-6 h-6 text-brand-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/>
+                    </svg>
+                  }
+                />
+              )}
+
+              {/* Carousel 2: Platform Reviews (about NovoFix) — right to left */}
+              {platformTestimonials.length > 0 && (
+                <TestimonialsCarousel 
+                  testimonials={platformTestimonials}
+                  onImageClick={handleImageClick}
+                  direction="rtl"
+                  variant="platform"
+                  title={t('testimonials.platformReviewsTitle')}
+                  icon={
+                    <svg className="w-6 h-6 text-accent-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                  }
+                />
+              )}
+
+              {/* Fallback: if no filtered results but testimonials exist, show all */}
+              {serviceTestimonials.length === 0 && platformTestimonials.length === 0 && testimonials.length > 0 && (
                 <TestimonialsCarousel 
                   testimonials={testimonials}
                   onImageClick={handleImageClick}
@@ -1350,12 +1431,17 @@ function TestimonialsSection() {
 }
 
 TestimonialCard.propTypes = {
-  testimonial: PropTypes.object.isRequired
+  testimonial: PropTypes.object.isRequired,
+  variant: PropTypes.oneOf(['all', 'service', 'platform'])
 };
 
 TestimonialsCarousel.propTypes = {
   testimonials: PropTypes.array.isRequired,
-  onImageClick: PropTypes.func.isRequired
+  onImageClick: PropTypes.func.isRequired,
+  direction: PropTypes.oneOf(['ltr', 'rtl']),
+  title: PropTypes.string,
+  icon: PropTypes.node,
+  variant: PropTypes.oneOf(['all', 'service', 'platform'])
 };
 
 WorkPhotoGallery.propTypes = {

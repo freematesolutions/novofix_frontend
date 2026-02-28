@@ -2772,6 +2772,8 @@
     "workGallery": "Completed Works Gallery",
     "clientReviews": "Client Reviews",
     "userReviews": "User Reviews",
+    "serviceReviewsTitle": "Service Reviews",
+    "platformReviewsTitle": "Reviews about NovoFix",
     "verifiedClient": "Verified client",
     "verifiedProvider": "Verified professional",
     "roleClient": "Client",
