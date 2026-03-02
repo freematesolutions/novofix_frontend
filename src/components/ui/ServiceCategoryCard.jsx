@@ -7,6 +7,7 @@ import { CATEGORY_IMAGES, FALLBACK_IMAGE } from '@/utils/categoryImages.js';
 function ServiceCategoryCard({ category, translatedName, translatedDescription, translatedComingSoon = 'Próximamente', onClick, providerCount, showComingSoon = false, disabled = false }) {
   const { t } = useTranslation();
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const imageUrl = CATEGORY_IMAGES[category] || FALLBACK_IMAGE;
 
   const handleClick = () => {
@@ -19,7 +20,7 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
       onClick={handleClick}
       className={`group relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-500 flex flex-col ${
         disabled 
-          ? 'cursor-not-allowed opacity-90' 
+          ? 'cursor-not-allowed opacity-60 grayscale-40' 
           : 'cursor-pointer hover:shadow-2xl hover:-translate-y-2'
       }`}
       role="button"
@@ -28,25 +29,32 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
     >
       {/* Imagen de fondo con overlay */}
       <div className="relative h-56 overflow-hidden">
+        {/* Skeleton mientras carga */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-linear-to-br from-gray-200 via-gray-300 to-gray-200 animate-pulse z-0" />
+        )}
         <img
           src={imageError ? FALLBACK_IMAGE : imageUrl}
           alt={category}
-          onError={() => setImageError(true)}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
+          onError={() => {
+            if (!imageError) {
+              setImageError(true);
+              setImageLoaded(false);
+            } else {
+              // Fallback also failed, hide skeleton anyway
+              setImageLoaded(true);
+            }
+          }}
+          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          loading="eager"
         />
         
         {/* Overlay gradient oscuro */}
         <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent"></div>
         
-        {/* Badge de contador flotante o Coming Soon */}
-        {showComingSoon ? (
-          <div className="absolute top-4 right-4 bg-amber-500/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
-            <span className="text-xs font-bold text-white uppercase tracking-wide block text-center">
-              {translatedComingSoon}
-            </span>
-          </div>
-        ) : providerCount !== undefined && (
+        {/* Badge de contador flotante — solo para categorías con proveedores */}
+        {!showComingSoon && providerCount !== undefined && providerCount > 0 && (
           <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 text-brand-600" fill="currentColor" viewBox="0 0 24 24">
@@ -77,17 +85,13 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
         {/* Botón de acción */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <span className={`font-semibold text-sm transition-colors ${
-            disabled 
+            disabled || showComingSoon
               ? 'text-gray-400' 
-              : showComingSoon 
-                ? 'text-amber-600 group-hover:text-amber-700' 
-                : 'text-brand-600 group-hover:text-brand-700'
+              : 'text-brand-600 group-hover:text-brand-700'
           }`}>
-            {disabled
-              ? translatedComingSoon
-              : showComingSoon
-                ? translatedComingSoon
-                : t('home.viewProfessionals')}
+            {disabled || showComingSoon
+              ? t('home.comingSoonAvailable')
+              : t('home.viewProfessionals')}
           </span>
           {(!showComingSoon) && (
             <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
@@ -114,11 +118,9 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
 
       {/* Borde animado en hover */}
       <div className={`absolute inset-0 rounded-2xl border-2 border-transparent transition-colors duration-300 pointer-events-none ${
-        disabled 
+        disabled || showComingSoon
           ? '' 
-          : showComingSoon 
-            ? 'group-hover:border-amber-400' 
-            : 'group-hover:border-brand-400'
+          : 'group-hover:border-brand-400'
       }`}></div>
     </div>
   );

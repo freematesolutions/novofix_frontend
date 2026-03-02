@@ -195,13 +195,13 @@ export default function Payment() {
       try {
         const { data } = await api.get(`/payments/intent/${intentId}`);
         const secret = data?.data?.clientSecret || data?.clientSecret;
-        if (!secret) throw new Error('client_secret no disponible');
+        if (!secret) throw new Error(t('payment.errors.noClientSecret'));
         if (!active) return;
         setClientSecret(secret);
         if (data?.data?.amount) setAmount((data.data.amount || 0) / 100);
         if (data?.data?.currency) setCurrency((data.data.currency || 'USD').toUpperCase());
       } catch (err) {
-        setError(err?.response?.data?.message || err?.message || 'No se pudo iniciar el pago');
+        setError(err?.response?.data?.message || err?.message || t('payment.errors.paymentInitFailed'));
       } finally {
         if (active) setLoading(false);
       }

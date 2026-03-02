@@ -62,7 +62,7 @@ export default function CoverageStep() {
           address.village || 
           address.state || 
           data.display_name?.split(',')[0] || 
-          'Ubicación seleccionada';
+          t('onboarding.coverage.locationSelected');
         
         setGeocodingLocation(locationName);
         // Auto-rellenar el campo de zona de servicio si está vacío

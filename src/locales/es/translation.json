@@ -34,7 +34,63 @@
     "free": "100% Gratis",
     "fast": "Rápido",
     "tip": "Consejo",
-    "continue": "Continuar"
+    "continue": "Continuar",
+    "skipToContent": "Saltar al contenido",
+    "reload": "Recargar",
+    "goHome": "Ir al inicio",
+    "seeMoreContent": "Ver más contenido",
+    "backToHomeAria": "Volver a inicio",
+    "provider": "Proveedor",
+    "providerSingular": "proveedor",
+    "providerPlural": "proveedores",
+    "myAccount": "Mi cuenta"
+  },
+  "errorBoundary": {
+    "title": "Ocurrió un error en la aplicación",
+    "description": "Hemos registrado el problema. Puedes intentar recargar la página o volver al inicio.",
+    "reload": "Recargar",
+    "goHome": "Ir al inicio"
+  },
+  "verificationBanner": {
+    "title": "¡Falta un paso para completar tu registro!",
+    "description": "Hemos enviado un enlace de verificación a <1>{{email}}</1>. Por favor verifícalo para activar tu cuenta.",
+    "verifyEmail": "Verificar email",
+    "close": "Cerrar",
+    "closeTitle": "Cerrar este aviso temporalmente"
+  },
+  "passwordToggle": {
+    "show": "Mostrar contraseña",
+    "hide": "Ocultar contraseña"
+  },
+  "resetPassword": {
+    "invalidLink": "Enlace inválido",
+    "invalidLinkDesc": "Este enlace ha expirado o es inválido. Por favor, solicita un nuevo correo de restablecimiento.",
+    "requestNewLink": "Solicitar nuevo enlace",
+    "successTitle": "¡Contraseña actualizada!",
+    "redirecting": "Serás redirigido al inicio de sesión...",
+    "newPassword": "Nueva contraseña",
+    "createSecure": "Crea una contraseña segura para tu cuenta",
+    "confirmPassword": "Confirmar contraseña",
+    "strength": "Fortaleza:",
+    "requirements": {
+      "length": "Mínimo 8 caracteres",
+      "upper": "Una letra mayúscula",
+      "lower": "Una letra minúscula",
+      "number": "Un número"
+    },
+    "strengthLevels": {
+      "weak": "Débil",
+      "fair": "Regular",
+      "good": "Buena",
+      "strong": "Fuerte"
+    },
+    "passwordsMatch": "Las contraseñas coinciden",
+    "passwordsDontMatch": "Las contraseñas no coinciden",
+    "updating": "Actualizando...",
+    "updateButton": "Actualizar contraseña",
+    "backToLogin": "Volver a iniciar sesión",
+    "successMessage": "Tu contraseña fue actualizada exitosamente.",
+    "errorMessage": "No se pudo restablecer la contraseña."
   },
   "imageZoom": {
     "dragToMove": "Arrastra para mover la imagen",
@@ -94,6 +150,29 @@
     "verificationCode": "Código de verificación",
     "verifyButton": "Verificar",
     "resendCode": "Reenviar código",
+    "verifyEmailPage": {
+      "title": "Verifica tu correo electrónico",
+      "pendingEmail": "Email pendiente:",
+      "descriptionDemo": "En modo demo, puedes verificar tu cuenta usando el enlace de abajo.",
+      "descriptionReal": "Te hemos enviado un enlace de verificación a tu email. Por seguridad, debes verificarlo para activar tu cuenta y acceder a todas las funcionalidades.",
+      "demoMode": "Modo Demo",
+      "demoDescription": "En producción, este enlace llegaría a tu bandeja de entrada. Para esta demostración, haz clic en el botón:",
+      "verifyAccount": "Verificar mi cuenta",
+      "demoHint": "✨ Este enlace simula el que recibirías por email",
+      "verifying": "Verificando enlace...",
+      "noEmailReceived": "¿No recibiste el correo? Ingresa tu email para reenviar el enlace de verificación.",
+      "emailPlaceholder": "Tu email",
+      "sending": "Enviando...",
+      "resendIn": "Reenviar en {{countdown}}s",
+      "resendButton": "Reenviar email de verificación",
+      "resent": "¡Email reenviado! Revisa tu bandeja de entrada.",
+      "loginButton": "Inicia sesión",
+      "homeButton": "Ir al inicio",
+      "verifiedSuccess": "¡Email verificado! Redirigiendo...",
+      "verifyError": "Error verificando email.",
+      "resendError": "No se pudo reenviar el email.",
+      "resentSuccess": "Email de verificación reenviado. Revisa tu bandeja de entrada."
+    },
     "resetPassword": "Restablecer contraseña",
     "resetPasswordSubtitle": "Ingresa tu email para recibir instrucciones",
     "sendResetLink": "Enviar enlace",
@@ -143,6 +222,20 @@
       "requestsUnlimited": "Solicitudes ilimitadas",
       "directChat": "Chat directo con profesionales",
       "verifiedProfessionals": "Profesionales verificados"
+    },
+    "errors": {
+      "emailNotVerified": "Debes verificar tu correo electrónico para acceder.",
+      "existingClientAccount": "Ya existe una cuenta de cliente con este correo. Inicia sesión con ese correo y vuelve a intentar para activar el modo proveedor.",
+      "upgradeError": "No se pudo completar el upgrade a proveedor",
+      "loginError": "Error al iniciar sesión",
+      "registerError": "Error al registrarse"
+    },
+    "onboarding": {
+      "loginRequired": "Debes iniciar sesión para continuar con el registro de proveedor.",
+      "loginLink": "Inicia sesión",
+      "or": "o",
+      "registerLink": "regístrate como profesional",
+      "noAccountYet": "si aún no tienes cuenta."
     }
   },
   "footer": {
@@ -239,7 +332,36 @@
       "title": "Consulta del profesional",
       "subtitle": "El profesional necesita más detalles sobre tu solicitud",
       "updateRequest": "Actualizar solicitud"
-    }
+    },
+    "user": "Usuario",
+    "compressingFile": "Comprimiendo {{name}}...",
+    "uploadingVideo": "Subiendo video {{current}}/{{total}} (puede tardar)...",
+    "uploadingFile": "Subiendo archivo {{current}}/{{total}}...",
+    "preparingFiles": "Preparando archivos...",
+    "uploadFailed": "No se pudieron subir los archivos",
+    "sendingMessage": "Enviando mensaje...",
+    "attachFile": "Adjuntar archivo (imágenes, videos, documentos)",
+    "cancelReply": "Cancelar respuesta",
+    "addEmoji": "Agregar emoji",
+    "addMessageOptional": "Añade un mensaje (opcional)...",
+    "newMessage": "Nuevo mensaje",
+    "sentVideo": "🎬 Te envió un video",
+    "sentImage": "📷 Te envió una imagen",
+    "sentFile": "📎 Te envió un archivo",
+    "newMessageReceived": "Tienes un nuevo mensaje",
+    "toggleReaction": "Clic para alternar reacción",
+    "reply": "Responder",
+    "react": "Reaccionar"
+  },
+  "upload": {
+    "defaultMessage": "Subiendo archivo...",
+    "compressing": "Comprimiendo...",
+    "processing": "Procesando...",
+    "uploading": "Subiendo...",
+    "successMessage": "✓ Subida completada exitosamente",
+    "errorMessage": "✗ Error en la subida",
+    "uploadingPhotos": "Subiendo fotos...",
+    "uploadingVideos": "Subiendo videos..."
   },
   "notifications": {
     "title": "Notificaciones",
@@ -258,6 +380,7 @@
     "paymentReceived": "Pago recibido",
     "reviewReceived": "Nueva reseña recibida",
     "profileViewed": "Alguien vio tu perfil",
+    "requestUpdated": "Solicitud actualizada",
     "justNow": "Ahora mismo",
     "minutesAgo": "hace {{count}} minutos",
     "hoursAgo": "hace {{count}} horas",
@@ -359,6 +482,11 @@
         "message": "{{senderName}} te ha enviado un mensaje.",
         "messageDefault": "Tienes un nuevo mensaje."
       },
+      "REQUEST_UPDATED": {
+        "title": "Solicitud actualizada 📝",
+        "message": "El cliente ha actualizado los detalles de la solicitud \"{{requestTitle}}\".",
+        "messageDefault": "Una solicitud de servicio ha sido actualizada por el cliente."
+      },
       "DEFAULT": {
         "title": "Notificación",
         "message": "Tienes una nueva notificación"
@@ -428,7 +556,9 @@
     "closeMenu": "Cerrar menú",
     "accountMenu": "Menú de cuenta: {{name}}",
     "closeNotification": "Cerrar notificación",
-    "mobileMenu": "Menú principal móvil"
+    "mobileMenu": "Menú principal móvil",
+    "searchIn": "Buscar en {{category}}",
+    "searchServices": "Buscar servicios"
   },
   "home": {
     "nav": {
@@ -439,7 +569,7 @@
       "mission": "Nuestra Esencia"
     },
     "title1": "Encuentra el profesional",
-    "title2": "que necesitas",
+    "title2": "que necesitas Ahora",
     "services": "Servicios",
     "professionals": "Profesionales",
     "exploreBadge": "Explora Servicios",
@@ -457,14 +587,14 @@
     "missionVision": {
       "badge": "Nuestra Esencia",
       "title": "Esencia de NovoFix",
-      "subtitle": "Transformando la manera en que las personas encuentran y contratan servicios profesionales de calidad",
+      "subtitle": "Lo que nos define y hacia dónde vamos",
       "missionTitle": "Nuestra Misión",
-      "missionText": "Conectar a clientes con profesionales de servicios verificados y de confianza, facilitando una experiencia transparente, segura y eficiente que beneficie a ambas partes.",
+      "missionText": "Conectar clientes con profesionales verificados de forma transparente, segura y eficiente.",
       "missionPoint1": "Simplificar la búsqueda de profesionales calificados",
       "missionPoint2": "Garantizar transacciones seguras y transparentes",
       "missionPoint3": "Crear oportunidades de trabajo para profesionales",
       "visionTitle": "Nuestra Visión",
-      "visionText": "Ser la plataforma líder en Latinoamérica para servicios del hogar y profesionales, reconocida por la calidad, confianza y satisfacción de nuestra comunidad de usuarios.",
+      "visionText": "Ser la plataforma líder en Latinoamérica para servicios profesionales del hogar.",
       "visionPoint1": "Expansión a toda Latinoamérica",
       "visionPoint2": "Comunidad de millones de usuarios satisfechos",
       "visionPoint3": "Innovación continua en servicios digitales",
@@ -505,14 +635,14 @@
     "benefit3Desc": "Compara presupuestos y elige la mejor opción para ti",
     "benefit4Title": "Calidad Garantizada",
     "benefit4Desc": "Reseñas reales de clientes para ayudarte a decidir",
-    "foundProfessionals": "{{count}} profesionales encontrados",
+    "foundProfessionals": "{{count}} profesionales",
     "noProfessionalsFound": "No se encontraron profesionales",
     "detectedCategoriesLabel": "🔍 Nuestra búsqueda inteligente detectó estas categorías:",
     "backToHome": "Volver a Inicio",
     "noProfessionalsCriteria": "No encontramos profesionales con esos criterios",
     "tryOtherSearch": "Intenta con otros términos de búsqueda o categorías",
-    "oneProfessionalFound": "profesional encontrado",
-    "manyProfessionalsFound": "profesionales encontrados",
+    "oneProfessionalFound": "profesional",
+    "manyProfessionalsFound": "profesionales",
     "inCategory": "en",
     "noProfessionalsAvailable": "No hay profesionales disponibles",
     "tryOtherCategory": "Intenta buscar en otra categoría o realiza una búsqueda personalizada",
@@ -581,7 +711,35 @@
     "carousel": {
       "ariaLabel": "Carrusel de categorías de servicio",
       "provider": "profesional",
-      "providers": "profesionales"
+      "providers": "profesionales",
+      "taglines": {
+        "Plomería": "Flujo sin preocupaciones",
+        "Electricidad": "Energía segura y confiable",
+        "Carpintería": "Detalles en madera que transforman",
+        "Pintura": "Acabados de lujo",
+        "Limpieza": "Espacios impecables",
+        "Jardinería": "Tu oasis verde",
+        "Cerrajería": "Seguridad en un clic",
+        "Albañilería": "Bases sólidas, resultados reales",
+        "Reparación de electrodomésticos": "Como nuevos otra vez",
+        "Instalación de aire acondicionado": "Clima perfecto, siempre",
+        "Mudanzas": "Tu nuevo inicio sin estrés",
+        "Fumigación": "Protección total garantizada",
+        "Tecnología e informática": "Soluciones digitales al instante",
+        "Clases particulares": "Aprende a tu ritmo",
+        "Belleza y estética": "Resalta tu mejor versión",
+        "Mecánica automotriz": "Tu vehículo en buenas manos",
+        "Fotografía": "Momentos que perduran",
+        "Catering": "Sabores que impresionan",
+        "Construcción": "Construimos tus sueños",
+        "Decoración": "Espacios con personalidad",
+        "Diseño gráfico": "Creatividad que impacta",
+        "Asesoría legal": "Tu derecho, nuestra prioridad",
+        "Contabilidad": "Finanzas claras y simples",
+        "Marketing digital": "Visibilidad que convierte",
+        "Traducción": "Sin barreras de idioma",
+        "Otro": "Soluciones a tu medida"
+      }
     },
     "searchBar": {
       "placeholder": "Buscar servicios profesionales...",
@@ -605,7 +763,7 @@
       "noProvidersSuggestion": "Pronto agregaremos profesionales en estas áreas. Intenta buscar en otra categoría.",
       "noResultsGeneric": "No encontramos resultados para tu búsqueda. Intenta con otros términos.",
       "noProfessionalsYet": "Sin profesionales aún",
-      "tip": "💡 Tip: Describe tu necesidad en lenguaje natural. Ejemplo: 'Necesito un plomero para reparar una fuga'",
+      "tip": "💡 Consejo: Describe tu necesidad en lenguaje natural. Ejemplo: 'Necesito un plomero para reparar una fuga'",
       "placeholders": [
         "Necesito un plomero urgente...",
         "Busco electricista certificado...",
@@ -747,7 +905,8 @@
       "rejected": "Propuesta rechazada",
       "yourRequest": "Tu solicitud",
       "photo": "Foto",
-      "chatOpenError": "Error al abrir el chat"
+      "chatOpenError": "Error al abrir el chat",
+      "negotiateTooltip": "Conversar con el profesional para negociar términos o resolver dudas"
     },
     "messages": {
       "title": "Mis Mensajes",
@@ -812,6 +971,8 @@
       "createSuccess": "Solicitud creada exitosamente",
       "createError": "Error al crear solicitud",
       "draftSuccess": "Borrador guardado",
+      "viewPortfolio": "Ver portafolio",
+      "noProvidersTooltip": "No hay proveedores disponibles para esta categoría/urgencia en tu zona",
       "validation": {
         "categoryRequired": "Selecciona una categoría",
         "titleRequired": "El título es obligatorio",
@@ -1353,7 +1514,8 @@
       "stepOf": "Paso {{current}} de {{total}}",
       "autoCompleteHint": "Hemos completado la zona de servicio",
       "locationMarked": "Ubicación marcada en el mapa",
-      "tipText": "Una cobertura más amplia te permitirá recibir más solicitudes"
+      "tipText": "Una cobertura más amplia te permitirá recibir más solicitudes",
+      "locationSelected": "Ubicación seleccionada"
     },
     "review": {
       "summaryTitle": "Resumen de tu perfil",
@@ -2264,6 +2426,7 @@
       },
       "description": "Descripción",
       "noDescription": "Este profesional aún no ha agregado una descripción",
+      "specializingIn": "{{name}} especializado en {{service}}",
       "location": "Ubicación",
       "serviceAreaNotSpecified": "Área de servicio no especificada",
       "coverageRadius": "Radio de cobertura: {{radius}} km",
@@ -2307,7 +2470,11 @@
       "moreServices": "+{{count}} más",
       "sendRequest": "Solicitar Estimado",
       "viewProfile": "Ver perfil",
-      "noDescription": "Sin descripción disponible"
+      "noDescription": "Sin descripción disponible",
+      "specializingIn": "{{name}} especializado en {{service}}"
+    },
+    "starRating": {
+      "ariaLabel": "{{value}} de {{max}} estrellas"
     },
     "mapPicker": {
       "title": "Seleccionar ubicación",
@@ -2371,6 +2538,7 @@
         "passwordMinLength": "Mínimo 6 caracteres",
         "checkFields": "Revisa los campos marcados"
       },
+      "loginQuestion": "¿Iniciar sesión?",
       "rememberMe": "Recordarme",
       "forgotPassword": "¿Olvidaste tu contraseña?",
       "newHere": "¿Eres nuevo?",
@@ -2445,7 +2613,58 @@
       "portfolioSection": {
         "title": "Tu portafolio",
         "description": "Muestra tus mejores trabajos para destacar ante los clientes"
-      }
+      },
+      "myProfile": "Mi Perfil",
+      "configureProfile": "Configura tu perfil"
+    },
+    "providerSetup": {
+      "businessName": "Nombre comercial",
+      "description": "Descripción",
+      "zone": "Zona (etiqueta)",
+      "zonePlaceholder": "Ej: Centro",
+      "radius": "Radio (millas)",
+      "locationLabel": "Ubicación (haz clic en el mapa o usa tu ubicación)",
+      "latitude": "Latitud",
+      "latPlaceholder": "Ej: -34.6037",
+      "longitude": "Longitud",
+      "lngPlaceholder": "Ej: -58.3816",
+      "phone": "Teléfono",
+      "saving": "Guardando...",
+      "profileUpdated": "Perfil de proveedor actualizado",
+      "activateError": "No se pudo activar el modo proveedor",
+      "saveError": "No se pudo guardar"
+    },
+    "portfolioManager": {
+      "processingFiles": "Procesando archivos...",
+      "selectAtLeastOne": "Selecciona al menos un archivo",
+      "compressingImages": "Comprimiendo imágenes...",
+      "preparingVideos": "Preparando subida de videos...",
+      "uploadingFilesVideos": "Subiendo archivos (videos pueden tardar más)...",
+      "uploadingFiles": "Subiendo archivos...",
+      "uploadingImages": "Subiendo imágenes...",
+      "processingCloudinary": "Procesando archivos en Cloudinary...",
+      "uploadError": "Error al subir archivos",
+      "savingProfile": "Guardando en tu perfil...",
+      "portfolioUpdated": "¡Portfolio actualizado!",
+      "filesAdded": "{{count}} archivo(s) agregado(s) al portfolio",
+      "uploadPortfolioError": "Error al subir portfolio",
+      "errorUploading": "Error al subir archivos",
+      "confirmDelete": "¿Eliminar este elemento del portfolio?",
+      "itemDeleted": "Elemento eliminado del portfolio",
+      "deleteError": "Error al eliminar",
+      "title": "Portfolio de trabajos",
+      "subtitle": "Muestra imágenes o videos de tus trabajos realizados para atraer más clientes",
+      "selectFiles": "Seleccionar archivos (máx. 10, hasta 200MB c/u)",
+      "autoCompress": "Las imágenes se comprimirán automáticamente",
+      "categoryOptional": "Categoría (opcional)",
+      "noCategory": "Sin categoría específica",
+      "preview": "Vista previa ({{count}} archivo(s)):",
+      "captionPlaceholder": "Descripción (opcional)",
+      "uploading": "Subiendo...",
+      "uploadBtn": "Subir {{count}} archivo(s)",
+      "currentPortfolio": "Portfolio actual ({{count}} elementos)",
+      "emptyPortfolio": "Aún no has agregado elementos a tu portfolio",
+      "delete": "Eliminar"
     }
   },
   "admin": {
@@ -2756,6 +2975,10 @@
     "error": {
       "title": "Error al cargar",
       "retry": "Reintentar"
+    },
+    "errors": {
+      "noClientSecret": "Clave de pago no disponible",
+      "paymentInitFailed": "No se pudo iniciar el pago"
     }
   },
   "testimonials": {
@@ -2805,5 +3028,33 @@
       "portfolio": "Portafolio",
       "service_evidence": "Evidencia"
     }
+  },
+  "portfolio": {
+    "title": "Portafolio de {{name}}",
+    "provider": "Proveedor",
+    "itemCounter": "{{current}} de {{total}} {{label}}",
+    "element": "elemento",
+    "elements": "elementos",
+    "closeEsc": "Cerrar (Esc)",
+    "closeModal": "Cerrar modal",
+    "all": "Todas ({{count}})",
+    "photos": "Fotos ({{count}})",
+    "videos": "Videos ({{count}})",
+    "noItems": "No hay elementos disponibles con este filtro",
+    "fullscreen": "Pantalla completa",
+    "viewFullscreen": "Ver en pantalla completa",
+    "exitFullscreen": "Salir de pantalla completa (ESC)",
+    "clickToZoom": "Click para ampliar",
+    "doubleClickRestore": "Doble click para restaurar",
+    "video": "Video",
+    "image": "Imagen",
+    "previous": "Anterior",
+    "previousKey": "Anterior (←)",
+    "next": "Siguiente",
+    "nextKey": "Siguiente (→)",
+    "viewItem": "Ver elemento {{index}}",
+    "uploadedOn": "Subido el {{date}}",
+    "navigate": "Navegar",
+    "close": "Cerrar"
   }
 }

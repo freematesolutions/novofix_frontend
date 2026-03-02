@@ -301,26 +301,31 @@ function Home() {
     fetchFeaturedProviders();
   }, []);
 
-  // Precargar imágenes de TODAS las categorías en segundo plano
+  // Precargar imágenes de TODAS las categorías en segundo plano (en lotes)
   useEffect(() => {
     if (!firstImageLoaded) return;
+    let cancelled = false;
     
     const loadImages = async () => {
-      // Cargar el resto de imágenes en segundo plano (skip la primera que ya cargó)
-      const remainingImages = allCategoriesWithProviders.slice(1).map((service) => {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.src = CATEGORY_IMAGES[service.category] || CATEGORY_IMAGES['Otro'];
-          img.onload = () => resolve(true);
-          img.onerror = () => resolve(false);
-        });
-      });
+      const BATCH_SIZE = 4;
+      const remaining = allCategoriesWithProviders.slice(1);
       
-      await Promise.all(remainingImages);
-      // setAllImagesLoaded(true);
+      for (let i = 0; i < remaining.length; i += BATCH_SIZE) {
+        if (cancelled) break;
+        const batch = remaining.slice(i, i + BATCH_SIZE);
+        await Promise.all(batch.map((service) => {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.src = CATEGORY_IMAGES[service.category] || CATEGORY_IMAGES['Otro'];
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+          });
+        }));
+      }
     };
     
     loadImages();
+    return () => { cancelled = true; };
   }, [firstImageLoaded, allCategoriesWithProviders]);
 
   // Efecto para desplazar el carrusel de servicios al inicio cuando se cargan las categorías
@@ -464,7 +469,7 @@ useEffect(() => {
     <main className="space-y-12 w-full">
       {/* Navegación flotante creativa - Solo visible al hacer scroll */}
       {!searchResults && !selectedCategory && showFloatingNav && (
-        <nav className="fixed right-4 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-2 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200/50 p-2 transition-all duration-300">
+        <nav className="fixed right-4 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-2 bg-white/40 backdrop-blur-2xl rounded-2xl border border-white/50 p-2 transition-all duration-300" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6)' }}>
           {HOME_SECTIONS.map((section) => {
             const isActive = activeSection === section.id;
             return (
@@ -518,7 +523,7 @@ useEffect(() => {
 
       {/* Navegación flotante móvil - Iconos en la parte inferior */}
       {!searchResults && !selectedCategory && showFloatingNav && (
-        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 lg:hidden flex items-center gap-1.5 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200/50 px-2 py-1.5 transition-all duration-300">
+        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 lg:hidden flex items-center gap-1.5 bg-white/40 backdrop-blur-2xl rounded-2xl border border-white/50 px-2 py-1.5 transition-all duration-300" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6)' }}>
           {HOME_SECTIONS.map((section) => {
             const isActive = activeSection === section.id;
             return (
@@ -571,7 +576,7 @@ useEffect(() => {
           {/* Ajustada para acomodar las tarjetas de imagen más grandes del carrusel */}
           <div 
             id="hero-section"
-            className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-2xl min-h-[480px] sm:min-h-[540px] md:min-h-[600px] lg:min-h-[580px] xl:min-h-[680px] 2xl:min-h-[760px] scroll-mt-20"
+            className="relative overflow-hidden rounded-xl sm:rounded-2xl shadow-2xl min-h-[480px] sm:min-h-[540px] md:min-h-[600px] lg:min-h-[580px] xl:min-h-[680px] 2xl:min-h-[760px] scroll-mt-20 -mx-2 sm:-mx-1"
           >
             {/* Fondo degradado sólido de marca — sin imágenes para no competir con el carrusel */}
             <div className="absolute inset-0">
@@ -610,10 +615,10 @@ useEffect(() => {
               <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-1.5 sm:gap-2 lg:gap-1.5 pt-2">
                 {/* Título principal - texto blanco plano sin animación */}
                 <div className="text-center w-full pb-1 sm:pb-2">
-                  <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight drop-shadow-2xl">
+                  <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight drop-shadow-2xl" style={{ color: '#f0f0f0' }}>
                     {t('home.title1')}
                     <br />
-                    <span className="text-white">
+                    <span style={{ color: '#f0f0f0' }}>
                       {t('home.title2')}
                     </span>
                   </h1>
@@ -641,7 +646,7 @@ useEffect(() => {
 
               {/* Carrusel de tarjetas con imágenes de categorías */}
               {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
-                <div className="w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-2xl xl:max-w-5xl 2xl:max-w-6xl mx-auto px-2 sm:px-4 shrink-0 overflow-hidden">
+                <div className="w-full mx-auto shrink-0 overflow-hidden">
                   <CategoryIconCarousel
                     categories={allCategoriesWithProviders}
                     currentIndex={carouselIndex}
@@ -699,7 +704,7 @@ useEffect(() => {
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
                 }}
-                aria-label="Ver más contenido"
+                aria-label={t('common.seeMoreContent')}
               >
                 <span className="text-xs sm:text-sm lg:text-xs text-white font-semibold group-hover:text-accent-300 transition-colors">
                   {t('home.exploreBadge')}
@@ -774,7 +779,7 @@ useEffect(() => {
                 }}
                 className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-linear-to-r from-brand-100 to-brand-50 text-brand-700 font-semibold border border-brand-200 hover:from-brand-200 hover:to-brand-100 hover:text-brand-900 transition-all text-xs sm:text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
                 style={{ minHeight: 'auto', lineHeight: '1.2' }}
-                aria-label="Volver a inicio"
+                aria-label={t('common.backToHomeAria')}
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -809,7 +814,7 @@ useEffect(() => {
 
       {/* Tarjetas de categorías (mostrar siempre, usando defaults si no hay proveedores) */}
       {searchResults === null && !selectedCategory && (
-        <div id="services-section" className="py-8 scroll-mt-20">
+        <div id="services-section" className="py-2 scroll-mt-20">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2">
@@ -835,7 +840,7 @@ useEffect(() => {
                 }
               }}
               className="hidden lg:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-xl items-center justify-center hover:bg-brand-50 transition-colors duration-200 group"
-              aria-label="Anterior"
+              aria-label={t('common.previous')}
             >
               <svg className="w-6 h-6 text-gray-600 group-hover:text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -884,7 +889,7 @@ useEffect(() => {
                 }
               }}
               className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-xl items-center justify-center hover:bg-brand-50 transition-colors duration-200 group"
-              aria-label="Siguiente"
+              aria-label={t('common.next')}
             >
               <svg className="w-6 h-6 text-gray-600 group-hover:text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -892,18 +897,8 @@ useEffect(() => {
             </button>
           </div>
 
-          {/* Indicador de scroll para móviles */}
-          <div className="lg:hidden text-center mt-6">
-            <div className="inline-flex items-center gap-2 text-sm text-gray-500">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-              </svg>
-              <span>{t('home.swipeToSeeMore')}</span>
-            </div>
-          </div>
-
-          {/* Botón Ver más - Enlace a sección de profesionales destacados */}
-          <div className="flex justify-center mt-10">
+          {/* Enlace de texto a sección de profesionales destacados */}
+          <div className="text-center mt-1">
             <button
               onClick={() => {
                 const featuredSection = document.getElementById('featured-providers-section');
@@ -911,20 +906,11 @@ useEffect(() => {
                   featuredSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }}
-              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-linear-to-r from-brand-500 to-brand-600 text-white font-bold shadow-lg"
+              className="group inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-600 cursor-pointer transition-colors duration-200 focus:outline-none"
               aria-label={t('home.featuredProviders.viewFeatured')}
             >
-              <span className="text-sm font-semibold group-hover:text-white transition-colors">
-                {t('home.featuredProviders.viewFeatured')}
-              </span>
-              <svg 
-                className="w-5 h-5 text-white animate-bounce transition-colors" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <span className="text-base font-bold text-brand-500 group-hover:text-brand-600 transition-colors">&gt;&gt;</span>
+              <span className="group-hover:underline">{t('home.featuredProviders.viewFeatured')}</span>
             </button>
           </div>
         </div>
@@ -932,8 +918,8 @@ useEffect(() => {
 
       {/* Sección de Profesionales Destacados */}
       {searchResults === null && !selectedCategory && (
-        <div id="featured-providers-section" className="py-8 scroll-mt-20">
-          <div className="flex items-center justify-between mb-8">
+        <div id="featured-providers-section" className="py-2 scroll-mt-20">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2">
                 {t('home.featuredProviders.title')}
@@ -984,7 +970,7 @@ useEffect(() => {
                 onClick={() => {
                   const container = document.getElementById('featured-carousel');
                   if (container) {
-                    container.scrollBy({ left: -380, behavior: 'smooth' });
+                    container.scrollBy({ left: -340, behavior: 'smooth' });
                   }
                 }}
                 className="hidden lg:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-xl items-center justify-center hover:bg-brand-50 transition-colors duration-200 group"
@@ -1005,11 +991,11 @@ useEffect(() => {
                   msOverflowStyle: 'none'
                 }}
               >
-                <div className="flex gap-6 min-w-max">
+                <div className="flex gap-5 min-w-max">
                   {featuredProviders.map((provider) => (
                     <div
                       key={provider._id}
-                      className="w-[340px] sm:w-[360px] shrink-0"
+                      className="w-[300px] sm:w-[320px] shrink-0"
                       style={{ scrollSnapAlign: 'start' }}
                     >
                       <FeaturedProviderCard
@@ -1026,7 +1012,7 @@ useEffect(() => {
                 onClick={() => {
                   const container = document.getElementById('featured-carousel');
                   if (container) {
-                    container.scrollBy({ left: 380, behavior: 'smooth' });
+                    container.scrollBy({ left: 340, behavior: 'smooth' });
                   }
                 }}
                 className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-xl items-center justify-center hover:bg-brand-50 transition-colors duration-200 group"
@@ -1039,43 +1025,24 @@ useEffect(() => {
             </div>
           )}
 
-          {/* Indicador de scroll para móviles */}
+          {/* Enlace de texto a sección de testimonios */}
           {!loadingFeatured && featuredProviders.length > 0 && (
-            <div className="lg:hidden text-center mt-6">
-              <div className="inline-flex items-center gap-2 text-sm text-gray-500">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                </svg>
-                <span>{t('home.swipeToSeeMore')}</span>
-              </div>
+            <div className="text-center mt-1">
+              <button
+                onClick={() => {
+                  const testimonialsSection = document.getElementById('testimonials-section');
+                  if (testimonialsSection) {
+                    testimonialsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="group inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-600 cursor-pointer transition-colors duration-200 focus:outline-none"
+                aria-label={t('testimonials.viewTestimonials')}
+              >
+                <span className="text-base font-bold text-brand-500 group-hover:text-brand-600 transition-colors">&gt;&gt;</span>
+                <span className="group-hover:underline">{t('testimonials.viewTestimonials')}</span>
+              </button>
             </div>
           )}
-
-          {/* Botón Ver más - Enlace a sección de testimonios */}
-          <div className="flex justify-center mt-10">
-            <button
-              onClick={() => {
-                const testimonialsSection = document.getElementById('testimonials-section');
-                if (testimonialsSection) {
-                  testimonialsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }}
-              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-linear-to-r from-brand-500 to-brand-600 text-white font-bold shadow-lg"
-              aria-label={t('testimonials.viewTestimonials')}
-            >
-              <span className="text-sm font-semibold group-hover:text-white transition-colors">
-                {t('testimonials.viewTestimonials')}
-              </span>
-              <svg 
-                className="w-5 h-5 text-white animate-bounce transition-colors" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          </div>
         </div>
       )}
 
@@ -1086,9 +1053,9 @@ useEffect(() => {
 
       {/* Sección de Beneficios - Después de testimonios */}
       {searchResults === null && !selectedCategory && (
-        <div id="mission-vision-section" className="py-12 scroll-mt-20">
+        <div id="mission-vision-section" className="py-2 scroll-mt-20">
           {/* Header de la sección */}
-          <div className="mb-12">
+          <div className="mb-6">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-4">
               {t('home.missionVision.title')}
             </h2>
@@ -1107,11 +1074,9 @@ useEffect(() => {
               
               <div className="relative z-10">
                 {/* Icono */}
-                <div className="w-16 h-16 bg-linear-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
+                <svg className="w-10 h-10 mb-6 text-gray-400 group-hover:text-brand-500 transition-all duration-300 group-hover:scale-110 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
                 
                 {/* Título */}
                 <div className="flex items-center gap-3 mb-4">
@@ -1120,7 +1085,7 @@ useEffect(() => {
                 </div>
                 
                 {/* Contenido */}
-                <p className="text-gray-700 text-lg leading-relaxed mb-6">
+                <p className="text-gray-700 text-base leading-snug mb-4">
                   {t('home.missionVision.missionText')}
                 </p>
                 
@@ -1162,12 +1127,10 @@ useEffect(() => {
               
               <div className="relative z-10">
                 {/* Icono */}
-                <div className="w-16 h-16 bg-linear-to-br from-accent-500 to-accent-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </div>
+                <svg className="w-10 h-10 mb-6 text-gray-400 group-hover:text-accent-500 transition-all duration-300 group-hover:scale-110 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
                 
                 {/* Título */}
                 <div className="flex items-center gap-3 mb-4">
@@ -1176,7 +1139,7 @@ useEffect(() => {
                 </div>
                 
                 {/* Contenido */}
-                <p className="text-gray-700 text-lg leading-relaxed mb-6">
+                <p className="text-gray-700 text-base leading-snug mb-4">
                   {t('home.missionVision.visionText')}
                 </p>
                 
@@ -1217,45 +1180,37 @@ useEffect(() => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {/* Valor 1 - Confianza */}
               <div className="group bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-emerald-200 text-center">
-                <div className="w-12 h-12 mx-auto bg-linear-to-br from-emerald-400 to-green-500 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
+                <svg className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:scale-110 transition-all duration-300 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
                 <h4 className="font-semibold text-gray-900 mb-1">{t('home.missionVision.value1Title')}</h4>
                 <p className="text-sm text-gray-500">{t('home.missionVision.value1Desc')}</p>
               </div>
 
               {/* Valor 2 - Excelencia */}
               <div className="group bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-accent-200 text-center">
-                <div className="w-12 h-12 mx-auto bg-linear-to-br from-accent-400 to-accent-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                  </svg>
-                </div>
+                <svg className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:scale-110 transition-all duration-300 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
                 <h4 className="font-semibold text-gray-900 mb-1">{t('home.missionVision.value2Title')}</h4>
                 <p className="text-sm text-gray-500">{t('home.missionVision.value2Desc')}</p>
               </div>
 
               {/* Valor 3 - Transparencia */}
               <div className="group bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-brand-200 text-center">
-                <div className="w-12 h-12 mx-auto bg-linear-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </div>
+                <svg className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:scale-110 transition-all duration-300 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
                 <h4 className="font-semibold text-gray-900 mb-1">{t('home.missionVision.value3Title')}</h4>
                 <p className="text-sm text-gray-500">{t('home.missionVision.value3Desc')}</p>
               </div>
 
               {/* Valor 4 - Innovación */}
               <div className="group bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-dark-200 text-center">
-                <div className="w-12 h-12 mx-auto bg-linear-to-br from-dark-600 to-dark-800 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                </div>
+                <svg className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:scale-110 transition-all duration-300 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
                 <h4 className="font-semibold text-gray-900 mb-1">{t('home.missionVision.value4Title')}</h4>
                 <p className="text-sm text-gray-500">{t('home.missionVision.value4Desc')}</p>
               </div>
@@ -1292,7 +1247,7 @@ useEffect(() => {
                   }}
                   className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-linear-to-r from-brand-100 to-brand-50 text-brand-700 font-semibold border border-brand-200 hover:from-brand-200 hover:to-brand-100 hover:text-brand-900 transition-all text-xs sm:text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
                   style={{ minHeight: 'auto', lineHeight: '1.2' }}
-                  aria-label="Volver a inicio"
+                  aria-label={t('common.backToHomeAria')}
                 >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

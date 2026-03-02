@@ -73,8 +73,8 @@ export default function AdminBookings() {
             <HiCalendar className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold mb-1">Reservas del Sistema</h1>
-            <p className="text-gray-300 text-sm">Monitorea todas las reservas y su estado</p>
+            <h1 className="text-2xl font-bold mb-1">{t('admin.bookings.title')}</h1>
+            <p className="text-gray-300 text-sm">{t('admin.bookings.subtitle')}</p>
           </div>
         </div>
       </div>

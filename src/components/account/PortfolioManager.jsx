@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient.js';
 import Button from '@/components/ui/Button.jsx';
 import Spinner from '@/components/ui/Spinner.jsx';
@@ -9,6 +10,7 @@ import { compressImages, validateFiles, formatFileSize } from '@/utils/fileCompr
 import UploadProgress from '@/components/ui/UploadProgress.jsx';
 
 export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
+  const { t } = useTranslation();
   const toast = useToast();
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -20,7 +22,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
     show: false,
     progress: 0,
     fileName: '',
-    message: 'Procesando archivos...',
+    message: t('account.portfolioManager.processingFiles'),
     totalFiles: 0,
     currentFile: 0,
     status: 'uploading'
@@ -66,7 +68,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
 
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
-      toast.error('Selecciona al menos un archivo');
+      toast.error(t('account.portfolioManager.selectAtLeastOne'));
       return;
     }
 
@@ -85,7 +87,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
           show: true,
           progress: 0,
           fileName: '',
-          message: 'Comprimiendo imágenes...',
+          message: t('account.portfolioManager.compressingImages'),
           totalFiles,
           currentFile: 0,
           status: 'compressing'
@@ -121,7 +123,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
           show: true,
           progress: 0,
           fileName: processedFiles[0]?.name || '',
-          message: 'Preparando subida de videos...',
+          message: t('account.portfolioManager.preparingVideos'),
           totalFiles,
           currentFile: 0,
           status: 'uploading'
@@ -133,7 +135,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
       setUploadProgress(prev => ({
         ...prev,
         progress: 20,
-        message: hasVideos ? 'Subiendo archivos (videos pueden tardar más)...' : 'Subiendo archivos...',
+        message: hasVideos ? t('account.portfolioManager.uploadingFilesVideos') : t('account.portfolioManager.uploadingFiles'),
         status: 'uploading',
         fileName: processedFiles[0]?.name || ''
       }));
@@ -171,8 +173,8 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
             ...prev,
             progress: Math.min(adjustedProgress, 90),
             message: hasVideos 
-              ? `Subiendo archivos...` 
-              : `Subiendo imágenes...`
+              ? t('account.portfolioManager.uploadingFiles')
+              : t('account.portfolioManager.uploadingImages')
           }));
         }
       });
@@ -181,12 +183,12 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
       setUploadProgress(prev => ({
         ...prev,
         progress: 95,
-        message: 'Procesando archivos en Cloudinary...',
+        message: t('account.portfolioManager.processingCloudinary'),
         status: 'processing'
       }));
 
       if (!uploadRes.data.success) {
-        throw new Error(uploadRes.data.message || 'Error al subir archivos');
+        throw new Error(uploadRes.data.message || t('account.portfolioManager.uploadError'));
       }
 
       const uploadedItems = uploadRes.data.data.portfolio;
@@ -195,7 +197,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
       setUploadProgress(prev => ({
         ...prev,
         progress: 95,
-        message: 'Guardando en tu perfil...'
+        message: t('account.portfolioManager.savingProfile')
       }));
 
       const saveRes = await api.post('/auth/portfolio', {
@@ -207,7 +209,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
           show: true,
           progress: 100,
           fileName: '',
-          message: '¡Portfolio actualizado!',
+          message: t('account.portfolioManager.portfolioUpdated'),
           totalFiles,
           currentFile: totalFiles,
           status: 'success'
@@ -218,7 +220,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
           setUploadProgress(prev => ({ ...prev, show: false }));
         }, 2000);
 
-        toast.success(`${uploadedItems.length} archivo(s) agregado(s) al portfolio`);
+        toast.success(t('account.portfolioManager.filesAdded', { count: uploadedItems.length }));
         
         // Limpiar formulario
         setSelectedFiles([]);
@@ -236,7 +238,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
         }
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || err.message || 'Error al subir portfolio';
+      const msg = err?.response?.data?.message || err.message || t('account.portfolioManager.uploadPortfolioError');
       setError(msg);
       toast.error(msg);
       
@@ -244,7 +246,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
         show: true,
         progress: 0,
         fileName: '',
-        message: 'Error al subir archivos',
+        message: t('account.portfolioManager.errorUploading'),
         totalFiles: selectedFiles.length,
         currentFile: 0,
         status: 'error'
@@ -259,12 +261,12 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
   };
 
   const handleDelete = async (itemId) => {
-    if (!confirm('¿Eliminar este elemento del portfolio?')) return;
+    if (!confirm(t('account.portfolioManager.confirmDelete'))) return;
 
     try {
       const res = await api.delete(`/auth/portfolio/${itemId}`);
       if (res.data.success) {
-        toast.success('Elemento eliminado del portfolio');
+        toast.success(t('account.portfolioManager.itemDeleted'));
         
         // Notificar al componente padre para refrescar datos
         if (onUpdate) {
@@ -272,7 +274,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
         }
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al eliminar';
+      const msg = err?.response?.data?.message || t('account.portfolioManager.deleteError');
       toast.error(msg);
     }
   };
@@ -289,9 +291,9 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
       <UploadProgress {...uploadProgress} />
 
       <div>
-        <h3 className="text-lg font-semibold mb-2">Portfolio de trabajos</h3>
+        <h3 className="text-lg font-semibold mb-2">{t('account.portfolioManager.title')}</h3>
         <p className="text-sm text-gray-600 mb-4">
-          Muestra imágenes o videos de tus trabajos realizados para atraer más clientes
+          {t('account.portfolioManager.subtitle')}
         </p>
 
         {error && <Alert type="error" className="mb-4">{error}</Alert>}
@@ -300,8 +302,8 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
         <div className="p-4 bg-gray-50 rounded-lg border space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Seleccionar archivos (máx. 10, hasta 200MB c/u)
-              <span className="text-xs text-gray-500 ml-2">Las imágenes se comprimirán automáticamente</span>
+              {t('account.portfolioManager.selectFiles')}
+              <span className="text-xs text-gray-500 ml-2">{t('account.portfolioManager.autoCompress')}</span>
             </label>
             <input
               id="portfolio-file-input"
@@ -317,7 +319,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
           {previews.length > 0 && (
             <div>
               <label className="block text-sm font-medium mb-2">
-                Categoría (opcional)
+                {t('account.portfolioManager.categoryOptional')}
               </label>
               <select
                 value={category}
@@ -325,9 +327,9 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
                 className="w-full border rounded-md px-3 py-2 text-sm"
                 disabled={uploading}
               >
-                <option value="">Sin categoría específica</option>
+                <option value="">{t('account.portfolioManager.noCategory')}</option>
                 {SERVICE_CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat} value={cat}>{t(`categories.${cat}`, cat)}</option>
                 ))}
               </select>
             </div>
@@ -336,7 +338,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
           {/* Previews */}
           {previews.length > 0 && (
             <div className="space-y-3">
-              <p className="text-sm font-medium">Vista previa ({previews.length} archivo(s)):</p>
+              <p className="text-sm font-medium">{t('account.portfolioManager.preview', { count: previews.length })}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {previews.map((preview, idx) => (
                   <div key={idx} className="space-y-2">
@@ -357,7 +359,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
                     </div>
                     <input
                       type="text"
-                      placeholder="Descripción (opcional)"
+                      placeholder={t('account.portfolioManager.captionPlaceholder')}
                       value={captions[idx] || ''}
                       onChange={(e) => handleCaptionChange(idx, e.target.value)}
                       disabled={uploading}
@@ -375,10 +377,10 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
                 {uploading ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Subiendo...
+                    {t('account.portfolioManager.uploading')}
                   </>
                 ) : (
-                  `Subir ${previews.length} archivo(s)`
+                  t('account.portfolioManager.uploadBtn', { count: previews.length })
                 )}
               </Button>
             </div>
@@ -388,10 +390,10 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
 
       {/* Portfolio actual */}
       <div>
-        <h4 className="font-medium mb-3">Portfolio actual ({portfolio.length} elementos)</h4>
+        <h4 className="font-medium mb-3">{t('account.portfolioManager.currentPortfolio', { count: portfolio.length })}</h4>
         {portfolio.length === 0 ? (
           <p className="text-sm text-gray-500 italic">
-            Aún no has agregado elementos a tu portfolio
+            {t('account.portfolioManager.emptyPortfolio')}
           </p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -416,7 +418,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
                   <button
                     onClick={() => handleDelete(item._id)}
                     className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Eliminar"
+                    title={t('account.portfolioManager.delete')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

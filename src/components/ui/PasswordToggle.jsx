@@ -46,7 +46,11 @@ function EyeOffIcon(props) {
   );
 }
 
+import { useTranslation } from 'react-i18next';
+
 export default function PasswordToggle({ show, onToggle, className = '', controls, onPeekStart, onPeekEnd, title }) {
+  const { t } = useTranslation();
+  const label = show ? t('passwordToggle.hide') : t('passwordToggle.show');
   return (
     <button
       type="button"
@@ -56,10 +60,10 @@ export default function PasswordToggle({ show, onToggle, className = '', control
       onMouseLeave={onPeekEnd}
       onTouchStart={onPeekStart}
       onTouchEnd={onPeekEnd}
-      aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+      aria-label={label}
       aria-pressed={show}
       aria-controls={controls}
-      title={title ?? (show ? 'Ocultar contraseña' : 'Mostrar contraseña')}
+      title={title ?? label}
       className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 ${className}`}
     >
       {show ? <EyeOffIcon /> : <EyeIcon />}

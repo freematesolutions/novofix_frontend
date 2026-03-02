@@ -1,5 +1,6 @@
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import Header from './components/layout/Header.jsx';
 import Footer from './components/layout/Footer.jsx';
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx';
@@ -44,6 +45,7 @@ const AdminAlerts = lazy(() => import('./pages/admin/AdminAlerts.jsx'));
 
 function App() {
   const { pendingVerification, user } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const historyStackRef = useRef([]);
@@ -107,11 +109,11 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Skip link for keyboard users */}
-      <a href="#main-content" className="skip-link">Saltar al contenido</a>
+      <a href="#main-content" className="skip-link">{t('common.skipToContent')}</a>
       {!hideHeader && <Header />}
       <ErrorBoundary>
       <main id="main-content" role="main" tabIndex="-1" className="flex-1 container mx-auto px-4 py-6">
-        <Suspense fallback={<div className="flex items-center gap-2 text-gray-600"><Spinner size="sm"/> Cargando...</div>}>
+        <Suspense fallback={<div className="flex items-center gap-2 text-gray-600"><Spinner size="sm"/> {t('common.loading')}</div>}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />

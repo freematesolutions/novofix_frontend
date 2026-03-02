@@ -41,6 +41,10 @@ export function getNotificationActionUrl(n) {
       raw = n?.data?.serviceRequestId
         ? `/empleos/${n.data.serviceRequestId}`
         : '/empleos';
+    } else if (type === 'REQUEST_UPDATED') {
+      raw = n?.data?.serviceRequestId
+        ? `/empleos/${n.data.serviceRequestId}`
+        : '/empleos';
     } else if (
       ['ACCOUNT_ACTIVATED', 'ACCOUNT_DEACTIVATED'].includes(type)
     ) {

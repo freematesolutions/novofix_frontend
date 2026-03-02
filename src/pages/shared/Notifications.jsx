@@ -21,7 +21,8 @@ import {
   HiCheck,
   HiSparkles,
   HiExternalLink,
-  HiEye
+  HiEye,
+  HiPencilAlt
 } from 'react-icons/hi';
 
 // Función para obtener icono y estilo según tipo de notificación
@@ -42,6 +43,9 @@ const getNotificationStyle = (type, title, message) => {
   }
   if (type === 'alert' || text.includes('alerta') || text.includes('urgente')) {
     return { icon: HiExclamation, bgColor: 'bg-red-100', iconColor: 'text-red-600', borderColor: 'border-red-200' };
+  }
+  if (type === 'REQUEST_UPDATED' || text.includes('solicitud actualizada') || text.includes('request updated')) {
+    return { icon: HiPencilAlt, bgColor: 'bg-blue-100', iconColor: 'text-blue-600', borderColor: 'border-blue-200' };
   }
   return { icon: HiBell, bgColor: 'bg-brand-100', iconColor: 'text-brand-600', borderColor: 'border-brand-200' };
 };

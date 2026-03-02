@@ -311,16 +311,6 @@ function ReviewForm({
                  overall === 1 ? t('ui.reviewForm.rating1') : t('ui.reviewForm.selectARating')}
               </p>
             </div>
-                />
-              </div>
-              <p className="text-sm text-gray-500">
-                {overall === 5 ? '¡Excelente! 🌟' : 
-                 overall === 4 ? 'Muy bien 👍' :
-                 overall === 3 ? 'Regular 😐' :
-                 overall === 2 ? 'Podría mejorar 😕' :
-                 overall === 1 ? 'Malo 😞' : 'Selecciona una calificación'}
-              </p>
-            </div>
 
             {/* Category Ratings Toggle */}
             <div className="border-t border-gray-100 pt-4">

@@ -306,7 +306,7 @@ function RegisterClient() {
                     aria-invalid={Boolean(touched.firstName && errors.firstName)}
                     autoComplete="given-name"
                     id="client-firstName"
-                    placeholder="Juan"
+                    placeholder="John"
                     className={`
                       w-full border-2 rounded-xl px-4 py-2.5 text-gray-900 placeholder:text-gray-400
                       transition-all duration-200 focus:outline-none
@@ -331,7 +331,7 @@ function RegisterClient() {
                     aria-invalid={Boolean(touched.lastName && errors.lastName)}
                     autoComplete="family-name"
                     id="client-lastName"
-                    placeholder="Pérez"
+                    placeholder="Smith"
                     className={`
                       w-full border-2 rounded-xl px-4 py-2.5 text-gray-900 placeholder:text-gray-400
                       transition-all duration-200 focus:outline-none

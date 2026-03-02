@@ -48,30 +48,67 @@ function CategoryIconCarousel({
   const autoPauseTimeoutRef = useRef(null);
   const autoPausedUntilRef = useRef(0);
 
-  // ─── Precargar imágenes ───────────────────────────────────────────
+  // ─── Precargar imágenes (en lotes para evitar saturar conexiones) ──
   useEffect(() => {
-    categories.forEach((service) => {
-      const url = CATEGORY_IMAGES[service.category] || FALLBACK_IMAGE;
-      const img = new Image();
-      img.onload = () => setLoadedImages((p) => ({ ...p, [service.category]: true }));
-      img.onerror = () => setLoadedImages((p) => ({ ...p, [service.category]: false }));
-      img.src = url;
-    });
+    const BATCH_SIZE = 4;
+    let cancelled = false;
+
+    const loadImageWithRetry = (service) => {
+      return new Promise((resolve) => {
+        const url = CATEGORY_IMAGES[service.category] || FALLBACK_IMAGE;
+        const img = new Image();
+        img.onload = () => {
+          if (!cancelled) setLoadedImages((p) => ({ ...p, [service.category]: true }));
+          resolve();
+        };
+        img.onerror = () => {
+          // Si falla la imagen principal, intentar con la de respaldo
+          if (url !== FALLBACK_IMAGE) {
+            const fallback = new Image();
+            fallback.onload = () => {
+              if (!cancelled) setLoadedImages((p) => ({ ...p, [service.category]: true }));
+              resolve();
+            };
+            fallback.onerror = () => {
+              // Marcar como cargada de todas formas para ocultar el skeleton
+              if (!cancelled) setLoadedImages((p) => ({ ...p, [service.category]: true }));
+              resolve();
+            };
+            fallback.src = FALLBACK_IMAGE;
+          } else {
+            // Ocultar skeleton aunque falle
+            if (!cancelled) setLoadedImages((p) => ({ ...p, [service.category]: true }));
+            resolve();
+          }
+        };
+        img.src = url;
+      });
+    };
+
+    const loadInBatches = async () => {
+      for (let i = 0; i < categories.length; i += BATCH_SIZE) {
+        if (cancelled) break;
+        const batch = categories.slice(i, i + BATCH_SIZE);
+        await Promise.all(batch.map(loadImageWithRetry));
+      }
+    };
+
+    loadInBatches();
+
+    return () => { cancelled = true; };
   }, [categories]);
 
-  // ─── Espaciado responsive (amplio, siempre mayor que el ancho de tarjeta) ─
+  // ─── Espaciado responsive — card width + margen para separación visible ──
+  // Card width = clamp(110px, 22vw, 240px)
+  // Spacing = card width estimado + ~30-40px de gap entre tarjetas
   const getCardSpacing = useCallback(() => {
-    if (typeof window === 'undefined') return 200;
+    if (typeof window === 'undefined') return 160;
     const w = window.innerWidth;
-    // El ancho de tarjeta es clamp(150px, 30vw, 280px)
-    // El spacing debe ser >= ancho de tarjeta + margen visual
-    if (w >= 1536) return 340;
-    if (w >= 1280) return 320;
-    if (w >= 1024) return 300;
-    if (w >= 768)  return 260;
-    if (w >= 640)  return 230;
-    if (w >= 480)  return 210;
-    return 195;
+    // Calcular ancho real de tarjeta: clamp(110, 0.22 * w, 240)
+    const cardW = Math.min(240, Math.max(110, w * 0.22));
+    // Gap proporcional: más gap en pantallas grandes, mínimo 20px
+    const gap = Math.max(20, cardW * 0.18);
+    return Math.round(cardW + gap);
   }, []);
 
   // ─── Pausar auto-rotación por N ms ────────────────────────────────
@@ -95,27 +132,29 @@ function CategoryIconCarousel({
 
       const dist = Math.abs(rel);
 
-      // Mostrar menos tarjetas para que se noten mejor con más separación
-      const MAX_VISIBLE = 1.6;
+      // Mostrar ~4 tarjetas visibles (centro + ~2 a cada lado)
+      const MAX_VISIBLE = 2.5;
       const visible = dist <= MAX_VISIBLE;
 
       const translateX = rel * spacing;
-      const translateZ = -dist * 80;
-      const translateY = dist * dist * 8;
-      const rotateY = rel * -12;
-      const depthFactor = Math.max(0, 1 - dist * 0.45);
-      const baseScale = 0.55 + depthFactor * 0.45; // 0.55 → 1.0
+      const translateZ = -dist * 55;
+      const translateY = dist * dist * 5;
+      const rotateY = rel * -8;
+      const depthFactor = Math.max(0, 1 - dist * 0.35);
+      const baseScale = 0.65 + depthFactor * 0.35; // 0.65 → 1.0
       const baseZIndex = Math.round(50 + depthFactor * 50);
 
-      // Opacidad: fade más agresivo para que la tarjeta central destaque
+      // Opacidad: fade suave para que se vean ~4 tarjetas
       let opacity;
       if (!visible) {
         opacity = 0;
-      } else if (dist > 1.2) {
-        // Fade out suave entre 1.2 y 1.6
-        opacity = Math.max(0, 1 - (dist - 0.8) * 0.8) * 0.4;
+      } else if (dist > 2.0) {
+        // Fade out suave entre 2.0 y 2.5
+        opacity = Math.max(0, 1 - (dist - 1.5) * 0.7) * 0.35;
+      } else if (dist > 1.5) {
+        opacity = Math.max(0.35, 1 - dist * 0.35);
       } else {
-        opacity = Math.max(0.3, 1 - dist * 0.4);
+        opacity = Math.max(0.5, 1 - dist * 0.3);
       }
 
       return {
@@ -418,8 +457,8 @@ function CategoryIconCarousel({
                   transition-[transform,box-shadow] duration-300 ease-out
                   hover:-translate-y-2 hover:shadow-2xl"
                 style={{
-                  width: 'clamp(150px, 30vw, 280px)',
-                  height: 'clamp(170px, 34vw, 300px)',
+                  width: 'clamp(110px, 22vw, 240px)',
+                  height: 'clamp(135px, 27vw, 270px)',
                   boxShadow: '0 15px 40px -10px rgba(0,0,0,0.4), 0 5px 15px -5px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.15)',
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
@@ -431,8 +470,7 @@ function CategoryIconCarousel({
                 <div
                   className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
                   style={{
-                    backgroundImage: `url(${imageUrl})`,
-                    filter: isDisabled ? 'grayscale(40%)' : 'none'
+                    backgroundImage: `url(${imageUrl})`
                   }}
                 />
 
@@ -457,19 +495,11 @@ function CategoryIconCarousel({
                   }}
                 />
 
-                {/* Badge PRÓXIMAMENTE */}
-                {isDisabled && (
-                  <div
-                    className="absolute top-3 left-1/2 -translate-x-1/2 bg-amber-500/95 backdrop-blur-sm text-white text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full shadow-lg z-20 whitespace-nowrap"
-                    style={{ boxShadow: '0 4px 12px rgba(245,158,11,0.5)' }}
-                  >
-                    {t('home.comingSoon')}
-                  </div>
-                )}
+                {/* Las tarjetas disabled se ven igual visualmente, solo están inhabilitadas al click */}
 
                 {/* Nombre de categoría + contador — footer charcoal con acento mustard */}
                 <div
-                  className="absolute bottom-0 left-0 right-0 z-10 px-3 py-2.5 sm:px-4 sm:py-3 border-t-2 border-accent-400/50 rounded-b-2xl sm:rounded-b-3xl"
+                  className="absolute bottom-0 left-0 right-0 z-10 px-2 py-1.5 sm:px-3 sm:py-2 border-t-2 border-accent-400/50 rounded-b-2xl sm:rounded-b-3xl"
                   style={{
                     background: 'linear-gradient(135deg, rgba(47,53,59,0.92), rgba(37,42,47,0.88))',
                     backdropFilter: 'blur(10px)',
@@ -478,23 +508,19 @@ function CategoryIconCarousel({
                   }}
                 >
                   <h3
-                    className="carousel-card-label font-bold text-white text-center leading-tight text-sm sm:text-base md:text-lg"
-                    style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}
+                    className="carousel-card-label font-bold text-gray-200 text-center leading-tight text-xs sm:text-sm md:text-base tracking-wide"
+                    style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)', letterSpacing: '0.06em' }}
                   >
                     {service.translatedName}
                   </h3>
 
-                  {!isDisabled && service.providerCount > 0 && (
-                    <p
-                      className="text-white/90 text-center mt-0.5 text-xs sm:text-sm font-medium"
-                      style={{ textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}
-                    >
-                      {service.providerCount}{' '}
-                      {service.providerCount === 1
-                        ? t('home.carousel.provider', 'profesional')
-                        : t('home.carousel.providers', 'profesionales')}
-                    </p>
-                  )}
+                  {/* Tagline de valor del servicio */}
+                  <p
+                    className="text-white/70 text-center mt-0.5 text-[9px] sm:text-[10px] md:text-xs font-medium italic"
+                    style={{ textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}
+                  >
+                    {t(`home.carousel.taglines.${service.category}`, '')}
+                  </p>
                 </div>
 
                 {/* Borde hover */}

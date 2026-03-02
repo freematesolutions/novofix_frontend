@@ -1129,7 +1129,7 @@ export default function RequestDetail() {
                     <button 
                       type="submit" 
                       disabled={submitting || (context && !context.unlimited && context.remaining <= 0)}
-                      className="group relative flex items-center gap-2 px-6 py-3 bg-linear-to-r from-brand-500 to-brand-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden"
+                      className="group relative flex items-center gap-2 px-6 py-3 bg-linear-to-r from-gold-500 to-gold-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden"
                     >
                       <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
                       <span className="relative flex items-center gap-2">

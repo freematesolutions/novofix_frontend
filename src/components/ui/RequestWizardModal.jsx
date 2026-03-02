@@ -817,7 +817,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
             <button
               onClick={handleCloseAttempt}
               className="absolute top-3 right-3 z-30 w-8 h-8 bg-white/20 hover:bg-white/30 backdrop-blur rounded-full flex items-center justify-center transition-all"
-              title="Cerrar"
+              title={t('common.close')}
             >
               <Icons.Close className="w-5 h-5 text-white" />
             </button>

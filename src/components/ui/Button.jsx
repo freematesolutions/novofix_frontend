@@ -28,6 +28,7 @@ function Button({
   const styles = {
     primary: `text-white ${accent.bg600} ${accent.hoverBg700} ${accent.ring500}`,
     secondary: 'text-gray-800 bg-gray-100 hover:bg-gray-200',
+    outline: `bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 ${accent.ring500}`,
     ghost: 'text-gray-700 hover:bg-gray-100'
   };
   const cls = `${base} ${styles[variant] ?? styles.primary} ${className}`;

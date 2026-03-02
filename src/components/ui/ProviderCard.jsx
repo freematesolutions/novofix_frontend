@@ -20,7 +20,7 @@ const StarRating = ({ rating, size = 'sm', dataNavSection }) => {
       {[1, 2, 3, 4, 5].map((star) => (
         <svg
           key={star}
-          className={`${sizes[size]} ${star <= Math.round(rating) ? 'text-yellow-400' : 'text-gray-200'}`}
+          className={`${sizes[size]} ${star <= Math.round(rating) ? 'text-gold-500' : 'text-gray-200'}`}
           fill="currentColor"
           viewBox="0 0 20 20"
           data-nav-section={dataNavSection}
@@ -135,93 +135,75 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
         onClickCapture={handleCardClickCapture}
         className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-brand-200 transition-all duration-300 cursor-pointer overflow-hidden w-full max-w-2xl min-w-65 mx-auto"
       >
-        {/* Plan badge + Score/Rating: estático en móviles, absoluto en sm+ */}
-        <div className="flex items-center gap-2 z-10 mt-2 mb-2 justify-center sm:justify-end sm:absolute sm:top-4 sm:right-4 sm:mt-0 sm:mb-0">
-          {/* Score badge */}
-          {score > 0 && (
-            <div 
-              data-nav-section="reviews"
-              className="shrink-0 flex items-center gap-1 bg-brand-50 text-brand-600 px-2.5 py-1 rounded-lg cursor-pointer hover:bg-emerald-100 transition-colors"
-              title={t('ui.providerCard.viewReviews')}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-nav-section="reviews">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" data-nav-section="reviews" />
-              </svg>
-              <span className="text-sm font-bold" data-nav-section="reviews">{typeof score === 'number' ? score.toFixed(1) : score}</span>
-            </div>
-          )}
-        </div>
         {/* Gradient top border on hover */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-brand-400 via-brand-500 to-brand-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
         
         {/* Card Content */}
         <div className="p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 w-full">
-            {/* Avatar Section */}
-            <div className="shrink-0 flex justify-center sm:block mb-2 sm:mb-0">
-              {/* Avatar wrapper con relative para el badge */}
-              <div className="relative inline-block">
+          {/* Header: Avatar + Name/Stars/Badge — always horizontal, avatar spans full info height */}
+          <div className="flex flex-row items-start gap-3 sm:gap-5 mb-3">
+            {/* Avatar Section — sized to match info block height */}
+            <div className="shrink-0">
+              <div className="relative">
                 {/* Avatar */}
                 {profileImage ? (
                   <img 
                     src={profileImage} 
                     alt={businessName}
                     data-avatar-img
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
+                    className="w-18 h-18 sm:w-22 sm:h-22 rounded-2xl object-cover ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
                     title={t('ui.providerCard.enlargeImage')}
                   />
                 ) : (
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-18 h-18 sm:w-22 sm:h-22 rounded-2xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105">
                     {businessName.charAt(0).toUpperCase()}
                   </div>
                 )}
                 {/* Verified badge */}
-                <div className="absolute -top-1 -left-1 w-7 h-7 bg-white rounded-full shadow-md flex items-center justify-center">
-                  <svg className="w-4 h-4 text-brand-500" fill="currentColor" viewBox="0 0 24 24">
+                <div className="absolute -top-1 -left-1 w-6 h-6 sm:w-7 sm:h-7 bg-white rounded-full shadow-md flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-500" fill="currentColor" viewBox="0 0 24 24">
                     <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
                   </svg>
                 </div>
               </div>
             </div>
 
-            {/* Info Section */}
-            <div className="flex-1 min-w-0 flex flex-col justify-between">
-              {/* Header: nombre y rating en fila en sm+, columna en xs */}
-              <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-1 mb-2 w-full">
-                <h3 className="text-base xs:text-lg sm:text-xl font-bold text-gray-900 truncate group-hover:text-brand-600 transition-colors w-full">
-                  {businessName}
-                </h3>
-                <div 
+            {/* Info: Name, Rating & Badge — next to avatar */}
+            <div className="flex-1 min-w-0">
+              {/* Name */}
+              <h3 className="text-base xs:text-lg sm:text-xl font-bold text-gray-900 truncate group-hover:text-brand-600 transition-colors">
+                {businessName}
+              </h3>
+              {/* Stars + Rating */}
+              <div 
+                data-nav-section="reviews"
+                className="flex items-center gap-1 mt-1 cursor-pointer hover:bg-yellow-50 px-1.5 py-0.5 rounded-lg transition-colors w-fit"
+                title={t('ui.providerCard.viewReviews')}
+              >
+                <StarRating 
+                  rating={rating} 
+                  size="sm" 
+                  dataNavSection="reviews"
+                />
+                <span 
                   data-nav-section="reviews"
-                  className="flex items-center gap-1 mt-1 xs:mt-0 cursor-pointer hover:bg-yellow-50 px-1.5 py-0.5 rounded-lg transition-colors"
-                  title="Ver reseñas"
+                  className="text-xs sm:text-sm font-medium text-gray-700"
                 >
-                  <StarRating 
-                    rating={rating} 
-                    size="sm" 
-                    dataNavSection="reviews"
-                  />
-                  <span 
-                    data-nav-section="reviews"
-                    className="text-xs sm:text-sm font-medium text-gray-700"
-                  >
-                    {rating.toFixed(1)}
-                  </span>
-                  <span 
-                    data-nav-section="reviews"
-                    className="text-xs sm:text-sm text-gray-400"
-                  >
-                    ({t('ui.providerCard.reviewsCount', { count: reviewCount })})
-                  </span>
-                </div>
+                  {rating.toFixed(1)}
+                </span>
+                <span 
+                  data-nav-section="reviews"
+                  className="text-xs sm:text-sm text-gray-400"
+                >
+                  ({t('ui.providerCard.reviewsCount', { count: reviewCount })})
+                </span>
               </div>
-
-              {/* Main Service Badge - Show primary service highlighted */}
+              {/* Main Service Badge */}
               {services.length > 0 && services[0]?.category && (
-                <div className="mb-3">
+                <div className="mt-1.5">
                   <span 
                     data-nav-section="services"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-linear-to-r from-brand-500 to-brand-600 text-white shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-brand-400 text-brand-600 cursor-pointer hover:bg-brand-50 transition-colors"
                   >
                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" data-nav-section="services">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" data-nav-section="services"/>
@@ -230,16 +212,24 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
                   </span>
                 </div>
               )}
+            </div>
+          </div>
 
-              {/* Business Description - replaces service count */}
-              {businessDescription && (
+          {/* Content below header — full width */}
+          <div className="flex flex-col">
+            {/* Business Description */}
+              {businessDescription ? (
                 <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-3 leading-relaxed">
                   {businessDescription}
                 </p>
-              )}
-              {!businessDescription && (
-                <p className="text-xs sm:text-sm text-gray-400 italic mb-3">
-                  {t('ui.providerCard.noDescription')}
+              ) : (
+                <p className="text-xs sm:text-sm text-gray-500 mb-3 leading-relaxed">
+                  {services.length > 0 && services[0]?.category
+                    ? t('ui.providerCard.specializingIn', {
+                        name: businessName,
+                        service: t(`home.categories.${services[0].category}`, services[0].category)
+                      })
+                    : t('ui.providerCard.noDescription')}
                 </p>
               )}
 
@@ -292,7 +282,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
                     }}
                     className="w-full"
                   >
-                    <div className="grid grid-cols-3 gap-1.5 rounded-xl overflow-hidden">
+                    <div className="grid grid-cols-3 gap-2.5">
                       {portfolio.slice(0, 3).map((item, idx) => {
                         // Generar URL del thumbnail para videos usando transformaciones de Cloudinary
                         const thumbnailUrl = item.type === 'video' 
@@ -300,7 +290,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
                           : item.url;
                         
                         return (
-                          <div key={idx} className="relative aspect-square bg-gray-100 overflow-hidden group/img">
+                          <div key={idx} className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden group/img">
                             <img 
                               src={thumbnailUrl} 
                               alt={item.caption || `${t('ui.providerCard.portfolioWork')} ${idx + 1}`}
@@ -369,7 +359,6 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
               </div>
             </div>
           </div>
-        </div>
 
         {/* Hover arrow indicator */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">

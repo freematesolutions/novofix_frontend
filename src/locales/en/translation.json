@@ -34,7 +34,63 @@
     "free": "100% Free",
     "fast": "Fast",
     "tip": "Tip",
-    "continue": "Continue"
+    "continue": "Continue",
+    "skipToContent": "Skip to content",
+    "reload": "Reload",
+    "goHome": "Go to home",
+    "seeMoreContent": "See more content",
+    "backToHomeAria": "Back to home",
+    "provider": "Provider",
+    "providerSingular": "provider",
+    "providerPlural": "providers",
+    "myAccount": "My account"
+  },
+  "errorBoundary": {
+    "title": "An error occurred in the application",
+    "description": "We have logged the problem. You can try reloading the page or go back to the home page.",
+    "reload": "Reload",
+    "goHome": "Go to home"
+  },
+  "verificationBanner": {
+    "title": "One more step to complete your registration!",
+    "description": "We have sent a verification link to <1>{{email}}</1>. Please verify it to activate your account.",
+    "verifyEmail": "Verify email",
+    "close": "Close",
+    "closeTitle": "Close this notice temporarily"
+  },
+  "passwordToggle": {
+    "show": "Show password",
+    "hide": "Hide password"
+  },
+  "resetPassword": {
+    "invalidLink": "Invalid link",
+    "invalidLinkDesc": "This link has expired or is invalid. Please request a new reset email.",
+    "requestNewLink": "Request new link",
+    "successTitle": "Password updated!",
+    "redirecting": "You will be redirected to sign in...",
+    "newPassword": "New password",
+    "createSecure": "Create a secure password for your account",
+    "confirmPassword": "Confirm password",
+    "strength": "Strength:",
+    "requirements": {
+      "length": "Minimum 8 characters",
+      "upper": "One uppercase letter",
+      "lower": "One lowercase letter",
+      "number": "One number"
+    },
+    "strengthLevels": {
+      "weak": "Weak",
+      "fair": "Fair",
+      "good": "Good",
+      "strong": "Strong"
+    },
+    "passwordsMatch": "Passwords match",
+    "passwordsDontMatch": "Passwords do not match",
+    "updating": "Updating...",
+    "updateButton": "Update password",
+    "backToLogin": "Back to sign in",
+    "successMessage": "Your password was updated successfully.",
+    "errorMessage": "Could not reset password."
   },
   "imageZoom": {
     "dragToMove": "Drag to move the image",
@@ -94,6 +150,29 @@
     "verificationCode": "Verification code",
     "verifyButton": "Verify",
     "resendCode": "Resend code",
+    "verifyEmailPage": {
+      "title": "Verify your email address",
+      "pendingEmail": "Pending email:",
+      "descriptionDemo": "In demo mode, you can verify your account using the link below.",
+      "descriptionReal": "We have sent a verification link to your email. For security, you must verify it to activate your account and access all features.",
+      "demoMode": "Demo Mode",
+      "demoDescription": "In production, this link would arrive in your inbox. For this demo, click the button:",
+      "verifyAccount": "Verify my account",
+      "demoHint": "✨ This link simulates the one you would receive by email",
+      "verifying": "Verifying link...",
+      "noEmailReceived": "Didn't receive the email? Enter your email to resend the verification link.",
+      "emailPlaceholder": "Your email",
+      "sending": "Sending...",
+      "resendIn": "Resend in {{countdown}}s",
+      "resendButton": "Resend verification email",
+      "resent": "Email resent! Check your inbox.",
+      "loginButton": "Sign in",
+      "homeButton": "Go to home",
+      "verifiedSuccess": "Email verified! Redirecting...",
+      "verifyError": "Error verifying email.",
+      "resendError": "Could not resend the email.",
+      "resentSuccess": "Verification email resent. Check your inbox."
+    },
     "resetPassword": "Reset password",
     "resetPasswordSubtitle": "Enter your email to receive instructions",
     "sendResetLink": "Send reset link",
@@ -143,6 +222,20 @@
       "requestsUnlimited": "Unlimited requests",
       "directChat": "Direct chat with professionals",
       "verifiedProfessionals": "Verified professionals"
+    },
+    "errors": {
+      "emailNotVerified": "You must verify your email to access.",
+      "existingClientAccount": "A client account already exists with this email. Log in with that email and try again to activate provider mode.",
+      "upgradeError": "Could not complete provider upgrade",
+      "loginError": "Error logging in",
+      "registerError": "Error registering"
+    },
+    "onboarding": {
+      "loginRequired": "You must log in to continue with provider registration.",
+      "loginLink": "Log in",
+      "or": "or",
+      "registerLink": "register as a professional",
+      "noAccountYet": "if you don't have an account yet."
     }
   },
   "footer": {
@@ -239,7 +332,36 @@
       "title": "Professional inquiry",
       "subtitle": "The professional needs more details about your request",
       "updateRequest": "Update request"
-    }
+    },
+    "user": "User",
+    "compressingFile": "Compressing {{name}}...",
+    "uploadingVideo": "Uploading video {{current}}/{{total}} (may take a while)...",
+    "uploadingFile": "Uploading file {{current}}/{{total}}...",
+    "preparingFiles": "Preparing files...",
+    "uploadFailed": "Could not upload files",
+    "sendingMessage": "Sending message...",
+    "attachFile": "Attach file (images, videos, documents)",
+    "cancelReply": "Cancel reply",
+    "addEmoji": "Add emoji",
+    "addMessageOptional": "Add a message (optional)...",
+    "newMessage": "New message",
+    "sentVideo": "🎬 Sent you a video",
+    "sentImage": "📷 Sent you an image",
+    "sentFile": "📎 Sent you a file",
+    "newMessageReceived": "You have a new message",
+    "toggleReaction": "Click to toggle reaction",
+    "reply": "Reply",
+    "react": "React"
+  },
+  "upload": {
+    "defaultMessage": "Uploading file...",
+    "compressing": "Compressing...",
+    "processing": "Processing...",
+    "uploading": "Uploading...",
+    "successMessage": "✓ Upload completed successfully",
+    "errorMessage": "✗ Upload error",
+    "uploadingPhotos": "Uploading photos...",
+    "uploadingVideos": "Uploading videos..."
   },
   "notifications": {
     "title": "Notifications",
@@ -258,6 +380,7 @@
     "paymentReceived": "Payment received",
     "reviewReceived": "New review received",
     "profileViewed": "Someone viewed your profile",
+    "requestUpdated": "Request updated",
     "justNow": "Just now",
     "minutesAgo": "{{count}} minutes ago",
     "hoursAgo": "{{count}} hours ago",
@@ -359,6 +482,11 @@
         "message": "{{senderName}} sent you a message.",
         "messageDefault": "You have a new message."
       },
+      "REQUEST_UPDATED": {
+        "title": "Request updated 📝",
+        "message": "The client has updated the details of the request \"{{requestTitle}}\".",
+        "messageDefault": "A service request has been updated by the client."
+      },
       "DEFAULT": {
         "title": "Notification",
         "message": "You have a new notification"
@@ -428,7 +556,9 @@
     "closeMenu": "Close menu",
     "accountMenu": "Account menu: {{name}}",
     "closeNotification": "Close notification",
-    "mobileMenu": "Mobile main menu"
+    "mobileMenu": "Mobile main menu",
+    "searchIn": "Search in {{category}}",
+    "searchServices": "Search services"
   },
   "home": {
     "nav": {
@@ -439,7 +569,7 @@
       "mission": "Our Essence"
     },
     "title1": "Find the professional",
-    "title2": "you need",
+    "title2": "you need Now",
     "services": "Services",
     "professionals": "Professionals",
     "exploreBadge": "Explore Services",
@@ -457,14 +587,14 @@
     "missionVision": {
       "badge": "Our Essence",
       "title": "NovoFix Essence",
-      "subtitle": "Transforming the way people find and hire quality professional services",
+      "subtitle": "What defines us and where we're headed",
       "missionTitle": "Our Mission",
-      "missionText": "Connect clients with verified and trusted service professionals, facilitating a transparent, secure and efficient experience that benefits both parties.",
+      "missionText": "Connecting clients with verified professionals in a transparent, secure and efficient way.",
       "missionPoint1": "Simplify the search for qualified professionals",
       "missionPoint2": "Ensure secure and transparent transactions",
       "missionPoint3": "Create job opportunities for professionals",
       "visionTitle": "Our Vision",
-      "visionText": "To be the leading platform in Latin America for home and professional services, recognized for the quality, trust and satisfaction of our user community.",
+      "visionText": "To be Latin America's leading platform for home and professional services.",
       "visionPoint1": "Expansion throughout Latin America",
       "visionPoint2": "Community of millions of satisfied users",
       "visionPoint3": "Continuous innovation in digital services",
@@ -505,14 +635,14 @@
     "benefit3Desc": "Compare quotes and choose the best option for you",
     "benefit4Title": "Quality Guaranteed",
     "benefit4Desc": "Real client reviews to help you decide",
-    "foundProfessionals": "{{count}} professionals found",
+    "foundProfessionals": "{{count}} professionals",
     "noProfessionalsFound": "No professionals found",
     "detectedCategoriesLabel": "🔍 Our smart search detected these categories:",
     "backToHome": "Back to Home",
     "noProfessionalsCriteria": "No professionals found with those criteria",
     "tryOtherSearch": "Try other search terms or categories",
-    "oneProfessionalFound": "professional found",
-    "manyProfessionalsFound": "professionals found",
+    "oneProfessionalFound": "professional",
+    "manyProfessionalsFound": "professionals",
     "inCategory": "in",
     "noProfessionalsAvailable": "No professionals available",
     "tryOtherCategory": "Try searching another category or make a custom search",
@@ -581,7 +711,35 @@
     "carousel": {
       "ariaLabel": "Service categories carousel",
       "provider": "professional",
-      "providers": "professionals"
+      "providers": "professionals",
+      "taglines": {
+        "Plomería": "Worry-free flow",
+        "Electricidad": "Safe & reliable energy",
+        "Carpintería": "Wood details that transform",
+        "Pintura": "Luxury finishes",
+        "Limpieza": "Spotless spaces",
+        "Jardinería": "Your green oasis",
+        "Cerrajería": "Security in one click",
+        "Albañilería": "Solid foundations, real results",
+        "Reparación de electrodomésticos": "Good as new again",
+        "Instalación de aire acondicionado": "Perfect climate, always",
+        "Mudanzas": "Your fresh start, stress-free",
+        "Fumigación": "Total protection guaranteed",
+        "Tecnología e informática": "Instant digital solutions",
+        "Clases particulares": "Learn at your pace",
+        "Belleza y estética": "Bring out your best",
+        "Mecánica automotriz": "Your car in good hands",
+        "Fotografía": "Moments that last",
+        "Catering": "Flavors that impress",
+        "Construcción": "We build your dreams",
+        "Decoración": "Spaces with personality",
+        "Diseño gráfico": "Creativity that impacts",
+        "Asesoría legal": "Your rights, our priority",
+        "Contabilidad": "Clear & simple finances",
+        "Marketing digital": "Visibility that converts",
+        "Traducción": "No language barriers",
+        "Otro": "Tailored solutions"
+      }
     },
     "searchBar": {
       "placeholder": "Search professional services...",
@@ -747,7 +905,8 @@
       "rejected": "Proposal rejected",
       "yourRequest": "Your request",
       "photo": "Photo",
-      "chatOpenError": "Error opening chat"
+      "chatOpenError": "Error opening chat",
+      "negotiateTooltip": "Chat with the professional to negotiate terms or resolve questions"
     },
     "messages": {
       "title": "My Messages",
@@ -812,6 +971,8 @@
       "createSuccess": "Request created successfully",
       "createError": "Error creating request",
       "draftSuccess": "Draft saved",
+      "viewPortfolio": "View portfolio",
+      "noProvidersTooltip": "No providers available for this category/urgency in your area",
       "validation": {
         "categoryRequired": "Select a category",
         "titleRequired": "Title is required",
@@ -1353,7 +1514,8 @@
       "stepOf": "Step {{current}} of {{total}}",
       "autoCompleteHint": "We've auto-filled your service area",
       "locationMarked": "Location marked on map",
-      "tipText": "A wider coverage will allow you to receive more requests"
+      "tipText": "A wider coverage will allow you to receive more requests",
+      "locationSelected": "Location selected"
     },
     "review": {
       "summaryTitle": "Profile summary",
@@ -2264,6 +2426,7 @@
       },
       "description": "Description",
       "noDescription": "This professional has not added a description yet",
+      "specializingIn": "{{name}} specializing in {{service}}",
       "location": "Location",
       "serviceAreaNotSpecified": "Service area not specified",
       "coverageRadius": "Coverage radius: {{radius}} km",
@@ -2307,7 +2470,11 @@
       "moreServices": "+{{count}} more",
       "sendRequest": "Request Estimate",
       "viewProfile": "View profile",
-      "noDescription": "No description available"
+      "noDescription": "No description available",
+      "specializingIn": "{{name}} specializing in {{service}}"
+    },
+    "starRating": {
+      "ariaLabel": "{{value}} of {{max}} stars"
     },
     "mapPicker": {
       "title": "Select location",
@@ -2371,6 +2538,7 @@
         "passwordMinLength": "Minimum 6 characters",
         "checkFields": "Please check the marked fields"
       },
+      "loginQuestion": "Log in instead?",
       "rememberMe": "Remember me",
       "forgotPassword": "Forgot your password?",
       "newHere": "New here?",
@@ -2445,7 +2613,58 @@
       "portfolioSection": {
         "title": "Your portfolio",
         "description": "Showcase your best work to stand out to clients"
-      }
+      },
+      "myProfile": "My Profile",
+      "configureProfile": "Configure your profile"
+    },
+    "providerSetup": {
+      "businessName": "Business name",
+      "description": "Description",
+      "zone": "Zone (label)",
+      "zonePlaceholder": "E.g.: Downtown",
+      "radius": "Radius (miles)",
+      "locationLabel": "Location (click on the map or use your location)",
+      "latitude": "Latitude",
+      "latPlaceholder": "E.g.: -34.6037",
+      "longitude": "Longitude",
+      "lngPlaceholder": "E.g.: -58.3816",
+      "phone": "Phone",
+      "saving": "Saving...",
+      "profileUpdated": "Provider profile updated",
+      "activateError": "Could not activate provider mode",
+      "saveError": "Could not save"
+    },
+    "portfolioManager": {
+      "processingFiles": "Processing files...",
+      "selectAtLeastOne": "Select at least one file",
+      "compressingImages": "Compressing images...",
+      "preparingVideos": "Preparing video upload...",
+      "uploadingFilesVideos": "Uploading files (videos may take longer)...",
+      "uploadingFiles": "Uploading files...",
+      "uploadingImages": "Uploading images...",
+      "processingCloudinary": "Processing files on Cloudinary...",
+      "uploadError": "Error uploading files",
+      "savingProfile": "Saving to your profile...",
+      "portfolioUpdated": "Portfolio updated!",
+      "filesAdded": "{{count}} file(s) added to portfolio",
+      "uploadPortfolioError": "Error uploading portfolio",
+      "errorUploading": "Error uploading files",
+      "confirmDelete": "Delete this portfolio item?",
+      "itemDeleted": "Portfolio item deleted",
+      "deleteError": "Error deleting item",
+      "title": "Work portfolio",
+      "subtitle": "Show images or videos of your past work to attract more clients",
+      "selectFiles": "Select files (max. 10, up to 200MB each)",
+      "autoCompress": "Images will be automatically compressed",
+      "categoryOptional": "Category (optional)",
+      "noCategory": "No specific category",
+      "preview": "Preview ({{count}} file(s)):",
+      "captionPlaceholder": "Description (optional)",
+      "uploading": "Uploading...",
+      "uploadBtn": "Upload {{count}} file(s)",
+      "currentPortfolio": "Current portfolio ({{count}} items)",
+      "emptyPortfolio": "You haven't added any portfolio items yet",
+      "delete": "Delete"
     }
   },
   "admin": {
@@ -2756,6 +2975,10 @@
     "error": {
       "title": "Error loading",
       "retry": "Retry"
+    },
+    "errors": {
+      "noClientSecret": "Payment key not available",
+      "paymentInitFailed": "Could not start the payment"
     }
   },
   "testimonials": {
@@ -2805,5 +3028,33 @@
       "portfolio": "Portfolio",
       "service_evidence": "Evidence"
     }
+  },
+  "portfolio": {
+    "title": "Portfolio of {{name}}",
+    "provider": "Provider",
+    "itemCounter": "{{current}} of {{total}} {{label}}",
+    "element": "item",
+    "elements": "items",
+    "closeEsc": "Close (Esc)",
+    "closeModal": "Close modal",
+    "all": "All ({{count}})",
+    "photos": "Photos ({{count}})",
+    "videos": "Videos ({{count}})",
+    "noItems": "No items available with this filter",
+    "fullscreen": "Fullscreen",
+    "viewFullscreen": "View fullscreen",
+    "exitFullscreen": "Exit fullscreen (ESC)",
+    "clickToZoom": "Click to zoom",
+    "doubleClickRestore": "Double click to restore",
+    "video": "Video",
+    "image": "Image",
+    "previous": "Previous",
+    "previousKey": "Previous (←)",
+    "next": "Next",
+    "nextKey": "Next (→)",
+    "viewItem": "View item {{index}}",
+    "uploadedOn": "Uploaded on {{date}}",
+    "navigate": "Navigate",
+    "close": "Close"
   }
 }

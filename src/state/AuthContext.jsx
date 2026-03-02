@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from './apiClient';
 
 // Normalize backend role values (e.g., 'Client'|'client' -> 'client')
@@ -15,6 +16,7 @@ function normalizeRole(value) {
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [pendingVerification, setPendingVerification] = useState(() => {
     const email = sessionStorage.getItem('pending_verification_email');
@@ -230,7 +232,7 @@ export function AuthProvider({ children }) {
       const { user: maybeUser, token } = data.data || {};
 
       if (!maybeUser || maybeUser.emailVerified === false) {
-        throw new Error('Debes verificar tu correo electrónico para acceder.');
+        throw new Error(t('auth.errors.emailNotVerified'));
       }
 
       if (token) {
@@ -254,12 +256,12 @@ export function AuthProvider({ children }) {
       setAuthState(u, null);
       return { ok: true, user: u };
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || 'Error al iniciar sesión');
+      setError(err?.response?.data?.message || err.message || t('auth.errors.loginError'));
       return { ok: false, error: err };
     } finally {
       setLoading(false);
     }
-  }, [setAuthState]);
+  }, [setAuthState, t]);
 
   const registerClient = useCallback(async (payload) => {
     setLoading(true); setError('');
@@ -297,12 +299,12 @@ export function AuthProvider({ children }) {
 
       return { ok: true };
     } catch (err) {
-      setError(err?.response?.data?.message || 'Error al registrarse');
+      setError(err?.response?.data?.message || t('auth.errors.registerError'));
       return { ok: false, error: err };
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const registerProvider = useCallback(async (payload) => {
     setLoading(true); setError('');
@@ -356,7 +358,7 @@ export function AuthProvider({ children }) {
           };
           const bearer = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
           if (!bearer) {
-            setError('Ya existe una cuenta de cliente con este correo. Inicia sesión con ese correo y vuelve a intentar para activar el modo proveedor.');
+            setError(t('auth.errors.existingClientAccount'));
             return { ok: false };
           }
           const { data: data2 } = await api.post('/auth/become-provider', upgrade, { headers: { Authorization: `Bearer ${bearer}` } });
@@ -366,9 +368,9 @@ export function AuthProvider({ children }) {
         } catch (e2) {
           const st = e2?.response?.status;
           if (st === 401) {
-            setError('Ya existe una cuenta de cliente con este correo. Inicia sesión con ese correo y vuelve a intentar para activar el modo proveedor.');
+            setError(t('auth.errors.existingClientAccount'));
           } else {
-            setError(e2?.response?.data?.message || 'No se pudo completar el upgrade a proveedor');
+            setError(e2?.response?.data?.message || t('auth.errors.upgradeError'));
           }
           return { ok: false, error: e2 };
         } finally {
@@ -376,12 +378,12 @@ export function AuthProvider({ children }) {
         }
       }
 
-      setError(msg || 'Error al registrarse');
+      setError(msg || t('auth.errors.registerError'));
       return { ok: false, error: err };
     } finally {
       setLoading(false);
     }
-  }, [setAuthState]);
+  }, [setAuthState, t]);
 
   const logout = useCallback(() => {
     try { localStorage.removeItem('access_token'); } catch { /* intentionally empty */ }

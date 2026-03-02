@@ -392,10 +392,6 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                   <span className="text-white/70">({reviewCount})</span>
                 </div>
                 
-                {score > 0 && (
-                  <span className="text-accent-300 font-medium shrink-0">Score: {score.toFixed(1)}</span>
-                )}
-                
                 <span className="hidden sm:inline text-white/70">•</span>
                 <span className="hidden sm:inline"><b>{completedJobs}</b> {t('ui.providerProfile.jobs')}</span>
               </div>
@@ -462,7 +458,13 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                 <div className="lg:col-span-2 bg-gray-50 rounded-xl p-4">
                   <h3 className="font-semibold text-gray-900 mb-2 text-sm">{t('ui.providerProfile.description')}</h3>
                   <p className="text-gray-600 leading-relaxed text-sm">
-                    {description || t('ui.providerProfile.noDescription')}
+                    {description
+                      || (mainService?.category
+                        ? t('ui.providerProfile.specializingIn', {
+                            name: businessName,
+                            service: t(`home.categories.${mainService.category}`, mainService.category)
+                          })
+                        : t('ui.providerProfile.noDescription'))}
                   </p>
                 </div>
 

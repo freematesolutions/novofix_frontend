@@ -70,7 +70,7 @@ const Icons = {
 const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
 // Typing Indicator Component
-const TypingIndicator = memo(({ userName }) => (
+const TypingIndicator = memo(({ userName, t }) => (
   <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-2xl rounded-bl-md max-w-fit animate-fade-in">
     <div className="flex gap-1">
       {[0, 1, 2].map(i => (
@@ -81,14 +81,15 @@ const TypingIndicator = memo(({ userName }) => (
         />
       ))}
     </div>
-    <span className="text-xs text-gray-500">{userName || 'Escribiendo'}...</span>
+    <span className="text-xs text-gray-500">{userName || t('chat.typing')}...</span>
   </div>
 ));
 
 TypingIndicator.displayName = 'TypingIndicator';
 
 TypingIndicator.propTypes = {
-  userName: PropTypes.string
+  userName: PropTypes.string,
+  t: PropTypes.func
 };
 
 // Message Bubble Component with Reactions and Reply support
@@ -288,10 +289,10 @@ const MessageBubble = memo(({
             }}
           >
             <p className="font-medium text-[10px] opacity-70 mb-0.5">
-              {replyToMessage.sender?.profile?.firstName || 'Usuario'}
+              {replyToMessage.sender?.profile?.firstName || t('chat.user')}
             </p>
             <p className="truncate">
-              {replyToMessage.content?.text || replyToMessage.text || '📎 Archivo adjunto'}
+              {replyToMessage.content?.text || replyToMessage.text || t('chat.attachment')}
             </p>
           </div>
         )}
@@ -379,7 +380,7 @@ const MessageBubble = memo(({
                   key={emoji}
                   onPointerUp={(e) => { e.stopPropagation(); handleReaction(emoji); }}
                   className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-gray-200 rounded-full text-xs shadow-sm hover:bg-gray-50 transition-colors touch-manipulation select-none"
-                  title="Clic para alternar reacción"
+                  title={t('chat.toggleReaction')}
                 >
                   <span>{emoji}</span>
                   {count > 1 && <span className="text-gray-500 text-[10px]">{count}</span>}
@@ -399,14 +400,14 @@ const MessageBubble = memo(({
             <button
               onClick={handleReply}
               className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
-              title="Responder"
+              title={t('chat.reply')}
             >
               <Icons.Reply className="w-4 h-4 text-gray-500" />
             </button>
             <button
               onClick={() => setShowReactionPicker(!showReactionPicker)}
               className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
-              title="Reaccionar"
+              title={t('chat.react')}
             >
               <Icons.Emoji className="w-4 h-4 text-gray-500" />
             </button>
@@ -503,7 +504,7 @@ function ChatRoom({
   chat,
   currentUserId,
   onNewMessage,
-  placeholder = 'Escribe un mensaje...',
+  placeholder = null,
   className = '',
   showHeader = true,
   maxHeight = '500px',
@@ -555,10 +556,10 @@ function ChatRoom({
     if (isClient) {
       return chat?.participants?.provider?.providerProfile?.businessName || 
              chat?.participants?.provider?.profile?.firstName || 
-             'Proveedor';
+             t('common.provider');
     }
-    return chat?.participants?.client?.profile?.firstName || 'Cliente';
-  }, [chat, currentUserId]);
+    return chat?.participants?.client?.profile?.firstName || t('chat.user');
+  }, [chat, currentUserId, t]);
 
   // Load messages
   const loadMessages = useCallback(async () => {
@@ -937,7 +938,7 @@ function ChatRoom({
       if (isImage && file.size > 500 * 1024) { // Solo comprimir si > 500KB
         setUploadProgress(prev => ({
           ...prev,
-          message: `Comprimiendo ${file.name}...`
+          message: t('chat.compressingFile', { name: file.name })
         }));
         
         try {
@@ -965,8 +966,8 @@ function ChatRoom({
       setUploadProgress(prev => ({
         ...prev,
         message: isVideo 
-          ? `Subiendo video ${fileIndex + 1}/${totalFiles} (puede tardar)...`
-          : `Subiendo archivo ${fileIndex + 1}/${totalFiles}...`
+          ? t('chat.uploadingVideo', { current: fileIndex + 1, total: totalFiles })
+          : t('chat.uploadingFile', { current: fileIndex + 1, total: totalFiles })
       }));
       
       const { data } = await api.post('/uploads/chat', formData, {
@@ -1000,7 +1001,7 @@ function ChatRoom({
     if (selectedFiles.length === 0 || !chatId || uploadingFile) return;
     
     setUploadingFile(true);
-    setUploadProgress({ show: true, progress: 0, message: 'Preparando archivos...' });
+    setUploadProgress({ show: true, progress: 0, message: t('chat.preparingFiles') });
     
     try {
       const attachments = [];
@@ -1018,10 +1019,10 @@ function ChatRoom({
       }
       
       if (attachments.length === 0) {
-        throw new Error('No se pudieron subir los archivos');
+        throw new Error(t('chat.uploadFailed'));
       }
       
-      setUploadProgress(prev => ({ ...prev, progress: 100, message: 'Enviando mensaje...' }));
+      setUploadProgress(prev => ({ ...prev, progress: 100, message: t('chat.sendingMessage') }));
       
       const localId = `local_${Date.now()}`;
       const text = composer.trim();
@@ -1194,9 +1195,9 @@ function ChatRoom({
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Icons.EmptyChat className="w-20 h-20 text-gray-200 mb-4" />
-            <h4 className="text-lg font-semibold text-gray-900 mb-1">Sin mensajes aún</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-1">{t('chat.noMessages')}</h4>
             <p className="text-sm text-gray-500 max-w-xs">
-              Envía el primer mensaje para iniciar la conversación
+              {t('chat.startConversation')}
             </p>
           </div>
         ) : (
@@ -1242,7 +1243,7 @@ function ChatRoom({
             {typingList.length > 0 && (
               <div className="flex gap-2">
                 <div className="w-8" />
-                <TypingIndicator userName={typingList[0].userName} />
+                <TypingIndicator userName={typingList[0].userName} t={t} />
               </div>
             )}
 
@@ -1348,17 +1349,17 @@ function ChatRoom({
           <div className="mb-3 p-3 bg-brand-50/50 rounded-lg border-l-[3px] border-brand-500 flex items-start gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-xs text-brand-600 font-medium mb-0.5">
-                Respondiendo a {replyingTo.sender?.profile?.firstName || 'Usuario'}
+                {t('chat.replyingTo')} {replyingTo.sender?.profile?.firstName || t('chat.user')}
               </p>
               <p className="text-sm text-gray-700 truncate">
-                {replyingTo.content?.text || replyingTo.text || '📎 Archivo adjunto'}
+                {replyingTo.content?.text || replyingTo.text || t('chat.attachment')}
               </p>
             </div>
             <button
               type="button"
               onClick={cancelReply}
               className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded transition-colors"
-              title="Cancelar respuesta"
+              title={t('chat.cancelReply')}
             >
               <Icons.Close className="w-4 h-4" />
             </button>
@@ -1428,7 +1429,7 @@ function ChatRoom({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className={`p-2 rounded-lg transition-colors ${selectedFiles.length > 0 ? 'text-brand-500 bg-brand-50' : 'text-gray-400 hover:text-brand-500 hover:bg-brand-50'}`}
-              title="Adjuntar archivo (imágenes, videos, documentos)"
+              title={t('chat.attachFile')}
               disabled={uploadingFile}
             >
               <Icons.Attachment />
@@ -1439,7 +1440,7 @@ function ChatRoom({
                 type="button"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 className={`p-2 rounded-lg transition-colors ${showEmojiPicker ? 'text-brand-500 bg-brand-50' : 'text-gray-400 hover:text-brand-500 hover:bg-brand-50'}`}
-                title="Agregar emoji"
+                title={t('chat.addEmoji')}
               >
                 <span className="text-lg">😊</span>
               </button>
@@ -1481,7 +1482,7 @@ function ChatRoom({
               value={composer}
               onChange={(e) => handleTyping(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={selectedFiles.length > 0 ? 'Añade un mensaje (opcional)...' : placeholder}
+              placeholder={selectedFiles.length > 0 ? t('chat.addMessageOptional', 'Añade un mensaje (opcional)...') : (placeholder || t('chat.writeMessage'))}
               rows={1}
               className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 focus:bg-white resize-none transition-all text-sm"
               style={{ minHeight: '44px', maxHeight: '120px' }}

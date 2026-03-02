@@ -259,8 +259,8 @@ function SearchBar({ onSearch, variant = 'default', noResultsInfo = null, onClea
             className={`
               flex items-center justify-center gap-1.5 font-semibold transition-all duration-300 shrink-0
               ${isHeroVariant 
-                ? 'bg-brand-600 hover:bg-brand-700 text-white px-3 sm:px-6 lg:px-3 xl:px-5 py-2 sm:py-3 lg:py-2 rounded-lg sm:rounded-xl lg:rounded-lg shadow-lg shadow-brand-600/30 hover:shadow-xl hover:shadow-brand-600/40 hover:scale-105 active:scale-95'
-                : 'bg-brand-600 text-white px-4 sm:px-6 py-2.5 rounded-lg hover:bg-brand-700'
+                ? 'bg-gold-500 hover:bg-gold-600 text-white px-3 sm:px-6 lg:px-3 xl:px-5 py-2 sm:py-3 lg:py-2 rounded-lg sm:rounded-xl lg:rounded-lg shadow-lg shadow-gold-500/30 hover:shadow-xl hover:shadow-gold-500/40 hover:scale-105 active:scale-95'
+                : 'bg-gold-500 text-white px-4 sm:px-6 py-2.5 rounded-lg hover:bg-gold-600'
               }
             `}
           >

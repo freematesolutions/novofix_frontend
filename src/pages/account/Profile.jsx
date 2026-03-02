@@ -87,7 +87,7 @@ export default function Profile() {
       await api.put('/auth/profile', { profile: { ...form, avatar } });
       toast.success(t('account.profile.profileUpdated'));
     } catch (err) {
-      setError(err?.response?.data?.message || 'No se pudo guardar');
+      setError(err?.response?.data?.message || t('toast.saveError'));
     } finally { setSaving(false); }
   };
 
@@ -316,10 +316,10 @@ export default function Profile() {
             {/* User info */}
             <div className="flex-1 text-center sm:text-left text-white mt-4 sm:mt-0">
               <h1 className="text-2xl sm:text-3xl font-bold drop-shadow-lg">
-                {form.firstName || form.lastName ? `${form.firstName} ${form.lastName}` : 'Mi Perfil'}
+                {form.firstName || form.lastName ? `${form.firstName} ${form.lastName}` : t('account.profile.myProfile')}
               </h1>
               <p className="text-white/80 text-sm sm:text-base mt-1">
-                {user?.email || 'Configura tu perfil'}
+                {user?.email || t('account.profile.configureProfile')}
               </p>
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm`}>

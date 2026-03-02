@@ -842,7 +842,7 @@ function GuestConversionModal({
                   {/* Email */}
                   <div>
                     <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1 sm:mb-1.5">
-                      <Icons.Mail className="w-4 h-4 text-brand-500" /> Correo electrónico
+                      <Icons.Mail className="w-4 h-4 text-brand-500" /> {t('ui.guestConversion.emailLabel')}
                     </label>
                     <div className="relative">
                       <input
@@ -902,7 +902,7 @@ function GuestConversionModal({
                               }}
                               className="text-brand-600 hover:underline font-medium"
                             >
-                              ¿Iniciar sesión?
+                              {t('ui.guestConversion.loginQuestion')}
                             </button>
                           </>
                         )}
@@ -913,7 +913,7 @@ function GuestConversionModal({
                   {/* Password */}
                   <div>
                     <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1 sm:mb-1.5">
-                      <Icons.Lock className="w-4 h-4 text-brand-500" /> Contraseña
+                      <Icons.Lock className="w-4 h-4 text-brand-500" /> {t('ui.guestConversion.passwordLabel')}
                     </label>
                     <div className="relative">
                       <input

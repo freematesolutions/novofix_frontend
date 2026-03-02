@@ -13,17 +13,29 @@
   --color-brand-800: #005555;
   --color-brand-900: #004040;
 
-  /* Accent — Mustard (#E1AD01) */
+  /* Accent/Gold — (#FFBF00) */
   --color-accent-50: #fffbeb;
   --color-accent-100: #fef3c7;
   --color-accent-200: #fde68a;
   --color-accent-300: #fcd34d;
   --color-accent-400: #f5c518;
-  --color-accent-500: #E1AD01;
-  --color-accent-600: #c49400;
+  --color-accent-500: #FFBF00;
+  --color-accent-600: #E1AD01;
   --color-accent-700: #a37800;
   --color-accent-800: #855f00;
   --color-accent-900: #6b4b00;
+
+  /* Gold — exact #FFBF00 for stars, CTAs */
+  --color-gold-50: #fffdf0;
+  --color-gold-100: #fff9d6;
+  --color-gold-200: #fff0a3;
+  --color-gold-300: #ffe566;
+  --color-gold-400: #ffd633;
+  --color-gold-500: #FFBF00;
+  --color-gold-600: #E1AD01;
+  --color-gold-700: #B38B00;
+  --color-gold-800: #856800;
+  --color-gold-900: #574500;
 
   /* Dark — Charcoal (#2F353B) */
   --color-dark-50: #f6f7f8;
@@ -36,6 +48,12 @@
   --color-dark-700: #3d444d;
   --color-dark-800: #2F353B;
   --color-dark-900: #252a2f;
+
+  /* Body text — replaces black on white backgrounds */
+  --color-body: #2D2D2D;
+
+  /* Typography — Montserrat */
+  --font-sans: 'Montserrat', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Animaciones personalizadas para Hero Section */

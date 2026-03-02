@@ -1,4 +1,5 @@
 import React from 'react';
+import i18n from '@/i18n.js';
 
 /**
  * ErrorBoundary: Previene pantallas en blanco ante errores en tiempo de ejecución.
@@ -32,16 +33,16 @@ export default class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="max-w-2xl mx-auto my-10 border rounded-md p-6 bg-red-50 text-red-900">
-          <h2 className="text-xl font-semibold mb-2">Ocurrió un error en la aplicación</h2>
-          <p className="text-sm mb-4">Hemos registrado el problema. Puedes intentar recargar la página o volver al inicio.</p>
+          <h2 className="text-xl font-semibold mb-2">{i18n.t('errorBoundary.title')}</h2>
+          <p className="text-sm mb-4">{i18n.t('errorBoundary.description')}</p>
           {import.meta.env.DEV && this.state.error && (
             <pre className="text-xs whitespace-pre-wrap bg-red-100 p-2 rounded border border-red-200 overflow-auto mb-4">
               {String(this.state.error?.message || this.state.error)}
             </pre>
           )}
           <div className="flex items-center gap-2">
-            <button onClick={this.handleReload} className="px-3 py-2 text-sm rounded bg-red-600 text-white">Recargar</button>
-            <button onClick={this.handleGoHome} className="px-3 py-2 text-sm rounded border border-red-300">Ir al inicio</button>
+            <button onClick={this.handleReload} className="px-3 py-2 text-sm rounded bg-red-600 text-white">{i18n.t('errorBoundary.reload')}</button>
+            <button onClick={this.handleGoHome} className="px-3 py-2 text-sm rounded border border-red-300">{i18n.t('errorBoundary.goHome')}</button>
           </div>
         </div>
       );

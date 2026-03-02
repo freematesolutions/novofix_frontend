@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import api from '@/state/apiClient.js';
@@ -13,7 +13,7 @@ const StarRating = ({ rating, size = 'sm' }) => {
       {[1, 2, 3, 4, 5].map((star) => (
         <svg
           key={star}
-          className={`${sizes[size]} ${star <= Math.round(rating) ? 'text-yellow-400' : 'text-gray-200'}`}
+          className={`${sizes[size]} ${star <= Math.round(rating) ? 'text-gold-500' : 'text-gray-200'}`}
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -72,27 +72,27 @@ const TestimonialCard = ({ testimonial, variant = 'all' }) => {
   );
 
   return (
-    <div className="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden h-full flex flex-col">
+    <div className="group bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden h-full flex flex-col">
       {/* Content */}
-      <div className="p-5 flex-1 flex flex-col">
-        {/* Header: User Identity (Social Card Style) */}
-        <div className="flex items-center gap-3 mb-4">
+      <div className="px-3 py-2.5 flex-1 flex flex-col">
+        {/* Header: User Identity */}
+        <div className="flex items-center gap-2 mb-2">
           {/* Avatar */}
           {testimonial.userAvatar ? (
             <img 
               src={testimonial.userAvatar} 
               alt={testimonial.userName}
-              className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100"
+              className="w-9 h-9 rounded-full object-cover ring-1 ring-gray-100"
             />
           ) : (
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-bold ring-2 ring-gray-100 ${isProvider ? 'bg-linear-to-br from-dark-400 to-dark-500' : 'bg-linear-to-br from-brand-400 to-brand-500'}`}>
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold ring-1 ring-gray-100 ${isProvider ? 'bg-linear-to-br from-dark-400 to-dark-500' : 'bg-linear-to-br from-brand-400 to-brand-500'}`}>
               {testimonial.userName?.charAt(0) || (isProvider ? 'P' : 'C')}
             </div>
           )}
           {/* Name and Role */}
           <div className="flex-1 min-w-0">
-            <p className="text-base font-semibold text-gray-900 truncate">{testimonial.userName}</p>
-            <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${roleBadgeStyles}`}>
+            <p className="text-sm font-semibold text-gray-900 truncate">{testimonial.userName}</p>
+            <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${roleBadgeStyles}`}>
               {roleIcon}
               <span>{isProvider ? t('testimonials.verifiedProvider') : t('testimonials.verifiedClient')}</span>
             </div>
@@ -101,8 +101,8 @@ const TestimonialCard = ({ testimonial, variant = 'all' }) => {
 
         {/* For Clients: Show their review/rating about the provider */}
         {variant !== 'platform' && !isProvider && comment && (
-          <div className="mb-3 rounded-lg p-3 border bg-linear-to-r from-brand-50 to-brand-50 border-brand-100">
-            <div className="flex items-center justify-between mb-1">
+          <div className="mb-1.5 rounded-md p-2 border bg-linear-to-r from-brand-50 to-brand-50 border-brand-100">
+            <div className="flex items-center justify-between mb-0.5">
               <div className="flex items-center gap-1.5">
                 <svg className="w-4 h-4 text-brand-600" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
@@ -126,8 +126,8 @@ const TestimonialCard = ({ testimonial, variant = 'all' }) => {
 
         {/* For Providers: Show their review/rating about the client */}
         {variant !== 'platform' && isProvider && comment && (
-          <div className="mb-3 rounded-lg p-3 border bg-linear-to-r from-accent-50 to-accent-50 border-accent-100">
-            <div className="flex items-center justify-between mb-1">
+          <div className="mb-1.5 rounded-md p-2 border bg-linear-to-r from-accent-50 to-accent-50 border-accent-100">
+            <div className="flex items-center justify-between mb-0.5">
               <div className="flex items-center gap-1.5">
                 <svg className="w-4 h-4 text-accent-600" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
@@ -151,8 +151,8 @@ const TestimonialCard = ({ testimonial, variant = 'all' }) => {
 
         {/* Platform Feedback (main content for provider testimonials, optional for clients) */}
         {variant !== 'service' && testimonial.hasPlatformFeedback && platformComment && (
-          <div className={`mb-3 rounded-lg p-3 border ${isProvider ? 'bg-linear-to-r from-purple-50 to-indigo-50 border-purple-100' : 'bg-linear-to-r from-brand-50 to-cyan-50 border-brand-100'}`}>
-            <div className="flex items-center justify-between mb-1">
+          <div className={`mb-1.5 rounded-md p-2 border ${isProvider ? 'bg-linear-to-r from-purple-50 to-indigo-50 border-purple-100' : 'bg-linear-to-r from-brand-50 to-cyan-50 border-brand-100'}`}>
+            <div className="flex items-center justify-between mb-0.5">
               <div className="flex items-center gap-1.5">
                 <svg className={`w-4 h-4 ${isProvider ? 'text-dark-600' : 'text-brand-600'}`} fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -181,195 +181,167 @@ const TestimonialCard = ({ testimonial, variant = 'all' }) => {
 // Testimonials Carousel Component - Auto-scroll horizontal with pause on hover/touch
 // Supports direction: 'ltr' (left-to-right, default) or 'rtl' (right-to-left)
 // Optimized for mobile touch interactions
-const TestimonialsCarousel = ({ testimonials, onImageClick: _onImageClick, direction = 'ltr', title, icon, variant = 'all' }) => {
+const TestimonialsCarousel = ({ testimonials, onImageClick: _onImageClick, direction = 'ltr', title, icon, variant = 'all', showTitle = true }) => {
   const { t } = useTranslation();
   const containerRef = useRef(null);
-  const scrollRef = useRef(null);
-  const animationRef = useRef(null);
-  const [isHovering, setIsHovering] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const lastTimeRef = useRef(0);
-  const initializedRef = useRef(false);
-  
-  // Refs for touch/drag handling (using refs to avoid stale closures)
+  const trackRef = useRef(null);
+
+  // All animation state as refs — never trigger re-renders
+  const isHoveringRef = useRef(false);
+  const isPausedRef = useRef(false);
   const isDraggingRef = useRef(false);
-  const hasDraggedRef = useRef(false); // Track if significant drag occurred (to prevent click)
+  const hasDraggedRef = useRef(false);
   const startXRef = useRef(0);
-  const scrollLeftRef = useRef(0);
+  const dragStartOffsetRef = useRef(0);
   const lastTouchXRef = useRef(0);
   const velocityRef = useRef(0);
   const momentumAnimRef = useRef(null);
   const pauseTimeoutRef = useRef(null);
-  
-  // Auto-scroll speed (pixels per frame at 60fps) - Higher = faster
-  const scrollSpeed = 1.2;
+  const offsetRef = useRef(0);
+  const singleSetWidthRef = useRef(0);
+  const initializedRef = useRef(false);
+  const dupFactorRef = useRef(3);
 
-  // Pause auto-scroll temporarily (e.g., after user interaction)
+  // Pause auto-scroll temporarily
   const pauseAutoScroll = useCallback((duration = 3000) => {
-    setIsPaused(true);
-    if (pauseTimeoutRef.current) {
-      clearTimeout(pauseTimeoutRef.current);
-    }
-    pauseTimeoutRef.current = setTimeout(() => {
-      setIsPaused(false);
-    }, duration);
+    isPausedRef.current = true;
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    pauseTimeoutRef.current = setTimeout(() => { isPausedRef.current = false; }, duration);
   }, []);
 
-  // Cleanup pause timeout
+  // Apply current offset to the DOM
+  const applyTransform = useCallback(() => {
+    if (trackRef.current) {
+      trackRef.current.style.transform = `translateX(${offsetRef.current}px)`;
+    }
+  }, []);
+
+  // Silent wrap: repositions offset within the middle copy of the tripled content.
+  // Also adjusts dragStartOffsetRef by the same delta so active drags stay consistent.
+  const silentWrap = useCallback(() => {
+    const ssw = singleSetWidthRef.current;
+    if (ssw <= 0) return;
+    while (offsetRef.current <= -2 * ssw) {
+      offsetRef.current += ssw;
+      dragStartOffsetRef.current += ssw;
+    }
+    while (offsetRef.current >= 0) {
+      offsetRef.current -= ssw;
+      dragStartOffsetRef.current -= ssw;
+    }
+  }, []);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (pauseTimeoutRef.current) {
-        clearTimeout(pauseTimeoutRef.current);
-      }
+      if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+      if (momentumAnimRef.current) cancelAnimationFrame(momentumAnimRef.current);
     };
   }, []);
 
-  // Initialize scroll position for RTL direction
+  // ── Core animation loop using CSS transform (GPU-accelerated) ──
+  // Uses translateX instead of scrollLeft for reliable cross-browser animation
   useEffect(() => {
-    if (direction !== 'rtl' || !scrollRef.current || testimonials.length <= 1) return;
-    const initPosition = () => {
-      const container = scrollRef.current;
-      if (container && container.scrollWidth > container.clientWidth) {
-        container.scrollLeft = container.scrollWidth - container.clientWidth;
-        initializedRef.current = true;
-      } else if (!initializedRef.current) {
-        setTimeout(initPosition, 100);
-      }
-    };
-    initializedRef.current = false;
-    requestAnimationFrame(() => { requestAnimationFrame(initPosition); });
-  }, [direction, testimonials]);
+    let rafId = null;
+    let lastTime = 0;
 
-  // Auto-scroll animation — supports LTR and RTL
-  useEffect(() => {
-    const shouldAnimate = scrollRef.current && !isHovering && !isDraggingRef.current && !isPaused && testimonials.length > 1;
-    
-    if (!shouldAnimate) {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-      lastTimeRef.current = 0;
-      return;
-    }
+    const tick = (currentTime) => {
+      const track = trackRef.current;
+      if (!track) { rafId = requestAnimationFrame(tick); return; }
 
-    // For RTL, wait for initialization
-    if (direction === 'rtl' && !initializedRef.current) return;
-
-    const animate = (currentTime) => {
-      // Check again inside animation loop
-      if (isDraggingRef.current || isPaused || isHovering) {
-        animationRef.current = null;
-        lastTimeRef.current = 0;
+      // Keep loop alive but skip movement when paused/hovering/dragging
+      if (isHoveringRef.current || isPausedRef.current || isDraggingRef.current) {
+        lastTime = 0;
+        rafId = requestAnimationFrame(tick);
         return;
       }
 
-      if (!lastTimeRef.current) {
-        lastTimeRef.current = currentTime;
-        animationRef.current = requestAnimationFrame(animate);
-        return;
-      }
-
-      const deltaTime = currentTime - lastTimeRef.current;
-      lastTimeRef.current = currentTime;
-
-      const container = scrollRef.current;
-      if (container) {
-        const maxScroll = container.scrollWidth - container.clientWidth;
-        if (direction === 'rtl') {
-          // Scroll from right to left (decrement scrollLeft)
-          container.scrollLeft -= scrollSpeed * (deltaTime / 16.67);
-          if (container.scrollLeft <= 0) {
-            container.scrollLeft = maxScroll;
-          }
+      // Initialize once the track has real width
+      if (!initializedRef.current) {
+        const totalWidth = track.scrollWidth;
+        const viewWidth = track.parentElement?.clientWidth || 0;
+        if (totalWidth <= viewWidth) { rafId = requestAnimationFrame(tick); return; }
+        // Measure actual single-set width from DOM to avoid flex-gap rounding errors
+        const children = track.children;
+        const itemsPerSet = Math.round(children.length / dupFactorRef.current);
+        if (itemsPerSet > 0 && children.length > itemsPerSet) {
+          singleSetWidthRef.current = children[itemsPerSet].offsetLeft - children[0].offsetLeft;
         } else {
-          // Scroll from left to right (increment scrollLeft)
-          container.scrollLeft += scrollSpeed * (deltaTime / 16.67);
-          if (container.scrollLeft >= maxScroll) {
-            container.scrollLeft = 0;
-          }
+          singleSetWidthRef.current = totalWidth / dupFactorRef.current;
+        }
+        offsetRef.current = -singleSetWidthRef.current;
+        track.style.transform = `translateX(${offsetRef.current}px)`;
+        initializedRef.current = true;
+        lastTime = 0;
+        rafId = requestAnimationFrame(tick);
+        return;
+      }
+
+      // First frame after resume — just record time
+      if (!lastTime) { lastTime = currentTime; rafId = requestAnimationFrame(tick); return; }
+
+      const dt = currentTime - lastTime;
+      lastTime = currentTime;
+      const speed = 0.5 * (dt / 16.67);
+
+      if (direction === 'rtl') {
+        offsetRef.current -= speed;   // content slides LEFT
+        if (offsetRef.current <= -2 * singleSetWidthRef.current) {
+          offsetRef.current += singleSetWidthRef.current;
+        }
+      } else {
+        offsetRef.current += speed;   // content slides RIGHT
+        if (offsetRef.current >= 0) {
+          offsetRef.current -= singleSetWidthRef.current;
         }
       }
 
-      animationRef.current = requestAnimationFrame(animate);
+      track.style.transform = `translateX(${offsetRef.current}px)`;
+      rafId = requestAnimationFrame(tick);
     };
 
-    const startDelay = direction === 'rtl' ? 200 : 0;
-    const startTimer = setTimeout(() => {
-      animationRef.current = requestAnimationFrame(animate);
-    }, startDelay);
+    rafId = requestAnimationFrame(tick);
+    return () => { if (rafId) cancelAnimationFrame(rafId); };
+  }, [direction]);
 
-    return () => {
-      clearTimeout(startTimer);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-    };
-  }, [isHovering, isPaused, testimonials.length, direction]);
-
-  // Momentum scrolling after touch release
+  // Momentum after drag release — wrap silently each frame
   const applyMomentum = useCallback(() => {
-    if (momentumAnimRef.current) {
-      cancelAnimationFrame(momentumAnimRef.current);
-    }
-
+    if (momentumAnimRef.current) cancelAnimationFrame(momentumAnimRef.current);
     const decelerate = () => {
-      const container = scrollRef.current;
-      if (!container || Math.abs(velocityRef.current) < 0.5) {
-        velocityRef.current = 0;
-        return;
-      }
-
-      container.scrollLeft -= velocityRef.current;
-      velocityRef.current *= 0.95; // Friction
-
-      // Wrap around for infinite scroll
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      if (container.scrollLeft <= 0) {
-        container.scrollLeft = maxScroll;
-      } else if (container.scrollLeft >= maxScroll) {
-        container.scrollLeft = 0;
-      }
-
+      if (Math.abs(velocityRef.current) < 0.5) { velocityRef.current = 0; return; }
+      offsetRef.current += velocityRef.current;
+      velocityRef.current *= 0.95;
+      silentWrap();
+      applyTransform();
       momentumAnimRef.current = requestAnimationFrame(decelerate);
     };
-
     momentumAnimRef.current = requestAnimationFrame(decelerate);
-  }, []);
+  }, [applyTransform, silentWrap]);
 
-  // Mouse handlers for desktop drag scrolling
+  // ── Mouse handlers ──
   const handleMouseDown = useCallback((e) => {
     e.preventDefault();
     isDraggingRef.current = true;
     hasDraggedRef.current = false;
     startXRef.current = e.pageX;
-    scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
+    dragStartOffsetRef.current = offsetRef.current;
     lastTouchXRef.current = e.pageX;
     velocityRef.current = 0;
-    
-    if (momentumAnimRef.current) {
-      cancelAnimationFrame(momentumAnimRef.current);
-    }
+    if (momentumAnimRef.current) cancelAnimationFrame(momentumAnimRef.current);
   }, []);
 
   const handleMouseMove = useCallback((e) => {
     if (!isDraggingRef.current) return;
     e.preventDefault();
-    
     const x = e.pageX;
-    const delta = x - lastTouchXRef.current;
-    velocityRef.current = delta;
+    velocityRef.current = x - lastTouchXRef.current;
     lastTouchXRef.current = x;
-    
     const walk = x - startXRef.current;
-    if (Math.abs(walk) > 5) {
-      hasDraggedRef.current = true;
-    }
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
-    }
-  }, []);
+    if (Math.abs(walk) > 5) hasDraggedRef.current = true;
+    offsetRef.current = dragStartOffsetRef.current + walk;
+    silentWrap();
+    applyTransform();
+  }, [applyTransform, silentWrap]);
 
   const handleMouseUp = useCallback(() => {
     if (!isDraggingRef.current) return;
@@ -380,7 +352,7 @@ const TestimonialsCarousel = ({ testimonials, onImageClick: _onImageClick, direc
   }, [applyMomentum, pauseAutoScroll]);
 
   const handleMouseLeave = useCallback(() => {
-    setIsHovering(false);
+    isHoveringRef.current = false;
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
       hasDraggedRef.current = false;
@@ -389,9 +361,9 @@ const TestimonialsCarousel = ({ testimonials, onImageClick: _onImageClick, direc
     }
   }, [applyMomentum, pauseAutoScroll]);
 
-  // Global mouseup listener
+  // Global mouseup
   useEffect(() => {
-    const handleGlobalMouseUp = () => {
+    const onUp = () => {
       if (isDraggingRef.current) {
         isDraggingRef.current = false;
         applyMomentum();
@@ -399,101 +371,78 @@ const TestimonialsCarousel = ({ testimonials, onImageClick: _onImageClick, direc
         setTimeout(() => { hasDraggedRef.current = false; }, 100);
       }
     };
-    
-    document.addEventListener('mouseup', handleGlobalMouseUp);
-    return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+    document.addEventListener('mouseup', onUp);
+    return () => document.removeEventListener('mouseup', onUp);
   }, [applyMomentum, pauseAutoScroll]);
 
-  // Touch handlers for mobile - using refs to avoid stale closures
+  // ── Touch handlers ──
   const handleTouchStart = useCallback((e) => {
     isDraggingRef.current = true;
     hasDraggedRef.current = false;
     const touch = e.touches[0];
     startXRef.current = touch.clientX;
-    scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
+    dragStartOffsetRef.current = offsetRef.current;
     lastTouchXRef.current = touch.clientX;
     velocityRef.current = 0;
-    
-    // Stop any ongoing momentum
-    if (momentumAnimRef.current) {
-      cancelAnimationFrame(momentumAnimRef.current);
-      momentumAnimRef.current = null;
-    }
-    
-    // Stop auto-scroll immediately
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-    }
+    if (momentumAnimRef.current) { cancelAnimationFrame(momentumAnimRef.current); momentumAnimRef.current = null; }
   }, []);
 
   const handleTouchMove = useCallback((e) => {
-    if (!isDraggingRef.current || !scrollRef.current) return;
-    
+    if (!isDraggingRef.current) return;
     const touch = e.touches[0];
     const x = touch.clientX;
-    const delta = x - lastTouchXRef.current;
-    velocityRef.current = delta * 0.8; // Dampen velocity for smoother feel
+    velocityRef.current = (x - lastTouchXRef.current) * 0.8;
     lastTouchXRef.current = x;
-    
     const walk = x - startXRef.current;
-    if (Math.abs(walk) > 5) {
-      hasDraggedRef.current = true;
-    }
-    scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
-    
-    // Prevent page scroll when dragging horizontally
-    if (Math.abs(walk) > 10) {
-      e.preventDefault();
-    }
-  }, []);
+    if (Math.abs(walk) > 5) hasDraggedRef.current = true;
+    offsetRef.current = dragStartOffsetRef.current + walk;
+    silentWrap();
+    applyTransform();
+    if (Math.abs(walk) > 10) e.preventDefault();
+  }, [applyTransform, silentWrap]);
 
   const handleTouchEnd = useCallback(() => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
     applyMomentum();
-    pauseAutoScroll(4000); // Longer pause after touch
+    pauseAutoScroll(4000);
     setTimeout(() => { hasDraggedRef.current = false; }, 100);
   }, [applyMomentum, pauseAutoScroll]);
 
-  // Scroll wheel handler for horizontal scrolling
+  // Wheel handler
   const handleWheel = useCallback((e) => {
-    if (scrollRef.current) {
-      e.preventDefault();
-      scrollRef.current.scrollLeft += e.deltaY;
-      pauseAutoScroll(2000);
-    }
-  }, [pauseAutoScroll]);
+    e.preventDefault();
+    offsetRef.current -= e.deltaY * 0.5;
+    silentWrap();
+    applyTransform();
+    pauseAutoScroll(2000);
+  }, [pauseAutoScroll, applyTransform, silentWrap]);
 
-  // Register wheel and touch events with { passive: false } to allow preventDefault
+  // Register touch & wheel events on the clip container
   useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-
-    // Wheel event
-    container.addEventListener('wheel', handleWheel, { passive: false });
-    
-    // Touch events - MUST be passive: false to allow preventDefault on mobile
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
-    
+    const el = containerRef.current;
+    if (!el) return;
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    el.addEventListener('touchstart', handleTouchStart, { passive: true });
+    el.addEventListener('touchmove', handleTouchMove, { passive: false });
+    el.addEventListener('touchend', handleTouchEnd, { passive: true });
     return () => {
-      container.removeEventListener('wheel', handleWheel);
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
+      el.removeEventListener('wheel', handleWheel);
+      el.removeEventListener('touchstart', handleTouchStart);
+      el.removeEventListener('touchmove', handleTouchMove);
+      el.removeEventListener('touchend', handleTouchEnd);
     };
   }, [handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   if (!testimonials || testimonials.length === 0) return null;
 
-  // Duplicate testimonials for seamless infinite scroll
-  const displayTestimonials = testimonials.length < 6 
-    ? [...testimonials, ...testimonials, ...testimonials] // Triple for small sets
-    : [...testimonials, ...testimonials]; // Double for larger sets
+  // Triplicate for seamless infinite loop (quintuplicate if few items)
+  const dupFactor = testimonials.length < 4 ? 5 : 3;
+  dupFactorRef.current = dupFactor;
+  const displayTestimonials = testimonials.length < 4
+    ? [...testimonials, ...testimonials, ...testimonials, ...testimonials, ...testimonials]
+    : [...testimonials, ...testimonials, ...testimonials];
 
-  // Default title and icon
   const defaultIcon = (
     <svg className="w-6 h-6 text-brand-500" fill="currentColor" viewBox="0 0 24 24">
       <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/>
@@ -501,55 +450,54 @@ const TestimonialsCarousel = ({ testimonials, onImageClick: _onImageClick, direc
   );
 
   return (
-    <div className="mb-10" ref={containerRef}>
-      <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-        {icon || defaultIcon}
-        {title || t('testimonials.userReviews')}
-      </h3>
-      
-      {/* Carousel Container */}
-      <div 
-        ref={scrollRef}
-        className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 cursor-grab active:cursor-grabbing select-none"
-        style={{ 
-          scrollBehavior: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          msOverflowStyle: 'none',
-          scrollbarWidth: 'none',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          touchAction: 'pan-y'
-        }}
-        onMouseEnter={() => setIsHovering(true)}
+    <div className={showTitle ? "mb-10" : "mb-2"}>
+      {showTitle && (
+        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+          {icon || defaultIcon}
+          {title || t('testimonials.userReviews')}
+        </h3>
+      )}
+
+      {/* Clip container — hides overflow, receives mouse/touch events */}
+      <div
+        ref={containerRef}
+        className="overflow-hidden cursor-grab active:cursor-grabbing select-none"
+        style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+        onMouseEnter={() => { isHoveringRef.current = true; }}
         onMouseLeave={handleMouseLeave}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onDragStart={(e) => e.preventDefault()}
       >
-        {displayTestimonials.map((testimonial, index) => (
-          <div 
-            key={`${testimonial._id}-${index}`}
-            className="shrink-0 w-[320px] sm:w-[350px] md:w-[380px]"
-          >
-            <TestimonialCard 
-              testimonial={testimonial}
-              variant={variant}
-            />
-          </div>
-        ))}
+        {/* Track — flex row moved via translateX, GPU-composited */}
+        <div
+          ref={trackRef}
+          className="flex gap-4 pb-2"
+          style={{ willChange: 'transform' }}
+        >
+          {displayTestimonials.map((testimonial, index) => (
+            <div
+              key={`${testimonial._id}-${index}`}
+              className="shrink-0 w-[260px] sm:w-[280px] md:w-[300px]"
+            >
+              <TestimonialCard testimonial={testimonial} variant={variant} />
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Gradient overlays to indicate more content */}
+      {/* Gradient overlays */}
       <div className="relative -mt-4 h-4 pointer-events-none">
         <div className="absolute left-0 top-0 w-16 h-full bg-linear-to-r from-white to-transparent"></div>
         <div className="absolute right-0 top-0 w-16 h-full bg-linear-to-l from-white to-transparent"></div>
       </div>
 
-      {/* Scroll hint text */}
-      <p className="text-center text-xs text-gray-400 mt-2">
-        {t('testimonials.scrollHint')}
-      </p>
+      {showTitle && (
+        <p className="text-center text-xs text-gray-400 mt-2">
+          {t('testimonials.scrollHint')}
+        </p>
+      )}
     </div>
   );
 };
@@ -561,315 +509,212 @@ const TestimonialsCarousel = ({ testimonials, onImageClick: _onImageClick, direc
 const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
   const { t, i18n } = useTranslation();
   const containerRef = useRef(null);
-  const scrollRef = useRef(null);
-  const animationRef = useRef(null);
-  const [isHovering, setIsHovering] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const lastTimeRef = useRef(0);
+  const trackRef = useRef(null);
   const [activeFilter, setActiveFilter] = useState('all');
   const currentLang = i18n.language?.split('-')[0] || 'es';
-  const initializedRef = useRef(false);
-  
-  // Refs for touch/drag handling (using refs to avoid stale closures)
+
+  // ALL animation state as refs
+  const isHoveringRef = useRef(false);
+  const isPausedRef = useRef(false);
   const isDraggingRef = useRef(false);
-  const hasDraggedRef = useRef(false); // Track if significant drag occurred (to prevent click)
+  const hasDraggedRef = useRef(false);
   const startXRef = useRef(0);
-  const scrollLeftRef = useRef(0);
+  const dragStartOffsetRef = useRef(0);
   const lastTouchXRef = useRef(0);
   const velocityRef = useRef(0);
   const momentumAnimRef = useRef(null);
   const pauseTimeoutRef = useRef(null);
-  
-  // Auto-scroll speed (pixels per frame at 60fps) - Higher = faster
-  const scrollSpeed = 1.2;
+  const offsetRef = useRef(0);
+  const singleSetWidthRef = useRef(0);
+  const initializedRef = useRef(false);
 
-  // Pause auto-scroll temporarily (e.g., after user interaction)
   const pauseAutoScroll = useCallback((duration = 3000) => {
-    setIsPaused(true);
-    if (pauseTimeoutRef.current) {
-      clearTimeout(pauseTimeoutRef.current);
-    }
-    pauseTimeoutRef.current = setTimeout(() => {
-      setIsPaused(false);
-    }, duration);
+    isPausedRef.current = true;
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    pauseTimeoutRef.current = setTimeout(() => { isPausedRef.current = false; }, duration);
   }, []);
 
-  // Cleanup pause timeout
+  const applyTransform = useCallback(() => {
+    if (trackRef.current) trackRef.current.style.transform = `translateX(${offsetRef.current}px)`;
+  }, []);
+
+  const silentWrap = useCallback(() => {
+    const ssw = singleSetWidthRef.current;
+    if (ssw <= 0) return;
+    while (offsetRef.current <= -2 * ssw) {
+      offsetRef.current += ssw;
+      dragStartOffsetRef.current += ssw;
+    }
+    while (offsetRef.current >= 0) {
+      offsetRef.current -= ssw;
+      dragStartOffsetRef.current -= ssw;
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
-      if (pauseTimeoutRef.current) {
-        clearTimeout(pauseTimeoutRef.current);
-      }
-      if (momentumAnimRef.current) {
-        cancelAnimationFrame(momentumAnimRef.current);
-      }
+      if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+      if (momentumAnimRef.current) cancelAnimationFrame(momentumAnimRef.current);
     };
   }, []);
 
-  // Initialize scroll position to end (for right-to-left scroll)
+  // Core rAF loop — RTL direction using translateX
   useEffect(() => {
-    if (!scrollRef.current || !photos || photos.length <= 1) return;
-    
-    // Wait for DOM to be ready and images to potentially load
-    const initPosition = () => {
-      const container = scrollRef.current;
-      if (container && container.scrollWidth > container.clientWidth) {
-        container.scrollLeft = container.scrollWidth - container.clientWidth;
-        initializedRef.current = true;
-      } else if (!initializedRef.current) {
-        // Retry if not ready yet (images might still be loading)
-        setTimeout(initPosition, 100);
-      }
-    };
-    
-    // Reset and reinitialize
+    let rafId = null;
+    let lastTime = 0;
     initializedRef.current = false;
-    
-    // Use requestAnimationFrame to ensure DOM is painted
-    requestAnimationFrame(() => {
-      requestAnimationFrame(initPosition);
-    });
-  }, [photos, activeFilter]);
 
-  // Auto-scroll animation - RIGHT TO LEFT
-  useEffect(() => {
-    // Don't animate if hovering, paused, or not enough content
-    if (!scrollRef.current || isHovering || isPaused || !photos || photos.length <= 1) {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-      lastTimeRef.current = 0;
-      return;
-    }
+    const tick = (currentTime) => {
+      const track = trackRef.current;
+      if (!track) { rafId = requestAnimationFrame(tick); return; }
 
-    // Wait for initialization
-    if (!initializedRef.current) {
-      return;
-    }
-
-    const animate = (currentTime) => {
-      // Check conditions inside animation loop (refs don't trigger re-renders)
-      if (isDraggingRef.current || isPaused || isHovering) {
-        animationRef.current = null;
-        lastTimeRef.current = 0;
-        return;
+      if (isHoveringRef.current || isPausedRef.current || isDraggingRef.current) {
+        lastTime = 0; rafId = requestAnimationFrame(tick); return;
       }
 
-      if (!lastTimeRef.current) {
-        lastTimeRef.current = currentTime;
-        animationRef.current = requestAnimationFrame(animate);
-        return;
-      }
-
-      const deltaTime = currentTime - lastTimeRef.current;
-      lastTimeRef.current = currentTime;
-
-      const container = scrollRef.current;
-      if (container) {
-        // Scroll from right to left (decrement scrollLeft)
-        container.scrollLeft -= scrollSpeed * (deltaTime / 16.67); // Normalize to 60fps
-        
-        // Reset to end when reaching the beginning (infinite loop)
-        if (container.scrollLeft <= 0) {
-          container.scrollLeft = container.scrollWidth - container.clientWidth;
+      if (!initializedRef.current) {
+        const totalWidth = track.scrollWidth;
+        const viewWidth = track.parentElement?.clientWidth || 0;
+        if (totalWidth <= viewWidth) { rafId = requestAnimationFrame(tick); return; }
+        // Measure actual single-set width from DOM to avoid flex-gap rounding errors
+        const children = track.children;
+        const itemsPerSet = Math.round(children.length / 3);
+        if (itemsPerSet > 0 && children.length > itemsPerSet) {
+          singleSetWidthRef.current = children[itemsPerSet].offsetLeft - children[0].offsetLeft;
+        } else {
+          singleSetWidthRef.current = totalWidth / 3;
         }
+        offsetRef.current = -singleSetWidthRef.current;
+        track.style.transform = `translateX(${offsetRef.current}px)`;
+        initializedRef.current = true;
+        lastTime = 0; rafId = requestAnimationFrame(tick); return;
       }
 
-      animationRef.current = requestAnimationFrame(animate);
+      if (!lastTime) { lastTime = currentTime; rafId = requestAnimationFrame(tick); return; }
+
+      const dt = currentTime - lastTime;
+      lastTime = currentTime;
+      offsetRef.current -= 0.4 * (dt / 16.67); // RTL
+      if (offsetRef.current <= -2 * singleSetWidthRef.current) {
+        offsetRef.current += singleSetWidthRef.current;
+      }
+      track.style.transform = `translateX(${offsetRef.current}px)`;
+      rafId = requestAnimationFrame(tick);
     };
 
-    // Small delay to ensure initialization is complete
-    const startAnimation = setTimeout(() => {
-      if (scrollRef.current && initializedRef.current && !isDraggingRef.current) {
-        animationRef.current = requestAnimationFrame(animate);
-      }
-    }, 200);
+    rafId = requestAnimationFrame(tick);
+    return () => { if (rafId) cancelAnimationFrame(rafId); };
+  }, [activeFilter]);
 
-    return () => {
-      clearTimeout(startAnimation);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-    };
-  }, [isHovering, isPaused, photos?.length, activeFilter]);
-
-  // Momentum scrolling after touch release
   const applyMomentum = useCallback(() => {
-    if (momentumAnimRef.current) {
-      cancelAnimationFrame(momentumAnimRef.current);
-    }
-
+    if (momentumAnimRef.current) cancelAnimationFrame(momentumAnimRef.current);
     const decelerate = () => {
-      const container = scrollRef.current;
-      if (!container || Math.abs(velocityRef.current) < 0.5) {
-        velocityRef.current = 0;
-        return;
-      }
-
-      container.scrollLeft -= velocityRef.current;
-      velocityRef.current *= 0.95; // Friction
-
-      // Wrap around for infinite scroll
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      if (container.scrollLeft <= 0) {
-        container.scrollLeft = maxScroll;
-      } else if (container.scrollLeft >= maxScroll) {
-        container.scrollLeft = 0;
-      }
-
+      if (Math.abs(velocityRef.current) < 0.5) { velocityRef.current = 0; return; }
+      offsetRef.current += velocityRef.current;
+      velocityRef.current *= 0.95;
+      silentWrap();
+      applyTransform();
       momentumAnimRef.current = requestAnimationFrame(decelerate);
     };
-
     momentumAnimRef.current = requestAnimationFrame(decelerate);
-  }, []);
+  }, [applyTransform, silentWrap]);
 
-  // Mouse handlers for desktop drag scrolling
   const handleMouseDown = useCallback((e) => {
     e.preventDefault();
-    isDraggingRef.current = true;
-    hasDraggedRef.current = false;
-    startXRef.current = e.pageX;
-    scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
-    lastTouchXRef.current = e.pageX;
-    velocityRef.current = 0;
-    
-    if (momentumAnimRef.current) {
-      cancelAnimationFrame(momentumAnimRef.current);
-    }
+    isDraggingRef.current = true; hasDraggedRef.current = false;
+    startXRef.current = e.pageX; dragStartOffsetRef.current = offsetRef.current;
+    lastTouchXRef.current = e.pageX; velocityRef.current = 0;
+    if (momentumAnimRef.current) cancelAnimationFrame(momentumAnimRef.current);
   }, []);
 
   const handleMouseMove = useCallback((e) => {
     if (!isDraggingRef.current) return;
     e.preventDefault();
-    
     const x = e.pageX;
-    const delta = x - lastTouchXRef.current;
-    velocityRef.current = delta;
+    velocityRef.current = x - lastTouchXRef.current;
     lastTouchXRef.current = x;
-    
     const walk = x - startXRef.current;
-    if (Math.abs(walk) > 5) {
-      hasDraggedRef.current = true;
-    }
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
-    }
-  }, []);
+    if (Math.abs(walk) > 5) hasDraggedRef.current = true;
+    offsetRef.current = dragStartOffsetRef.current + walk;
+    silentWrap();
+    applyTransform();
+  }, [applyTransform, silentWrap]);
 
   const handleMouseUp = useCallback(() => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
-    applyMomentum();
-    pauseAutoScroll(3000);
+    applyMomentum(); pauseAutoScroll(3000);
     setTimeout(() => { hasDraggedRef.current = false; }, 100);
   }, [applyMomentum, pauseAutoScroll]);
 
   const handleMouseLeave = useCallback(() => {
-    setIsHovering(false);
+    isHoveringRef.current = false;
     if (isDraggingRef.current) {
-      isDraggingRef.current = false;
-      hasDraggedRef.current = false;
-      applyMomentum();
-      pauseAutoScroll(3000);
+      isDraggingRef.current = false; hasDraggedRef.current = false;
+      applyMomentum(); pauseAutoScroll(3000);
     }
   }, [applyMomentum, pauseAutoScroll]);
 
-  // Global mouseup listener
   useEffect(() => {
-    const handleGlobalMouseUp = () => {
+    const onUp = () => {
       if (isDraggingRef.current) {
         isDraggingRef.current = false;
-        applyMomentum();
-        pauseAutoScroll(3000);
+        applyMomentum(); pauseAutoScroll(3000);
         setTimeout(() => { hasDraggedRef.current = false; }, 100);
       }
     };
-    
-    document.addEventListener('mouseup', handleGlobalMouseUp);
-    return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+    document.addEventListener('mouseup', onUp);
+    return () => document.removeEventListener('mouseup', onUp);
   }, [applyMomentum, pauseAutoScroll]);
 
-  // Touch handlers for mobile - using refs to avoid stale closures
   const handleTouchStart = useCallback((e) => {
-    isDraggingRef.current = true;
-    hasDraggedRef.current = false;
+    isDraggingRef.current = true; hasDraggedRef.current = false;
     const touch = e.touches[0];
-    startXRef.current = touch.clientX;
-    scrollLeftRef.current = scrollRef.current?.scrollLeft || 0;
-    lastTouchXRef.current = touch.clientX;
-    velocityRef.current = 0;
-    
-    // Stop any ongoing momentum
-    if (momentumAnimRef.current) {
-      cancelAnimationFrame(momentumAnimRef.current);
-      momentumAnimRef.current = null;
-    }
-    
-    // Stop auto-scroll immediately
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-    }
+    startXRef.current = touch.clientX; dragStartOffsetRef.current = offsetRef.current;
+    lastTouchXRef.current = touch.clientX; velocityRef.current = 0;
+    if (momentumAnimRef.current) { cancelAnimationFrame(momentumAnimRef.current); momentumAnimRef.current = null; }
   }, []);
 
   const handleTouchMove = useCallback((e) => {
-    if (!isDraggingRef.current || !scrollRef.current) return;
-    
+    if (!isDraggingRef.current) return;
     const touch = e.touches[0];
     const x = touch.clientX;
-    const delta = x - lastTouchXRef.current;
-    velocityRef.current = delta * 0.8; // Dampen velocity for smoother feel
+    velocityRef.current = (x - lastTouchXRef.current) * 0.8;
     lastTouchXRef.current = x;
-    
     const walk = x - startXRef.current;
-    if (Math.abs(walk) > 5) {
-      hasDraggedRef.current = true;
-    }
-    scrollRef.current.scrollLeft = scrollLeftRef.current - walk;
-    
-    // Prevent page scroll when dragging horizontally
-    if (Math.abs(walk) > 10) {
-      e.preventDefault();
-    }
-  }, []);
+    if (Math.abs(walk) > 5) hasDraggedRef.current = true;
+    offsetRef.current = dragStartOffsetRef.current + walk;
+    silentWrap();
+    applyTransform();
+    if (Math.abs(walk) > 10) e.preventDefault();
+  }, [applyTransform, silentWrap]);
 
   const handleTouchEnd = useCallback(() => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
-    applyMomentum();
-    pauseAutoScroll(4000); // Longer pause after touch
+    applyMomentum(); pauseAutoScroll(4000);
     setTimeout(() => { hasDraggedRef.current = false; }, 100);
   }, [applyMomentum, pauseAutoScroll]);
 
-  // Scroll wheel handler
   const handleWheel = useCallback((e) => {
-    if (scrollRef.current) {
-      e.preventDefault();
-      scrollRef.current.scrollLeft += e.deltaY;
-      pauseAutoScroll(2000);
-    }
-  }, [pauseAutoScroll]);
+    e.preventDefault();
+    offsetRef.current -= e.deltaY * 0.5;
+    silentWrap();
+    applyTransform(); pauseAutoScroll(2000);
+  }, [pauseAutoScroll, applyTransform, silentWrap]);
 
-  // Register wheel and touch events with { passive: false } to allow preventDefault
   useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-
-    // Wheel event
-    container.addEventListener('wheel', handleWheel, { passive: false });
-    
-    // Touch events - MUST be passive: false to allow preventDefault on mobile
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
-    
+    const el = containerRef.current;
+    if (!el) return;
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    el.addEventListener('touchstart', handleTouchStart, { passive: true });
+    el.addEventListener('touchmove', handleTouchMove, { passive: false });
+    el.addEventListener('touchend', handleTouchEnd, { passive: true });
     return () => {
-      container.removeEventListener('wheel', handleWheel);
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
+      el.removeEventListener('wheel', handleWheel);
+      el.removeEventListener('touchstart', handleTouchStart);
+      el.removeEventListener('touchmove', handleTouchMove);
+      el.removeEventListener('touchend', handleTouchEnd);
     };
   }, [handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
@@ -976,10 +821,8 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
     ? photos 
     : photos.filter(p => p.source === activeFilter);
 
-  // Photos to display in carousel (duplicate for infinite scroll if needed)
-  const displayPhotos = filteredPhotos.length < 8 
-    ? [...filteredPhotos, ...filteredPhotos, ...filteredPhotos] 
-    : filteredPhotos;
+  // Photos to display in carousel (always triplicate for seamless translateX loop)
+  const displayPhotos = [...filteredPhotos, ...filteredPhotos, ...filteredPhotos];
 
   // Opciones de filtro
   const filterOptions = [
@@ -1029,34 +872,30 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
         </div>
       )}
       
-      {/* Carousel de fotos/videos - Right to Left */}
-      <div 
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 cursor-grab active:cursor-grabbing select-none"
-        style={{ 
-          scrollBehavior: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          msOverflowStyle: 'none',
-          scrollbarWidth: 'none',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          touchAction: 'pan-y'
-        }}
-        onMouseEnter={() => setIsHovering(true)}
+      {/* Carousel de fotos/videos - Right to Left (translateX) */}
+      <div
+        ref={containerRef}
+        className="overflow-hidden cursor-grab active:cursor-grabbing select-none"
+        style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+        onMouseEnter={() => { isHoveringRef.current = true; }}
         onMouseLeave={handleMouseLeave}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onDragStart={(e) => e.preventDefault()}
       >
-        {/* Duplicate photos for infinite scroll */}
-        {[...displayPhotos, ...displayPhotos].map((photo, idx) => {
+        <div
+          ref={trackRef}
+          className="flex gap-3 pb-2"
+          style={{ willChange: 'transform' }}
+        >
+        {displayPhotos.map((photo, idx) => {
           const config = sourceConfig[photo.source] || sourceConfig.client_review;
           
           return (
             <div 
               key={`${photo.url}-${idx}`}
-              className="shrink-0 w-[200px] sm:w-[220px] md:w-[250px] group relative aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
+              className="shrink-0 w-[180px] sm:w-[200px] md:w-[220px] group relative aspect-4/3 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
             >
               {/* Imagen o thumbnail de video - área clickeable */}
               <div 
@@ -1133,16 +972,17 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
             </div>
           );
         })}
+        </div>
       </div>
 
-      {/* Gradient overlays to indicate more content */}
-      <div className="relative -mt-4 h-4 pointer-events-none">
+      {/* Gradient overlays */}
+      <div className="relative -mt-2 h-4 pointer-events-none">
         <div className="absolute left-0 top-0 w-16 h-full bg-linear-to-r from-white to-transparent"></div>
         <div className="absolute right-0 top-0 w-16 h-full bg-linear-to-l from-white to-transparent"></div>
       </div>
 
       {/* Scroll hint text */}
-      <p className="text-center text-xs text-gray-400 mt-2">
+      <p className="text-center text-xs text-gray-400 mt-1">
         {t('testimonials.scrollHintGallery')}
       </p>
     </div>
@@ -1218,7 +1058,7 @@ function TestimonialsSection() {
 
   // Separate testimonials: service reviews (user-to-user) vs platform feedback (about NovoFix)
   // Use 'item' instead of 't' to avoid shadowing the i18n translation function
-  const serviceTestimonials = testimonials.filter(item => {
+  const serviceTestimonials = useMemo(() => testimonials.filter(item => {
     // Has a service review comment (about the provider/client)
     if (item.review?.comment) return true;
     // Or has translated review content
@@ -1228,23 +1068,21 @@ function TestimonialsSection() {
       );
     }
     return false;
-  });
-  const platformTestimonials = testimonials.filter(item =>
-    !!(item.hasPlatformFeedback && item.platformFeedback?.comment)
+  }), [testimonials]);
+
+  const serviceTestimonialsReversed = useMemo(
+    () => [...serviceTestimonials].reverse(),
+    [serviceTestimonials]
   );
 
-  // Debug logging — remove once confirmed working
-  if (!loading && testimonials.length > 0) {
-    console.log('[TestimonialsSection] total:', testimonials.length,
-      '| service:', serviceTestimonials.length,
-      '| platform:', platformTestimonials.length,
-      '| sample:', JSON.stringify(testimonials[0], null, 2).slice(0, 500));
-  }
+  const platformTestimonials = useMemo(() => testimonials.filter(item =>
+    !!(item.hasPlatformFeedback && item.platformFeedback?.comment)
+  ), [testimonials]);
 
   const isEmpty = !loading && testimonials.length === 0 && workPhotos.length === 0;
 
   return (
-    <div id="testimonials-section" className="py-4 scroll-mt-20">
+    <div id="testimonials-section" className="py-2 scroll-mt-20">
 
       {/* Loading State */}
       {loading && (
@@ -1270,43 +1108,44 @@ function TestimonialsSection() {
             </div>
           ) : (
             <>
-              {/* Carousel 1: Service Reviews (client↔provider) — left to right */}
+              {/* Título compartido para carruseles de reseñas de servicio */}
+              {serviceTestimonials.length > 0 && (
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <svg className="w-6 h-6 text-brand-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/>
+                  </svg>
+                  {t('testimonials.serviceReviewsTitle')}
+                </h3>
+              )}
+
+              {/* Carousel 1: Service Reviews — right to left */}
               {serviceTestimonials.length > 0 && (
                 <TestimonialsCarousel 
                   testimonials={serviceTestimonials}
                   onImageClick={handleImageClick}
+                  direction="rtl"
+                  variant="service"
+                  showTitle={false}
+                />
+              )}
+
+              {/* Carousel 2: Service Reviews — left to right */}
+              {serviceTestimonials.length > 0 && (
+                <TestimonialsCarousel 
+                  testimonials={serviceTestimonialsReversed}
+                  onImageClick={handleImageClick}
                   direction="ltr"
                   variant="service"
-                  title={t('testimonials.serviceReviewsTitle')}
-                  icon={
-                    <svg className="w-6 h-6 text-brand-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/>
-                    </svg>
-                  }
+                  showTitle={false}
                 />
               )}
 
-              {/* Carousel 2: Platform Reviews (about NovoFix) — right to left */}
-              {platformTestimonials.length > 0 && (
-                <TestimonialsCarousel 
-                  testimonials={platformTestimonials}
-                  onImageClick={handleImageClick}
-                  direction="rtl"
-                  variant="platform"
-                  title={t('testimonials.platformReviewsTitle')}
-                  icon={
-                    <svg className="w-6 h-6 text-accent-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                    </svg>
-                  }
-                />
-              )}
-
-              {/* Fallback: if no filtered results but testimonials exist, show all */}
-              {serviceTestimonials.length === 0 && platformTestimonials.length === 0 && testimonials.length > 0 && (
+              {/* Fallback: if no service testimonials, show all */}
+              {serviceTestimonials.length === 0 && testimonials.length > 0 && (
                 <TestimonialsCarousel 
                   testimonials={testimonials}
                   onImageClick={handleImageClick}
+                  variant="all"
                 />
               )}
 
@@ -1327,46 +1166,38 @@ function TestimonialsSection() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
+                <svg className="w-9 h-9 mx-auto mb-3 text-gray-400 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
                 <p className="text-2xl font-bold text-gray-900">98%</p>
                 <p className="text-sm text-gray-600">{t('testimonials.stat1')}</p>
               </div>
               <div className="text-center">
-                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-dark-500 to-dark-700 rounded-xl flex items-center justify-center">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
+                <svg className="w-9 h-9 mx-auto mb-3 text-gray-400 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
                 <p className="text-2xl font-bold text-gray-900">&lt;2h</p>
                 <p className="text-sm text-gray-600">{t('testimonials.stat2')}</p>
               </div>
               <div className="text-center">
-                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-accent-400 to-accent-600 rounded-xl flex items-center justify-center">
-                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                  </svg>
-                </div>
+                <svg className="w-9 h-9 mx-auto mb-3 text-gray-400 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
                 <p className="text-2xl font-bold text-gray-900">4.8</p>
                 <p className="text-sm text-gray-600">{t('testimonials.stat3')}</p>
               </div>
               <div className="text-center">
-                <div className="w-14 h-14 mx-auto mb-3 bg-linear-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
+                <svg className="w-9 h-9 mx-auto mb-3 text-gray-400 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
                 <p className="text-2xl font-bold text-gray-900">1000+</p>
                 <p className="text-sm text-gray-600">{t('testimonials.stat4')}</p>
               </div>
             </div>
           </div>
 
-          {/* Botón Ver más - Enlace a sección de misión/visión */}
-          <div className="flex justify-center mt-10">
+          {/* Enlace de texto a sección de misión/visión */}
+          <div className="text-center mt-1">
             <button
               onClick={() => {
                 const missionSection = document.getElementById('mission-vision-section');
@@ -1374,20 +1205,11 @@ function TestimonialsSection() {
                   missionSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }}
-              className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/50 rounded-full px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-linear-to-r from-brand-500 to-brand-600 text-white shadow-lg"
+              className="group inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-600 cursor-pointer transition-colors duration-200 focus:outline-none"
               aria-label={t('testimonials.viewMissionVision')}
             >
-              <span className="text-sm font-semibold group-hover:text-white transition-colors">
-                {t('testimonials.viewMissionVision')}
-              </span>
-              <svg 
-                className="w-5 h-5 text-white animate-bounce transition-colors" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <span className="text-base font-bold text-brand-500 group-hover:text-brand-600 transition-colors">&gt;&gt;</span>
+              <span className="group-hover:underline">{t('testimonials.viewMissionVision')}</span>
             </button>
           </div>
         </>

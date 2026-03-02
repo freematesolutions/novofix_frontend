@@ -53,7 +53,7 @@ export default function CreateRequest() {
     show: false,
     progress: 0,
     fileName: '',
-    message: 'Subiendo archivos...',
+    message: '',
     totalFiles: 0,
     currentFile: 0,
     status: 'uploading'
@@ -286,7 +286,7 @@ export default function CreateRequest() {
               >
                 {categories.map((c)=> (
                   <option key={c.value} value={c.value}>
-                    {c.label} ({c.providerCount} {c.providerCount === 1 ? 'proveedor' : 'proveedores'})
+                    {c.label} ({c.providerCount} {c.providerCount === 1 ? t('common.providerSingular') : t('common.providerPlural')})
                   </option>
                 ))}
               </select>
@@ -424,10 +424,10 @@ export default function CreateRequest() {
                               onClick={() => setPortfolioModal({
                                 isOpen: true,
                                 portfolio: p.portfolio,
-                                providerName: p.businessName || p.profile?.firstName || 'Proveedor'
+                                providerName: p.businessName || p.profile?.firstName || t('common.provider')
                               })}
                               className="flex items-center gap-1 px-2 py-1 bg-accent-100 hover:bg-accent-200 text-accent-700 rounded text-[10px] font-medium transition-colors"
-                              title="Ver portafolio"
+                              title={t('client.createRequest.viewPortfolio')}
                             >
                               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
@@ -537,7 +537,7 @@ export default function CreateRequest() {
                       setUploadProgress(prev => ({
                         ...prev,
                         progress: Math.min(adjustedProgress, 90),
-                        message: `Subiendo fotos... (${totalSizeMB}MB)`
+                        message: t('upload.uploadingPhotos', `Subiendo fotos... (${totalSizeMB}MB)`)
                       }));
                     }
                   });
@@ -648,7 +648,7 @@ export default function CreateRequest() {
                       setUploadProgress(prev => ({
                         ...prev,
                         progress: Math.min(adjustedProgress, 90),
-                        message: `Subiendo videos... (${totalSizeMB}MB)`
+                        message: t('upload.uploadingVideos', `Subiendo videos... (${totalSizeMB}MB)`)
                       }));
                     }
                   });
@@ -764,7 +764,7 @@ export default function CreateRequest() {
         <div className="flex items-center gap-2">
           {(() => {
             const disabledPublish = !eligibility.loading && eligibility.count === 0;
-            const tooltipText = disabledPublish ? 'No hay proveedores disponibles para esta categoría/urgencia en tu zona' : undefined;
+            const tooltipText = disabledPublish ? t('client.createRequest.noProvidersTooltip') : undefined;
             return (
               <span className={disabledPublish ? 'inline-block' : ''} title={tooltipText}>
                 <Button type="submit" loading={loading} disabled={disabledPublish}>{t('client.createRequest.publishRequest')}</Button>

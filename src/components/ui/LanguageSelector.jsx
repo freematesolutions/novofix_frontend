@@ -94,6 +94,67 @@ export default function LanguageSelector({ className = '', variant = 'default' }
     );
   }
 
+  // Variante "flag-only": solo la banderita, sin borde, sin fondo, más pequeña
+  if (variant === 'flag-only') {
+    return (
+      <div ref={dropdownRef} className={`relative ${className}`}>
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="group flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          aria-label={t('language.selectLanguage', 'Seleccionar idioma')}
+          title={isSpanish ? 'Español' : 'English'}
+        >
+          <div className="transition-transform duration-200 group-hover:scale-110">
+            {isSpanish ? <FlagES /> : <FlagEN />}
+          </div>
+        </button>
+
+        {/* Dropdown menu minimalista */}
+        {isOpen && (
+          <div 
+            className="absolute right-0 mt-1.5 w-36 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-9999 animate-fade-in origin-top-right"
+            role="listbox"
+            aria-label={t('language.availableLanguages', 'Idiomas disponibles')}
+          >
+            <button
+              type="button"
+              onClick={() => change('es')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-all duration-200 ${isSpanish ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50 text-gray-700'}`}
+              role="option"
+              aria-selected={isSpanish}
+            >
+              <FlagES />
+              <span className="text-sm font-medium">Español</span>
+              {isSpanish && (
+                <svg className="w-4 h-4 text-brand-600 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => change('en')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-all duration-200 ${!isSpanish ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50 text-gray-700'}`}
+              role="option"
+              aria-selected={!isSpanish}
+            >
+              <FlagEN />
+              <span className="text-sm font-medium">English</span>
+              {!isSpanish && (
+                <svg className="w-4 h-4 text-brand-600 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div ref={dropdownRef} className={`relative ${className}`}>
       {/* Botón principal con dropdown */}

@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient.js';
 import Button from '@/components/ui/Button.jsx';
 import MapPicker from '@/components/ui/MapPicker.jsx';
@@ -6,9 +7,11 @@ import Alert from '@/components/ui/Alert.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 
-const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, submitLabel = 'Guardar', upgradeIfClient = false }, ref) {
+const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, submitLabel, upgradeIfClient = false }, ref) {
+  const { t } = useTranslation();
   const { user, role, registerProvider } = useAuth();
   const toast = useToast();
+  const resolvedSubmitLabel = submitLabel || t('account.profile.saveChanges');
 
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -69,7 +72,7 @@ const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, s
           phone: form.phone
         });
         if (!ok) {
-          throw new Error('No se pudo activar el modo proveedor');
+          throw new Error(t('account.providerSetup.activateError'));
         }
       } else {
         await api.put('/auth/profile', payload);
@@ -78,11 +81,11 @@ const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, s
       // Disparar evento para refrescar el usuario en AuthContext
       window.dispatchEvent(new Event('auth:refresh'));
       
-      toast.success('Perfil de proveedor actualizado');
+      toast.success(t('account.providerSetup.profileUpdated'));
       if (typeof onCompleted === 'function') onCompleted();
       return true;
     } catch (err) {
-      setError(err?.response?.data?.message || 'No se pudo guardar');
+      setError(err?.response?.data?.message || t('account.providerSetup.saveError'));
       return false;
     } finally { setSaving(false); }
   };
@@ -94,25 +97,25 @@ const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, s
   return (
     <form onSubmit={onSave} className="space-y-4">
       <div>
-        <label className="block text-sm text-gray-600 mb-1">Nombre comercial</label>
+        <label className="block text-sm text-gray-600 mb-1">{t('account.providerSetup.businessName')}</label>
         <input name="businessName" value={form.businessName} onChange={onChange} className="w-full border rounded-md px-3 py-2" />
       </div>
       <div>
-        <label className="block text-sm text-gray-600 mb-1">Descripción</label>
+        <label className="block text-sm text-gray-600 mb-1">{t('account.providerSetup.description')}</label>
         <textarea name="description" value={form.description} onChange={onChange} rows={3} className="w-full border rounded-md px-3 py-2" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Zona (etiqueta)</label>
-          <input name="serviceAreaZone" value={form.serviceAreaZone} onChange={onChange} className="w-full border rounded-md px-3 py-2" placeholder="Ej: Centro" />
+          <label className="block text-sm text-gray-600 mb-1">{t('account.providerSetup.zone')}</label>
+          <input name="serviceAreaZone" value={form.serviceAreaZone} onChange={onChange} className="w-full border rounded-md px-3 py-2" placeholder={t('account.providerSetup.zonePlaceholder')} />
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Radio (millas)</label>
+          <label className="block text-sm text-gray-600 mb-1">{t('account.providerSetup.radius')}</label>
           <input name="radius" type="number" min="1" max="60" value={form.radius} onChange={onChange} className="w-full border rounded-md px-3 py-2" />
         </div>
       </div>
       <div>
-        <label className="block text-sm text-gray-600 mb-2">Ubicación (haz clic en el mapa o usa tu ubicación)</label>
+        <label className="block text-sm text-gray-600 mb-2">{t('account.providerSetup.locationLabel')}</label>
         <MapPicker
           value={(form.lat !== '' && form.lng !== '') ? { lat: Number(form.lat), lng: Number(form.lng) } : null}
           onChange={(c)=> setForm((f)=>({ ...f, lat: c.lat, lng: c.lng }))}
@@ -120,22 +123,22 @@ const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, s
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
           <div>
-            <label className="block text-xs text-gray-600 mb-1">Latitud</label>
-            <input name="lat" value={form.lat} onChange={onChange} className="w-full border rounded-md px-3 py-2" placeholder="Ej: -34.6037" />
+            <label className="block text-xs text-gray-600 mb-1">{t('account.providerSetup.latitude')}</label>
+            <input name="lat" value={form.lat} onChange={onChange} className="w-full border rounded-md px-3 py-2" placeholder={t('account.providerSetup.latPlaceholder')} />
           </div>
           <div>
-            <label className="block text-xs text-gray-600 mb-1">Longitud</label>
-            <input name="lng" value={form.lng} onChange={onChange} className="w-full border rounded-md px-3 py-2" placeholder="Ej: -58.3816" />
+            <label className="block text-xs text-gray-600 mb-1">{t('account.providerSetup.longitude')}</label>
+            <input name="lng" value={form.lng} onChange={onChange} className="w-full border rounded-md px-3 py-2" placeholder={t('account.providerSetup.lngPlaceholder')} />
           </div>
         </div>
       </div>
       <div>
-        <label className="block text-sm text-gray-600 mb-1">Teléfono</label>
+        <label className="block text-sm text-gray-600 mb-1">{t('account.providerSetup.phone')}</label>
         <input name="phone" value={form.phone} onChange={onChange} className="w-full border rounded-md px-3 py-2" />
       </div>
       {error && <Alert type="error">{error}</Alert>}
       <div className="flex justify-end">
-        <Button loading={saving}>{saving ? 'Guardando...' : submitLabel}</Button>
+        <Button loading={saving}>{saving ? t('account.providerSetup.saving') : resolvedSubmitLabel}</Button>
       </div>
     </form>
   );

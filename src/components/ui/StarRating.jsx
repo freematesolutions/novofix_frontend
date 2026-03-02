@@ -1,5 +1,6 @@
 import { useState, useCallback, memo } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 /**
  * StarRating Component - Componente reutilizable para mostrar y seleccionar ratings
@@ -12,18 +13,18 @@ const StarIcon = memo(({ filled, half, className = 'w-5 h-5' }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none">
     <defs>
       <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FBBF24" />
-        <stop offset="100%" stopColor="#F59E0B" />
+        <stop offset="0%" stopColor="#FFBF00" />
+        <stop offset="100%" stopColor="#FFBF00" />
       </linearGradient>
       <linearGradient id="halfStarGradient">
-        <stop offset="50%" stopColor="#FBBF24" />
+        <stop offset="50%" stopColor="#FFBF00" />
         <stop offset="50%" stopColor="#E5E7EB" />
       </linearGradient>
     </defs>
     <path
       d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
       fill={filled ? 'url(#starGradient)' : half ? 'url(#halfStarGradient)' : '#E5E7EB'}
-      stroke={filled || half ? '#F59E0B' : '#D1D5DB'}
+      stroke={filled || half ? '#FFBF00' : '#D1D5DB'}
       strokeWidth="0.5"
     />
   </svg>
@@ -68,11 +69,12 @@ function StarRating({
   allowHalf = false,
   label = '',
   className = '',
-  activeColor = 'text-amber-400',
+  activeColor = 'text-gold-500',
   inactiveColor = 'text-gray-300',
-  hoverColor = 'text-amber-500',
+  hoverColor = 'text-gold-600',
   animated = true
 }) {
+  const { t } = useTranslation();
   const [hoverValue, setHoverValue] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
 
@@ -114,7 +116,7 @@ function StarRating({
   return (
     <div className={`inline-flex items-center ${gapClass} ${className}`}>
       {label && (
-        <span className="text-sm font-medium text-gray-700 mr-2">{label}</span>
+        <span className="text-sm font-medium text-body mr-2">{label}</span>
       )}
       
       <div 
@@ -134,13 +136,13 @@ function StarRating({
               onClick={allowHalf ? (e) => handleHalfClick(e, starValue) : () => handleClick(starValue)}
               onMouseEnter={() => handleMouseEnter(starValue)}
               className={`
-                relative focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-1 rounded
+                relative focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-1 rounded
                 ${readonly ? 'cursor-default' : 'cursor-pointer'}
                 ${animated && !readonly ? 'transition-transform duration-150 hover:scale-110 active:scale-95' : ''}
                 ${isFilled || isHalf ? activeColor : inactiveColor}
                 ${isHovering && starValue <= hoverValue && !readonly ? hoverColor : ''}
               `}
-              aria-label={`${starValue} de ${max} estrellas`}
+              aria-label={t('ui.starRating.ariaLabel', { value: starValue, max })}
             >
               <StarIcon 
                 filled={isFilled} 
@@ -153,7 +155,7 @@ function StarRating({
       </div>
 
       {showValue && (
-        <span className="ml-2 text-sm font-semibold text-gray-700">
+        <span className="ml-2 text-sm font-semibold text-body">
           {value.toFixed(1)}
         </span>
       )}

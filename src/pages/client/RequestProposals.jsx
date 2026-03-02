@@ -447,7 +447,7 @@ export default function ClientRequestProposals() {
                     <button
                       onClick={() => openNegotiationChat(p)}
                       disabled={loadingChat && activeProposal?._id === p._id}
-                      title="Conversar con el profesional para negociar términos o resolver dudas"
+                      title={t('client.proposals.negotiateTooltip')}
                       className="flex items-center gap-2 px-4 py-2.5 bg-brand-50 text-brand-600 font-medium rounded-xl hover:bg-brand-100 transition-colors disabled:opacity-50"
                     >
                       {loadingChat && activeProposal?._id === p._id ? (
@@ -502,7 +502,7 @@ export default function ClientRequestProposals() {
                     if (pricing?.isRange && pricing?.amountMin && pricing?.amountMax) {
                       return `${formatter.format(pricing.amountMin)} - ${formatter.format(pricing.amountMax)}`;
                     }
-                    return pricing?.amount ? formatter.format(pricing.amount) : 'Sin precio';
+                    return pricing?.amount ? formatter.format(pricing.amount) : t('client.proposals.noPrice');
                   })()}
                 </p>
               </div>

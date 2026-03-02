@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Componente para mostrar el progreso de subida de archivos
@@ -7,11 +8,13 @@ export default function UploadProgress({
   show = false, 
   progress = 0, 
   fileName = '', 
-  message = 'Subiendo archivo...',
+  message,
   totalFiles = 0,
   currentFile = 0,
   status = 'uploading' // 'uploading', 'compressing', 'processing', 'success', 'error'
 }) {
+  const { t } = useTranslation();
+  const displayMessage = message || t('upload.defaultMessage');
   if (!show) return null;
 
   const getStatusIcon = () => {
@@ -95,7 +98,7 @@ export default function UploadProgress({
             {/* Título */}
             <div className="flex items-center justify-between mb-1">
               <p className="text-sm font-semibold text-gray-900">
-                {message} {status !== 'success' && status !== 'error' && `${Math.round(progress)}%`}
+                {displayMessage} {status !== 'success' && status !== 'error' && `${Math.round(progress)}%`}
               </p>
               {totalFiles > 1 && (
                 <span className="text-xs text-gray-600 ml-2">
@@ -124,7 +127,7 @@ export default function UploadProgress({
                   <span>{Math.round(progress)}%</span>
                   {progress < 100 && (
                     <span className="animate-pulse">
-                      {status === 'compressing' ? 'Comprimiendo...' : status === 'processing' ? 'Procesando...' : 'Subiendo...'}
+                      {status === 'compressing' ? t('upload.compressing') : status === 'processing' ? t('upload.processing') : t('upload.uploading')}
                     </span>
                   )}
                 </div>
@@ -134,12 +137,12 @@ export default function UploadProgress({
             {/* Mensaje de éxito o error */}
             {status === 'success' && (
               <p className="text-xs text-green-700 font-medium">
-                ✓ Subida completada exitosamente
+                {t('upload.successMessage')}
               </p>
             )}
             {status === 'error' && (
               <p className="text-xs text-red-700 font-medium">
-                ✗ Error en la subida
+                {t('upload.errorMessage')}
               </p>
             )}
           </div>

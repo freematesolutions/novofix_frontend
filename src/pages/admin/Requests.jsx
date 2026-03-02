@@ -73,8 +73,8 @@ export default function AdminRequests() {
             <HiClipboardList className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold mb-1">Solicitudes de Servicio</h1>
-            <p className="text-gray-300 text-sm">Visualiza todas las solicitudes del sistema</p>
+            <h1 className="text-2xl font-bold mb-1">{t('admin.requests.title')}</h1>
+            <p className="text-gray-300 text-sm">{t('admin.requests.subtitle')}</p>
           </div>
         </div>
       </div>

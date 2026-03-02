@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../state/AuthContext.jsx';
 import { useLocation, useNavigate } from 'react-router-dom';
 import apiClient from '../../state/apiClient';
@@ -37,6 +38,7 @@ const Icons = {
 };
 
 const VerifyEmail = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { setAuthState, pendingVerification, clearPendingVerification } = useAuth();
@@ -97,7 +99,7 @@ const VerifyEmail = () => {
     try {
       const res = await apiClient.post('/auth/verify-email', { token });
       setStatus('success');
-      setMessage(res.data.message || '¡Email verificado! Redirigiendo...');
+      setMessage(res.data.message || t('auth.verifyEmailPage.verifiedSuccess'));
 
       // Guardar token y usuario usando setAuthState
       const user = res.data.user;
@@ -125,7 +127,7 @@ const VerifyEmail = () => {
       }, 1500);
     } catch (err) {
       setStatus('error');
-      setMessage(err.response?.data?.message || 'Error verificando email.');
+      setMessage(err.response?.data?.message || t('auth.verifyEmailPage.verifyError'));
     }
   }, [token, navigate, setAuthState, clearPendingVerification]);
 
@@ -138,11 +140,11 @@ const VerifyEmail = () => {
       // Endpoint público que no requiere autenticación
       await apiClient.post('/auth/resend-verification', { email });
       setResent(true);
-      setMessage('Email de verificación reenviado. Revisa tu bandeja de entrada.');
+      setMessage(t('auth.verifyEmailPage.resentSuccess'));
       // Iniciar countdown de 60 segundos
       setCountdown(60);
     } catch (err) {
-      setMessage(err.response?.data?.message || 'No se pudo reenviar el email.');
+      setMessage(err.response?.data?.message || t('auth.verifyEmailPage.resendError'));
     } finally {
       setResending(false);
     }
@@ -193,21 +195,21 @@ const VerifyEmail = () => {
             </svg>
           </div>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold mb-2 text-brand-700 tracking-tight">Verifica tu correo electrónico</h2>
+        <h2 className="text-2xl sm:text-3xl font-extrabold mb-2 text-brand-700 tracking-tight">{t('auth.verifyEmailPage.title')}</h2>
         
         {/* Mostrar email pendiente */}
         {pendingVerification?.email && (
           <div className="mb-4 p-3 bg-brand-50 rounded-lg">
             <p className="text-sm text-brand-700">
-              <strong>Email pendiente:</strong> {pendingVerification.email}
+              <strong>{t('auth.verifyEmailPage.pendingEmail')}</strong> {pendingVerification.email}
             </p>
           </div>
         )}
 
         <p className="text-gray-600 mb-6 text-base sm:text-lg">
           {isDemoMode 
-            ? 'En modo demo, puedes verificar tu cuenta usando el enlace de abajo.'
-            : 'Te hemos enviado un enlace de verificación a tu email. Por seguridad, debes verificarlo para activar tu cuenta y acceder a todas las funcionalidades.'
+            ? t('auth.verifyEmailPage.descriptionDemo')
+            : t('auth.verifyEmailPage.descriptionReal')
           }
         </p>
 
@@ -216,21 +218,20 @@ const VerifyEmail = () => {
           <div className="mb-6 p-4 bg-linear-to-r from-accent-50 to-accent-50 border-2 border-accent-200 rounded-xl">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-2xl">🎯</span>
-              <h3 className="text-lg font-bold text-accent-800">Modo Demo</h3>
+              <h3 className="text-lg font-bold text-accent-800">{t('auth.verifyEmailPage.demoMode')}</h3>
             </div>
             <p className="text-sm text-accent-700 mb-4">
-              En producción, este enlace llegaría a tu bandeja de entrada. 
-              Para esta demostración, haz clic en el botón:
+              {t('auth.verifyEmailPage.demoDescription')}
             </p>
             <a 
               href={verificationUrl}
               className="inline-flex items-center justify-center gap-2 w-full bg-linear-to-r from-accent-500 to-accent-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-accent-600 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <Icons.Check className="w-5 h-5" />
-              Verificar mi cuenta
+              {t('auth.verifyEmailPage.verifyAccount')}
             </a>
             <p className="text-xs text-accent-600 mt-3 italic">
-              ✨ Este enlace simula el que recibirías por email
+              {t('auth.verifyEmailPage.demoHint')}
             </p>
           </div>
         )}
@@ -239,7 +240,7 @@ const VerifyEmail = () => {
         {status === 'pending' && (
           <div className="flex flex-col items-center gap-2 mb-6">
             <Spinner className="mx-auto" />
-            <span className="text-brand-500 font-medium animate-pulse">Verificando enlace...</span>
+            <span className="text-brand-500 font-medium animate-pulse">{t('auth.verifyEmailPage.verifying')}</span>
           </div>
         )}
         {status === 'success' && (
@@ -262,11 +263,11 @@ const VerifyEmail = () => {
         {/* Reenvío de email - solo en modo real, no en demo */}
         {status === 'idle' && !isDemoMode && (
           <div className="flex flex-col gap-2 mb-6">
-            <p className="mb-2 text-gray-700">¿No recibiste el correo? Ingresa tu email para reenviar el enlace de verificación.</p>
+            <p className="mb-2 text-gray-700">{t('auth.verifyEmailPage.noEmailReceived')}</p>
             <input
               type="email"
               className="input input-bordered w-full mb-1 text-base focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition"
-              placeholder="Tu email"
+              placeholder={t('auth.verifyEmailPage.emailPlaceholder')}
               value={pendingVerification?.email ?? email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={resending}
@@ -276,9 +277,9 @@ const VerifyEmail = () => {
               disabled={resending || !email || countdown > 0} 
               className="w-full mb-1 bg-linear-to-r from-brand-500 to-brand-600 text-white font-semibold shadow-md hover:from-brand-600 hover:to-brand-700 transition"
             >
-              {resending ? 'Enviando...' : countdown > 0 ? `Reenviar en ${countdown}s` : 'Reenviar email de verificación'}
+              {resending ? t('auth.verifyEmailPage.sending') : countdown > 0 ? t('auth.verifyEmailPage.resendIn', { countdown }) : t('auth.verifyEmailPage.resendButton')}
             </Button>
-            {resent && <div className="text-brand-600 text-sm">¡Email reenviado! Revisa tu bandeja de entrada.</div>}
+            {resent && <div className="text-brand-600 text-sm">{t('auth.verifyEmailPage.resent')}</div>}
           </div>
         )}
 
@@ -288,13 +289,13 @@ const VerifyEmail = () => {
             onClick={() => navigate('/login')}
             className="w-full px-4 py-3 rounded-xl font-semibold bg-linear-to-r from-brand-600 to-brand-700 text-white shadow-lg hover:from-brand-700 hover:to-brand-800 hover:shadow-xl transition-all duration-200"
           >
-            Inicia sesión
+            {t('auth.verifyEmailPage.loginButton')}
           </Button>
           <Button
             onClick={() => navigate('/')}
             className="w-full px-4 py-3 rounded-xl font-semibold bg-linear-to-r from-dark-600 to-dark-700 text-white shadow-lg hover:from-dark-700 hover:to-dark-800 hover:shadow-xl transition-all duration-200"
           >
-            Ir al inicio
+            {t('auth.verifyEmailPage.homeButton')}
           </Button>
         </div>
 

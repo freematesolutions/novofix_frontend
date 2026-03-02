@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        sans: ['Montserrat', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
       },
       screens: {
         'xs': '375px',
@@ -27,17 +27,30 @@ export default {
           900: '#004040'
         },
         accent: {
-          DEFAULT: '#E1AD01',
+          DEFAULT: '#FFBF00',
           50: '#fffbeb',
           100: '#fef3c7',
           200: '#fde68a',
           300: '#fcd34d',
           400: '#f5c518',
-          500: '#E1AD01',
-          600: '#c49400',
+          500: '#FFBF00',
+          600: '#E1AD01',
           700: '#a37800',
           800: '#855f00',
           900: '#6b4b00'
+        },
+        gold: {
+          DEFAULT: '#FFBF00',
+          50: '#fffdf0',
+          100: '#fff9d6',
+          200: '#fff0a3',
+          300: '#ffe566',
+          400: '#ffd633',
+          500: '#FFBF00',
+          600: '#E1AD01',
+          700: '#B38B00',
+          800: '#856800',
+          900: '#574500'
         },
         dark: {
           DEFAULT: '#2F353B',
@@ -51,7 +64,8 @@ export default {
           700: '#3d444d',
           800: '#2F353B',
           900: '#252a2f'
-        }
+        },
+        body: '#2D2D2D'
       }
     }
   },

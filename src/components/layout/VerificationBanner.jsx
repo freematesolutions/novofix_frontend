@@ -1,13 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 
 export const VerificationBanner = () => {
   const { isPendingVerification, pendingVerification, clearPendingVerification } = useAuth();
+  const { t } = useTranslation();
 
   if (!isPendingVerification) return null;
 
-  const email = pendingVerification?.email || 'tu correo electrónico';
+  const email = pendingVerification?.email || t('auth.email');
 
   return (
     <div className="w-full bg-linear-to-r from-blue-50 via-cyan-50 to-blue-50 border-b border-cyan-200 py-3 px-4 shadow-sm">
@@ -22,11 +24,14 @@ export const VerificationBanner = () => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-blue-800">
-              ¡Falta un paso para completar tu registro!
+              {t('verificationBanner.title')}
             </p>
             <p className="text-xs text-blue-600">
-              Hemos enviado un enlace de verificación a <span className="font-medium">{email}</span>. 
-              Por favor verifícalo para activar tu cuenta.
+              {t('verificationBanner.description', { email }).split('<1>').map((part, i) => {
+                if (i === 0) return part;
+                const [emailText, rest] = part.split('</1>');
+                return <React.Fragment key={i}><span className="font-medium">{emailText}</span>{rest}</React.Fragment>;
+              })}
             </p>
           </div>
         </div>
@@ -39,14 +44,14 @@ export const VerificationBanner = () => {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           >
-            Verificar email
+            {t('verificationBanner.verifyEmail')}
           </Link>
           <button
             onClick={clearPendingVerification}
             className="px-3 py-1.5 text-blue-700 hover:text-blue-900 hover:bg-blue-50 text-sm font-medium rounded-lg transition-colors"
-            title="Cerrar este aviso temporalmente"
+            title={t('verificationBanner.closeTitle')}
           >
-            Cerrar
+            {t('verificationBanner.close')}
           </button>
         </div>
       </div>

@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function PortfolioModal({ isOpen, onClose, portfolio, providerName }) {
+  const { t, i18n } = useTranslation();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [filter, setFilter] = useState('all'); // 'all' | 'image' | 'video'
   const [isZoomed, setIsZoomed] = useState(false);
@@ -184,17 +186,17 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b shrink-0 bg-white">
           <div className="flex-1 min-w-0 mr-4">
             <h3 id="portfolio-modal-title" className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-              Portafolio de {providerName || 'Proveedor'}
+              {t('portfolio.title', { name: providerName || t('portfolio.provider') })}
             </h3>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              {selectedIndex + 1} de {filteredPortfolio.length} {filteredPortfolio.length === 1 ? 'elemento' : 'elementos'}
+              {t('portfolio.itemCounter', { current: selectedIndex + 1, total: filteredPortfolio.length, label: filteredPortfolio.length === 1 ? t('portfolio.element') : t('portfolio.elements') })}
             </p>
           </div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full shrink-0"
-            title="Cerrar (Esc)"
-            aria-label="Cerrar modal"
+            title={t('portfolio.closeEsc')}
+            aria-label={t('portfolio.closeModal')}
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -213,7 +215,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
               }`}
             >
-              Todas ({counts.all})
+              {t('portfolio.all', { count: counts.all })}
             </button>
             {counts.image > 0 && (
               <button
@@ -225,7 +227,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                 }`}
               >
                 <span>📷</span>
-                <span className="hidden sm:inline">Fotos ({counts.image})</span>
+                <span className="hidden sm:inline">{t('portfolio.photos', { count: counts.image })}</span>
                 <span className="sm:hidden">({counts.image})</span>
               </button>
             )}
@@ -239,7 +241,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                 }`}
               >
                 <span>🎥</span>
-                <span className="hidden sm:inline">Videos ({counts.video})</span>
+                <span className="hidden sm:inline">{t('portfolio.videos', { count: counts.video })}</span>
                 <span className="sm:hidden">({counts.video})</span>
               </button>
             )}
@@ -253,7 +255,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
             <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
               {!currentItem ? (
                 <div className="absolute inset-0 flex items-center justify-center text-white text-lg">
-                  No hay elementos disponibles con este filtro
+                  {t('portfolio.noItems')}
                 </div>
               ) : currentItem.type === 'video' ? (
                 <div id={`portfolio-video-container-${currentItem._id}`} className="absolute inset-0 video-fullscreen-container">
@@ -281,7 +283,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                       }
                     }}
                     className="absolute bottom-20 right-4 bg-black/70 text-white p-2 rounded hover:bg-black/90 transition-all video-custom-fullscreen-btn"
-                    title="Pantalla completa"
+                    title={t('portfolio.fullscreen')}
                     style={{ zIndex: 100 }}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,7 +304,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                         }
                       }}
                       className="fixed top-4 right-4 bg-red-600 text-white p-4 rounded-full shadow-2xl hover:bg-red-700 transition-all hover:scale-110 active:scale-95"
-                      title="Salir de pantalla completa (ESC)"
+                      title={t('portfolio.exitFullscreen')}
                       style={{ zIndex: 9999 }}
                     >
                       <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -352,7 +354,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                         }
                       }}
                       className="fixed top-4 right-4 bg-red-600 text-white p-4 rounded-full shadow-2xl hover:bg-red-700 transition-all hover:scale-110 active:scale-95"
-                      title="Salir de pantalla completa (ESC)"
+                      title={t('portfolio.exitFullscreen')}
                       style={{ zIndex: 9999 }}
                     >
                       <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,7 +372,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
                     </svg>
-                    Click para ampliar
+                    {t('portfolio.clickToZoom')}
                   </div>
                   <button
                     onClick={(e) => {
@@ -387,19 +389,19 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                       }
                     }}
                     className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg hover:bg-black/90 transition-colors"
-                    title="Ver en pantalla completa"
+                    title={t('portfolio.viewFullscreen')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                     </svg>
-                    Pantalla completa
+                    {t('portfolio.fullscreen')}
                   </button>
                 </>
               )}
               
               {isZoomed && (
                 <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full shadow-lg">
-                  Doble click para restaurar
+                  {t('portfolio.doubleClickRestore')}
                 </div>
               )}
 
@@ -414,7 +416,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
               {currentItem && (
                 <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
                   <span>{currentItem.type === 'video' ? '🎥' : '📷'}</span>
-                  <span>{currentItem.type === 'video' ? 'Video' : 'Imagen'}</span>
+                  <span>{currentItem.type === 'video' ? t('portfolio.video') : t('portfolio.image')}</span>
                 </div>
               )}
             </div>
@@ -425,8 +427,8 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                 <button
                   onClick={goToPrevious}
                   className="absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-800 rounded-full p-2 sm:p-3 transition-all shadow-lg hover:shadow-xl hover:scale-110 active:scale-95"
-                  aria-label="Anterior"
-                  title="Anterior (←)"
+                  aria-label={t('portfolio.previous')}
+                  title={t('portfolio.previousKey')}
                 >
                   <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -435,8 +437,8 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                 <button
                   onClick={goToNext}
                   className="absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-800 rounded-full p-2 sm:p-3 transition-all shadow-lg hover:shadow-xl hover:scale-110 active:scale-95"
-                  aria-label="Siguiente"
-                  title="Siguiente (→)"
+                  aria-label={t('portfolio.next')}
+                  title={t('portfolio.nextKey')}
                 >
                   <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -458,11 +460,11 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <span className="truncate">
-                    Subido el {new Date(currentItem.uploadedAt).toLocaleDateString('es-ES', { 
+                    {t('portfolio.uploadedOn', { date: new Date(currentItem.uploadedAt).toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { 
                       year: 'numeric', 
                       month: 'long', 
                       day: 'numeric' 
-                    })}
+                    }) })}
                   </span>
                 </div>
               )}
@@ -483,7 +485,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                       ? 'border-brand-600 ring-2 ring-brand-200 shadow-md'
                       : 'border-gray-300 hover:border-brand-400'
                   }`}
-                  aria-label={`Ver elemento ${index + 1}`}
+                  aria-label={t('portfolio.viewItem', { index: index + 1 })}
                 >
                   {item.type === 'video' ? (
                     <div className="relative w-full h-full">
@@ -530,12 +532,12 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
             <span className="flex items-center gap-1">
               <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono shadow-sm">←</kbd>
               <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono shadow-sm">→</kbd>
-              <span>Navegar</span>
+              <span>{t('portfolio.navigate')}</span>
             </span>
             <span className="text-gray-400">•</span>
             <span className="flex items-center gap-1">
               <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono shadow-sm">Esc</kbd>
-              <span>Cerrar</span>
+              <span>{t('portfolio.close')}</span>
             </span>
           </p>
         </div>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import PasswordToggle from '@/components/ui/PasswordToggle.jsx';
 import { 
@@ -15,13 +16,14 @@ import {
 
 // Requisitos de contraseña
 const PASSWORD_REQUIREMENTS = [
-  { id: 'length', label: 'Mínimo 8 caracteres', test: (p) => p.length >= 8 },
-  { id: 'upper', label: 'Una letra mayúscula', test: (p) => /[A-Z]/.test(p) },
-  { id: 'lower', label: 'Una letra minúscula', test: (p) => /[a-z]/.test(p) },
-  { id: 'number', label: 'Un número', test: (p) => /\d/.test(p) },
+  { id: 'length', labelKey: 'resetPassword.requirements.length', test: (p) => p.length >= 8 },
+  { id: 'upper', labelKey: 'resetPassword.requirements.upper', test: (p) => /[A-Z]/.test(p) },
+  { id: 'lower', labelKey: 'resetPassword.requirements.lower', test: (p) => /[a-z]/.test(p) },
+  { id: 'number', labelKey: 'resetPassword.requirements.number', test: (p) => /\d/.test(p) },
 ];
 
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
@@ -41,7 +43,7 @@ export default function ResetPassword() {
       score: passed, 
       percentage: (passed / PASSWORD_REQUIREMENTS.length) * 100,
       color: passed <= 1 ? 'bg-red-500' : passed <= 2 ? 'bg-accent-500' : passed <= 3 ? 'bg-accent-500' : 'bg-brand-500',
-      label: passed <= 1 ? 'Débil' : passed <= 2 ? 'Regular' : passed <= 3 ? 'Buena' : 'Fuerte'
+      label: passed <= 1 ? t('resetPassword.strengthLevels.weak') : passed <= 2 ? t('resetPassword.strengthLevels.fair') : passed <= 3 ? t('resetPassword.strengthLevels.good') : t('resetPassword.strengthLevels.strong')
     };
   }, [password]);
 
@@ -54,10 +56,10 @@ export default function ResetPassword() {
     setStatus({ loading: true, error: '', success: '' });
     try {
       await api.post('/auth/reset-password', { token, uid, password });
-      setStatus({ loading: false, error: '', success: 'Tu contraseña fue actualizada exitosamente.' });
+      setStatus({ loading: false, error: '', success: t('resetPassword.successMessage') });
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      const msg = err.response?.data?.message || 'No se pudo restablecer la contraseña.';
+      const msg = err.response?.data?.message || t('resetPassword.errorMessage');
       setStatus({ loading: false, error: msg, success: '' });
     }
   };
@@ -71,16 +73,16 @@ export default function ResetPassword() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
               <HiExclamationCircle className="w-8 h-8 text-red-600" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">Enlace inválido</h1>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">{t('resetPassword.invalidLink')}</h1>
             <p className="text-sm text-gray-600 mb-6">
-              Este enlace ha expirado o es inválido. Por favor, solicita un nuevo correo de restablecimiento.
+              {t('resetPassword.invalidLinkDesc')}
             </p>
             <Link 
               to="/forgot-password"
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-linear-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white rounded-xl font-medium shadow-lg shadow-brand-500/25 transition-all duration-200"
             >
               <HiArrowLeft className="w-4 h-4" />
-              Solicitar nuevo enlace
+              {t('resetPassword.requestNewLink')}
             </Link>
           </div>
         </div>
@@ -97,9 +99,9 @@ export default function ResetPassword() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-100 rounded-full mb-4">
               <HiCheckCircle className="w-8 h-8 text-brand-600" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">¡Contraseña actualizada!</h1>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">{t('resetPassword.successTitle')}</h1>
             <p className="text-sm text-gray-600 mb-4">{status.success}</p>
-            <p className="text-xs text-gray-500">Serás redirigido al inicio de sesión...</p>
+            <p className="text-xs text-gray-500">{t('resetPassword.redirecting')}</p>
             <div className="mt-4 flex justify-center">
               <div className="animate-spin rounded-full h-6 w-6 border-2 border-brand-500 border-t-transparent"></div>
             </div>
@@ -127,9 +129,9 @@ export default function ResetPassword() {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-4">
                   <HiKey className="w-8 h-8 text-white" />
                 </div>
-                <h1 className="text-2xl font-bold text-white">Nueva contraseña</h1>
+                <h1 className="text-2xl font-bold text-white">{t('resetPassword.newPassword')}</h1>
                 <p className="text-brand-100 mt-2 text-sm">
-                  Crea una contraseña segura para tu cuenta
+                  {t('resetPassword.createSecure')}
                 </p>
               </div>
             </div>
@@ -140,7 +142,7 @@ export default function ResetPassword() {
                 {/* Nueva contraseña */}
                 <div className="space-y-2">
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                    Nueva contraseña
+                    {t('resetPassword.newPassword')}
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -167,7 +169,7 @@ export default function ResetPassword() {
                   {password && (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500">Fortaleza:</span>
+                        <span className="text-gray-500">{t('resetPassword.strength')}</span>
                         <span className={`font-medium ${
                           passwordStrength.score <= 1 ? 'text-red-600' : 
                           passwordStrength.score <= 2 ? 'text-accent-600' : 
@@ -198,7 +200,7 @@ export default function ResetPassword() {
                           ) : (
                             <HiX className="w-3.5 h-3.5 shrink-0" />
                           )}
-                          <span>{req.label}</span>
+                          <span>{t(req.labelKey)}</span>
                         </div>
                       ))}
                     </div>
@@ -208,7 +210,7 @@ export default function ResetPassword() {
                 {/* Confirmar contraseña */}
                 <div className="space-y-2">
                   <label htmlFor="confirm" className="block text-sm font-medium text-gray-700">
-                    Confirmar contraseña
+                    {t('resetPassword.confirmPassword')}
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -241,13 +243,13 @@ export default function ResetPassword() {
                   {confirm && !passwordsMatch && (
                     <p className="flex items-center gap-1.5 text-xs text-red-600">
                       <HiX className="w-3.5 h-3.5" />
-                      Las contraseñas no coinciden
+                      {t('resetPassword.passwordsDontMatch')}
                     </p>
                   )}
                   {confirm && passwordsMatch && (
                     <p className="flex items-center gap-1.5 text-xs text-brand-600">
                       <HiCheck className="w-3.5 h-3.5" />
-                      Las contraseñas coinciden
+                      {t('resetPassword.passwordsMatch')}
                     </p>
                   )}
                 </div>
@@ -273,12 +275,12 @@ export default function ResetPassword() {
                   {status.loading ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      Actualizando...
+                      {t('resetPassword.updating')}
                     </>
                   ) : (
                     <>
                       <HiCheckCircle className="w-5 h-5" />
-                      Actualizar contraseña
+                      {t('resetPassword.updateButton')}
                     </>
                   )}
                 </button>
@@ -290,7 +292,7 @@ export default function ResetPassword() {
                     className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-brand-600 transition-colors duration-200"
                   >
                     <HiArrowLeft className="w-4 h-4" />
-                    Volver a iniciar sesión
+                    {t('resetPassword.backToLogin')}
                   </Link>
                 </div>
               </form>
