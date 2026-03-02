@@ -269,7 +269,11 @@ const TestimonialsCarousel = ({ testimonials, onImageClick: _onImageClick, direc
         } else {
           singleSetWidthRef.current = totalWidth / dupFactorRef.current;
         }
-        offsetRef.current = -singleSetWidthRef.current;
+        const containerWidth = track.parentElement?.clientWidth || 0;
+        const firstCard = children[0];
+        const cardWidth = firstCard?.offsetWidth || 0;
+        const centerOffset = (containerWidth - cardWidth) / 2;
+        offsetRef.current = -singleSetWidthRef.current + centerOffset;
         track.style.transform = `translateX(${offsetRef.current}px)`;
         initializedRef.current = true;
         lastTime = 0;
@@ -511,6 +515,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
   const containerRef = useRef(null);
   const trackRef = useRef(null);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
   const currentLang = i18n.language?.split('-')[0] || 'es';
 
   // ALL animation state as refs
@@ -527,6 +532,14 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
   const offsetRef = useRef(0);
   const singleSetWidthRef = useRef(0);
   const initializedRef = useRef(false);
+  const itemStepRef = useRef(0);
+  const activeIndexRef = useRef(0);
+  const nextIndexRef = useRef(0);
+  const animPhaseRef = useRef('pause');
+  const animStartTimeRef = useRef(0);
+  const animFromRef = useRef(0);
+  const animToRef = useRef(0);
+  const pauseUntilRef = useRef(0);
 
   const pauseAutoScroll = useCallback((duration = 3000) => {
     isPausedRef.current = true;
@@ -558,18 +571,28 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
     };
   }, []);
 
-  // Core rAF loop — RTL direction using translateX
+  // Core rAF loop — stepped scroll with pause on center card
   useEffect(() => {
     let rafId = null;
-    let lastTime = 0;
     initializedRef.current = false;
+    animPhaseRef.current = 'pause';
+    pauseUntilRef.current = 0;
+    activeIndexRef.current = 0;
+    setActiveCardIndex(0);
+
+    const getFilteredLength = () => {
+      if (!photos || photos.length === 0) return 0;
+      return activeFilter === 'all'
+        ? photos.length
+        : photos.filter(p => p.source === activeFilter).length;
+    };
 
     const tick = (currentTime) => {
       const track = trackRef.current;
       if (!track) { rafId = requestAnimationFrame(tick); return; }
 
       if (isHoveringRef.current || isPausedRef.current || isDraggingRef.current) {
-        lastTime = 0; rafId = requestAnimationFrame(tick); return;
+        rafId = requestAnimationFrame(tick); return;
       }
 
       if (!initializedRef.current) {
@@ -584,27 +607,70 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
         } else {
           singleSetWidthRef.current = totalWidth / 3;
         }
+        if (children.length > 1) {
+          itemStepRef.current = children[1].offsetLeft - children[0].offsetLeft;
+        } else {
+          itemStepRef.current = 0;
+        }
         offsetRef.current = -singleSetWidthRef.current;
         track.style.transform = `translateX(${offsetRef.current}px)`;
+        animPhaseRef.current = 'pause';
+        pauseUntilRef.current = currentTime + 700;
         initializedRef.current = true;
-        lastTime = 0; rafId = requestAnimationFrame(tick); return;
+        rafId = requestAnimationFrame(tick); return;
       }
 
-      if (!lastTime) { lastTime = currentTime; rafId = requestAnimationFrame(tick); return; }
+      const step = itemStepRef.current || 0;
+      const totalItems = getFilteredLength() || 1;
+      if (!step) { rafId = requestAnimationFrame(tick); return; }
 
-      const dt = currentTime - lastTime;
-      lastTime = currentTime;
-      offsetRef.current -= 0.4 * (dt / 16.67); // RTL
-      if (offsetRef.current <= -2 * singleSetWidthRef.current) {
-        offsetRef.current += singleSetWidthRef.current;
+      if (animPhaseRef.current === 'pause') {
+        if (currentTime < pauseUntilRef.current) { rafId = requestAnimationFrame(tick); return; }
+        animPhaseRef.current = 'move';
+        animStartTimeRef.current = currentTime;
+        animFromRef.current = offsetRef.current;
+        animToRef.current = offsetRef.current - step;
+        nextIndexRef.current = (activeIndexRef.current + 1) % totalItems;
+        rafId = requestAnimationFrame(tick); return;
       }
-      track.style.transform = `translateX(${offsetRef.current}px)`;
-      rafId = requestAnimationFrame(tick);
+
+      if (animPhaseRef.current === 'move') {
+        const duration = 700;
+        const t = Math.min(1, (currentTime - animStartTimeRef.current) / duration);
+        const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        offsetRef.current = animFromRef.current + (animToRef.current - animFromRef.current) * ease;
+
+        const ssw = singleSetWidthRef.current;
+        if (ssw > 0) {
+          if (offsetRef.current <= -2 * ssw) {
+            offsetRef.current += ssw;
+            animFromRef.current += ssw;
+            animToRef.current += ssw;
+          }
+          if (offsetRef.current >= 0) {
+            offsetRef.current -= ssw;
+            animFromRef.current -= ssw;
+            animToRef.current -= ssw;
+          }
+        }
+
+        track.style.transform = `translateX(${offsetRef.current}px)`;
+        if (t >= 1) {
+          offsetRef.current = animToRef.current;
+          silentWrap();
+          applyTransform();
+          activeIndexRef.current = nextIndexRef.current;
+          setActiveCardIndex(activeIndexRef.current);
+          animPhaseRef.current = 'pause';
+          pauseUntilRef.current = currentTime + 900;
+        }
+        rafId = requestAnimationFrame(tick);
+      }
     };
 
     rafId = requestAnimationFrame(tick);
     return () => { if (rafId) cancelAnimationFrame(rafId); };
-  }, [activeFilter]);
+  }, [activeFilter, photos, applyTransform, silentWrap]);
 
   const applyMomentum = useCallback(() => {
     if (momentumAnimRef.current) cancelAnimationFrame(momentumAnimRef.current);
@@ -891,11 +957,13 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
         >
         {displayPhotos.map((photo, idx) => {
           const config = sourceConfig[photo.source] || sourceConfig.client_review;
+          const totalItems = filteredPhotos.length || 1;
+          const isActive = totalItems > 0 && (idx % totalItems) === activeCardIndex;
           
           return (
             <div 
               key={`${photo.url}-${idx}`}
-              className="shrink-0 w-[180px] sm:w-[200px] md:w-[220px] group relative aspect-4/3 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
+              className={`shrink-0 w-[170px] sm:w-[190px] md:w-[210px] group relative aspect-3/4 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 work-gallery-card ${isActive ? 'work-gallery-card--active' : ''}`}
             >
               {/* Imagen o thumbnail de video - área clickeable */}
               <div 
@@ -931,7 +999,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
               </div>
 
               {/* Overlay con información del proveedor */}
-              <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/40 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/40 to-transparent p-3 opacity-0 group-hover:opacity-100 group-active:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 work-gallery-overlay">
                 <div className="flex items-center gap-2">
                   {/* Avatar del proveedor */}
                   {photo.providerAvatar ? (
@@ -959,7 +1027,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
                   {photo.providerId && onViewProfile && (
                     <button
                       onClick={(e) => handleProfileClick(photo, e)}
-                      className="shrink-0 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-1.5 rounded-full transition-colors"
+                      className="shrink-0 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-1.5 rounded-full transition-colors work-gallery-profile-btn"
                       title={t('testimonials.viewProfile', 'Ver perfil')}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

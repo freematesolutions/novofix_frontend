@@ -469,17 +469,17 @@ useEffect(() => {
     <main className="space-y-12 w-full">
       {/* Navegación flotante creativa - Solo visible al hacer scroll */}
       {!searchResults && !selectedCategory && showFloatingNav && (
-        <nav className="fixed right-4 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-2 bg-white/40 backdrop-blur-2xl rounded-2xl border border-white/50 p-2 transition-all duration-300" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6)' }}>
+        <nav className="fixed right-4 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-2 floating-nav floating-nav-desktop">
           {HOME_SECTIONS.map((section) => {
             const isActive = activeSection === section.id;
             return (
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
-                className={`group relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                className={`group relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 floating-nav-btn ${
                   isActive 
-                    ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30' 
-                    : 'bg-gray-50 text-gray-500 hover:bg-brand-50 hover:text-brand-600'
+                    ? 'floating-nav-btn--active' 
+                    : 'floating-nav-btn--idle'
                 }`}
                 title={t(section.labelKey)}
                 aria-label={t(section.labelKey)}
@@ -523,17 +523,17 @@ useEffect(() => {
 
       {/* Navegación flotante móvil - Iconos en la parte inferior */}
       {!searchResults && !selectedCategory && showFloatingNav && (
-        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 lg:hidden flex items-center gap-1.5 bg-white/40 backdrop-blur-2xl rounded-2xl border border-white/50 px-2 py-1.5 transition-all duration-300" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6)' }}>
+        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 lg:hidden flex items-center gap-1.5 floating-nav floating-nav-mobile">
           {HOME_SECTIONS.map((section) => {
             const isActive = activeSection === section.id;
             return (
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
-                className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300 ${
+                className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300 floating-nav-btn ${
                   isActive 
-                    ? 'bg-brand-500 text-white shadow-md shadow-brand-500/30 scale-110' 
-                    : 'bg-gray-100 text-gray-500 hover:bg-brand-50 hover:text-brand-600'
+                    ? 'floating-nav-btn--active' 
+                    : 'floating-nav-btn--idle'
                 }`}
                 title={t(section.labelKey)}
                 aria-label={t(section.labelKey)}

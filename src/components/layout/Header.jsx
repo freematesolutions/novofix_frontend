@@ -1502,7 +1502,7 @@ function Header() {
             </div>
             {/* Brand name con efecto hover y gradiente mejorado */}
             <span className={`text-xl sm:text-2xl font-bold tracking-tight transition-all duration-300 ${searchBarState.show ? 'hidden sm:inline' : ''}`}>
-              <span className="bg-linear-to-r from-brand-600 via-brand-500 to-accent-500 bg-clip-text text-transparent group-hover:from-brand-500 group-hover:via-brand-400 group-hover:to-accent-400 transition-all duration-300">Novo</span>
+              <span className="text-brand-800 group-hover:text-brand-700 transition-colors duration-300">Novo</span>
               <span className="text-gray-800 group-hover:text-gray-700 transition-colors duration-300">Fix</span>
             </span>
           </Link>
