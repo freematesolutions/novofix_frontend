@@ -615,9 +615,8 @@ useEffect(() => {
               <div className="w-full max-w-5xl shrink-0 flex flex-col items-center gap-1.5 sm:gap-2 lg:gap-1.5 pt-2">
                 {/* Título principal - texto blanco plano sin animación */}
                 <div className="text-center w-full pb-1 sm:pb-2">
-                  <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight drop-shadow-2xl" style={{ color: '#f0f0f0' }}>
-                    {t('home.title1')}
-                    <br />
+                  <h1 className="text-2xl min-[480px]:text-3xl sm:text-4xl font-extrabold leading-tight drop-shadow-2xl" style={{ color: '#f0f0f0' }}>
+                    {t('home.title1')}{' '}
                     <span style={{ color: '#f0f0f0' }}>
                       {t('home.title2')}
                     </span>
