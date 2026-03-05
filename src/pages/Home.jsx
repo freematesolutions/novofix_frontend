@@ -11,7 +11,7 @@ import TestimonialsSection from '@/components/ui/TestimonialsSection.jsx';
 import CategoryIconCarousel from '@/components/ui/CategoryIconCarousel.jsx';
 // Scroll automático para enfocar la primera tarjeta con proveedores al cargar la sección
 // (Este useEffect debe ir dentro del componente Home, no aquí)
-import { CATEGORY_IMAGES } from '@/utils/categoryImages.js';
+import { CATEGORY_IMAGES, FALLBACK_IMAGE } from '@/utils/categoryImages.js';
 import { SERVICE_CATEGORIES_WITH_DESCRIPTION } from '@/utils/categories.js';
 
 // Secciones de la página para la navegación flotante
@@ -20,6 +20,7 @@ const HOME_SECTIONS = [
   { id: 'services-section', icon: 'services', labelKey: 'home.nav.services' },
   { id: 'featured-providers-section', icon: 'featured', labelKey: 'home.nav.featured' },
   { id: 'testimonials-section', icon: 'testimonials', labelKey: 'home.nav.testimonials' },
+  { id: 'gallery-section', icon: 'gallery', labelKey: 'home.nav.gallery' },
   { id: 'mission-vision-section', icon: 'mission', labelKey: 'home.nav.mission' }
 ];
 
@@ -265,7 +266,7 @@ function Home() {
         setDataLoaded(true);
         // Siempre precargar primera imagen de categorías
         const firstCat = SERVICE_CATEGORIES_WITH_DESCRIPTION[0];
-        const firstImageUrl = CATEGORY_IMAGES[firstCat.value] || CATEGORY_IMAGES['Otro'];
+        const firstImageUrl = CATEGORY_IMAGES[firstCat.value] || FALLBACK_IMAGE;
         const img = new Image();
         img.src = firstImageUrl;
         img.onload = () => setFirstImageLoaded(true);
@@ -316,7 +317,7 @@ function Home() {
         await Promise.all(batch.map((service) => {
           return new Promise((resolve) => {
             const img = new Image();
-            img.src = CATEGORY_IMAGES[service.category] || CATEGORY_IMAGES['Otro'];
+            img.src = CATEGORY_IMAGES[service.category] || FALLBACK_IMAGE;
             img.onload = () => resolve(true);
             img.onerror = () => resolve(false);
           });
@@ -506,6 +507,11 @@ useEffect(() => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 )}
+                {section.icon === 'gallery' && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                )}
                 {section.icon === 'mission' && (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -556,6 +562,11 @@ useEffect(() => {
                 {section.icon === 'testimonials' && (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                )}
+                {section.icon === 'gallery' && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 )}
                 {section.icon === 'mission' && (
@@ -756,7 +767,7 @@ useEffect(() => {
                       key={cat}
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-100 text-brand-700 border border-brand-200"
                     >
-                      🎯 {t(`categories.${cat}`, cat)}
+                      🎯 {t(`home.categories.${cat}`, cat)}
                     </span>
                   ))}
                 </div>
@@ -1221,22 +1232,10 @@ useEffect(() => {
       {/* Vista de proveedores por categoría */}
       {selectedCategory && (
         <div className="w-full">
-          <div
-            className="relative rounded-xl border p-6 overflow-hidden min-h-100"
-            style={{
-              backgroundImage: `url(${CATEGORY_IMAGES[selectedCategory] || CATEGORY_IMAGES['Otro']})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-            }}
-          >
-            {/* Overlay para oscurecer y mejorar contraste */}
-            <div className="absolute inset-0 bg-linear-to-br from-dark-900/80 via-dark-800/60 to-dark-900/80 pointer-events-none z-0" />
-
-            <div className="relative z-10">
+          <div className="rounded-xl bg-white p-6 min-h-100 border border-gray-200 shadow-sm">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold mb-0 text-white drop-shadow-lg">
-                  {categoryProviders.length} {categoryProviders.length === 1 ? t('home.oneProfessionalFound') : t('home.manyProfessionalsFound')} {t('home.inCategory')} <span className="capitalize text-brand-200">{t(`home.categories.${selectedCategory}`, selectedCategory)}</span>
+                <h2 className="text-xl font-bold mb-0 text-gray-900">
+                  {categoryProviders.length} {categoryProviders.length === 1 ? t('home.oneProfessionalFound') : t('home.manyProfessionalsFound')} {t('home.inCategory')} <span className="capitalize text-brand-600">{t(`home.categories.${selectedCategory}`, selectedCategory)}</span>
                 </h2>
                 <button
                   onClick={() => {
@@ -1258,12 +1257,12 @@ useEffect(() => {
               {loadingProviders && (
                 <div className="text-center py-12">
                   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
-                  <p className="mt-4 text-gray-100">{t('home.searchingProfessionals')}</p>
+                  <p className="mt-4 text-gray-500">{t('home.searchingProfessionals')}</p>
                 </div>
               )}
 
               {!loadingProviders && categoryProviders.length === 0 && (
-                <div className="text-center py-16 bg-gray-50/80 rounded-xl">
+                <div className="text-center py-16 bg-gray-50 rounded-xl">
                   <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
@@ -1298,7 +1297,6 @@ useEffect(() => {
                     ))}
                 </div>
               )}
-            </div>
           </div>
         </div>
       )}

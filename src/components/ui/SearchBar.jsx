@@ -197,7 +197,7 @@ function SearchBar({ onSearch, variant = 'default', noResultsInfo = null, onClea
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-brand-50 text-brand-700 border border-brand-200 hover:bg-brand-100 hover:border-brand-300 transition-all duration-200 cursor-pointer hover:shadow-sm active:scale-95"
                     >
                       <span className="text-brand-500">🎯</span>
-                      {t(`categories.${s.category}`, s.category)}
+                      {t(`home.categories.${s.category}`, s.category)}
                     </button>
                   ))}
                 </div>
@@ -291,7 +291,7 @@ function SearchBar({ onSearch, variant = 'default', noResultsInfo = null, onClea
                   className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white transition-all duration-200 hover:border-gray-300"
                 >
                   <option value="">{t('home.searchBar.allCategories')}</option>
-                  {SERVICE_CATEGORIES.filter(cat => cat !== 'Otro').map(cat => {
+                  {SERVICE_CATEGORIES.map(cat => {
                     const hasProviders = (providerCountByCategory[cat] || 0) > 0;
                     return (
                       <option
@@ -301,8 +301,8 @@ function SearchBar({ onSearch, variant = 'default', noResultsInfo = null, onClea
                         className={!hasProviders ? 'text-gray-400' : ''}
                       >
                         {hasProviders
-                          ? `${t(`categories.${cat}`, cat)} (${providerCountByCategory[cat]})`
-                          : `${t(`categories.${cat}`, cat)} — ${t('home.searchBar.noProfessionalsYet')}`
+                          ? `${t(`home.categories.${cat}`, cat)} (${providerCountByCategory[cat]})`
+                          : `${t(`home.categories.${cat}`, cat)} — ${t('home.searchBar.noProfessionalsYet')}`
                         }
                       </option>
                     );
@@ -386,7 +386,7 @@ function SearchBar({ onSearch, variant = 'default', noResultsInfo = null, onClea
                         key={cat}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200"
                       >
-                        🎯 {t(`categories.${cat}`, cat)}
+                        🎯 {t(`home.categories.${cat}`, cat)}
                       </span>
                     ))}
                   </div>

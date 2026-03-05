@@ -36,7 +36,7 @@ function Button({
   return (
     <button className={cls} disabled={disabled || loading} {...props}>
       {loading && <Spinner size={16} />}
-      <span className={loading ? 'ml-2' : ''}>{children}</span>
+      <span className={`inline-flex items-center gap-1.5 ${loading ? 'ml-2' : ''}`}>{children}</span>
     </button>
   );
 }

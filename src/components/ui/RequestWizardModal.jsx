@@ -15,43 +15,43 @@ import { getProblemsForCategory, categoryRequiresLocation } from '@/utils/catego
 // ============================================================================
 const Icons = {
   Close: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),
   Check: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
   ),
   ChevronLeft: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
     </svg>
   ),
   ChevronRight: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
     </svg>
   ),
   Send: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
     </svg>
   ),
   Warning: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
     </svg>
   ),
   Photo: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
     </svg>
   ),
   Video: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
     </svg>
   ),
   Play: ({ className }) => (
@@ -60,27 +60,144 @@ const Icons = {
     </svg>
   ),
   Upload: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
     </svg>
   ),
   Sparkles: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
     </svg>
   ),
   MapPin: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
     </svg>
   ),
   Wrench: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437" />
+    </svg>
+  ),
+  // Step icons - SVG silhouette style matching Home page
+  StepProblem: ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437" />
+    </svg>
+  ),
+  StepMedia: ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+    </svg>
+  ),
+  StepLocation: ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+    </svg>
+  ),
+  StepDate: ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+    </svg>
+  ),
+  StepSummary: ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
     </svg>
   )
+};
+
+// ============================================================================
+// PROBLEM ICONS - SVG outline icons matching Home page style (text-gray-400, strokeWidth 1.5)
+// ============================================================================
+const PROBLEM_ICON_SVGS = {
+  bolt: ['M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z'],
+  wrench: ['M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.686.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z'],
+  home: ['M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'],
+  checkCircle: ['M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+  plusCircle: ['M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z'],
+  droplet: ['M12 2.69c-.47.53-1.09 1.27-1.72 2.1C8.56 7.13 6 10.81 6 14a6 6 0 1012 0c0-3.19-2.56-6.87-4.28-9.21A29.4 29.4 0 0012 2.69z'],
+  fire: ['M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.601a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z', 'M12 18a3.75 3.75 0 00.495-7.468 5.99 5.99 0 00-1.925 3.547 5.975 5.975 0 01-2.133-1.001A3.75 3.75 0 0012 18z'],
+  lightBulb: ['M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18'],
+  shield: ['M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z'],
+  lock: ['M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z'],
+  key: ['M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z'],
+  magnifier: ['M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z'],
+  box: ['M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z'],
+  sun: ['M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z'],
+  speaker: ['M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z'],
+  phone: ['M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3'],
+  bug: ['M12 12.75c1.148 0 2.278.08 3.383.237 1.037.146 1.866.966 1.866 2.013 0 3.728-2.35 6.75-5.25 6.75S6.75 18.728 6.75 15c0-1.046.83-1.867 1.866-2.013A24.204 24.204 0 0112 12.75zm0 0c2.883 0 5.647.508 8.207 1.44a23.91 23.91 0 01-1.152-6.135c-.22-2.057-1.907-3.555-3.97-3.555h-6.17c-2.063 0-3.75 1.498-3.97 3.555a23.91 23.91 0 01-1.152 6.135c2.56-.932 5.324-1.44 8.207-1.44z'],
+  beaker: ['M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5m9.25-11.396v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0c.251.023.501.05.75.082M5 14.5l-.44 1.1c-.593 1.48.157 3.168 1.697 3.351 1.596.19 3.22.3 4.866.33m0 0a48.4 48.4 0 001.754 0m-1.754 0c.585-.006 1.17-.02 1.754-.04m7.823-4.741l-.44 1.1c-.593 1.48.157 3.168 1.697 3.351A48.8 48.8 0 0112 21c-2.773 0-5.491-.235-8.135-.687'],
+  building: ['M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21'],
+  paint: ['M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42'],
+  arrowPath: ['M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182M21.015 4.356v4.992'],
+  sparkles: ['M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z'],
+  clipboard: ['M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 012.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z'],
+  trash: ['M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0'],
+  bell: ['M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0'],
+  cloud: ['M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z'],
+  briefcase: ['M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0'],
+  camera: ['M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z', 'M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z'],
+  puzzle: ['M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 01-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 00-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 01-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 00.657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959v0c0 .333.277.599.61.58a48.1 48.1 0 005.427-.63 48.05 48.05 0 00.582-4.717.532.532 0 00-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.959.401v0a.656.656 0 00.658-.663 48.422 48.422 0 00-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 01-.61-.58v0z'],
+  arrowUp: ['M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18'],
+  squares: ['M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z'],
+  truck: ['M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25m-2.25 0h-2.25m0 0v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12'],
+  photo: ['M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z'],
+  leaf: ['M12 21C7.03 21 3 16.97 3 12c0-4 4-9 7.5-11.25.5-.32 1-.32 1.5 0C15.5 3 20 8 20 12c0 4.97-3.58 9-8 9zm0-18c0 0-3 4-3 9m6-6c0 0-3 3.5-3 7.5'],
+  music: ['M9 19.5v-15l10.5-3v15M9 19.5a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm10.5-3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z'],
+  eye: ['M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z', 'M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
+  link: ['M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244'],
+  plug: ['M5.636 5.636a9 9 0 1012.728 0M12 3v9'],
+  window: ['M3 8.25V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V8.25m-18 0V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v2.25m-18 0h18M12 3.75v16.5m-9-8.25h18'],
+  mapPin: ['M15 10.5a3 3 0 11-6 0 3 3 0 016 0z', 'M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z'],
+  calendar: ['M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5'],
+  cog: ['M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z', 'M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
+  swatch: ['M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z'],
+  broom: ['M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776'],
+  bed: ['M21 11.25v7.5M3 11.25v7.5M12 3v3.75m-3 0h6m-8.25 3h10.5a2.25 2.25 0 012.25 2.25v3H3.75v-3a2.25 2.25 0 012.25-2.25z'],
+  map: ['M9 6.75V15m0-8.25a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 9.75V15m0 0l-3-3m3 3l3-3M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+  fallback: ['M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z']
+};
+
+// Map emoji characters to SVG icon keys
+const EMOJI_ICON_MAP = {
+  '⚡': 'bolt', '🔧': 'wrench', '🛠️': 'wrench', '🧰': 'wrench', '🔩': 'cog',
+  '⚙️': 'cog', '🔨': 'wrench', '🧩': 'puzzle', '🖼️': 'photo', '🧱': 'squares',
+  '🪨': 'squares', '🚪': 'home', '🪑': 'box', '✅': 'checkCircle', '➕': 'plusCircle',
+  '💧': 'droplet', '🌊': 'droplet', '🚿': 'droplet', '🚰': 'droplet', '🚽': 'droplet',
+  '🏊': 'droplet', '🔥': 'fire', '🌀': 'arrowPath', '🔁': 'arrowPath', '💥': 'sparkles',
+  '✨': 'sparkles', '🔌': 'plug', '💡': 'lightBulb', '🔘': 'lightBulb', '📦': 'box',
+  '📭': 'box', '🗄️': 'box', '🔗': 'link', '🔍': 'magnifier', '❄️': 'cloud',
+  '🌡️': 'sun', '🌬️': 'cloud', '🫧': 'beaker', '🔊': 'speaker', '🔐': 'lock',
+  '🔒': 'lock', '🔑': 'key', '🛡️': 'shield', '📱': 'phone', '🚗': 'truck',
+  '🚜': 'truck', '🐜': 'bug', '🐀': 'bug', '🪲': 'bug', '🪳': 'bug', '🦟': 'bug',
+  '🛏️': 'bed', '🧴': 'beaker', '🌿': 'leaf', '🌱': 'leaf', '🍂': 'leaf',
+  '🌳': 'leaf', '🌺': 'leaf', '🟩': 'leaf', '🏠': 'home', '🏗️': 'building',
+  '🏢': 'building', '🧽': 'broom', '🧹': 'broom', '🪟': 'window', '🍳': 'swatch',
+  '🎨': 'paint', '⬆️': 'arrowUp', '🪵': 'squares', '📐': 'clipboard', '📏': 'clipboard',
+  '👔': 'briefcase', '🔲': 'squares', '⬜': 'squares', '🧪': 'beaker',
+  '☀️': 'sun', '📋': 'clipboard', '📆': 'calendar', '🗂️': 'clipboard',
+  '💼': 'briefcase', '🗑️': 'trash', '📹': 'camera', '🖥️': 'camera',
+  '📡': 'bell', '🚨': 'bell', '🔔': 'bell', '🌧️': 'cloud', '⛈️': 'cloud',
+  '⛱️': 'cloud', '🕶️': 'eye', '♻️': 'arrowPath', '🎹': 'music',
+  '🛋️': 'box', '🗺️': 'map', '🗓️': 'calendar'
+};
+
+// ProblemIcon component - renders SVG silhouette matching Home page style
+const ProblemIcon = ({ emoji, className = 'w-5 h-5 text-gray-400' }) => {
+  const iconKey = EMOJI_ICON_MAP[emoji] || 'fallback';
+  const paths = PROBLEM_ICON_SVGS[iconKey] || PROBLEM_ICON_SVGS.fallback;
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      {paths.map((d, i) => (
+        <path key={i} strokeLinecap="round" strokeLinejoin="round" d={d} />
+      ))}
+    </svg>
+  );
 };
 
 // ============================================================================
@@ -92,40 +209,40 @@ const STEPS = [
     titleKey: 'problems', 
     shortTitleKey: 'problems',
     descriptionKey: 'problemsHint',
-    icon: '🔧',
-    color: 'from-brand-500 to-brand-600'
+    iconComponent: 'StepProblem',
+    color: 'from-dark-600 to-dark-700'
   },
   { 
     id: 'media', 
     titleKey: 'media', 
     shortTitleKey: 'photosVideos',
     descriptionKey: 'mediaHint',
-    icon: '📸',
-    color: 'from-dark-500 to-dark-700'
+    iconComponent: 'StepMedia',
+    color: 'from-dark-600 to-dark-700'
   },
   { 
     id: 'location', 
     titleKey: 'location', 
     shortTitleKey: 'location',
     descriptionKey: 'locationHint',
-    icon: '📍',
-    color: 'from-brand-500 to-brand-700'
+    iconComponent: 'StepLocation',
+    color: 'from-dark-600 to-dark-700'
   },
   { 
     id: 'date', 
     titleKey: 'date', 
     shortTitleKey: 'date',
     descriptionKey: 'dateHint',
-    icon: '📅',
-    color: 'from-amber-500 to-orange-500'
+    iconComponent: 'StepDate',
+    color: 'from-dark-600 to-dark-700'
   },
   { 
     id: 'budget', 
     titleKey: 'summary', 
     shortTitleKey: 'summary',
     descriptionKey: 'summaryHint',
-    icon: '📋',
-    color: 'from-accent-500 to-accent-600'
+    iconComponent: 'StepSummary',
+    color: 'from-dark-600 to-dark-700'
   }
 ];
 
@@ -837,7 +954,14 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                     {providerName.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <span className="absolute -bottom-1 -right-1 text-lg">{step.icon}</span>
+                {(() => {
+                  const StepIcon = Icons[step.iconComponent];
+                  return StepIcon ? (
+                    <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                      <StepIcon className="w-3.5 h-3.5 text-white" />
+                    </span>
+                  ) : null;
+                })()}
               </div>
 
               {/* Info */}
@@ -893,13 +1017,15 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                     `}
                     title={s.title}
                   >
-                    <div className={`
-                      w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all
-                      ${isCompleted ? 'bg-green-500 text-white' : 
-                        isCurrent ? 'bg-brand-600 text-white' : 
-                        'bg-gray-200 text-gray-500'}
-                    `}>
-                      {isCompleted ? <Icons.Check className="w-4 h-4" /> : <span>{s.icon}</span>}
+                    <div className="w-8 h-8 flex items-center justify-center transition-all">
+                      {isCompleted ? (
+                        <Icons.Check className="w-5 h-5 text-green-500" />
+                      ) : (() => {
+                        const StepIcon = Icons[s.iconComponent];
+                        return StepIcon ? (
+                          <StepIcon className={`w-5 h-5 ${isCurrent ? 'text-brand-600' : 'text-gray-400'}`} />
+                        ) : null;
+                      })()}
                     </div>
                     <span className={`text-[10px] sm:text-xs text-center truncate w-full ${
                       isCurrent ? 'text-gray-900 font-medium' : 'text-gray-500'
@@ -920,7 +1046,10 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
               {/* Step header */}
               <div className="mb-5">
                 <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <span className="text-2xl">{step.icon}</span>
+                  {(() => {
+                    const StepIcon = Icons[step.iconComponent];
+                    return StepIcon ? <StepIcon className="w-6 h-6 text-gray-400" /> : null;
+                  })()}
                   {t(`ui.requestWizard.steps.${step.titleKey}`)}
                 </h3>
                 <p className="text-sm text-gray-500 mt-1">{t(`ui.requestWizard.steps.${step.descriptionKey}`)}</p>
@@ -952,9 +1081,13 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                     </div>
                     
                     {/* Problems Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                       {availableProblems.map((problem) => {
                         const isSelected = formData.selectedProblems.includes(problem.id);
+                        const problemName = t(`ui.categoryProblems.${formData.category}.${problem.id}.name`);
+                        const problemDesc = t(`ui.categoryProblems.${formData.category}.${problem.id}.desc`);
+                        // Cards with long text (name > 20 chars or desc > 40 chars) go full width on mobile
+                        const isLongText = problemName.length > 20 || problemDesc.length > 40;
                         const isOther = problem.id === 'other';
                         
                         return (
@@ -967,17 +1100,17 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                               ${isSelected 
                                 ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20' 
                                 : 'border-gray-200 bg-white hover:border-brand-300 hover:bg-brand-50/50'}
-                              ${isOther ? 'col-span-2 sm:col-span-1' : ''}
+                              ${(isOther || isLongText) ? 'col-span-1 xs:col-span-2 sm:col-span-1' : ''}
                             `}
                           >
                             <div className="flex items-center gap-2 sm:gap-3">
-                              <span className="text-xl sm:text-2xl shrink-0">{problem.icon}</span>
+                              <ProblemIcon emoji={problem.icon} className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 shrink-0" />
                               <div className="min-w-0 flex-1">
-                                <p className={`font-medium text-sm sm:text-base truncate ${isSelected ? 'text-brand-800' : 'text-gray-900'}`}>
-                                  {t(`ui.categoryProblems.${formData.category}.${problem.id}.name`)}
+                                <p className={`font-medium text-sm sm:text-base leading-snug ${isSelected ? 'text-brand-800' : 'text-gray-900'}`}>
+                                  {problemName}
                                 </p>
-                                <p className="text-xs text-gray-500 truncate hidden sm:block">
-                                  {t(`ui.categoryProblems.${formData.category}.${problem.id}.desc`)}
+                                <p className="text-xs text-gray-500 leading-snug mt-0.5 line-clamp-2">
+                                  {problemDesc}
                                 </p>
                               </div>
                             </div>
@@ -1023,7 +1156,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       {t('ui.requestWizard.howUrgent')} *
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                       {URGENCY_OPTIONS.map((option) => {
                         const isSelected = formData.urgency === option.value;
                         const isUrgent = option.value === 'immediate';
@@ -1039,15 +1172,15 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                             type="button"
                             onClick={() => updateField('urgency', option.value)}
                             className={`
-                              relative p-4 rounded-xl border-2 text-left transition-all
+                              relative p-3 sm:p-4 rounded-xl border-2 text-left transition-all
                               ${isSelected ? selectedStyles : option.color}
                             `}
                           >
-                            <div className="flex items-start gap-3">
-                              <span className="text-2xl">{option.icon}</span>
-                              <div>
-                                <p className="font-semibold text-gray-900">{t(`ui.requestWizard.urgency.${option.labelKey}`)}</p>
-                                <p className="text-xs text-gray-500 mt-0.5">{t(`ui.requestWizard.urgency.${option.descriptionKey}`)}</p>
+                            <div className="flex items-start gap-2 sm:gap-3">
+                              <ProblemIcon emoji={option.icon} className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 shrink-0 mt-0.5" />
+                              <div className="min-w-0 flex-1 pr-5">
+                                <p className="font-semibold text-sm sm:text-base text-gray-900 wrap-break-word">{t(`ui.requestWizard.urgency.${option.labelKey}`)}</p>
+                                <p className="text-xs text-gray-500 mt-0.5 leading-snug">{t(`ui.requestWizard.urgency.${option.descriptionKey}`)}</p>
                               </div>
                             </div>
                             {isSelected && (
@@ -1344,7 +1477,10 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                           ? 'bg-green-50 border border-green-200' 
                           : 'bg-amber-50 border border-amber-200'
                       }`}>
-                        <span className="text-xl">{isComplete ? '✅' : '💡'}</span>
+                        {isComplete 
+                          ? <Icons.Check className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                          : <ProblemIcon emoji="💡" className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                        }
                         <div className="flex-1">
                           <p className={`text-sm font-medium ${isComplete ? 'text-green-800' : 'text-amber-800'}`}>
                             {isComplete 
@@ -1363,15 +1499,15 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                   })()}
 
                   {/* Summary card */}
-                  <div className="bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
-                    <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <span className="text-lg">📋</span>
+                  <div className="bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-4 sm:p-5 border border-gray-200">
+                    <h4 className="font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                      <Icons.StepSummary className="w-5 h-5 text-gray-400" />
                       {t('ui.requestWizard.requestSummary')}
                     </h4>
-                    <div className="space-y-3">
+                    <div className="space-y-3 sm:space-y-4">
                       {/* Selected Problems */}
                       <div className="flex items-start gap-3">
-                        <span className="text-gray-400 shrink-0">🔧</span>
+                        <Icons.StepProblem className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-gray-500">{t('ui.requestWizard.steps.problems')}</p>
                           <div className="flex flex-wrap gap-1.5 mt-1">
@@ -1382,7 +1518,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                                   key={problemId}
                                   className="inline-flex items-center gap-1 text-xs bg-brand-100 text-brand-700 px-2 py-1 rounded-full"
                                 >
-                                  <span>{problem.icon}</span>
+                                  <ProblemIcon emoji={problem.icon} className="w-3.5 h-3.5 text-brand-600" />
                                   {t(`ui.categoryProblems.${formData.category}.${problemId}.name`)}
                                 </span>
                               ) : null;
@@ -1405,7 +1541,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                       
                       {/* Location - con indicador de opcional */}
                       <div className="flex items-start gap-3">
-                        <span className={`shrink-0 ${formData.address ? 'text-gray-400' : 'text-amber-400'}`}>📍</span>
+                        <Icons.StepLocation className={`w-5 h-5 shrink-0 mt-0.5 ${formData.address ? 'text-gray-400' : 'text-amber-400'}`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-gray-500">
                             {t('ui.requestWizard.steps.location')}
@@ -1426,7 +1562,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                       
                       {/* Date - con indicador de opcional */}
                       <div className="flex items-start gap-3">
-                        <span className={`shrink-0 ${formData.preferredDate ? 'text-gray-400' : 'text-amber-400'}`}>📅</span>
+                        <Icons.StepDate className={`w-5 h-5 shrink-0 mt-0.5 ${formData.preferredDate ? 'text-gray-400' : 'text-amber-400'}`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-gray-500">
                             {t('ui.requestWizard.steps.date')}
@@ -1447,11 +1583,12 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                       
                       {/* Urgency */}
                       <div className="flex items-start gap-3">
-                        <span className="text-gray-400 shrink-0">⚡</span>
+                        <ProblemIcon emoji="⚡" className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-gray-500">{t('ui.requestWizard.urgencyLabel')}</p>
-                          <p className="text-sm text-gray-900">
-                            {formData.urgency === 'immediate' ? `🔴 ${t('ui.requestWizard.urgency.urgent')}` : `🔵 ${t('ui.requestWizard.urgency.scheduled')}`}
+                          <p className="text-sm text-gray-900 flex items-center gap-1.5">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${formData.urgency === 'immediate' ? 'bg-red-500' : 'bg-blue-500'}`} />
+                            {formData.urgency === 'immediate' ? t('ui.requestWizard.urgency.urgent') : t('ui.requestWizard.urgency.scheduled')}
                           </p>
                         </div>
                         <button
@@ -1470,7 +1607,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                     <div className="bg-white rounded-xl p-5 border border-gray-200">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="font-bold text-gray-900 flex items-center gap-2">
-                          <span className="text-lg">📸</span>
+                          <Icons.StepMedia className="w-5 h-5 text-gray-400" />
                           {t('ui.requestWizard.attachedFiles', { count: formData.photos.length + formData.videos.length })}
                         </h4>
                         <button
@@ -1554,7 +1691,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                   {/* Mensaje si no hay archivos */}
                   {formData.photos.length === 0 && formData.videos.length === 0 && (
                     <div className="bg-gray-50 rounded-xl p-5 border border-dashed border-gray-300 text-center">
-                      <span className="text-3xl mb-2 block">📷</span>
+                      <Icons.StepMedia className="w-8 h-8 text-gray-400 mb-2 mx-auto" />
                       <p className="text-sm text-gray-500 mb-2">{t('ui.requestWizard.noFilesAttached')}</p>
                       <button
                         type="button"
@@ -1573,14 +1710,14 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
           {/* ============================================================ */}
           {/* FOOTER - Botones de navegación */}
           {/* ============================================================ */}
-          <div className="bg-gray-50 border-t px-4 py-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+          <div className="bg-gray-50 border-t px-3 sm:px-4 py-3 flex items-center justify-between gap-2 sm:gap-3">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {/* Botón Cancelar */}
               <button
                 type="button"
                 onClick={handleCloseAttempt}
                 disabled={loading}
-                className="flex items-center gap-1.5 px-4 py-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-medium transition-all"
+                className="flex items-center gap-1 px-2 sm:px-4 py-2 sm:py-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-medium transition-all text-sm"
               >
                 <Icons.Close className="w-4 h-4" />
                 <span className="hidden sm:inline">{t('ui.requestWizard.cancel')}</span>
@@ -1592,7 +1729,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                 onClick={handleBack}
                 disabled={currentStep === 0 || loading}
                 className={`
-                  flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-medium transition-all
+                  flex items-center gap-1 px-2 sm:px-4 py-2 sm:py-2.5 rounded-xl font-medium transition-all text-sm
                   ${currentStep === 0 
                     ? 'text-gray-300 cursor-not-allowed' 
                     : 'text-gray-600 hover:bg-gray-200'}
@@ -1603,7 +1740,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="hidden xs:flex items-center gap-1.5">
               {STEPS.map((_, idx) => (
                 <div 
                   key={idx}
@@ -1616,13 +1753,13 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
             </div>
 
             {currentStep < STEPS.length - 1 ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 {/* Botón Omitir - visible en pasos opcionales (Media, Ubicación, Fecha) */}
                 {(currentStep === 1 || currentStep === 2 || currentStep === 3) && (
                   <button
                     type="button"
                     onClick={handleSkipStep}
-                    className="flex items-center gap-1.5 px-4 py-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl font-medium transition-all"
+                    className="flex items-center gap-1 px-2 sm:px-4 py-2 sm:py-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl font-medium transition-all text-xs sm:text-sm"
                   >
                     <span>{t('ui.requestWizard.skip')}</span>
                     <Icons.ChevronRight className="w-4 h-4" />
@@ -1632,7 +1769,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                   type="button"
                   onClick={handleNext}
                   disabled={uploadingMedia}
-                  className="flex items-center gap-1.5 px-5 py-2.5 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition-all disabled:opacity-50"
+                  className="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition-all disabled:opacity-50 text-sm sm:text-base whitespace-nowrap"
                 >
                   <span>{t('ui.requestWizard.continue')}</span>
                   <Icons.ChevronRight className="w-4 h-4" />
@@ -1643,9 +1780,9 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                 onClick={handleSubmit} 
                 loading={loading} 
                 disabled={uploadingMedia}
-                className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-sm sm:text-base whitespace-nowrap"
               >
-                <Icons.Send className="w-4 h-4" />
+                <Icons.Send className="w-4 h-4 shrink-0" />
                 <span>{isEditMode ? t('ui.requestWizard.saveChanges') : t('ui.requestWizard.sendRequest')}</span>
               </Button>
             )}

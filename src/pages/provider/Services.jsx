@@ -23,7 +23,7 @@ export default function Services() {
 
   useEffect(()=>{ clearError?.(); }, [clearError]);
 
-  // Convertir las 26 categorías a formato { value, label } con traducción
+  // Convertir las 16 categorías a formato { value, label } con traducción
   const categoryOptions = useMemo(() => 
     SERVICE_CATEGORIES.map(cat => ({ value: cat, label: t(`home.categories.${cat}`, cat) })),
     [t]

@@ -309,10 +309,11 @@ export default function Inbox() {
             </div>
           )}
           {(Array.isArray(proposals) ? proposals : []).map((p) => {
-            const category = p?.serviceRequest?.basicInfo?.category || '';
+            const rawCategory = p?.serviceRequest?.basicInfo?.category || '';
+            const translatedCategory = rawCategory ? t(`home.categories.${rawCategory}`, rawCategory) : '';
             const subcategory = p?.serviceRequest?.basicInfo?.subcategory || '';
-            const title = category
-              ? (subcategory ? `${category} · ${subcategory}` : category)
+            const title = translatedCategory
+              ? (subcategory ? `${translatedCategory} · ${subcategory}` : translatedCategory)
               : t('provider.inbox.estimate');
             const amount = p?.pricing?.amount;
             const amountMin = p?.pricing?.minAmount;

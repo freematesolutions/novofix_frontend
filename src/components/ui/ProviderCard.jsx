@@ -141,21 +141,21 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
         {/* Card Content */}
         <div className="p-4 sm:p-6">
           {/* Header: Avatar + Name/Stars/Badge — always horizontal, avatar spans full info height */}
-          <div className="flex flex-row items-start gap-3 sm:gap-5 mb-3">
-            {/* Avatar Section — sized to match info block height */}
-            <div className="shrink-0">
-              <div className="relative">
+          <div className="flex flex-row items-stretch gap-3 sm:gap-5 mb-3">
+            {/* Avatar Section — stretches to match info block height */}
+            <div className="shrink-0 self-stretch">
+              <div className="relative h-full">
                 {/* Avatar */}
                 {profileImage ? (
                   <img 
                     src={profileImage} 
                     alt={businessName}
                     data-avatar-img
-                    className="w-18 h-18 sm:w-22 sm:h-22 rounded-2xl object-cover ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
+                    className="w-18 sm:w-22 h-full min-h-18 sm:min-h-22 rounded-2xl object-cover ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
                     title={t('ui.providerCard.enlargeImage')}
                   />
                 ) : (
-                  <div className="w-18 h-18 sm:w-22 sm:h-22 rounded-2xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-18 sm:w-22 h-full min-h-18 sm:min-h-22 rounded-2xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105">
                     {businessName.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -282,15 +282,15 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
                     }}
                     className="w-full"
                   >
-                    <div className="grid grid-cols-3 gap-2.5">
-                      {portfolio.slice(0, 3).map((item, idx) => {
+                    <div className={`grid gap-2.5 ${portfolio.length === 1 ? 'grid-cols-1 max-w-[60%] mx-auto' : 'grid-cols-2'}`}>
+                      {portfolio.slice(0, 2).map((item, idx) => {
                         // Generar URL del thumbnail para videos usando transformaciones de Cloudinary
                         const thumbnailUrl = item.type === 'video' 
                           ? getVideoThumbnailUrl(item.url)
                           : item.url;
                         
                         return (
-                          <div key={idx} className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden group/img">
+                          <div key={idx} className="relative aspect-4/3 bg-gray-100 rounded-xl overflow-hidden group/img">
                             <img 
                               src={thumbnailUrl} 
                               alt={item.caption || `${t('ui.providerCard.portfolioWork')} ${idx + 1}`}
@@ -317,9 +317,10 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
                                 </div>
                               </div>
                             )}
-                            {idx === 2 && portfolio.length > 3 && (
-                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                <span className="text-white font-bold text-lg">+{portfolio.length - 3}</span>
+                            {/* Indicador de +N más en la segunda miniatura */}
+                            {idx === 1 && portfolio.length > 2 && (
+                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-[1px]">
+                                <span className="text-white font-bold text-base sm:text-lg drop-shadow-md">+{portfolio.length - 2}</span>
                               </div>
                             )}
                           </div>

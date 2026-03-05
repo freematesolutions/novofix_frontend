@@ -43,7 +43,10 @@
     "provider": "Proveedor",
     "providerSingular": "proveedor",
     "providerPlural": "proveedores",
-    "myAccount": "Mi cuenta"
+    "myAccount": "Mi cuenta",
+    "miles": "millas",
+    "saving": "Guardando...",
+    "update": "Actualizar"
   },
   "errorBoundary": {
     "title": "Ocurrió un error en la aplicación",
@@ -257,7 +260,8 @@
     "faq": "Preguntas frecuentes",
     "allRightsReserved": "Todos los derechos reservados",
     "madeWith": "Hecho con",
-    "in": "en"
+    "in": "en",
+    "ariaLabel": "Pie de página del sitio"
   },
   "toast": {
     "loginSuccess": "Inicio de sesión exitoso",
@@ -296,10 +300,14 @@
     "couldNotChangePlan": "No se pudo cambiar el plan",
     "errorChangingPlan": "Error al cambiar el plan",
     "couldNotApplyCode": "No se pudo aplicar el código",
-    "errorApplyingCode": "Error al aplicar el código"
-    ,
+    "errorApplyingCode": "Error al aplicar el código",
     "mainServiceUpdated": "Servicio principal actualizado",
-    "additionalServicesUpdated": "Servicios adicionales actualizados"
+    "additionalServicesUpdated": "Servicios adicionales actualizados",
+    "codeCopied": "Código copiado al portapapeles",
+    "draftUpdated": "Borrador actualizado",
+    "errorOpeningChat": "Error al abrir el chat",
+    "linkCopied": "Enlace copiado al portapapeles",
+    "proposalCancelled": "Estimado cancelado"
   },
   "chat": {
     "system": {
@@ -432,8 +440,9 @@
         "message": "Por favor verifica tu correo electrónico para activar tu cuenta."
       },
       "PAYMENT_RECEIVED": {
-        "title": "Pago recibido",
-        "message": "Has recibido un pago de ${{amount}}."
+        "title": "Pago recibido ✅",
+        "message": "Has recibido un pago de ${{amount}}.",
+        "messageDefault": "Has recibido un pago."
       },
       "REVIEW_RECEIVED": {
         "title": "Nueva reseña recibida ⭐",
@@ -471,11 +480,6 @@
       "PAYMENT_REQUIRED": {
         "title": "Pago pendiente 💳",
         "message": "Se requiere pago para tu reserva."
-      },
-      "PAYMENT_RECEIVED": {
-        "title": "Pago recibido ✅",
-        "message": "Has recibido un pago de ${{amount}}.",
-        "messageDefault": "Has recibido un pago."
       },
       "NEW_MESSAGE": {
         "title": "Nuevo mensaje 💬",
@@ -566,17 +570,17 @@
       "services": "Servicios",
       "featured": "Destacados",
       "testimonials": "Testimonios",
+      "gallery": "Galería",
       "mission": "Nuestra Esencia"
     },
     "title1": "Encuentra el profesional",
-    "title2": "que necesitas Ahora",
+    "title2": "que necesitas ahora",
     "services": "Servicios",
     "professionals": "Profesionales",
     "exploreBadge": "Explora Servicios",
     "searchPlaceholder": "Buscar servicios profesionales...",
     "carouselTitle": "Nuestros profesionales destacados",
-    "heroDescription": "Encuentra y contrata a los mejores profesionales para tu necesidad."
-    ,
+    "heroDescription": "Encuentra y contrata a los mejores profesionales para tu necesidad.",
     "clients": "Clientes",
     "categoriesWithProfessionals": "{{count}} categorías con profesionales disponibles",
     "comingSoonProfessionals": "Próximamente tendremos profesionales disponibles",
@@ -610,7 +614,7 @@
     },
     "featuredProviders": {
       "title": "Profesionales más Destacados",
-      "subtitle": "Los mejores profesionales del sistema, seleccionados por su excelencia y calidad de servicio",
+      "subtitle": "Seleccionados por su excelencia y calidad de servicio",
       "viewFeatured": "Ver profesionales destacados",
       "topRated": "Top {{count}} mejores",
       "loading": "Cargando profesionales destacados...",
@@ -647,99 +651,87 @@
     "noProfessionalsAvailable": "No hay profesionales disponibles",
     "tryOtherCategory": "Intenta buscar en otra categoría o realiza una búsqueda personalizada",
     "searchingProfessionals": "Buscando profesionales...",
-    "clickToViewProviders": "Click para ver proveedores",
+    "clickToViewProviders": "Click para ver profesionales disponibles",
     "categories": {
+      "Reparaciones": "Reparaciones",
       "Plomería": "Plomería",
       "Electricidad": "Electricidad",
-      "Carpintería": "Carpintería",
-      "Pintura": "Pintura",
-      "Limpieza": "Limpieza",
-      "Jardinería": "Jardinería",
+      "Climatización": "Climatización",
       "Cerrajería": "Cerrajería",
-      "Albañilería": "Albañilería",
-      "Reparación de electrodomésticos": "Reparación de electrodomésticos",
-      "Instalación de aire acondicionado": "Instalación de aire acondicionado",
-      "Mudanzas": "Mudanzas",
-      "Fumigación": "Fumigación",
-      "Tecnología e informática": "Tecnología e informática",
-      "Clases particulares": "Clases particulares",
-      "Belleza y estética": "Belleza y estética",
-      "Mecánica automotriz": "Mecánica automotriz",
-      "Fotografía": "Fotografía",
-      "Catering": "Catering",
+      "Mantenimiento": "Mantenimiento",
+      "Control de Plagas": "Control de Plagas",
+      "Limpieza": "Limpieza",
+      "Pintura": "Pintura",
+      "Gabinetes": "Gabinetes",
+      "Pisos": "Pisos",
+      "Cocina": "Cocina",
+      "Remodelación": "Remodelación",
+      "Jardinería": "Jardinería",
+      "Piscinas": "Piscinas",
+      "Techado": "Techado",
+      "Cercas": "Cercas",
+      "Pérgolas": "Pérgolas",
+      "Ventanas": "Ventanas",
       "Construcción": "Construcción",
-      "Decoración": "Decoración",
-      "Diseño gráfico": "Diseño gráfico",
-      "Asesoría legal": "Asesoría legal",
-      "Contabilidad": "Contabilidad",
-      "Marketing digital": "Marketing digital",
-      "Traducción": "Traducción",
-      "Otro": "Otro"
+      "Mudanzas": "Mudanzas",
+      "Seguridad": "Seguridad"
     },
     "categoryDescriptions": {
-      "Plomería": "Instalación y reparación de sistemas de agua y drenaje",
-      "Electricidad": "Instalaciones eléctricas, reparaciones y mantenimiento",
-      "Carpintería": "Muebles, estructuras de madera y reparaciones",
-      "Pintura": "Pintura interior y exterior, revestimientos",
-      "Limpieza": "Limpieza profunda, mantenimiento regular",
-      "Jardinería": "Diseño, mantenimiento de jardines y áreas verdes",
-      "Cerrajería": "Apertura de puertas, instalación de cerraduras",
-      "Albañilería": "Construcción, remodelación, reparaciones estructurales",
-      "Reparación de electrodomésticos": "Reparación de lavadoras, refrigeradores, etc.",
-      "Instalación de aire acondicionado": "Instalación, mantenimiento y reparación",
-      "Mudanzas": "Transporte y logística de mudanzas",
-      "Fumigación": "Control de plagas y desinfección",
-      "Tecnología e informática": "Soporte técnico, reparación de computadoras",
-      "Clases particulares": "Educación personalizada en diversas materias",
-      "Belleza y estética": "Servicios de belleza, peluquería, estética",
-      "Mecánica automotriz": "Reparación y mantenimiento de vehículos",
-      "Fotografía": "Fotografía profesional para eventos y productos",
-      "Catering": "Servicio de comidas para eventos",
-      "Construcción": "Proyectos de construcción y remodelación",
-      "Decoración": "Diseño de interiores y decoración",
-      "Diseño gráfico": "Diseño de logotipos, branding, publicidad",
-      "Asesoría legal": "Consultoría legal y representación",
-      "Contabilidad": "Servicios contables y fiscales",
-      "Marketing digital": "Estrategias de marketing online",
-      "Traducción": "Servicios de traducción e interpretación",
-      "Otro": "Otros servicios profesionales"
+      "Reparaciones": "Soluciones hoy mismo",
+      "Plomería": "Cero fugas, cero estrés",
+      "Electricidad": "Energía segura",
+      "Climatización": "Tu clima perfecto",
+      "Cerrajería": "Acceso y seguridad",
+      "Mantenimiento": "Siempre impecable",
+      "Control de Plagas": "100% protegido",
+      "Limpieza": "Brillo total",
+      "Pintura": "Acabados de lujo",
+      "Gabinetes": "Diseños a medida",
+      "Pisos": "Pisadas con elegancia",
+      "Cocina": "Equipamiento y confort",
+      "Remodelación": "Estrena tu casa",
+      "Jardinería": "Jardines de revista",
+      "Piscinas": "Oasis cristalino",
+      "Techado": "Cobertura de nivel",
+      "Cercas": "Privacidad con estilo",
+      "Pérgolas": "Sombra y estilo",
+      "Ventanas": "Vistas de impacto",
+      "Construcción": "Estructuras garantizadas",
+      "Mudanzas": "Traslados seguros",
+      "Seguridad": "Protección garantizada"
     },
     "viewProfessionals": "Ver profesionales",
     "comingSoon": "Próximamente",
     "comingSoonAvailable": "Próximamente disponible",
-    "clickToViewProviders": "Click para ver profesionales disponibles",
     "carousel": {
       "ariaLabel": "Carrusel de categorías de servicio",
       "provider": "profesional",
       "providers": "profesionales",
       "taglines": {
-        "Plomería": "Flujo sin preocupaciones",
-        "Electricidad": "Energía segura y confiable",
-        "Carpintería": "Detalles en madera que transforman",
+        "Reparaciones": "Soluciones hoy mismo",
+        "Plomería": "Cero fugas, cero estrés",
+        "Electricidad": "Energía segura",
+        "Climatización": "Tu clima perfecto",
+        "Cerrajería": "Acceso y seguridad",
+        "Mantenimiento": "Siempre impecable",
+        "Control de Plagas": "100% protegido",
+        "Limpieza": "Brillo total",
         "Pintura": "Acabados de lujo",
-        "Limpieza": "Espacios impecables",
-        "Jardinería": "Tu oasis verde",
-        "Cerrajería": "Seguridad en un clic",
-        "Albañilería": "Bases sólidas, resultados reales",
-        "Reparación de electrodomésticos": "Como nuevos otra vez",
-        "Instalación de aire acondicionado": "Clima perfecto, siempre",
-        "Mudanzas": "Tu nuevo inicio sin estrés",
-        "Fumigación": "Protección total garantizada",
-        "Tecnología e informática": "Soluciones digitales al instante",
-        "Clases particulares": "Aprende a tu ritmo",
-        "Belleza y estética": "Resalta tu mejor versión",
-        "Mecánica automotriz": "Tu vehículo en buenas manos",
-        "Fotografía": "Momentos que perduran",
-        "Catering": "Sabores que impresionan",
-        "Construcción": "Construimos tus sueños",
-        "Decoración": "Espacios con personalidad",
-        "Diseño gráfico": "Creatividad que impacta",
-        "Asesoría legal": "Tu derecho, nuestra prioridad",
-        "Contabilidad": "Finanzas claras y simples",
-        "Marketing digital": "Visibilidad que convierte",
-        "Traducción": "Sin barreras de idioma",
-        "Otro": "Soluciones a tu medida"
-      }
+        "Gabinetes": "Diseños a medida",
+        "Pisos": "Pisadas con elegancia",
+        "Cocina": "Equipamiento y confort",
+        "Remodelación": "Estrena tu casa",
+        "Jardinería": "Jardines de revista",
+        "Piscinas": "Oasis cristalino",
+        "Techado": "Cobertura de nivel",
+        "Cercas": "Privacidad con estilo",
+        "Pérgolas": "Sombra y estilo",
+        "Ventanas": "Vistas de impacto",
+        "Construcción": "Estructuras garantizadas",
+        "Mudanzas": "Traslados seguros",
+        "Seguridad": "Protección garantizada"
+      },
+      "disabledTooltip": "Aún no hay profesionales disponibles para esta categoría"
     },
     "searchBar": {
       "placeholder": "Buscar servicios profesionales...",
@@ -890,312 +882,6 @@
       "noPrice": "Sin precio",
       "priceRange": "Rango de precio",
       "tip": "💡 Compara propuestas antes de decidir",
-      "tipDescription": "Revisa el perfil, calificación y precio de cada profesional",
-      "chatModal": {
-        "title": "Chat con el profesional",
-        "tip": "Negocia detalles antes de aceptar",
-        "acceptProposal": "Aceptar propuesta"
-      },
-      "proposalAccepted": "Propuesta aceptada",
-      "proposalRejected": "Propuesta rechazada",
-      "chatError": "Error al abrir el chat",
-      "acceptedSuccess": "¡Propuesta aceptada! Tu reserva ha sido confirmada",
-      "acceptError": "Error al aceptar la propuesta",
-      "alreadyProcessed": "Esta propuesta ya fue procesada anteriormente",
-      "rejected": "Propuesta rechazada",
-      "yourRequest": "Tu solicitud",
-      "photo": "Foto",
-      "chatOpenError": "Error al abrir el chat",
-      "negotiateTooltip": "Conversar con el profesional para negociar términos o resolver dudas"
-    },
-    "messages": {
-      "title": "Mis Mensajes",
-      "subtitle": "Conversa con los proveedores de servicios",
-      "new": "nuevo(s)",
-      "conversations": "Conversaciones",
-      "noMessages": "Sin mensajes",
-      "noConversations": "Sin conversaciones",
-      "noConversationsDescription": "Cuando inicies una conversación, aparecerá aquí",
-      "selectConversation": "Selecciona una conversación",
-      "selectConversationDescription": "Elige una conversación del panel izquierdo para ver los mensajes",
-      "loadError": "Error al cargar conversaciones",
-      "chat": "Chat",
-      "provider": "Proveedor",
-      "acceptError": "Error al aceptar la propuesta",
-      "rejectError": "Error al rechazar la propuesta",
-      "filterAll": "Todos",
-      "filterBookings": "Reservas",
-      "filterEstimates": "Estimados",
-      "filterInquiries": "Consultas",
-      "typeBooking": "Reserva",
-      "typeEstimate": "Estimado",
-      "typeInquiry": "Consulta",
-      "noChatsInFilter": "Sin conversaciones en esta categoría",
-      "showAll": "Ver todas"
-    },
-    "createRequest": {
-      "title": "Crear nueva solicitud",
-      "category": "Categoría",
-      "urgency": {
-        "immediate": "Inmediato",
-        "scheduled": "Programado"
-      },
-      "urgencyLabel": "Urgencia del servicio",
-      "requestTitle": "Título de la solicitud",
-      "titleLabel": "Título",
-      "description": "Descripción",
-      "descriptionLabel": "Descripción del servicio",
-      "address": "Dirección",
-      "addressLabel": "Dirección del servicio",
-      "mapLocation": "Ubicación en el mapa",
-      "attachMultimedia": "Adjuntar multimedia",
-      "photosLabel": "Fotos",
-      "videosLabel": "Videos",
-      "preferredDate": "Fecha preferida",
-      "estimatedBudget": "Presupuesto estimado",
-      "calculating": "Calculando...",
-      "noProviders": "Sin proveedores disponibles",
-      "eligibleProviders": "{{count}} proveedores elegibles",
-      "sendToAll": "Enviar a todos",
-      "selectProviders": "Seleccionar proveedores",
-      "sortedByScore": "Ordenados por puntuación",
-      "limitReached": "Límite alcanzado",
-      "noPortfolio": "Sin portafolio",
-      "compressing": "Comprimiendo...",
-      "uploadingPhotos": "Subiendo fotos...",
-      "uploadingVideos": "Subiendo videos...",
-      "processingCloudinary": "Procesando en la nube...",
-      "publishRequest": "Publicar solicitud",
-      "saveDraft": "Guardar borrador",
-      "update": "Actualizar",
-      "createSuccess": "Solicitud creada exitosamente",
-      "createError": "Error al crear solicitud",
-      "draftSuccess": "Borrador guardado",
-      "viewPortfolio": "Ver portafolio",
-      "noProvidersTooltip": "No hay proveedores disponibles para esta categoría/urgencia en tu zona",
-      "validation": {
-        "categoryRequired": "Selecciona una categoría",
-        "titleRequired": "El título es obligatorio",
-        "descriptionRequired": "La descripción es obligatoria",
-        "addressRequired": "La dirección es obligatoria"
-      }
-    },
-    "editRequest": {
-      "title": "Editar solicitud",
-      "subtitle": "Actualiza los detalles de tu solicitud de servicio",
-      "notFound": "Solicitud no encontrada",
-      "loadError": "Error al cargar la solicitud",
-      "updateSuccess": "Solicitud actualizada correctamente",
-      "updateError": "Error al actualizar la solicitud",
-      "hasProposalsWarning": "Esta solicitud ya tiene propuestas",
-      "hasProposalsDetail": "No podrás cambiar el título ni la categoría porque ya hay propuestas asociadas.",
-      "categoryLocked": "Categoría bloqueada (tiene propuestas)",
-      "titleLocked": "Título bloqueado (tiene propuestas)",
-      "saveChanges": "Guardar cambios",
-      "saving": "Guardando...",
-      "backToRequests": "Volver a solicitudes"
-    }
-  },
-  "provider": {
-    "jobs": {
-      "title": "Empleos disponibles",
-      "subtitle": "Encuentra trabajos que coincidan con tus servicios",
-      "noJobs": "No hay empleos disponibles",
-      "noJobsDescription": "Cuando haya solicitudes en tu área, aparecerán aquí",
-      "noRequests": "Sin solicitudes disponibles",
-      "noRequestsDescription": "Cuando haya solicitudes que coincidan con tus servicios, aparecerán aquí",
-      "sendProposal": "Enviar estimado",
-      "viewDetails": "Ver detalles",
-      "requestsService": "solicita un servicio",
-      "notified": "Notificado",
-      "directed": "Dirigido a ti",
-      "view": "Ver",
-      "propose": "Estimar",
-      "negotiate": "Negociar",
-      "proposalSent": "Estimado enviado",
-      "serviceRequest": "Solicitud de servicio",
-      "providerOnly": "Esta sección es solo para proveedores",
-      "errorLoading": "Error al cargar empleos",
-      "loading": "Cargando empleos..."
-    },
-    "portfolio": {
-      "title": "Mi Portafolio",
-      "subtitle": "Muestra tu trabajo y aumenta tu visibilidad",
-      "addWork": "Agregar trabajo",
-      "noWorks": "Sin trabajos en tu portafolio",
-      "addFirstWork": "Agrega tu primer trabajo",
-      "totalItems": "Total de elementos",
-      "photos": "Fotos",
-      "videos": "Videos",
-      "categories": "Categorías",
-      "tipsTitle": "Consejos para un portafolio exitoso",
-      "tip1Title": "Fotos de calidad",
-      "tip1Desc": "Usa buena iluminación y muestra el antes/después",
-      "tip2Title": "Variedad de trabajos",
-      "tip2Desc": "Incluye diferentes tipos de proyectos que realices",
-      "tip3Title": "Descripciones claras",
-      "tip3Desc": "Explica qué hiciste y los materiales utilizados",
-      "tip4Title": "Videos cortos",
-      "tip4Desc": "Muestra tu proceso de trabajo en acción",
-      "tip5Title": "Actualiza frecuentemente",
-      "tip5Desc": "Agrega tus trabajos más recientes regularmente",
-      "tip6Title": "Destaca lo mejor",
-      "tip6Desc": "Pon tus mejores trabajos al inicio del portafolio"
-    },
-    "plan": {
-      "title": "Mi Plan",
-      "subtitle": "Gestiona tu suscripción y límites",
-      "currentPlan": "Plan actual",
-      "yourCurrentPlan": "Tu plan actual",
-      "upgrade": "Mejorar plan",
-      "loadError": "No se pudo cargar información de planes",
-      "updateSuccess": "Plan actualizado",
-      "updateError": "Error al cambiar el plan",
-      "codeApplied": "Código aplicado",
-      "codeError": "No se pudo aplicar el código",
-      "providerOnly": "Esta sección es solo para proveedores",
-      "loading": "Cargando información del plan...",
-      "active": "Activo",
-      "discountApplied": "Descuento aplicado",
-      "leadsUsed": "Leads utilizados",
-      "commission": "Comisión",
-      "perTransaction": "por transacción completada",
-      "visibility": "Visibilidad",
-      "multiplier": "multiplicador de visibilidad",
-      "nextPeriod": "Próximo período",
-      "renewal": "fecha de renovación",
-      "haveReferralCode": "¿Tienes código de referido?",
-      "enterCode": "Ingresa el código",
-      "applying": "Aplicando...",
-      "apply": "Aplicar",
-      "availablePlans": "Planes disponibles",
-      "mostPopular": "Más popular",
-      "free": "Gratis",
-      "unlimited": "Ilimitados",
-      "leadsMonth": "leads/mes",
-      "changeTo": "Cambiar a {{plan}}",
-      "changeToFree": "Cambiar a plan gratuito",
-      "processing": "Procesando...",
-      "noPlansAvailable": "No hay planes disponibles",
-      "plansComingSoon": "Próximamente tendremos planes para ti",
-      "planNames": {
-        "free": "Gratis",
-        "basic": "Básico",
-        "pro": "Profesional",
-        "professional": "Profesional",
-        "premium": "Premium",
-        "starter": "Inicial",
-        "starterMonthly": "Inicial Mensual",
-        "starterAnnual": "Inicial Anual"
-      },
-      "perMonth": "/mes"
-    },
-    "services": {
-      "title": "Mis Servicios",
-      "subtitle": "Configura los servicios que ofreces",
-      "providerOnly": "Esta sección es solo para proveedores",
-      "errorLoading": "Error al cargar servicios",
-      "selectCategory": "Selecciona una categoría",
-      "selectMainCategory": "Selecciona la categoría principal",
-      "errorAdding": "Error al agregar servicio",
-      "errorRemoving": "Error al eliminar servicio",
-      "errorSavingMain": "Error al guardar servicio principal",
-      "errorSavingAdditional": "Error al guardar servicios adicionales",
-      "addNewService": "Agregar nuevo servicio",
-      "mainServiceTitle": "Servicio principal",
-      "mainCategory": "Categoría principal",
-      "mainServiceName": "Nombre del servicio",
-      "mainServicePlaceholder": "Ej: Instalación de aires acondicionados",
-      "experienceYears": "Años de experiencia",
-      "subcategories": "Subcategorías",
-      "subcategoriesPlaceholder": "Ej: Instalación, Reparación, Mantenimiento...",
-      "saving": "Guardando...",
-      "addService": "Agregar servicio",
-      "saveMainService": "Guardar servicio principal",
-      "mainServiceLocked": "Tu servicio principal no puede ser modificado una vez configurado",
-      "mainServiceLockedNotice": "El servicio principal está bloqueado y no puede ser editado. Solo puedes gestionar tus servicios adicionales.",
-      "currentServices": "Servicios actuales",
-      "servicesCount": "{{count}} servicio(s) configurado(s)",
-      "noServices": "Sin servicios configurados",
-      "noServicesDescription": "Agrega los servicios que ofreces para empezar a recibir solicitudes",
-      "additionalServicesTitle": "Experiencia en otros servicios",
-      "additionalServicesHint": "Estos servicios son informativos y no afectan búsquedas ni solicitudes",
-      "additionalServicePlaceholder": "Agregar otro servicio...",
-      "addAdditional": "Añadir",
-      "noAdditionalServices": "No has agregado servicios adicionales",
-      "saveAdditional": "Guardar servicios adicionales",
-      "year": "año(s)",
-      "delete": "Eliminar"
-    },
-    "calendar": {
-      "title": "Mi Calendario",
-      "subtitle": "Gestiona tu disponibilidad y horarios",
-      "providerOnly": "Esta sección es solo para proveedores",
-      "errorLoading": "Error al cargar disponibilidad",
-      "selectDate": "Seleccionar fecha",
-      "date": "Fecha",
-      "loading": "Cargando...",
-      "loadSlots": "Cargar horarios",
-      "availableSlots": "Horarios disponibles",
-      "slotsCount": "{{count}} horario(s) disponible(s)",
-      "available": "Disponible",
-      "loadingSlots": "Cargando horarios...",
-      "noSlots": "Sin horarios disponibles",
-      "noSlotsDescription": "No hay horarios configurados para esta fecha"
-    },
-    "reviews": {
-      "title": "Mis Reseñas",
-      "subtitle": "Gestiona tu reputación y responde a tus clientes",
-      "providerOnly": "Esta sección es solo para proveedores",
-      "errorLoading": "Error al cargar reseñas",
-      "loading": "Cargando reseñas...",
-      "refresh": "Actualizar",
-      "averageRating": "Calificación promedio",
-      "outOfStars": "de 5 estrellas",
-      "totalReviews": "Total de reseñas",
-      "reviewReceived": "reseña recibida",
-      "reviewsReceived": "reseñas recibidas",
-      "responded": "Respondidas",
-      "responseRate": "tasa de respuesta",
-      "unanswered": "Sin responder",
-      "waitingResponse": "esperando respuesta",
-      "categoryScores": "Puntuación por categoría",
-      "categories": {
-        "professionalism": "Profesionalismo",
-        "quality": "Calidad del trabajo",
-        "punctuality": "Puntualidad",
-        "communication": "Comunicación",
-        "value": "Relación calidad-precio"
-      },
-      "ratingDistribution": "Distribución de calificaciones",
-      "allReviews": "Todas las reseñas",
-      "errorLoadingId": "Error al cargar ID del proveedor",
-      "insightsTitle": "Insights y recomendaciones",
-      "reviewsWithoutResponse": "{{count}} reseña(s) sin responder",
-      "respondToImprove": "Responder mejora tu reputación y confianza con los clientes",
-      "improveCategory": "Mejora tu {{category}}",
-      "scoreBelowAverage": "Tu puntuación de {{score}} está por debajo del promedio",
-      "excellentReputation": "¡Excelente reputación!",
-      "excellentReputationDesc": "Mantén tu calidad de servicio para seguir destacando"
-    },
-    "requestDetail": {
-      "providerOnly": "Esta sección es solo para proveedores",
-      "errorLoading": "Error al cargar la solicitud",
-      "loading": "Cargando solicitud...",
-      "backToJobs": "Volver a empleos",
-      "normal": "Normal",
-      "requestDetail": "Detalle de solicitud",
-      "files": "archivos",
-      "viewMedia": "Ver fotos y videos",
-      "mediaAttachments": "Archivos adjuntos",
-      "photo": "Foto",
-      "viewAll": "Ver todo",
-      "detailsTitle": "Detalles del trabajo",
-      "detailsSubtitle": "Información proporcionada por el cliente",
-      "subcategory": "Subcategoría",
-      "location": "Ubicación",
-      "preferredDate": "Fecha preferida",
-      "sendProposal": "Enviar estimado",
       "sendProposalSubtitle": "Completa los detalles de tu estimado",
       "loadingPlan": "Cargando información del plan...",
       "active": "Activo",
@@ -1303,7 +989,27 @@
       "proposedAmount": "Monto estimado",
       "hours": "horas",
       "yourMessage": "Tu mensaje",
-      "goToMessages": "Ir a mensajes"
+      "goToMessages": "Ir a mensajes",
+      "accepting": "Aceptando...",
+      "loadError": "Error al cargar propuestas",
+      "rejectError": "Error al rechazar la propuesta",
+      "acceptError": "Error al aceptar la propuesta",
+      "acceptedSuccess": "¡Propuesta aceptada! Tu reserva ha sido confirmada",
+      "alreadyProcessed": "Esta propuesta ya fue procesada",
+      "chatModal": {
+        "acceptProposal": "Aceptar propuesta",
+        "tip": "Negocia detalles antes de aceptar",
+        "title": "Chat con profesional"
+      },
+      "chatOpenError": "Error al abrir el chat",
+      "negotiateTooltip": "Chatea con el profesional para negociar términos o resolver preguntas",
+      "photo": "Foto",
+      "rejected": "Propuesta rechazada",
+      "tipDescription": "Revisa el perfil, calificación y precio de cada profesional",
+      "yourRequest": "Tu solicitud",
+      "chatError": "Error al abrir el chat",
+      "proposalAccepted": "¡Propuesta aceptada!",
+      "proposalRejected": "Propuesta rechazada"
     },
     "referrals": {
       "title": "Programa de Referidos",
@@ -1381,6 +1087,128 @@
         "withdrawn": "Retirado",
         "draft": "Borrador"
       }
+    },
+    "createRequest": {
+      "title": "Crear nueva solicitud",
+      "subtitle": "Describe el servicio que necesitas",
+      "category": "Categoría",
+      "urgencyLabel": "Urgencia del servicio",
+      "titleLabel": "Título",
+      "descriptionLabel": "Descripción del servicio",
+      "addressLabel": "Dirección del servicio",
+      "mapLocation": "Ubicación en el mapa",
+      "attachMultimedia": "Adjuntar multimedia",
+      "photosLabel": "Fotos",
+      "videosLabel": "Videos",
+      "preferredDate": "Fecha preferida",
+      "estimatedBudget": "Presupuesto estimado",
+      "eligibleProviders": "{{count}} proveedores elegibles",
+      "limitReached": "Límite alcanzado",
+      "limitReachedDescription": "Has alcanzado el límite de solicitudes activas",
+      "noPortfolio": "Sin portafolio",
+      "publishRequest": "Publicar solicitud",
+      "saveDraft": "Guardar borrador",
+      "viewPortfolio": "Ver portafolio",
+      "noProvidersTooltip": "No hay proveedores disponibles para esta categoría/urgencia en tu zona",
+      "uploadingPhotos": "Subiendo fotos...",
+      "uploadingVideos": "Subiendo videos...",
+      "createError": "Error al crear la solicitud",
+      "allEligible": "Todos los elegibles",
+      "calculatingEligibility": "Calculando elegibilidad...",
+      "compressingImages": "Comprimiendo imágenes...",
+      "createdSuccess": "¡Solicitud creada correctamente!",
+      "deselectAll": "Deseleccionar todos",
+      "draftError": "Error al guardar el borrador",
+      "draftSaved": "Borrador guardado",
+      "eligibilityError": "Error al calcular elegibilidad",
+      "lastUpdate": "Última actualización",
+      "loadingCategories": "Cargando categorías...",
+      "noCategories": "No hay categorías disponibles",
+      "noProvidersEligibility": "No hay proveedores elegibles",
+      "photoUploadErrorMessage": "Error al subir las fotos",
+      "photosUploadError": "Error al subir fotos",
+      "photosUploaded": "Fotos subidas",
+      "photosUploadedSuccess": "¡Fotos subidas correctamente!",
+      "portfolio": "Portafolio",
+      "processingPhotos": "Procesando fotos...",
+      "processingVideos": "Procesando videos...",
+      "providersSortedByScore": "Proveedores ordenados por puntaje",
+      "selectAll": "Seleccionar todos",
+      "selectProviderError": "Error al seleccionar proveedor",
+      "selectedCount": "{{count}} seleccionado(s)",
+      "sendToAllProviders": "Enviar a todos los proveedores",
+      "uploadingFiles": "Subiendo archivos...",
+      "videoTooLarge": "El video es demasiado grande",
+      "videoUploadErrorMessage": "Error al subir los videos",
+      "videosUploadError": "Error al subir videos",
+      "videosUploaded": "Videos subidos",
+      "videosUploadedSuccess": "¡Videos subidos correctamente!",
+      "validation": {
+        "categoryRequired": "Selecciona una categoría",
+        "titleRequired": "El título es obligatorio",
+        "descriptionRequired": "La descripción es obligatoria",
+        "addressRequired": "La dirección es obligatoria",
+        "budgetRequired": "El presupuesto es requerido",
+        "locationRequired": "La ubicación es requerida"
+      },
+      "address": "Dirección",
+      "calculating": "Calculando...",
+      "compressing": "Comprimiendo...",
+      "createSuccess": "Solicitud creada exitosamente",
+      "description": "Descripción",
+      "draftSuccess": "Borrador guardado",
+      "noProviders": "No hay proveedores disponibles",
+      "processingCloudinary": "Procesando en la nube...",
+      "requestTitle": "Título de la solicitud",
+      "selectProviders": "Seleccionar proveedores",
+      "sendToAll": "Enviar a todos",
+      "sortedByScore": "Ordenado por puntuación",
+      "update": "Actualizar",
+      "urgency": {
+        "immediate": "Inmediata",
+        "scheduled": "Programada"
+      }
+    },
+    "editRequest": {
+      "title": "Editar solicitud",
+      "subtitle": "Actualiza los detalles de tu solicitud de servicio",
+      "notFound": "Solicitud no encontrada",
+      "loadError": "Error al cargar la solicitud",
+      "loading": "Cargando solicitud...",
+      "updateSuccess": "Solicitud actualizada correctamente",
+      "updateError": "Error al actualizar la solicitud",
+      "hasProposalsWarning": "Esta solicitud ya tiene propuestas",
+      "hasProposalsDetail": "No podrás cambiar el título ni la categoría porque ya hay propuestas asociadas.",
+      "categoryLocked": "Categoría bloqueada (tiene propuestas)",
+      "titleLocked": "Título bloqueado (tiene propuestas)",
+      "saveChanges": "Guardar cambios",
+      "backToRequests": "Volver a solicitudes",
+      "saving": "Guardando..."
+    },
+    "messages": {
+      "title": "Mis Mensajes",
+      "subtitle": "Chatea con los proveedores de servicio",
+      "new": "nuevo",
+      "conversations": "Conversaciones",
+      "noMessages": "Sin mensajes",
+      "noConversations": "Sin conversaciones",
+      "noConversationsDescription": "Cuando inicies una conversación, aparecerá aquí",
+      "selectConversation": "Selecciona una conversación",
+      "selectConversationDescription": "Elige una conversación del panel izquierdo para ver los mensajes",
+      "loadError": "Error al cargar conversaciones",
+      "chat": "Chat",
+      "provider": "Proveedor",
+      "acceptError": "Error al aceptar la propuesta",
+      "rejectError": "Error al rechazar la propuesta",
+      "filterAll": "Todos",
+      "filterBookings": "Reservas",
+      "filterEstimates": "Estimados",
+      "filterInquiries": "Consultas",
+      "typeBooking": "Reserva",
+      "typeEstimate": "Estimado",
+      "typeInquiry": "Consulta",
+      "noChatsInFilter": "Sin conversaciones en esta categoría",
+      "showAll": "Mostrar todas"
     }
   },
   "onboarding": {
@@ -1987,317 +1815,929 @@
       "additionalDetails": "Detalles adicionales (opcional)",
       "additionalDetailsPlaceholder": "¿Algo más que debamos saber? Medidas, materiales, estado actual...",
       "noProblemsSelected": "Selecciona al menos un problema",
+      "Reparaciones": {
+        "quickFix": {
+          "name": "Arreglo rápido",
+          "desc": "Solución inmediata y simple"
+        },
+        "minorRepairs": {
+          "name": "Reparaciones menores",
+          "desc": "Pequeños daños del hogar"
+        },
+        "assembly": {
+          "name": "Ensamblaje",
+          "desc": "Armado de muebles o piezas"
+        },
+        "wallMount": {
+          "name": "Montaje en pared",
+          "desc": "TV, cuadros o repisas"
+        },
+        "drywallPatch": {
+          "name": "Parche de pared",
+          "desc": "Huecos o grietas en drywall"
+        },
+        "doorAdjust": {
+          "name": "Ajuste de puerta",
+          "desc": "Puerta desalineada o rechina"
+        },
+        "furnitureAssembly": {
+          "name": "Armado de muebles",
+          "desc": "Muebles nuevos"
+        },
+        "generalMaintenance": {
+          "name": "Mantenimiento general",
+          "desc": "Revisión y ajustes"
+        },
+        "oddJobs": {
+          "name": "Trabajos varios",
+          "desc": "Necesidades puntuales"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
+      },
       "Plomería": {
-        "leak": { "name": "Fuga de agua", "desc": "Goteo o escape de agua visible" },
-        "cloggedDrain": { "name": "Drenaje tapado", "desc": "Agua que no fluye correctamente" },
-        "toiletIssue": { "name": "Problema con WC", "desc": "Inodoro que no funciona bien" },
-        "faucetDrip": { "name": "Llave gotea", "desc": "Grifo con goteo constante" },
-        "pipeRepair": { "name": "Reparar tubería", "desc": "Tubería dañada o rota" },
-        "waterHeater": { "name": "Calentador de agua", "desc": "Boiler o calentador con falla" },
-        "waterTank": { "name": "Tanque de agua", "desc": "Tinaco o cisterna" },
-        "waterPump": { "name": "Bomba de agua", "desc": "Bomba que no funciona" },
-        "sinkInstall": { "name": "Instalar lavabo", "desc": "Instalación nueva de lavabo" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
+        "leak": {
+          "name": "Fuga de agua",
+          "desc": "Goteo o escape visible"
+        },
+        "cloggedDrain": {
+          "name": "Drenaje tapado",
+          "desc": "Agua estancada"
+        },
+        "toiletIssue": {
+          "name": "Problema con WC",
+          "desc": "No funciona bien"
+        },
+        "faucetDrip": {
+          "name": "Llave que gotea",
+          "desc": "Grifo con fuga"
+        },
+        "pipeRepair": {
+          "name": "Reparar tubería",
+          "desc": "Tubería dañada"
+        },
+        "waterHeater": {
+          "name": "Calentador de agua",
+          "desc": "Boiler con falla"
+        },
+        "waterPressure": {
+          "name": "Baja presión",
+          "desc": "Poca fuerza de agua"
+        },
+        "fixtureInstall": {
+          "name": "Instalar accesorios",
+          "desc": "Lavabo, grifo, etc."
+        },
+        "sewerBackup": {
+          "name": "Retorno de drenaje",
+          "desc": "Malos olores o agua regresa"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
       "Electricidad": {
-        "nopower": { "name": "Sin electricidad", "desc": "Corte de luz en zona" },
-        "shortCircuit": { "name": "Cortocircuito", "desc": "Chispas o fusibles quemados" },
-        "outletIssue": { "name": "Tomacorriente malo", "desc": "Enchufe que no funciona" },
-        "lightingInstall": { "name": "Instalar iluminación", "desc": "Nueva lámpara o foco" },
-        "switchRepair": { "name": "Reparar interruptor", "desc": "Apagador dañado" },
-        "panelUpgrade": { "name": "Centro de carga", "desc": "Actualizar tablero eléctrico" },
-        "wiringRepair": { "name": "Cableado", "desc": "Reparar o instalar cables" },
-        "ceilingFan": { "name": "Ventilador techo", "desc": "Instalar o reparar ventilador" },
-        "groundingIssue": { "name": "Puesta a tierra", "desc": "Problema de aterrizaje" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
+        "noPower": {
+          "name": "Sin electricidad",
+          "desc": "Corte de luz"
+        },
+        "shortCircuit": {
+          "name": "Cortocircuito",
+          "desc": "Fusibles o chispas"
+        },
+        "outletIssue": {
+          "name": "Tomacorriente malo",
+          "desc": "Enchufe dañado"
+        },
+        "lightingInstall": {
+          "name": "Instalar iluminación",
+          "desc": "Lámpara o foco"
+        },
+        "switchRepair": {
+          "name": "Reparar interruptor",
+          "desc": "Apagador dañado"
+        },
+        "panelUpgrade": {
+          "name": "Centro de carga",
+          "desc": "Actualizar tablero"
+        },
+        "wiringRepair": {
+          "name": "Cableado",
+          "desc": "Reparar o instalar"
+        },
+        "ceilingFan": {
+          "name": "Ventilador de techo",
+          "desc": "Instalar o reparar"
+        },
+        "inspection": {
+          "name": "Inspección eléctrica",
+          "desc": "Revisión de seguridad"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Carpintería": {
-        "doorRepair": { "name": "Reparar puerta", "desc": "Puerta dañada o desajustada" },
-        "furnitureRepair": { "name": "Reparar mueble", "desc": "Mueble roto o desgastado" },
-        "customFurniture": { "name": "Mueble a medida", "desc": "Fabricación personalizada" },
-        "cabinetInstall": { "name": "Instalar gabinete", "desc": "Gabinete de cocina o baño" },
-        "woodFloor": { "name": "Piso de madera", "desc": "Instalar o reparar duela" },
-        "windowFrame": { "name": "Marco de ventana", "desc": "Reparar o instalar marco" },
-        "closetBuild": { "name": "Construir clóset", "desc": "Armario o vestidor" },
-        "shelfInstall": { "name": "Instalar estantes", "desc": "Repisas o libreros" },
-        "deckPatio": { "name": "Deck o terraza", "desc": "Construcción exterior" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
-      },
-      "Pintura": {
-        "interiorPaint": { "name": "Pintura interior", "desc": "Pintar paredes interiores" },
-        "exteriorPaint": { "name": "Pintura exterior", "desc": "Fachada o exteriores" },
-        "wallRepair": { "name": "Reparar pared", "desc": "Grietas o hoyos" },
-        "ceilingPaint": { "name": "Pintar techo", "desc": "Plafón o cielo raso" },
-        "woodPaint": { "name": "Pintar madera", "desc": "Muebles o puertas" },
-        "metalPaint": { "name": "Pintar metal", "desc": "Herrería o barandales" },
-        "texturePaint": { "name": "Texturizado", "desc": "Acabados especiales" },
-        "waterproofing": { "name": "Impermeabilizar", "desc": "Protección contra agua" },
-        "decorative": { "name": "Decorativo", "desc": "Murales o efectos" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
-      },
-      "Limpieza": {
-        "deepClean": { "name": "Limpieza profunda", "desc": "Limpieza completa del hogar" },
-        "regularClean": { "name": "Limpieza regular", "desc": "Mantenimiento periódico" },
-        "postConstruction": { "name": "Post-construcción", "desc": "Limpieza después de obra" },
-        "carpetClean": { "name": "Limpiar alfombras", "desc": "Lavado de tapetes" },
-        "windowClean": { "name": "Limpiar ventanas", "desc": "Vidrios y marcos" },
-        "upholsteryClean": { "name": "Limpiar tapicería", "desc": "Sofás y sillones" },
-        "kitchenDeep": { "name": "Cocina profunda", "desc": "Desengrase completo" },
-        "bathroomDeep": { "name": "Baños profunda", "desc": "Desinfección completa" },
-        "moveInOut": { "name": "Mudanza", "desc": "Entrada o salida de casa" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
-      },
-      "Jardinería": {
-        "lawnMowing": { "name": "Cortar césped", "desc": "Poda de pasto" },
-        "treeTrimming": { "name": "Podar árboles", "desc": "Recorte de ramas" },
-        "gardenDesign": { "name": "Diseño jardín", "desc": "Crear nuevo jardín" },
-        "irrigation": { "name": "Sistema riego", "desc": "Instalar o reparar" },
-        "pestControl": { "name": "Control plagas", "desc": "Eliminar insectos" },
-        "landscaping": { "name": "Paisajismo", "desc": "Diseño exterior" },
-        "hedgeTrimming": { "name": "Recortar setos", "desc": "Arbustos y cercas vivas" },
-        "plantCare": { "name": "Cuidado plantas", "desc": "Mantenimiento general" },
-        "soilWork": { "name": "Trabajo de tierra", "desc": "Preparar o mejorar suelo" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
+      "Climatización": {
+        "acInstall": {
+          "name": "Instalar A/C",
+          "desc": "Equipo nuevo"
+        },
+        "acRepair": {
+          "name": "Reparar A/C",
+          "desc": "No funciona bien"
+        },
+        "acMaintenance": {
+          "name": "Mantenimiento A/C",
+          "desc": "Limpieza y revisión"
+        },
+        "notCooling": {
+          "name": "No enfría",
+          "desc": "Aire tibio"
+        },
+        "heatingIssue": {
+          "name": "Problema de calefacción",
+          "desc": "No calienta"
+        },
+        "thermostat": {
+          "name": "Termostato",
+          "desc": "Control de temperatura"
+        },
+        "ductClean": {
+          "name": "Limpiar ductos",
+          "desc": "Conductos sucios"
+        },
+        "airQuality": {
+          "name": "Calidad de aire",
+          "desc": "Polvo u olores"
+        },
+        "strangeNoise": {
+          "name": "Ruido extraño",
+          "desc": "Sonidos inusuales"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
       "Cerrajería": {
-        "lockout": { "name": "Puerta cerrada", "desc": "Me quedé afuera" },
-        "lockChange": { "name": "Cambiar chapa", "desc": "Reemplazar cerradura" },
-        "keyDuplicate": { "name": "Copiar llave", "desc": "Duplicado de llaves" },
-        "lockRepair": { "name": "Reparar chapa", "desc": "Cerradura dañada" },
-        "securityUpgrade": { "name": "Mejorar seguridad", "desc": "Cerraduras más seguras" },
-        "safeLock": { "name": "Caja fuerte", "desc": "Abrir o reparar" },
-        "carLock": { "name": "Cerradura auto", "desc": "Vehículo cerrado" },
-        "padlock": { "name": "Candado", "desc": "Abrir o reemplazar" },
-        "digitalLock": { "name": "Chapa digital", "desc": "Cerradura electrónica" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
+        "lockout": {
+          "name": "Puerta cerrada",
+          "desc": "Me quedé afuera"
+        },
+        "lockChange": {
+          "name": "Cambiar chapa",
+          "desc": "Nueva cerradura"
+        },
+        "keyDuplicate": {
+          "name": "Copiar llave",
+          "desc": "Duplicado rápido"
+        },
+        "lockRepair": {
+          "name": "Reparar chapa",
+          "desc": "Cerradura dañada"
+        },
+        "securityUpgrade": {
+          "name": "Mejorar seguridad",
+          "desc": "Cerraduras seguras"
+        },
+        "smartLock": {
+          "name": "Chapa inteligente",
+          "desc": "Cerradura electrónica"
+        },
+        "carLock": {
+          "name": "Cerradura auto",
+          "desc": "Coche cerrado"
+        },
+        "safeLock": {
+          "name": "Caja fuerte",
+          "desc": "Abrir o reparar"
+        },
+        "rekey": {
+          "name": "Recombinar chapa",
+          "desc": "Cambiar combinación"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Albañilería": {
-        "wallBuild": { "name": "Construir muro", "desc": "Pared nueva de block" },
-        "floorTile": { "name": "Piso de loseta", "desc": "Instalar azulejo" },
-        "roofRepair": { "name": "Reparar techo", "desc": "Filtraciones o daños" },
-        "concreteWork": { "name": "Trabajo concreto", "desc": "Colado o firme" },
-        "plastering": { "name": "Aplanar", "desc": "Repellado de paredes" },
-        "demolition": { "name": "Demolición", "desc": "Tirar estructuras" },
-        "foundationRepair": { "name": "Cimentación", "desc": "Reparar base" },
-        "stairsBuild": { "name": "Construir escaleras", "desc": "Escalera nueva" },
-        "waterproofing": { "name": "Impermeabilizar", "desc": "Proteger de agua" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
+      "Mantenimiento": {
+        "preventive": {
+          "name": "Preventivo",
+          "desc": "Evitar fallas"
+        },
+        "repairs": {
+          "name": "Reparaciones",
+          "desc": "Arreglos generales"
+        },
+        "inspection": {
+          "name": "Inspección",
+          "desc": "Revisión del hogar"
+        },
+        "gutterClean": {
+          "name": "Limpiar canaletas",
+          "desc": "Canaletas o bajantes"
+        },
+        "applianceCheck": {
+          "name": "Revisar equipos",
+          "desc": "Electrodomésticos o sistemas"
+        },
+        "hvacFilter": {
+          "name": "Filtro HVAC",
+          "desc": "Cambio o limpieza"
+        },
+        "plumbingCheck": {
+          "name": "Revisión plomería",
+          "desc": "Chequeo de fugas"
+        },
+        "electricalCheck": {
+          "name": "Revisión eléctrica",
+          "desc": "Conexiones seguras"
+        },
+        "seasonalPrep": {
+          "name": "Preparación estacional",
+          "desc": "Listo para temporada"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Reparación de electrodomésticos": {
-        "washerRepair": { "name": "Reparar lavadora", "desc": "Lavadora no funciona" },
-        "dryerRepair": { "name": "Reparar secadora", "desc": "Secadora con falla" },
-        "fridgeRepair": { "name": "Reparar refri", "desc": "Refrigerador dañado" },
-        "ovenRepair": { "name": "Reparar estufa", "desc": "Horno o quemadores" },
-        "microwaveRepair": { "name": "Reparar microondas", "desc": "No calienta o falla" },
-        "dishwasherRepair": { "name": "Reparar lavavajillas", "desc": "Lavavajillas dañado" },
-        "tvRepair": { "name": "Reparar TV", "desc": "Televisor con falla" },
-        "smallAppliance": { "name": "Electrodoméstico menor", "desc": "Licuadora, tostador, etc." },
-        "maintenance": { "name": "Mantenimiento", "desc": "Servicio preventivo" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
+      "Control de Plagas": {
+        "insects": {
+          "name": "Insectos",
+          "desc": "Hormigas, arañas, etc."
+        },
+        "rodents": {
+          "name": "Roedores",
+          "desc": "Ratas o ratones"
+        },
+        "termites": {
+          "name": "Termitas",
+          "desc": "Polilla de madera"
+        },
+        "cockroaches": {
+          "name": "Cucarachas",
+          "desc": "Infestación"
+        },
+        "bedBugs": {
+          "name": "Chinches",
+          "desc": "Chinches de cama"
+        },
+        "mosquitoes": {
+          "name": "Mosquitos",
+          "desc": "Control de mosquitos"
+        },
+        "preventive": {
+          "name": "Preventivo",
+          "desc": "Evitar plagas"
+        },
+        "disinfection": {
+          "name": "Desinfección",
+          "desc": "Sanitización"
+        },
+        "gardenPest": {
+          "name": "Plagas jardín",
+          "desc": "Insectos en plantas"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Instalación de aire acondicionado": {
-        "acInstall": { "name": "Instalar A/C", "desc": "Equipo nuevo" },
-        "acRepair": { "name": "Reparar A/C", "desc": "No funciona bien" },
-        "acMaintenance": { "name": "Mantenimiento A/C", "desc": "Limpieza y revisión" },
-        "acNotCooling": { "name": "No enfría", "desc": "Aire caliente o tibio" },
-        "acNoise": { "name": "Hace ruido", "desc": "Sonidos extraños" },
-        "acLeak": { "name": "Gotea agua", "desc": "Fuga de condensado" },
-        "gasRecharge": { "name": "Recarga de gas", "desc": "Falta refrigerante" },
-        "ductClean": { "name": "Limpiar ductos", "desc": "Conductos sucios" },
-        "thermostat": { "name": "Termostato", "desc": "Control de temperatura" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
+      "Limpieza": {
+        "deepClean": {
+          "name": "Limpieza profunda",
+          "desc": "Limpieza completa del hogar"
+        },
+        "regularClean": {
+          "name": "Limpieza regular",
+          "desc": "Mantenimiento periódico"
+        },
+        "postConstruction": {
+          "name": "Post-construcción",
+          "desc": "Después de obra"
+        },
+        "moveInOut": {
+          "name": "Mudanza",
+          "desc": "Limpieza por mudanza"
+        },
+        "carpetClean": {
+          "name": "Limpiar alfombras",
+          "desc": "Lavado de tapetes"
+        },
+        "windowClean": {
+          "name": "Limpiar ventanas",
+          "desc": "Vidrios y marcos"
+        },
+        "kitchenDeep": {
+          "name": "Cocina profunda",
+          "desc": "Desengrase completo"
+        },
+        "bathroomDeep": {
+          "name": "Baños profunda",
+          "desc": "Desinfección completa"
+        },
+        "disinfection": {
+          "name": "Desinfección",
+          "desc": "Sanitización completa"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Mudanzas": {
-        "localMove": { "name": "Mudanza local", "desc": "Misma ciudad" },
-        "longDistance": { "name": "Larga distancia", "desc": "Otra ciudad o estado" },
-        "packingService": { "name": "Servicio empaque", "desc": "Embalar pertenencias" },
-        "furnitureOnly": { "name": "Solo muebles", "desc": "Artículos grandes" },
-        "officeMove": { "name": "Mudanza oficina", "desc": "Empresa o negocio" },
-        "heavyItems": { "name": "Objetos pesados", "desc": "Piano, caja fuerte, etc." },
-        "storage": { "name": "Almacenaje", "desc": "Guardar temporalmente" },
-        "pianoMove": { "name": "Mover piano", "desc": "Instrumento delicado" },
-        "applianceMove": { "name": "Mover electrodoméstico", "desc": "Refri, lavadora, etc." },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
+      "Pintura": {
+        "interiorPaint": {
+          "name": "Pintura interior",
+          "desc": "Paredes interiores"
+        },
+        "exteriorPaint": {
+          "name": "Pintura exterior",
+          "desc": "Fachada y exterior"
+        },
+        "wallRepair": {
+          "name": "Reparar pared",
+          "desc": "Grietas o agujeros"
+        },
+        "ceilingPaint": {
+          "name": "Pintar techo",
+          "desc": "Plafón o cielo raso"
+        },
+        "woodPaint": {
+          "name": "Pintar madera",
+          "desc": "Muebles o puertas"
+        },
+        "metalPaint": {
+          "name": "Pintar metal",
+          "desc": "Superficies metálicas"
+        },
+        "texturePaint": {
+          "name": "Texturizado",
+          "desc": "Acabado especial"
+        },
+        "waterproofing": {
+          "name": "Impermeabilizar",
+          "desc": "Protección contra agua"
+        },
+        "decorative": {
+          "name": "Decorativo",
+          "desc": "Murales o efectos"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Fumigación": {
-        "insects": { "name": "Insectos", "desc": "Hormigas, arañas, etc." },
-        "rodents": { "name": "Roedores", "desc": "Ratas o ratones" },
-        "termites": { "name": "Termitas", "desc": "Polilla de madera" },
-        "cockroaches": { "name": "Cucarachas", "desc": "Infestación de cucarachas" },
-        "bedBugs": { "name": "Chinches", "desc": "Chinches de cama" },
-        "mosquitoes": { "name": "Mosquitos", "desc": "Control de mosquitos" },
-        "preventive": { "name": "Preventivo", "desc": "Evitar plagas" },
-        "disinfection": { "name": "Desinfección", "desc": "Sanitización general" },
-        "gardenPest": { "name": "Plagas jardín", "desc": "Insectos en plantas" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
+      "Gabinetes": {
+        "cabinetInstall": {
+          "name": "Instalar gabinetes",
+          "desc": "Gabinetes nuevos"
+        },
+        "cabinetRepair": {
+          "name": "Reparar gabinetes",
+          "desc": "Gabinetes dañados"
+        },
+        "kitchenCabinets": {
+          "name": "Gabinetes cocina",
+          "desc": "Cocina completa"
+        },
+        "bathroomCabinets": {
+          "name": "Gabinetes baño",
+          "desc": "Baño completo"
+        },
+        "closetBuild": {
+          "name": "Construir clóset",
+          "desc": "Armario o vestidor"
+        },
+        "customDesign": {
+          "name": "Diseño a medida",
+          "desc": "Proyecto personalizado"
+        },
+        "doorReplacement": {
+          "name": "Cambiar puertas",
+          "desc": "Puertas de gabinete"
+        },
+        "hardwareUpdate": {
+          "name": "Actualizar herraje",
+          "desc": "Tiradores y bisagras"
+        },
+        "refinishing": {
+          "name": "Renovar acabado",
+          "desc": "Pintar o lacar"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Tecnología e informática": {
-        "pcRepair": { "name": "Reparar PC", "desc": "Computadora lenta o dañada" },
-        "virusRemoval": { "name": "Quitar virus", "desc": "Malware o spyware" },
-        "networkSetup": { "name": "Configurar red", "desc": "WiFi o ethernet" },
-        "dataRecovery": { "name": "Recuperar datos", "desc": "Archivos perdidos" },
-        "softwareInstall": { "name": "Instalar software", "desc": "Programas o apps" },
-        "printerSetup": { "name": "Configurar impresora", "desc": "Instalar o conectar" },
-        "emailSetup": { "name": "Configurar email", "desc": "Correo electrónico" },
-        "smartHome": { "name": "Casa inteligente", "desc": "Dispositivos smart" },
-        "securitySetup": { "name": "Seguridad informática", "desc": "Antivirus, firewall" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
+      "Pisos": {
+        "floorInstall": {
+          "name": "Instalar piso",
+          "desc": "Nuevo piso"
+        },
+        "floorRepair": {
+          "name": "Reparar piso",
+          "desc": "Daños o desgaste"
+        },
+        "hardwood": {
+          "name": "Madera",
+          "desc": "Piso de madera"
+        },
+        "laminate": {
+          "name": "Laminado",
+          "desc": "Piso laminado"
+        },
+        "tile": {
+          "name": "Azulejo",
+          "desc": "Cerámica o porcelanato"
+        },
+        "vinyl": {
+          "name": "Vinilo",
+          "desc": "Piso vinílico"
+        },
+        "polishing": {
+          "name": "Pulido",
+          "desc": "Brillo y acabado"
+        },
+        "leveling": {
+          "name": "Nivelación",
+          "desc": "Corregir desniveles"
+        },
+        "groutRepair": {
+          "name": "Reparar boquilla",
+          "desc": "Juntas de azulejo"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Clases particulares": {
-        "math": { "name": "Matemáticas", "desc": "Álgebra, cálculo, etc." },
-        "language": { "name": "Idiomas", "desc": "Inglés, francés, etc." },
-        "science": { "name": "Ciencias", "desc": "Física, química, biología" },
-        "music": { "name": "Música", "desc": "Instrumento o canto" },
-        "art": { "name": "Arte", "desc": "Dibujo, pintura, etc." },
-        "sports": { "name": "Deportes", "desc": "Entrenamiento físico" },
-        "programming": { "name": "Programación", "desc": "Código y desarrollo" },
-        "examPrep": { "name": "Preparar examen", "desc": "Admisión o certificación" },
-        "tutoring": { "name": "Tutoría general", "desc": "Apoyo escolar" },
-        "other": { "name": "Otro tema", "desc": "Describir en detalles" }
+      "Cocina": {
+        "applianceInstall": {
+          "name": "Instalar electrodoméstico",
+          "desc": "Equipo nuevo de cocina"
+        },
+        "applianceRepair": {
+          "name": "Reparar electrodoméstico",
+          "desc": "Equipo con falla"
+        },
+        "countertops": {
+          "name": "Encimeras",
+          "desc": "Instalar o reemplazar"
+        },
+        "sinkFaucet": {
+          "name": "Fregadero y grifo",
+          "desc": "Instalar o reparar"
+        },
+        "backsplash": {
+          "name": "Salpicadero",
+          "desc": "Instalar o renovar"
+        },
+        "lighting": {
+          "name": "Iluminación",
+          "desc": "Luces de cocina"
+        },
+        "ventilation": {
+          "name": "Ventilación",
+          "desc": "Campana o extractor"
+        },
+        "gasLine": {
+          "name": "Línea de gas",
+          "desc": "Conexión o reparación"
+        },
+        "layout": {
+          "name": "Distribución",
+          "desc": "Reorganizar cocina"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Belleza y estética": {
-        "haircut": { "name": "Corte de cabello", "desc": "Corte nuevo o retoque" },
-        "hairColor": { "name": "Tinte o color", "desc": "Cambio de color" },
-        "manicure": { "name": "Manicure", "desc": "Uñas de manos" },
-        "pedicure": { "name": "Pedicure", "desc": "Uñas de pies" },
-        "facial": { "name": "Facial", "desc": "Limpieza de rostro" },
-        "makeup": { "name": "Maquillaje", "desc": "Evento o casual" },
-        "waxing": { "name": "Depilación", "desc": "Cera o láser" },
-        "massage": { "name": "Masaje", "desc": "Relajante o terapéutico" },
-        "bridal": { "name": "Novia", "desc": "Paquete completo boda" },
-        "other": { "name": "Otro servicio", "desc": "Describir en detalles" }
+      "Remodelación": {
+        "kitchenRemodel": {
+          "name": "Remodelar cocina",
+          "desc": "Renovar cocina"
+        },
+        "bathroomRemodel": {
+          "name": "Remodelar baño",
+          "desc": "Renovar baño"
+        },
+        "roomAddition": {
+          "name": "Agregar cuarto",
+          "desc": "Ampliar espacio"
+        },
+        "flooring": {
+          "name": "Cambiar piso",
+          "desc": "Nuevo piso completo"
+        },
+        "painting": {
+          "name": "Pintura completa",
+          "desc": "Toda la casa"
+        },
+        "layoutChange": {
+          "name": "Cambiar distribución",
+          "desc": "Derribar o mover paredes"
+        },
+        "demolition": {
+          "name": "Demolición",
+          "desc": "Derribar estructuras"
+        },
+        "permits": {
+          "name": "Permisos",
+          "desc": "Gestión de permisos"
+        },
+        "projectManagement": {
+          "name": "Gestión de proyecto",
+          "desc": "Proyecto completo"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Mecánica automotriz": {
-        "oilChange": { "name": "Cambio aceite", "desc": "Servicio de aceite" },
-        "brakeRepair": { "name": "Frenos", "desc": "Reparar o cambiar" },
-        "engineDiag": { "name": "Diagnóstico motor", "desc": "Revisar fallas" },
-        "tireService": { "name": "Servicio llantas", "desc": "Cambio o reparación" },
-        "batteryService": { "name": "Batería", "desc": "Cambiar o cargar" },
-        "acRepair": { "name": "A/C automotriz", "desc": "Aire del carro" },
-        "transmission": { "name": "Transmisión", "desc": "Caja de cambios" },
-        "electrical": { "name": "Sistema eléctrico", "desc": "Luces, alternador" },
-        "tuneUp": { "name": "Afinación", "desc": "Servicio completo" },
-        "other": { "name": "Otro problema", "desc": "Describir en detalles" }
+      "Jardinería": {
+        "lawnCare": {
+          "name": "Cuidado de césped",
+          "desc": "Corte y mantenimiento"
+        },
+        "treeTrimming": {
+          "name": "Poda de árboles",
+          "desc": "Recorte y limpieza"
+        },
+        "planting": {
+          "name": "Siembra",
+          "desc": "Plantas y flores"
+        },
+        "irrigation": {
+          "name": "Riego",
+          "desc": "Sistema de irrigación"
+        },
+        "landscapeDesign": {
+          "name": "Diseño paisajístico",
+          "desc": "Proyecto de jardín"
+        },
+        "weedControl": {
+          "name": "Control de maleza",
+          "desc": "Eliminar hierba mala"
+        },
+        "mulching": {
+          "name": "Acolchado",
+          "desc": "Mantillo y cobertura"
+        },
+        "sodInstall": {
+          "name": "Instalar césped",
+          "desc": "Césped nuevo en rollo"
+        },
+        "gardenBeds": {
+          "name": "Camas de jardín",
+          "desc": "Jardineras y canteros"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Fotografía": {
-        "eventPhoto": { "name": "Evento", "desc": "Fiesta o celebración" },
-        "wedding": { "name": "Boda", "desc": "Cobertura de boda" },
-        "portrait": { "name": "Retrato", "desc": "Foto individual" },
-        "product": { "name": "Producto", "desc": "Fotos para venta" },
-        "realEstate": { "name": "Inmobiliaria", "desc": "Fotos de propiedades" },
-        "corporate": { "name": "Corporativo", "desc": "Fotos empresariales" },
-        "family": { "name": "Familiar", "desc": "Sesión en familia" },
-        "videoRecord": { "name": "Video", "desc": "Grabación de video" },
-        "editing": { "name": "Edición", "desc": "Retoque de fotos" },
-        "other": { "name": "Otro servicio", "desc": "Describir en detalles" }
+      "Piscinas": {
+        "poolCleaning": {
+          "name": "Limpieza de piscina",
+          "desc": "Mantenimiento regular"
+        },
+        "waterTest": {
+          "name": "Balance químico",
+          "desc": "pH y cloro"
+        },
+        "pumpRepair": {
+          "name": "Reparar bomba",
+          "desc": "Bomba de filtración"
+        },
+        "filterService": {
+          "name": "Servicio de filtro",
+          "desc": "Filtro obstruido"
+        },
+        "leakDetection": {
+          "name": "Detectar fuga",
+          "desc": "Pérdida de agua"
+        },
+        "poolOpening": {
+          "name": "Apertura de piscina",
+          "desc": "Preparar para temporada"
+        },
+        "poolClosing": {
+          "name": "Cierre de piscina",
+          "desc": "Proteger en invierno"
+        },
+        "tileRepair": {
+          "name": "Reparar azulejo",
+          "desc": "Mosaico dañado"
+        },
+        "equipmentInstall": {
+          "name": "Instalar equipo",
+          "desc": "Nuevo equipamiento"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Catering": {
-        "wedding": { "name": "Boda", "desc": "Banquete de boda" },
-        "corporate": { "name": "Corporativo", "desc": "Evento empresarial" },
-        "birthday": { "name": "Cumpleaños", "desc": "Fiesta de cumpleaños" },
-        "buffet": { "name": "Buffet", "desc": "Servicio tipo buffet" },
-        "cocktail": { "name": "Cóctel", "desc": "Evento tipo cóctel" },
-        "bbq": { "name": "Parrillada", "desc": "BBQ o asado" },
-        "breakfast": { "name": "Desayuno", "desc": "Evento matutino" },
-        "desserts": { "name": "Postres", "desc": "Mesa de dulces" },
-        "dietary": { "name": "Dieta especial", "desc": "Vegano, sin gluten, etc." },
-        "other": { "name": "Otro evento", "desc": "Describir en detalles" }
+      "Techado": {
+        "roofRepair": {
+          "name": "Reparar techo",
+          "desc": "Filtraciones o daños"
+        },
+        "roofInstall": {
+          "name": "Techo nuevo",
+          "desc": "Instalación completa"
+        },
+        "leakFix": {
+          "name": "Reparar gotera",
+          "desc": "Filtración de agua"
+        },
+        "shingleReplace": {
+          "name": "Reparar tejas",
+          "desc": "Tejas dañadas"
+        },
+        "roofInspection": {
+          "name": "Inspección",
+          "desc": "Revisión de techo"
+        },
+        "gutterInstall": {
+          "name": "Instalar canaletas",
+          "desc": "Sistema de drenaje"
+        },
+        "flashingRepair": {
+          "name": "Reparar sellado",
+          "desc": "Juntas y sellados"
+        },
+        "waterproofing": {
+          "name": "Impermeabilizar",
+          "desc": "Protección contra agua"
+        },
+        "stormDamage": {
+          "name": "Daño por tormenta",
+          "desc": "Reparación urgente"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
+      },
+      "Cercas": {
+        "fenceInstall": {
+          "name": "Instalar cerca",
+          "desc": "Cerca nueva"
+        },
+        "fenceRepair": {
+          "name": "Reparar cerca",
+          "desc": "Daño o deterioro"
+        },
+        "woodFence": {
+          "name": "Cerca madera",
+          "desc": "Material natural"
+        },
+        "vinylFence": {
+          "name": "Cerca vinilo",
+          "desc": "Material PVC"
+        },
+        "metalFence": {
+          "name": "Cerca metálica",
+          "desc": "Fierro o aluminio"
+        },
+        "gateInstall": {
+          "name": "Instalar portón",
+          "desc": "Puerta de acceso"
+        },
+        "fencePainting": {
+          "name": "Pintar cerca",
+          "desc": "Renovar acabado"
+        },
+        "privacyUpgrade": {
+          "name": "Mejorar privacidad",
+          "desc": "Mayor altura o cobertura"
+        },
+        "fenceRemoval": {
+          "name": "Remover cerca",
+          "desc": "Retirar cerca vieja"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
+      },
+      "Pérgolas": {
+        "pergolaBuild": {
+          "name": "Construir pérgola",
+          "desc": "Pérgola nueva"
+        },
+        "pergolaRepair": {
+          "name": "Reparar pérgola",
+          "desc": "Daño estructural"
+        },
+        "shadeInstall": {
+          "name": "Instalar sombra",
+          "desc": "Toldo o cobertura"
+        },
+        "woodPergola": {
+          "name": "Pérgola madera",
+          "desc": "Material natural"
+        },
+        "metalPergola": {
+          "name": "Pérgola metal",
+          "desc": "Material metálico"
+        },
+        "roofCover": {
+          "name": "Cubierta",
+          "desc": "Techo para pérgola"
+        },
+        "lighting": {
+          "name": "Iluminación",
+          "desc": "Luces decorativas"
+        },
+        "staining": {
+          "name": "Teñir madera",
+          "desc": "Renovar acabado"
+        },
+        "customDesign": {
+          "name": "Diseño a medida",
+          "desc": "Proyecto personalizado"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
+      },
+      "Ventanas": {
+        "windowInstall": {
+          "name": "Instalar ventana",
+          "desc": "Ventana nueva"
+        },
+        "windowRepair": {
+          "name": "Reparar ventana",
+          "desc": "Ventana dañada"
+        },
+        "glassReplace": {
+          "name": "Cambiar vidrio",
+          "desc": "Vidrio roto o dañado"
+        },
+        "screenRepair": {
+          "name": "Reparar mosquitero",
+          "desc": "Malla dañada"
+        },
+        "weatherSeal": {
+          "name": "Sellar ventana",
+          "desc": "Protección climática"
+        },
+        "windowTint": {
+          "name": "Polarizado",
+          "desc": "Film protector solar"
+        },
+        "shutterInstall": {
+          "name": "Instalar persianas",
+          "desc": "Persianas nuevas"
+        },
+        "blindsInstall": {
+          "name": "Instalar cortinas",
+          "desc": "Cortinas o estores"
+        },
+        "energyEfficient": {
+          "name": "Eficiencia energética",
+          "desc": "Ventanas aislantes"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
       "Construcción": {
-        "newBuild": { "name": "Construcción nueva", "desc": "Edificar desde cero" },
-        "renovation": { "name": "Remodelación", "desc": "Renovar espacio" },
-        "extension": { "name": "Ampliación", "desc": "Agregar espacio" },
-        "roofing": { "name": "Techado", "desc": "Techo nuevo o reparar" },
-        "foundation": { "name": "Cimentación", "desc": "Base de estructura" },
-        "structural": { "name": "Estructural", "desc": "Columnas y vigas" },
-        "permits": { "name": "Permisos", "desc": "Trámites de obra" },
-        "inspection": { "name": "Inspección", "desc": "Revisar construcción" },
-        "demolition": { "name": "Demolición", "desc": "Tirar estructuras" },
-        "other": { "name": "Otro proyecto", "desc": "Describir en detalles" }
+        "newBuild": {
+          "name": "Construcción nueva",
+          "desc": "Edificación desde cero"
+        },
+        "foundation": {
+          "name": "Cimentación",
+          "desc": "Base o fundación"
+        },
+        "framing": {
+          "name": "Estructura",
+          "desc": "Marco estructural"
+        },
+        "concrete": {
+          "name": "Concreto",
+          "desc": "Trabajos de concreto"
+        },
+        "steelWork": {
+          "name": "Herrería",
+          "desc": "Estructuras metálicas"
+        },
+        "drywall": {
+          "name": "Tablaroca",
+          "desc": "Paredes de drywall"
+        },
+        "permits": {
+          "name": "Permisos",
+          "desc": "Gestión de permisos"
+        },
+        "sitePrep": {
+          "name": "Preparar terreno",
+          "desc": "Limpieza y nivelación"
+        },
+        "projectManagement": {
+          "name": "Gestión de obra",
+          "desc": "Proyecto completo"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Decoración": {
-        "interiorDesign": { "name": "Diseño interior", "desc": "Planear espacios" },
-        "furnitureSelect": { "name": "Selección muebles", "desc": "Asesoría en compras" },
-        "colorConsult": { "name": "Consulta colores", "desc": "Paleta de colores" },
-        "curtains": { "name": "Cortinas", "desc": "Instalar o elegir" },
-        "lighting": { "name": "Iluminación", "desc": "Diseño de luces" },
-        "wallArt": { "name": "Arte en paredes", "desc": "Cuadros y decoración" },
-        "eventDecor": { "name": "Decoración evento", "desc": "Fiesta o celebración" },
-        "staging": { "name": "Home staging", "desc": "Preparar para vender" },
-        "organization": { "name": "Organización", "desc": "Ordenar espacios" },
-        "other": { "name": "Otro servicio", "desc": "Describir en detalles" }
+      "Mudanzas": {
+        "localMove": {
+          "name": "Mudanza local",
+          "desc": "Dentro de la ciudad"
+        },
+        "longDistance": {
+          "name": "Larga distancia",
+          "desc": "Entre ciudades"
+        },
+        "packing": {
+          "name": "Empacar",
+          "desc": "Servicio de empaque"
+        },
+        "unpacking": {
+          "name": "Desempacar",
+          "desc": "Organizar en destino"
+        },
+        "furnitureMove": {
+          "name": "Mover muebles",
+          "desc": "Muebles pesados"
+        },
+        "storageService": {
+          "name": "Almacenaje",
+          "desc": "Bodega temporal"
+        },
+        "pianoMove": {
+          "name": "Mover piano",
+          "desc": "Objetos especiales"
+        },
+        "officeMove": {
+          "name": "Mudanza oficina",
+          "desc": "Oficina o negocio"
+        },
+        "disposal": {
+          "name": "Desecho",
+          "desc": "Retirar objetos"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       },
-      "Diseño gráfico": {
-        "logoDesign": { "name": "Diseño de logo", "desc": "Crear logotipo" },
-        "branding": { "name": "Branding", "desc": "Identidad de marca" },
-        "webDesign": { "name": "Diseño web", "desc": "Página web" },
-        "socialMedia": { "name": "Redes sociales", "desc": "Posts y contenido" },
-        "printDesign": { "name": "Diseño impreso", "desc": "Flyers, tarjetas" },
-        "packaging": { "name": "Empaque", "desc": "Diseño de empaques" },
-        "illustration": { "name": "Ilustración", "desc": "Dibujos digitales" },
-        "infographic": { "name": "Infografía", "desc": "Visualización datos" },
-        "videoEdit": { "name": "Edición video", "desc": "Motion graphics" },
-        "other": { "name": "Otro proyecto", "desc": "Describir en detalles" }
-      },
-      "Asesoría legal": {
-        "contracts": { "name": "Contratos", "desc": "Redactar o revisar" },
-        "divorce": { "name": "Divorcio", "desc": "Proceso de divorcio" },
-        "realEstate": { "name": "Inmobiliario", "desc": "Compra-venta propiedades" },
-        "business": { "name": "Empresarial", "desc": "Constitución, actas" },
-        "immigration": { "name": "Migración", "desc": "Visas y trámites" },
-        "labor": { "name": "Laboral", "desc": "Despido, demandas" },
-        "criminal": { "name": "Penal", "desc": "Defensa criminal" },
-        "inheritance": { "name": "Herencias", "desc": "Sucesiones, testamentos" },
-        "trademark": { "name": "Marcas", "desc": "Registro de marca" },
-        "other": { "name": "Otro asunto", "desc": "Describir en detalles" }
-      },
-      "Contabilidad": {
-        "taxReturn": { "name": "Declaración fiscal", "desc": "Impuestos anuales" },
-        "bookkeeping": { "name": "Contabilidad", "desc": "Llevar libros" },
-        "audit": { "name": "Auditoría", "desc": "Revisión de cuentas" },
-        "payroll": { "name": "Nómina", "desc": "Pago a empleados" },
-        "businessPlan": { "name": "Plan de negocio", "desc": "Proyecciones financieras" },
-        "invoicing": { "name": "Facturación", "desc": "Emitir facturas" },
-        "taxPlanning": { "name": "Planeación fiscal", "desc": "Optimizar impuestos" },
-        "startup": { "name": "Alta empresa", "desc": "Registro fiscal" },
-        "consulting": { "name": "Consultoría", "desc": "Asesoría financiera" },
-        "other": { "name": "Otro servicio", "desc": "Describir en detalles" }
-      },
-      "Marketing digital": {
-        "seo": { "name": "SEO", "desc": "Posicionamiento web" },
-        "socialMedia": { "name": "Redes sociales", "desc": "Gestión de redes" },
-        "ads": { "name": "Publicidad", "desc": "Anuncios pagados" },
-        "emailMarketing": { "name": "Email marketing", "desc": "Campañas de correo" },
-        "contentCreate": { "name": "Crear contenido", "desc": "Blogs, videos" },
-        "analytics": { "name": "Analítica", "desc": "Métricas y reportes" },
-        "ecommerce": { "name": "E-commerce", "desc": "Tienda en línea" },
-        "branding": { "name": "Branding digital", "desc": "Marca en línea" },
-        "strategy": { "name": "Estrategia", "desc": "Plan de marketing" },
-        "other": { "name": "Otro servicio", "desc": "Describir en detalles" }
-      },
-      "Traducción": {
-        "document": { "name": "Documentos", "desc": "Textos generales" },
-        "legal": { "name": "Legal", "desc": "Contratos, actas" },
-        "medical": { "name": "Médica", "desc": "Historial, recetas" },
-        "technical": { "name": "Técnica", "desc": "Manuales, specs" },
-        "website": { "name": "Sitio web", "desc": "Páginas web" },
-        "subtitles": { "name": "Subtítulos", "desc": "Videos y películas" },
-        "interpreter": { "name": "Intérprete", "desc": "Traducción en vivo" },
-        "certified": { "name": "Certificada", "desc": "Traducción oficial" },
-        "localization": { "name": "Localización", "desc": "Adaptar contenido" },
-        "other": { "name": "Otro idioma", "desc": "Describir en detalles" }
-      },
-      "Otro": {
-        "consultation": { "name": "Consulta", "desc": "Asesoría general" },
-        "repair": { "name": "Reparación", "desc": "Arreglar algo" },
-        "installation": { "name": "Instalación", "desc": "Instalar algo" },
-        "maintenance": { "name": "Mantenimiento", "desc": "Servicio preventivo" },
-        "emergency": { "name": "Emergencia", "desc": "Urgente" },
-        "quote": { "name": "Cotización", "desc": "Pedir presupuesto" },
-        "inspection": { "name": "Inspección", "desc": "Revisar o evaluar" },
-        "advice": { "name": "Consejo", "desc": "Recomendaciones" },
-        "custom": { "name": "Personalizado", "desc": "Servicio especial" },
-        "other": { "name": "Otro", "desc": "Describir en detalles" }
+      "Seguridad": {
+        "cameraInstall": {
+          "name": "Instalar cámaras",
+          "desc": "Videovigilancia"
+        },
+        "alarmSystem": {
+          "name": "Sistema de alarma",
+          "desc": "Alarma de seguridad"
+        },
+        "motionSensors": {
+          "name": "Sensores de movimiento",
+          "desc": "Detección perimetral"
+        },
+        "accessControl": {
+          "name": "Control de acceso",
+          "desc": "Cerraduras y accesos"
+        },
+        "smartHome": {
+          "name": "Casa inteligente",
+          "desc": "Automatización"
+        },
+        "intercom": {
+          "name": "Intercomunicador",
+          "desc": "Videoportero"
+        },
+        "securityLighting": {
+          "name": "Iluminación seguridad",
+          "desc": "Luces con sensor"
+        },
+        "monitoring": {
+          "name": "Monitoreo",
+          "desc": "Vigilancia remota"
+        },
+        "assessment": {
+          "name": "Evaluación",
+          "desc": "Diagnóstico de seguridad"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
       }
     },
     "requestWizard": {
@@ -2471,7 +2911,8 @@
       "sendRequest": "Solicitar Estimado",
       "viewProfile": "Ver perfil",
       "noDescription": "Sin descripción disponible",
-      "specializingIn": "{{name}} especializado en {{service}}"
+      "specializingIn": "{{name}} especializado en {{service}}",
+      "portfolioWork": "Trabajo del portafolio"
     },
     "starRating": {
       "ariaLabel": "{{value}} de {{max}} estrellas"
@@ -3056,5 +3497,394 @@
     "uploadedOn": "Subido el {{date}}",
     "navigate": "Navegar",
     "close": "Cerrar"
+  },
+  "provider": {
+    "jobs": {
+      "title": "Trabajos disponibles",
+      "subtitle": "Encuentra trabajos que coincidan con tus servicios",
+      "noRequests": "No hay solicitudes disponibles",
+      "noRequestsDescription": "Cuando haya solicitudes que coincidan con tus servicios, aparecerán aquí",
+      "requestsService": "solicita un servicio",
+      "notified": "Notificado",
+      "directed": "Dirigida a ti",
+      "view": "Ver",
+      "propose": "Estimado",
+      "negotiate": "Negociar",
+      "proposalSent": "Estimado enviado",
+      "serviceRequest": "Solicitud de servicio",
+      "providerOnly": "Esta sección es solo para proveedores",
+      "errorLoading": "Error al cargar trabajos",
+      "loading": "Cargando trabajos...",
+      "chatOpenError": "Error al abrir el chat",
+      "proposalNotFound": "Propuesta no encontrada",
+      "noJobs": "No hay trabajos disponibles",
+      "noJobsDescription": "Cuando haya solicitudes en tu zona, aparecerán aquí",
+      "sendProposal": "Enviar estimado",
+      "viewDetails": "Ver detalles"
+    },
+    "portfolio": {
+      "title": "Mi Portafolio",
+      "subtitle": "Muestra tus trabajos y aumenta tu visibilidad",
+      "totalItems": "Total de elementos",
+      "photos": "Fotos",
+      "videos": "Videos",
+      "categories": "Categorías",
+      "tipsTitle": "Consejos para un portafolio exitoso",
+      "tip1Title": "Fotos de calidad",
+      "tip1Desc": "Usa buena iluminación y muestra el antes/después",
+      "tip2Title": "Variedad de trabajos",
+      "tip2Desc": "Incluye diferentes tipos de proyectos que realizas",
+      "tip3Title": "Descripciones claras",
+      "tip3Desc": "Explica lo que hiciste y los materiales usados",
+      "tip4Title": "Videos cortos",
+      "tip4Desc": "Muestra tu proceso de trabajo en acción",
+      "tip5Title": "Actualiza frecuentemente",
+      "tip5Desc": "Agrega tus trabajos más recientes regularmente",
+      "tip6Title": "Destaca lo mejor",
+      "tip6Desc": "Pon tus mejores trabajos al principio",
+      "addFirstWork": "Agrega tu primer trabajo",
+      "addWork": "Agregar trabajo",
+      "noWorks": "Sin trabajos en tu portafolio"
+    },
+    "plan": {
+      "title": "Mi Plan",
+      "subtitle": "Gestiona tu suscripción y límites",
+      "currentPlan": "Plan actual",
+      "yourCurrentPlan": "Tu plan actual",
+      "providerOnly": "Esta sección es solo para proveedores",
+      "loading": "Cargando información del plan...",
+      "active": "Activo",
+      "discountApplied": "Descuento aplicado",
+      "leadsUsed": "Leads utilizados",
+      "commission": "Comisión",
+      "perTransaction": "por transacción completada",
+      "visibility": "Visibilidad",
+      "multiplier": "multiplicador de visibilidad",
+      "nextPeriod": "Próximo período",
+      "renewal": "fecha de renovación",
+      "haveReferralCode": "¿Tienes un código de referido?",
+      "enterCode": "Ingresa el código",
+      "applying": "Aplicando...",
+      "apply": "Aplicar",
+      "availablePlans": "Planes disponibles",
+      "mostPopular": "Más popular",
+      "free": "Gratis",
+      "unlimited": "Ilimitado",
+      "leadsMonth": "leads/mes",
+      "changeTo": "Cambiar a {{plan}}",
+      "changeToFree": "Cambiar a plan gratuito",
+      "processing": "Procesando...",
+      "noPlansAvailable": "No hay planes disponibles",
+      "plansComingSoon": "Planes próximamente",
+      "planNames": {
+        "free": "Gratuito",
+        "basic": "Básico",
+        "pro": "Profesional",
+        "professional": "Profesional",
+        "premium": "Premium",
+        "starter": "Inicial",
+        "starterMonthly": "Inicial Mensual",
+        "starterAnnual": "Inicial Anual"
+      },
+      "perMonth": "/mes",
+      "codeApplied": "Código aplicado",
+      "codeError": "No se pudo aplicar el código",
+      "loadError": "No se pudo cargar la información del plan",
+      "updateError": "Error al cambiar de plan",
+      "updateSuccess": "Plan actualizado",
+      "upgrade": "Mejorar plan"
+    },
+    "services": {
+      "title": "Mis Servicios",
+      "subtitle": "Configura los servicios que ofreces",
+      "providerOnly": "Esta sección es solo para proveedores",
+      "errorLoading": "Error al cargar servicios",
+      "errorSavingMain": "Error al guardar el servicio principal",
+      "errorSavingAdditional": "Error al guardar servicios adicionales",
+      "mainServiceTitle": "Servicio principal",
+      "mainCategory": "Categoría principal",
+      "mainServiceName": "Nombre del servicio",
+      "mainServicePlaceholder": "Ej: Instalación de aires acondicionados",
+      "experienceYears": "Años de experiencia",
+      "subcategories": "Subcategorías",
+      "subcategoriesPlaceholder": "Ej: Instalación, Reparación, Mantenimiento...",
+      "saving": "Guardando...",
+      "saveMainService": "Guardar servicio principal",
+      "mainServiceLocked": "Tu servicio principal no puede modificarse una vez configurado",
+      "mainServiceLockedNotice": "El servicio principal está bloqueado y no puede editarse. Solo puedes gestionar tus servicios adicionales.",
+      "additionalServicesTitle": "Experiencia en otros servicios",
+      "additionalServicesHint": "Estos servicios son informativos y no afectan la búsqueda ni las solicitudes",
+      "additionalServicePlaceholder": "Agregar otro servicio...",
+      "addAdditional": "Agregar",
+      "noAdditionalServices": "Sin servicios adicionales agregados",
+      "saveAdditional": "Guardar servicios adicionales",
+      "selectMainCategory": "Selecciona la categoría principal",
+      "addNewService": "Agregar nuevo servicio",
+      "addService": "Agregar servicio",
+      "currentServices": "Servicios actuales",
+      "delete": "Eliminar",
+      "errorAdding": "Error al agregar servicio",
+      "errorRemoving": "Error al eliminar servicio",
+      "noServices": "Sin servicios configurados",
+      "noServicesDescription": "Agrega los servicios que ofreces para comenzar a recibir solicitudes",
+      "selectCategory": "Selecciona una categoría",
+      "servicesCount": "{{count}} servicio(s) configurado(s)",
+      "year": "año(s)"
+    },
+    "calendar": {
+      "title": "Mi Calendario",
+      "subtitle": "Gestiona tu disponibilidad y horarios",
+      "providerOnly": "Esta sección es solo para proveedores",
+      "errorLoading": "Error al cargar disponibilidad",
+      "selectDate": "Seleccionar fecha",
+      "date": "Fecha",
+      "loading": "Cargando...",
+      "loadSlots": "Cargar horarios",
+      "availableSlots": "Horarios disponibles",
+      "slotsCount": "{{count}} horario(s) disponible(s)",
+      "available": "Disponible",
+      "loadingSlots": "Cargando horarios...",
+      "noSlots": "Sin horarios disponibles",
+      "noSlotsDescription": "No hay horarios configurados para esta fecha"
+    },
+    "reviews": {
+      "title": "Mis Reseñas",
+      "subtitle": "Gestiona tu reputación y responde a tus clientes",
+      "providerOnly": "Esta sección es solo para proveedores",
+      "errorLoading": "Error al cargar reseñas",
+      "loading": "Cargando reseñas...",
+      "refresh": "Actualizar",
+      "averageRating": "Calificación promedio",
+      "outOfStars": "de 5 estrellas",
+      "totalReviews": "Total de reseñas",
+      "reviewReceived": "reseña recibida",
+      "reviewsReceived": "reseñas recibidas",
+      "responded": "Respondidas",
+      "responseRate": "tasa de respuesta",
+      "unanswered": "Sin respuesta",
+      "waitingResponse": "esperando respuesta",
+      "categoryScores": "Puntajes por categoría",
+      "ratingDistribution": "Distribución de calificaciones",
+      "allReviews": "Todas las reseñas",
+      "errorLoadingId": "Error al cargar ID del proveedor",
+      "insightsTitle": "Estadísticas y recomendaciones",
+      "reviewsWithoutResponse": "{{count}} reseña(s) sin respuesta",
+      "respondToImprove": "Responder mejora tu reputación y confianza con los clientes",
+      "improveCategory": "Mejora tu {{category}}",
+      "scoreBelowAverage": "Tu puntaje de {{score}} está por debajo del promedio",
+      "excellentReputation": "¡Excelente reputación!",
+      "excellentReputationDesc": "Mantén la calidad de tu servicio para seguir destacando",
+      "categories": {
+        "communication": "Comunicación",
+        "professionalism": "Profesionalismo",
+        "punctuality": "Puntualidad",
+        "quality": "Calidad del trabajo",
+        "value": "Relación calidad-precio"
+      }
+    },
+    "requestDetail": {
+      "providerOnly": "Esta sección es solo para proveedores",
+      "errorLoading": "Error al cargar la solicitud",
+      "loading": "Cargando solicitud...",
+      "backToJobs": "Volver a trabajos",
+      "normal": "Normal",
+      "requestDetail": "Detalle de la solicitud",
+      "mediaAttachments": "Archivos adjuntos",
+      "photo": "Foto",
+      "viewAll": "Ver todo",
+      "detailsTitle": "Detalles del trabajo",
+      "detailsSubtitle": "Información proporcionada por el cliente",
+      "subcategory": "Subcategoría",
+      "location": "Ubicación",
+      "preferredDate": "Fecha preferida",
+      "sendProposal": "Enviar estimado",
+      "sendProposalSubtitle": "Completa los detalles de tu estimado",
+      "loadingPlan": "Cargando información del plan...",
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "commission": "Comisión",
+      "unlimitedLeads": "Leads ilimitados",
+      "remainingLeads": "leads restantes",
+      "leadsUsed": "Leads utilizados",
+      "limitReachedUpgrade": "Has alcanzado tu límite. Mejora tu plan para continuar.",
+      "amountLabel": "Monto del estimado",
+      "useFixedPrice": "Usar precio fijo",
+      "fixedPriceEnabled": "Precio fijo activo",
+      "rangeHint": "Si no tienes claro el monto exacto, usa un rango",
+      "minAmount": "Monto mínimo",
+      "maxAmount": "Monto máximo",
+      "minimum": "Mínimo",
+      "maximum": "Máximo",
+      "amountMinRequired": "El monto mínimo es requerido",
+      "amountMaxRequired": "El monto máximo es requerido",
+      "amountMaxMustBeGreater": "El monto máximo debe ser mayor al mínimo",
+      "needMoreInfo": "¿Necesitas más información?",
+      "needMoreInfoDesc": "Antes de enviar tu estimado, puedes contactar al cliente para aclarar dudas sobre el trabajo",
+      "askClient": "Consultar al cliente",
+      "infoRequestModalTitle": "Solicitar más información",
+      "infoRequestModalSubtitle": "Contacta al cliente antes de enviar tu estimado",
+      "sendInfoRequest": "Enviar consulta",
+      "infoRequestSent": "¡Consulta enviada! El cliente recibirá tu mensaje.",
+      "infoRequestError": "Error al enviar la consulta",
+      "infoRequestMessageRequired": "Escribe un mensaje para enviar",
+      "infoRequestMessageLabel": "Tu mensaje para el cliente",
+      "infoRequestMessagePlaceholder": "¿Qué necesitas saber antes de hacer tu estimado?",
+      "infoRequestTipsTitle": "Consejos para tu consulta",
+      "infoRequestTip1": "Sé específico sobre lo que necesitas saber",
+      "infoRequestTip2": "Pregunta sobre detalles del trabajo, acceso, materiales, etc.",
+      "infoRequestTip3": "Esto abre un chat directo con el cliente",
+      "infoRequestTip4": "El cliente recibirá notificación de tu consulta",
+      "infoRequestNote": "Tu mensaje se enviará directamente al cliente y podrán continuar la conversación en el chat.",
+      "estimatedHours": "Horas estimadas",
+      "hoursPlaceholder": "Ej: 2",
+      "startDate": "Fecha de inicio",
+      "includesMaterials": "Incluye materiales",
+      "includesMaterialsDesc": "Los materiales están incluidos en el precio",
+      "includesCleanup": "Incluye limpieza",
+      "includesCleanupDesc": "La limpieza final está incluida",
+      "messageLabel": "Mensaje para el cliente",
+      "messagePlaceholder": "Describe tu estimado, experiencia y por qué eres la mejor opción...",
+      "minChars": "caracteres mínimo",
+      "subscriptionInactive": "Tu suscripción no está activa. Actívala para enviar estimados.",
+      "sending": "Enviando...",
+      "sendProposalBtn": "Enviar estimado",
+      "saveDraft": "Guardar borrador",
+      "update": "Actualizar",
+      "sendDraft": "Enviar borrador",
+      "discard": "Descartar",
+      "cancel": "Cancelar",
+      "upgradePlan": "Mejorar plan",
+      "client": "Cliente",
+      "upgradeModalTitle": "Mejora tu plan",
+      "viewInbox": "Ver bandeja",
+      "viewPlans": "Ver planes",
+      "upgradeMessage": "Necesitas mejorar tu plan para acceder a esta función.",
+      "needSubscription": "Necesitas una suscripción activa",
+      "amountRequired": "El monto es requerido y debe ser mayor a 0",
+      "messageRequired": "El mensaje debe tener al menos 10 caracteres",
+      "hoursError": "Las horas deben ser mayor a 0",
+      "hours": "horas",
+      "proposalNotSent": "No se pudo enviar el estimado",
+      "requiresSubscription": "Se requiere suscripción activa",
+      "planNotAllowed": "Tu plan actual no permite esta acción",
+      "leadLimitReached": "Has alcanzado tu límite de leads mensuales",
+      "invalidValidation": "Datos de estimado inválidos",
+      "requestNotAvailable": "Esta solicitud ya no está disponible",
+      "requestNoLongerAvailable": "Esta solicitud ya no acepta propuestas",
+      "requestTakenByOther": "Otro profesional ya fue seleccionado para este trabajo.",
+      "requestTakenByProvider": "El profesional {{name}} fue seleccionado para atender esta solicitud.",
+      "requestCompleted": "Este trabajo ya fue completado.",
+      "requestCancelled": "El cliente canceló esta solicitud.",
+      "requestExpired": "Esta solicitud ha expirado.",
+      "requestArchived": "Esta solicitud fue archivada.",
+      "draftNotSaved": "No se pudo guardar el borrador",
+      "errorSavingDraft": "Error al guardar el borrador",
+      "draftNotUpdated": "No se pudo actualizar el borrador",
+      "errorUpdatingDraft": "Error al actualizar el borrador",
+      "draftNotSent": "No se pudo enviar el borrador",
+      "draftNotAvailable": "El borrador ya no está disponible",
+      "proposalNotCancelled": "No se pudo cancelar el estimado",
+      "errorCancelling": "Error al cancelar el estimado",
+      "errorSending": "Error al enviar el estimado",
+      "yourIncome": "Tu ingreso",
+      "proposalSentTitle": "Estimado enviado",
+      "proposalSentSubtitle": "Ya has enviado un estimado para esta solicitud",
+      "sentOn": "Enviada el",
+      "proposedAmount": "Monto estimado",
+      "yourMessage": "Tu mensaje",
+      "goToMessages": "Ir a mensajes",
+      "enableRange": "Usar rango de precios",
+      "files": "archivos",
+      "fixedAmount": "Monto fijo",
+      "infoRequestPlaceholder": "Escribe tu pregunta o lo que necesitas saber del cliente...",
+      "infoRequestTips": "Consejos para tu consulta",
+      "proposalStatus": {
+        "accepted": "Aceptada",
+        "draft": "Borrador",
+        "rejected": "Rechazada",
+        "sent": "Enviada",
+        "viewed": "Vista por el cliente"
+      },
+      "rangeAmount": "Rango de precios",
+      "rangeEnabled": "Rango habilitado",
+      "viewMedia": "Ver fotos y videos"
+    },
+    "referrals": {
+      "title": "Programa de Referidos",
+      "subtitle": "Invita a otros profesionales y obtén descuentos en tu plan",
+      "providerOnly": "Esta sección es solo para proveedores",
+      "errorLoading": "Error al cargar datos de referidos",
+      "loading": "Cargando...",
+      "referrals": "Referidos",
+      "monthsEarned": "Meses ganados",
+      "yourCode": "Tu código de referido",
+      "shareCode": "Comparte este código con otros profesionales",
+      "copyCode": "Copiar código",
+      "yourLink": "Tu enlace de referido",
+      "copied": "¡Copiado!",
+      "copy": "Copiar",
+      "referredProfessionals": "Profesionales referidos",
+      "months": "meses",
+      "accumulatedDiscount": "Descuento acumulado",
+      "maxMonths": "Máximo 3 meses (actual: {{current}})",
+      "maximum": "Máximo",
+      "discountLimit": "Límite máximo de descuento",
+      "howItWorks": "¿Cómo funciona?",
+      "step1Title": "Comparte tu código",
+      "step1Desc": "Envía tu código o enlace a otros profesionales",
+      "step2Title": "Ellos se registran",
+      "step2Desc": "Cuando usen tu código al registrarse",
+      "step3Title": "Ganas descuento",
+      "step3Desc": "Obtienes 50% de descuento por 1 mes (máx. 3)",
+      "copyError": "Error al copiar el enlace",
+      "copyCodeError": "Error al copiar el código"
+    },
+    "inbox": {
+      "title": "Mis Estimados",
+      "subtitle": "Gestiona tus estimados y conversaciones",
+      "providerOnly": "Esta sección es solo para proveedores",
+      "errorLoading": "Error al cargar estimados",
+      "errorLoadingChats": "Error al cargar conversaciones",
+      "myProposals": "Mis estimados",
+      "proposalsCount": "{{count}} estimado(s)",
+      "noProposals": "Sin estimados enviados",
+      "noProposalsDescription": "Cuando envíes un estimado, aparecerá aquí",
+      "proposal": "Estimado",
+      "estimate": "Estimado",
+      "negotiateTooltip": "Iniciar negociación con el cliente",
+      "negotiate": "Negociar",
+      "viewRequest": "Ver solicitud",
+      "attachment": "Archivo adjunto",
+      "chat": "Chat",
+      "conversations": "Conversaciones",
+      "noMessages": "Sin mensajes",
+      "noChats": "Sin conversaciones",
+      "selectConversation": "Selecciona una conversación",
+      "selectConversationDesc": "Elige una conversación de la lista para ver los mensajes",
+      "writeMessage": "Escribe un mensaje...",
+      "negotiateProposal": "Negociar estimado",
+      "proposalLabel": "Estimado",
+      "noPrice": "Sin precio",
+      "negotiateInfo": "Negocia los detalles con el cliente antes de cerrar el acuerdo",
+      "close": "Cerrar",
+      "typeBooking": "Reservas",
+      "typeEstimate": "Estimados",
+      "typeInquiry": "Consultas",
+      "filterAll": "Todos",
+      "filterBookings": "Reservas",
+      "filterEstimates": "Estimados",
+      "filterInquiries": "Consultas",
+      "noChatsInFilter": "Sin conversaciones en esta categoría",
+      "showAll": "Ver todas",
+      "status": {
+        "sent": "Enviado",
+        "pending": "Pendiente",
+        "viewed": "Visto por el cliente",
+        "accepted": "Aceptado",
+        "rejected": "Rechazado",
+        "withdrawn": "Retirado",
+        "draft": "Borrador"
+      }
+    }
   }
 }

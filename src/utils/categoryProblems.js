@@ -1,5 +1,5 @@
 /**
- * Problemáticas y situaciones predefinidas por categoría de servicio
+ * Problemáticas y situaciones predefinidas por categoría de servicio (22 categorías)
  * Cada categoría tiene un conjunto de opciones visuales para que el cliente
  * pueda seleccionar rápidamente sin necesidad de escribir descripción
  * 
@@ -10,6 +10,18 @@
  */
 
 export const CATEGORY_PROBLEMS = {
+  'Reparaciones': [
+    { id: 'quickFix', icon: '⚡' },
+    { id: 'minorRepairs', icon: '🛠️' },
+    { id: 'assembly', icon: '🧩' },
+    { id: 'wallMount', icon: '🖼️' },
+    { id: 'drywallPatch', icon: '🧱' },
+    { id: 'doorAdjust', icon: '🚪' },
+    { id: 'furnitureAssembly', icon: '🪑' },
+    { id: 'generalMaintenance', icon: '🧰' },
+    { id: 'oddJobs', icon: '✅' },
+    { id: 'other', icon: '➕' }
+  ],
   'Plomería': [
     { id: 'leak', icon: '💧' },
     { id: 'cloggedDrain', icon: '🚿' },
@@ -17,13 +29,13 @@ export const CATEGORY_PROBLEMS = {
     { id: 'faucetDrip', icon: '🚰' },
     { id: 'pipeRepair', icon: '🔧' },
     { id: 'waterHeater', icon: '🔥' },
-    { id: 'waterTank', icon: '🏠' },
-    { id: 'waterPump', icon: '⚙️' },
-    { id: 'sinkInstall', icon: '🪥' },
+    { id: 'waterPressure', icon: '🌊' },
+    { id: 'fixtureInstall', icon: '🧰' },
+    { id: 'sewerBackup', icon: '🌀' },
     { id: 'other', icon: '➕' }
   ],
   'Electricidad': [
-    { id: 'nopower', icon: '⚡' },
+    { id: 'noPower', icon: '⚡' },
     { id: 'shortCircuit', icon: '💥' },
     { id: 'outletIssue', icon: '🔌' },
     { id: 'lightingInstall', icon: '💡' },
@@ -31,19 +43,67 @@ export const CATEGORY_PROBLEMS = {
     { id: 'panelUpgrade', icon: '📦' },
     { id: 'wiringRepair', icon: '🔗' },
     { id: 'ceilingFan', icon: '🌀' },
-    { id: 'groundingIssue', icon: '🏠' },
+    { id: 'inspection', icon: '🔍' },
     { id: 'other', icon: '➕' }
   ],
-  'Carpintería': [
-    { id: 'doorRepair', icon: '🚪' },
-    { id: 'furnitureRepair', icon: '🪑' },
-    { id: 'customFurniture', icon: '🛋️' },
-    { id: 'cabinetInstall', icon: '🗄️' },
-    { id: 'woodFloor', icon: '🪵' },
-    { id: 'windowFrame', icon: '🪟' },
-    { id: 'closetBuild', icon: '👔' },
-    { id: 'shelfInstall', icon: '📚' },
-    { id: 'deckPatio', icon: '🏡' },
+  'Climatización': [
+    { id: 'acInstall', icon: '❄️' },
+    { id: 'acRepair', icon: '🔧' },
+    { id: 'acMaintenance', icon: '🧹' },
+    { id: 'notCooling', icon: '🌡️' },
+    { id: 'heatingIssue', icon: '🔥' },
+    { id: 'thermostat', icon: '🌡️' },
+    { id: 'ductClean', icon: '🌬️' },
+    { id: 'airQuality', icon: '🫧' },
+    { id: 'strangeNoise', icon: '🔊' },
+    { id: 'other', icon: '➕' }
+  ],
+  'Cerrajería': [
+    { id: 'lockout', icon: '🔐' },
+    { id: 'lockChange', icon: '🔒' },
+    { id: 'keyDuplicate', icon: '🔑' },
+    { id: 'lockRepair', icon: '🔧' },
+    { id: 'securityUpgrade', icon: '🛡️' },
+    { id: 'smartLock', icon: '📱' },
+    { id: 'carLock', icon: '🚗' },
+    { id: 'safeLock', icon: '🗄️' },
+    { id: 'rekey', icon: '🔁' },
+    { id: 'other', icon: '➕' }
+  ],
+  'Mantenimiento': [
+    { id: 'preventive', icon: '🛡️' },
+    { id: 'repairs', icon: '🔧' },
+    { id: 'inspection', icon: '🔍' },
+    { id: 'gutterClean', icon: '🧹' },
+    { id: 'applianceCheck', icon: '📋' },
+    { id: 'hvacFilter', icon: '🌬️' },
+    { id: 'plumbingCheck', icon: '💧' },
+    { id: 'electricalCheck', icon: '⚡' },
+    { id: 'seasonalPrep', icon: '📆' },
+    { id: 'other', icon: '➕' }
+  ],
+  'Control de Plagas': [
+    { id: 'insects', icon: '🐜' },
+    { id: 'rodents', icon: '🐀' },
+    { id: 'termites', icon: '🪲' },
+    { id: 'cockroaches', icon: '🪳' },
+    { id: 'bedBugs', icon: '🛏️' },
+    { id: 'mosquitoes', icon: '🦟' },
+    { id: 'preventive', icon: '🛡️' },
+    { id: 'disinfection', icon: '🧴' },
+    { id: 'gardenPest', icon: '🌿' },
+    { id: 'other', icon: '➕' }
+  ],
+  'Limpieza': [
+    { id: 'deepClean', icon: '🧹' },
+    { id: 'regularClean', icon: '🏠' },
+    { id: 'postConstruction', icon: '🏗️' },
+    { id: 'moveInOut', icon: '📦' },
+    { id: 'carpetClean', icon: '🧽' },
+    { id: 'windowClean', icon: '🪟' },
+    { id: 'kitchenDeep', icon: '🍳' },
+    { id: 'bathroomDeep', icon: '🚿' },
+    { id: 'disinfection', icon: '🧴' },
     { id: 'other', icon: '➕' }
   ],
   'Pintura': [
@@ -58,268 +118,160 @@ export const CATEGORY_PROBLEMS = {
     { id: 'decorative', icon: '✨' },
     { id: 'other', icon: '➕' }
   ],
-  'Limpieza': [
-    { id: 'deepClean', icon: '🧹' },
-    { id: 'regularClean', icon: '🏠' },
-    { id: 'postConstruction', icon: '🏗️' },
-    { id: 'carpetClean', icon: '🧽' },
-    { id: 'windowClean', icon: '🪟' },
-    { id: 'upholsteryClean', icon: '🛋️' },
-    { id: 'kitchenDeep', icon: '🍳' },
-    { id: 'bathroomDeep', icon: '🚿' },
-    { id: 'moveInOut', icon: '📦' },
+  'Gabinetes': [
+    { id: 'cabinetInstall', icon: '🗄️' },
+    { id: 'cabinetRepair', icon: '🔧' },
+    { id: 'kitchenCabinets', icon: '🍳' },
+    { id: 'bathroomCabinets', icon: '🚿' },
+    { id: 'closetBuild', icon: '👔' },
+    { id: 'customDesign', icon: '📐' },
+    { id: 'doorReplacement', icon: '🚪' },
+    { id: 'hardwareUpdate', icon: '🔩' },
+    { id: 'refinishing', icon: '✨' },
+    { id: 'other', icon: '➕' }
+  ],
+  'Pisos': [
+    { id: 'floorInstall', icon: '🧱' },
+    { id: 'floorRepair', icon: '🔧' },
+    { id: 'hardwood', icon: '🪵' },
+    { id: 'laminate', icon: '📏' },
+    { id: 'tile', icon: '🔲' },
+    { id: 'vinyl', icon: '⬜' },
+    { id: 'polishing', icon: '✨' },
+    { id: 'leveling', icon: '📐' },
+    { id: 'groutRepair', icon: '🧰' },
+    { id: 'other', icon: '➕' }
+  ],
+  'Cocina': [
+    { id: 'applianceInstall', icon: '🍳' },
+    { id: 'applianceRepair', icon: '🔧' },
+    { id: 'countertops', icon: '🧱' },
+    { id: 'sinkFaucet', icon: '🚰' },
+    { id: 'backsplash', icon: '🎨' },
+    { id: 'lighting', icon: '💡' },
+    { id: 'ventilation', icon: '🌬️' },
+    { id: 'gasLine', icon: '🔥' },
+    { id: 'layout', icon: '📐' },
+    { id: 'other', icon: '➕' }
+  ],
+  'Remodelación': [
+    { id: 'kitchenRemodel', icon: '🍳' },
+    { id: 'bathroomRemodel', icon: '🚿' },
+    { id: 'roomAddition', icon: '🏠' },
+    { id: 'flooring', icon: '🪵' },
+    { id: 'painting', icon: '🎨' },
+    { id: 'layoutChange', icon: '📐' },
+    { id: 'demolition', icon: '💥' },
+    { id: 'permits', icon: '📋' },
+    { id: 'projectManagement', icon: '🗂️' },
     { id: 'other', icon: '➕' }
   ],
   'Jardinería': [
-    { id: 'lawnMowing', icon: '🌿' },
+    { id: 'lawnCare', icon: '🌿' },
     { id: 'treeTrimming', icon: '🌳' },
-    { id: 'gardenDesign', icon: '🌸' },
+    { id: 'planting', icon: '🌱' },
     { id: 'irrigation', icon: '💧' },
-    { id: 'pestControl', icon: '🐛' },
-    { id: 'landscaping', icon: '🏡' },
-    { id: 'hedgeTrimming', icon: '✂️' },
-    { id: 'plantCare', icon: '🪴' },
-    { id: 'soilWork', icon: '🌱' },
+    { id: 'landscapeDesign', icon: '📐' },
+    { id: 'weedControl', icon: '🧹' },
+    { id: 'mulching', icon: '🍂' },
+    { id: 'sodInstall', icon: '🟩' },
+    { id: 'gardenBeds', icon: '🌺' },
     { id: 'other', icon: '➕' }
   ],
-  'Cerrajería': [
-    { id: 'lockout', icon: '🔐' },
-    { id: 'lockChange', icon: '🔒' },
-    { id: 'keyDuplicate', icon: '🔑' },
-    { id: 'lockRepair', icon: '🔧' },
-    { id: 'securityUpgrade', icon: '🛡️' },
-    { id: 'safeLock', icon: '🗄️' },
-    { id: 'carLock', icon: '🚗' },
-    { id: 'padlock', icon: '🔓' },
-    { id: 'digitalLock', icon: '📱' },
+  'Piscinas': [
+    { id: 'poolCleaning', icon: '🏊' },
+    { id: 'waterTest', icon: '🧪' },
+    { id: 'pumpRepair', icon: '⚙️' },
+    { id: 'filterService', icon: '🧰' },
+    { id: 'leakDetection', icon: '💧' },
+    { id: 'poolOpening', icon: '☀️' },
+    { id: 'poolClosing', icon: '❄️' },
+    { id: 'tileRepair', icon: '🧱' },
+    { id: 'equipmentInstall', icon: '📦' },
     { id: 'other', icon: '➕' }
   ],
-  'Albañilería': [
-    { id: 'wallBuild', icon: '🧱' },
-    { id: 'floorTile', icon: '🔲' },
+  'Techado': [
     { id: 'roofRepair', icon: '🏠' },
-    { id: 'concreteWork', icon: '🏗️' },
-    { id: 'plastering', icon: '🪣' },
-    { id: 'demolition', icon: '💥' },
-    { id: 'foundationRepair', icon: '🏛️' },
-    { id: 'stairsBuild', icon: '🪜' },
-    { id: 'waterproofing', icon: '💧' },
+    { id: 'roofInstall', icon: '🏗️' },
+    { id: 'leakFix', icon: '💧' },
+    { id: 'shingleReplace', icon: '🧱' },
+    { id: 'roofInspection', icon: '🔍' },
+    { id: 'gutterInstall', icon: '🧹' },
+    { id: 'flashingRepair', icon: '🔩' },
+    { id: 'waterproofing', icon: '🛡️' },
+    { id: 'stormDamage', icon: '⛈️' },
     { id: 'other', icon: '➕' }
   ],
-  'Reparación de electrodomésticos': [
-    { id: 'washerRepair', icon: '🧺' },
-    { id: 'dryerRepair', icon: '👕' },
-    { id: 'fridgeRepair', icon: '🧊' },
-    { id: 'ovenRepair', icon: '🍳' },
-    { id: 'microwaveRepair', icon: '📡' },
-    { id: 'dishwasherRepair', icon: '🍽️' },
-    { id: 'tvRepair', icon: '📺' },
-    { id: 'smallAppliance', icon: '🔌' },
-    { id: 'maintenance', icon: '🔧' },
+  'Cercas': [
+    { id: 'fenceInstall', icon: '🧱' },
+    { id: 'fenceRepair', icon: '🛠️' },
+    { id: 'woodFence', icon: '🪵' },
+    { id: 'vinylFence', icon: '⬜' },
+    { id: 'metalFence', icon: '🔩' },
+    { id: 'gateInstall', icon: '🚪' },
+    { id: 'fencePainting', icon: '🎨' },
+    { id: 'privacyUpgrade', icon: '🛡️' },
+    { id: 'fenceRemoval', icon: '🧰' },
     { id: 'other', icon: '➕' }
   ],
-  'Instalación de aire acondicionado': [
-    { id: 'acInstall', icon: '❄️' },
-    { id: 'acRepair', icon: '🔧' },
-    { id: 'acMaintenance', icon: '🧹' },
-    { id: 'acNotCooling', icon: '🌡️' },
-    { id: 'acNoise', icon: '🔊' },
-    { id: 'acLeak', icon: '💧' },
-    { id: 'gasRecharge', icon: '⛽' },
-    { id: 'ductClean', icon: '🌬️' },
-    { id: 'thermostat', icon: '🌡️' },
+  'Pérgolas': [
+    { id: 'pergolaBuild', icon: '🏗️' },
+    { id: 'pergolaRepair', icon: '🔧' },
+    { id: 'shadeInstall', icon: '⛱️' },
+    { id: 'woodPergola', icon: '🪵' },
+    { id: 'metalPergola', icon: '🧱' },
+    { id: 'roofCover', icon: '🏠' },
+    { id: 'lighting', icon: '💡' },
+    { id: 'staining', icon: '🎨' },
+    { id: 'customDesign', icon: '📐' },
     { id: 'other', icon: '➕' }
   ],
-  'Mudanzas': [
-    { id: 'localMove', icon: '🏠' },
-    { id: 'longDistance', icon: '🚛' },
-    { id: 'packingService', icon: '📦' },
-    { id: 'furnitureOnly', icon: '🛋️' },
-    { id: 'officeMove', icon: '🏢' },
-    { id: 'heavyItems', icon: '🏋️' },
-    { id: 'storage', icon: '🗄️' },
-    { id: 'pianoMove', icon: '🎹' },
-    { id: 'applianceMove', icon: '🧊' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Fumigación': [
-    { id: 'insects', icon: '🐜' },
-    { id: 'rodents', icon: '🐀' },
-    { id: 'termites', icon: '🪲' },
-    { id: 'cockroaches', icon: '🪳' },
-    { id: 'bedBugs', icon: '🛏️' },
-    { id: 'mosquitoes', icon: '🦟' },
-    { id: 'preventive', icon: '🛡️' },
-    { id: 'disinfection', icon: '🧴' },
-    { id: 'gardenPest', icon: '🌿' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Tecnología e informática': [
-    { id: 'pcRepair', icon: '💻' },
-    { id: 'virusRemoval', icon: '🦠' },
-    { id: 'networkSetup', icon: '📶' },
-    { id: 'dataRecovery', icon: '💾' },
-    { id: 'softwareInstall', icon: '📀' },
-    { id: 'printerSetup', icon: '🖨️' },
-    { id: 'emailSetup', icon: '📧' },
-    { id: 'smartHome', icon: '🏠' },
-    { id: 'securitySetup', icon: '🔐' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Clases particulares': [
-    { id: 'math', icon: '🔢' },
-    { id: 'language', icon: '📚' },
-    { id: 'science', icon: '🔬' },
-    { id: 'music', icon: '🎵' },
-    { id: 'art', icon: '🎨' },
-    { id: 'sports', icon: '⚽' },
-    { id: 'programming', icon: '💻' },
-    { id: 'examPrep', icon: '📝' },
-    { id: 'tutoring', icon: '👨‍🏫' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Belleza y estética': [
-    { id: 'haircut', icon: '✂️' },
-    { id: 'hairColor', icon: '🎨' },
-    { id: 'manicure', icon: '💅' },
-    { id: 'pedicure', icon: '🦶' },
-    { id: 'facial', icon: '😊' },
-    { id: 'makeup', icon: '💄' },
-    { id: 'waxing', icon: '🌸' },
-    { id: 'massage', icon: '💆' },
-    { id: 'bridal', icon: '👰' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Mecánica automotriz': [
-    { id: 'oilChange', icon: '🛢️' },
-    { id: 'brakeRepair', icon: '🛑' },
-    { id: 'engineDiag', icon: '🔍' },
-    { id: 'tireService', icon: '🛞' },
-    { id: 'batteryService', icon: '🔋' },
-    { id: 'acRepair', icon: '❄️' },
-    { id: 'transmission', icon: '⚙️' },
-    { id: 'electrical', icon: '⚡' },
-    { id: 'tuneUp', icon: '🔧' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Fotografía': [
-    { id: 'eventPhoto', icon: '🎉' },
-    { id: 'wedding', icon: '💒' },
-    { id: 'portrait', icon: '👤' },
-    { id: 'product', icon: '📸' },
-    { id: 'realEstate', icon: '🏠' },
-    { id: 'corporate', icon: '👔' },
-    { id: 'family', icon: '👨‍👩‍👧' },
-    { id: 'videoRecord', icon: '🎬' },
-    { id: 'editing', icon: '🖼️' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Catering': [
-    { id: 'wedding', icon: '💒' },
-    { id: 'corporate', icon: '🏢' },
-    { id: 'birthday', icon: '🎂' },
-    { id: 'buffet', icon: '🍽️' },
-    { id: 'cocktail', icon: '🍸' },
-    { id: 'bbq', icon: '🍖' },
-    { id: 'breakfast', icon: '🍳' },
-    { id: 'desserts', icon: '🧁' },
-    { id: 'dietary', icon: '🥗' },
+  'Ventanas': [
+    { id: 'windowInstall', icon: '🪟' },
+    { id: 'windowRepair', icon: '🔧' },
+    { id: 'glassReplace', icon: '🔲' },
+    { id: 'screenRepair', icon: '🧰' },
+    { id: 'weatherSeal', icon: '🌧️' },
+    { id: 'windowTint', icon: '🕶️' },
+    { id: 'shutterInstall', icon: '🏠' },
+    { id: 'blindsInstall', icon: '📏' },
+    { id: 'energyEfficient', icon: '♻️' },
     { id: 'other', icon: '➕' }
   ],
   'Construcción': [
     { id: 'newBuild', icon: '🏗️' },
-    { id: 'renovation', icon: '🔨' },
-    { id: 'extension', icon: '🏠' },
-    { id: 'roofing', icon: '🏛️' },
     { id: 'foundation', icon: '🧱' },
-    { id: 'structural', icon: '📐' },
+    { id: 'framing', icon: '🔨' },
+    { id: 'concrete', icon: '🪨' },
+    { id: 'steelWork', icon: '🔩' },
+    { id: 'drywall', icon: '📏' },
     { id: 'permits', icon: '📋' },
-    { id: 'inspection', icon: '🔍' },
-    { id: 'demolition', icon: '💥' },
+    { id: 'sitePrep', icon: '🚜' },
+    { id: 'projectManagement', icon: '🗂️' },
     { id: 'other', icon: '➕' }
   ],
-  'Decoración': [
-    { id: 'interiorDesign', icon: '🏠' },
-    { id: 'furnitureSelect', icon: '🛋️' },
-    { id: 'colorConsult', icon: '🎨' },
-    { id: 'curtains', icon: '🪟' },
-    { id: 'lighting', icon: '💡' },
-    { id: 'wallArt', icon: '🖼️' },
-    { id: 'eventDecor', icon: '🎉' },
-    { id: 'staging', icon: '📷' },
-    { id: 'organization', icon: '📦' },
+  'Mudanzas': [
+    { id: 'localMove', icon: '🏠' },
+    { id: 'longDistance', icon: '🗺️' },
+    { id: 'packing', icon: '📦' },
+    { id: 'unpacking', icon: '📭' },
+    { id: 'furnitureMove', icon: '🛋️' },
+    { id: 'storageService', icon: '🏢' },
+    { id: 'pianoMove', icon: '🎹' },
+    { id: 'officeMove', icon: '💼' },
+    { id: 'disposal', icon: '🗑️' },
     { id: 'other', icon: '➕' }
   ],
-  'Diseño gráfico': [
-    { id: 'logoDesign', icon: '🎯' },
-    { id: 'branding', icon: '✨' },
-    { id: 'webDesign', icon: '🌐' },
-    { id: 'socialMedia', icon: '📱' },
-    { id: 'printDesign', icon: '📄' },
-    { id: 'packaging', icon: '📦' },
-    { id: 'illustration', icon: '🎨' },
-    { id: 'infographic', icon: '📊' },
-    { id: 'videoEdit', icon: '🎬' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Asesoría legal': [
-    { id: 'contracts', icon: '📜' },
-    { id: 'divorce', icon: '⚖️' },
-    { id: 'realEstate', icon: '🏠' },
-    { id: 'business', icon: '🏢' },
-    { id: 'immigration', icon: '✈️' },
-    { id: 'labor', icon: '👔' },
-    { id: 'criminal', icon: '🔒' },
-    { id: 'inheritance', icon: '📋' },
-    { id: 'trademark', icon: '®️' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Contabilidad': [
-    { id: 'taxReturn', icon: '📊' },
-    { id: 'bookkeeping', icon: '📚' },
-    { id: 'audit', icon: '🔍' },
-    { id: 'payroll', icon: '💰' },
-    { id: 'businessPlan', icon: '📋' },
-    { id: 'invoicing', icon: '🧾' },
-    { id: 'taxPlanning', icon: '📅' },
-    { id: 'startup', icon: '🚀' },
-    { id: 'consulting', icon: '💼' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Marketing digital': [
-    { id: 'seo', icon: '🔍' },
-    { id: 'socialMedia', icon: '📱' },
-    { id: 'ads', icon: '📢' },
-    { id: 'emailMarketing', icon: '📧' },
-    { id: 'contentCreate', icon: '✍️' },
-    { id: 'analytics', icon: '📊' },
-    { id: 'ecommerce', icon: '🛒' },
-    { id: 'branding', icon: '🎯' },
-    { id: 'strategy', icon: '📋' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Traducción': [
-    { id: 'document', icon: '📄' },
-    { id: 'legal', icon: '⚖️' },
-    { id: 'medical', icon: '🏥' },
-    { id: 'technical', icon: '⚙️' },
-    { id: 'website', icon: '🌐' },
-    { id: 'subtitles', icon: '🎬' },
-    { id: 'interpreter', icon: '🗣️' },
-    { id: 'certified', icon: '📜' },
-    { id: 'localization', icon: '🌍' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Otro': [
-    { id: 'consultation', icon: '💬' },
-    { id: 'repair', icon: '🔧' },
-    { id: 'installation', icon: '📦' },
-    { id: 'maintenance', icon: '🛠️' },
-    { id: 'emergency', icon: '🚨' },
-    { id: 'quote', icon: '💰' },
-    { id: 'inspection', icon: '🔍' },
-    { id: 'advice', icon: '💡' },
-    { id: 'custom', icon: '✨' },
+  'Seguridad': [
+    { id: 'cameraInstall', icon: '📹' },
+    { id: 'alarmSystem', icon: '🚨' },
+    { id: 'motionSensors', icon: '📡' },
+    { id: 'accessControl', icon: '🔑' },
+    { id: 'smartHome', icon: '📱' },
+    { id: 'intercom', icon: '🔔' },
+    { id: 'securityLighting', icon: '💡' },
+    { id: 'monitoring', icon: '🖥️' },
+    { id: 'assessment', icon: '🔍' },
     { id: 'other', icon: '➕' }
   ]
 };
@@ -328,15 +280,7 @@ export const CATEGORY_PROBLEMS = {
  * Categorías que pueden ofrecer servicios remotos/virtuales
  * Para estas categorías, la ubicación será OPCIONAL
  */
-export const REMOTE_CATEGORIES = [
-  'Tecnología e informática',  // Soporte remoto, configuración online
-  'Clases particulares',       // Clases online
-  'Diseño gráfico',            // Trabajo 100% remoto
-  'Asesoría legal',            // Consultas virtuales
-  'Contabilidad',              // Servicios remotos
-  'Marketing digital',         // Trabajo 100% remoto
-  'Traducción'                 // Trabajo 100% remoto
-];
+export const REMOTE_CATEGORIES = [];
 
 /**
  * Verifica si una categoría requiere ubicación obligatoria
@@ -356,10 +300,7 @@ export function getProblemsForCategory(category) {
   const problems = CATEGORY_PROBLEMS[category];
   
   if (!problems) {
-    return CATEGORY_PROBLEMS['Otro'].map(problem => ({
-      ...problem,
-      translationKey: `ui.categoryProblems.Otro.${problem.id}`
-    }));
+    return [];
   }
   
   return problems.map(problem => ({

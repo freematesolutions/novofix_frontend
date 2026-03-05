@@ -26,7 +26,11 @@ function CategoryIconCarousel({
   rotationInterval: _rotationInterval = 2800 // eslint-disable-line no-unused-vars
 }) {
   const { t } = useTranslation();
-  const [loadedImages, setLoadedImages] = useState({});
+  // Usar ref para tracking de imágenes cargadas (evita re-renders por cada imagen)
+  const loadedImagesRef = useRef({});
+  const [allImagesReady, setAllImagesReady] = useState(false);
+  // Estado para mostrar tooltip de tarjeta inhabilitada al tocar en móvil
+  const [tappedDisabledCard, setTappedDisabledCard] = useState(null);
   const containerRef = useRef(null);
   const cardRefsMap = useRef(new Map());
 
@@ -48,55 +52,54 @@ function CategoryIconCarousel({
   const autoPauseTimeoutRef = useRef(null);
   const autoPausedUntilRef = useRef(0);
 
-  // ─── Precargar imágenes (en lotes para evitar saturar conexiones) ──
+  // ─── Precargar TODAS las imágenes en paralelo (sin lotes) ──────────
   useEffect(() => {
-    const BATCH_SIZE = 4;
     let cancelled = false;
 
-    const loadImageWithRetry = (service) => {
-      return new Promise((resolve) => {
-        const url = CATEGORY_IMAGES[service.category] || FALLBACK_IMAGE;
-        const img = new Image();
-        img.onload = () => {
-          if (!cancelled) setLoadedImages((p) => ({ ...p, [service.category]: true }));
-          resolve();
-        };
-        img.onerror = () => {
-          // Si falla la imagen principal, intentar con la de respaldo
-          if (url !== FALLBACK_IMAGE) {
-            const fallback = new Image();
-            fallback.onload = () => {
-              if (!cancelled) setLoadedImages((p) => ({ ...p, [service.category]: true }));
-              resolve();
-            };
-            fallback.onerror = () => {
-              // Marcar como cargada de todas formas para ocultar el skeleton
-              if (!cancelled) setLoadedImages((p) => ({ ...p, [service.category]: true }));
-              resolve();
-            };
-            fallback.src = FALLBACK_IMAGE;
-          } else {
-            // Ocultar skeleton aunque falle
-            if (!cancelled) setLoadedImages((p) => ({ ...p, [service.category]: true }));
+    const preloadAll = () => {
+      const promises = categories.map((service) => {
+        // Si ya fue cargada antes, no volver a cargar
+        if (loadedImagesRef.current[service.category]) return Promise.resolve();
+
+        return new Promise((resolve) => {
+          const url = CATEGORY_IMAGES[service.category] || FALLBACK_IMAGE;
+          const img = new Image();
+          img.onload = () => {
+            if (!cancelled) loadedImagesRef.current[service.category] = true;
             resolve();
-          }
-        };
-        img.src = url;
+          };
+          img.onerror = () => {
+            if (url !== FALLBACK_IMAGE) {
+              const fallback = new Image();
+              fallback.onload = () => {
+                if (!cancelled) loadedImagesRef.current[service.category] = true;
+                resolve();
+              };
+              fallback.onerror = () => {
+                if (!cancelled) loadedImagesRef.current[service.category] = true;
+                resolve();
+              };
+              fallback.src = FALLBACK_IMAGE;
+            } else {
+              if (!cancelled) loadedImagesRef.current[service.category] = true;
+              resolve();
+            }
+          };
+          img.src = url;
+        });
+      });
+
+      Promise.all(promises).then(() => {
+        if (!cancelled) setAllImagesReady(true);
       });
     };
 
-    const loadInBatches = async () => {
-      for (let i = 0; i < categories.length; i += BATCH_SIZE) {
-        if (cancelled) break;
-        const batch = categories.slice(i, i + BATCH_SIZE);
-        await Promise.all(batch.map(loadImageWithRetry));
-      }
-    };
-
-    loadInBatches();
+    preloadAll();
 
     return () => { cancelled = true; };
   }, [categories]);
+
+
 
   // ─── Espaciado responsive — card width + margen para separación visible ──
   // Card width = clamp(110px, 22vw, 240px)
@@ -132,8 +135,8 @@ function CategoryIconCarousel({
 
       const dist = Math.abs(rel);
 
-      // Mostrar ~4 tarjetas visibles (centro + ~2 a cada lado)
-      const MAX_VISIBLE = 2.5;
+      // Mostrar ~5-6 tarjetas visibles (centro + ~3 a cada lado)
+      const MAX_VISIBLE = 3.0;
       const visible = dist <= MAX_VISIBLE;
 
       const translateX = rel * spacing;
@@ -148,13 +151,13 @@ function CategoryIconCarousel({
       let opacity;
       if (!visible) {
         opacity = 0;
-      } else if (dist > 2.0) {
-        // Fade out suave entre 2.0 y 2.5
-        opacity = Math.max(0, 1 - (dist - 1.5) * 0.7) * 0.35;
-      } else if (dist > 1.5) {
-        opacity = Math.max(0.35, 1 - dist * 0.35);
+      } else if (dist > 2.5) {
+        // Fade out suave entre 2.5 y 3.0
+        opacity = Math.max(0, 1 - (dist - 2.0) * 0.6) * 0.3;
+      } else if (dist > 1.8) {
+        opacity = Math.max(0.3, 1 - dist * 0.32);
       } else {
-        opacity = Math.max(0.5, 1 - dist * 0.3);
+        opacity = Math.max(0.5, 1 - dist * 0.28);
       }
 
       return {
@@ -205,7 +208,7 @@ function CategoryIconCarousel({
       return;
     }
 
-    const speed = 0.00022; // ~38 s por vuelta completa — más suave, sin saltos
+    const speed = 0.00014; // ~37 s por vuelta completa con 16 categorías — suave y sin saltos
 
     const animate = (now) => {
       // Pausar por hover, drag activo o pausa manual
@@ -382,7 +385,7 @@ function CategoryIconCarousel({
   useEffect(() => {
     const id = requestAnimationFrame(() => applyPositionsToDOM(offsetRef.current));
     return () => cancelAnimationFrame(id);
-  }, [categories, applyPositionsToDOM, loadedImages]);
+  }, [categories, applyPositionsToDOM, allImagesReady]);
 
   // ─── Render ───────────────────────────────────────────────────────
   if (categories.length === 0) return null;
@@ -391,7 +394,12 @@ function CategoryIconCarousel({
     <div
       ref={containerRef}
       className="relative w-full h-52 sm:h-60 md:h-72 lg:h-72 xl:h-80 2xl:h-88 select-none"
-      style={{ perspective: '1400px', touchAction: 'pan-y' }}
+      style={{
+        perspective: '1400px',
+        touchAction: 'pan-y',
+        opacity: allImagesReady ? 1 : 0,
+        transition: 'opacity 0.5s ease-in-out'
+      }}
       onMouseEnter={() => { isHoveringRef.current = true; }}
       onMouseDown={handleDragStart}
       onMouseMove={handleDragMove}
@@ -416,7 +424,6 @@ function CategoryIconCarousel({
       >
         {categories.map((service, index) => {
           const imageUrl = CATEGORY_IMAGES[service.category] || FALLBACK_IMAGE;
-          const isImageLoaded = loadedImages[service.category];
           const isDisabled = service.hasProviders === false;
 
           return (
@@ -428,7 +435,14 @@ function CategoryIconCarousel({
                 else cardRefsMap.current.delete(service.instanceId);
               }}
               onClick={(e) => {
-                if (isDisabled) { e.preventDefault(); e.stopPropagation(); return; }
+                if (isDisabled) {
+                  e.preventDefault(); e.stopPropagation();
+                  // Mostrar tooltip en móvil al tocar
+                  setTappedDisabledCard((prev) => prev === service.instanceId ? null : service.instanceId);
+                  // Auto-ocultar después de 2.5s
+                  setTimeout(() => setTappedDisabledCard(null), 2500);
+                  return;
+                }
                 handleIconClick(e, index, service.category, service.hasProviders);
               }}
               className={`carousel-card absolute flex flex-col items-center justify-end
@@ -466,18 +480,18 @@ function CategoryIconCarousel({
                   maskImage: 'radial-gradient(white, black)'
                 }}
               >
-                {/* Imagen de fondo */}
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                  style={{
-                    backgroundImage: `url(${imageUrl})`
+                {/* Imagen de fondo — <img> nativa, visible solo cuando todo está listo */}
+                <img
+                  src={imageUrl}
+                  alt={service.translatedName}
+                  loading="eager"
+                  fetchpriority="high"
+                  decoding="async"
+                  onError={(e) => {
+                    if (e.target.src !== FALLBACK_IMAGE) e.target.src = FALLBACK_IMAGE;
                   }}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-
-                {/* Skeleton loader */}
-                {!isImageLoaded && (
-                  <div className="absolute inset-0 bg-linear-to-br from-gray-200 via-gray-300 to-gray-200 animate-pulse" />
-                )}
 
                 {/* Overlay gradiente inferior — equilibrado para dar profundidad a la imagen */}
                 <div
@@ -497,27 +511,55 @@ function CategoryIconCarousel({
 
                 {/* Las tarjetas disabled se ven igual visualmente, solo están inhabilitadas al click */}
 
-                {/* Nombre de categoría + contador — footer charcoal con acento mustard */}
+                {/* Overlay para tarjetas inhabilitadas — aparece al hover/touch */}
+                {isDisabled && (
+                  <div
+                    className={`absolute inset-0 z-20 flex flex-col items-center justify-center transition-opacity duration-300 pointer-events-none
+                      ${tappedDisabledCard === service.instanceId ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-active:opacity-100'}`}
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(30,30,30,0.88) 0%, rgba(15,15,15,0.92) 100%)',
+                      backdropFilter: 'blur(2px)',
+                      WebkitBackdropFilter: 'blur(2px)'
+                    }}
+                  >
+                    {/* Icono de reloj / próximamente */}
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mb-2 ring-1 ring-white/20">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-accent-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    {/* Mensaje */}
+                    <p className="text-white/90 text-center text-[9px] sm:text-[10px] md:text-xs font-medium leading-tight px-3 max-w-[90%]">
+                      {t('home.carousel.disabledTooltip')}
+                    </p>
+                  </div>
+                )}
+
+                {/* Nombre de categoría + tagline — footer charcoal con acento mustard, altura uniforme */}
                 <div
-                  className="absolute bottom-0 left-0 right-0 z-10 px-2 py-1.5 sm:px-3 sm:py-2 border-t-2 border-accent-400/50 rounded-b-2xl sm:rounded-b-3xl"
+                  className="absolute bottom-0 left-0 right-0 z-10 px-2 py-1.5 sm:px-3 sm:py-2 border-t-2 border-accent-400/50 rounded-b-2xl sm:rounded-b-3xl flex flex-col justify-center"
                   style={{
                     background: 'linear-gradient(135deg, rgba(47,53,59,0.92), rgba(37,42,47,0.88))',
                     backdropFilter: 'blur(10px)',
                     WebkitBackdropFilter: 'blur(10px)',
-                    boxShadow: '0 -2px 10px rgba(0,0,0,0.15)'
+                    boxShadow: '0 -2px 10px rgba(0,0,0,0.15)',
+                    height: 'clamp(52px, 11vw, 68px)'
                   }}
                 >
+                  {/* Nombre — siempre 1 línea, truncado si excede */}
                   <h3
-                    className="carousel-card-label font-bold text-gray-200 text-center leading-tight text-xs sm:text-sm md:text-base tracking-wide"
+                    className="carousel-card-label font-bold text-gray-200 text-center leading-tight text-xs sm:text-sm md:text-base tracking-wide truncate"
                     style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)', letterSpacing: '0.06em' }}
+                    title={service.translatedName}
                   >
                     {service.translatedName}
                   </h3>
 
-                  {/* Tagline de valor del servicio */}
+                  {/* Tagline — siempre 1 línea, truncado si excede */}
                   <p
-                    className="text-white/70 text-center mt-0.5 text-[9px] sm:text-[10px] md:text-xs font-medium italic"
+                    className="text-white/70 text-center mt-0.5 text-[9px] sm:text-[10px] md:text-xs font-medium italic truncate"
                     style={{ textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}
+                    title={t(`home.carousel.taglines.${service.category}`, '')}
                   >
                     {t(`home.carousel.taglines.${service.category}`, '')}
                   </p>

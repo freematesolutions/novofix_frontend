@@ -19,9 +19,9 @@ const FlagEN = () => (
   </svg>
 );
 
-const GlobeIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+const GlobeIcon = ({ size = 'w-4 h-4' }) => (
+  <svg className={size} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
   </svg>
 );
 
@@ -60,69 +60,34 @@ export default function LanguageSelector({ className = '', variant = 'default' }
     }
   }, [isOpen]);
 
-  // Variante compacta para móvil
+  // Variante compacta para móvil — globo como botón, banderas en dropdown
   if (variant === 'compact') {
     return (
-      <div className={`inline-flex items-center gap-0.5 ${className}`}>
-        <button
-          type="button"
-          onClick={() => change('es')}
-          className={`p-1.5 rounded-lg transition-all duration-200 ${
-            isSpanish 
-              ? 'bg-brand-100 ring-2 ring-brand-500 ring-offset-1' 
-              : 'hover:bg-gray-100 opacity-60 hover:opacity-100'
-          }`}
-          aria-label="Español"
-          title="Español"
-        >
-          <FlagES />
-        </button>
-        <button
-          type="button"
-          onClick={() => change('en')}
-          className={`p-1.5 rounded-lg transition-all duration-200 ${
-            !isSpanish 
-              ? 'bg-brand-100 ring-2 ring-brand-500 ring-offset-1' 
-              : 'hover:bg-gray-100 opacity-60 hover:opacity-100'
-          }`}
-          aria-label="English"
-          title="English"
-        >
-          <FlagEN />
-        </button>
-      </div>
-    );
-  }
-
-  // Variante "flag-only": solo la banderita, sin borde, sin fondo, más pequeña
-  if (variant === 'flag-only') {
-    return (
-      <div ref={dropdownRef} className={`relative ${className}`}>
+      <div ref={dropdownRef} className={`relative inline-flex ${className}`}>
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="group flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+          className="group flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           aria-label={t('language.selectLanguage', 'Seleccionar idioma')}
-          title={isSpanish ? 'Español' : 'English'}
+          title={t('language.selectLanguage', 'Seleccionar idioma')}
         >
-          <div className="transition-transform duration-200 group-hover:scale-110">
-            {isSpanish ? <FlagES /> : <FlagEN />}
+          <div className="text-gray-600 group-hover:text-brand-600 transition-all duration-200 group-hover:scale-110">
+            <GlobeIcon size="w-5 h-5" />
           </div>
         </button>
 
-        {/* Dropdown menu minimalista */}
         {isOpen && (
           <div 
-            className="absolute right-0 mt-1.5 w-36 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-9999 animate-fade-in origin-top-right"
+            className="absolute right-0 mt-10 w-40 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-9999 animate-fade-in origin-top-right"
             role="listbox"
             aria-label={t('language.availableLanguages', 'Idiomas disponibles')}
           >
             <button
               type="button"
               onClick={() => change('es')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-all duration-200 ${isSpanish ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50 text-gray-700'}`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-all duration-200 ${isSpanish ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50 text-gray-700'}`}
               role="option"
               aria-selected={isSpanish}
             >
@@ -137,7 +102,68 @@ export default function LanguageSelector({ className = '', variant = 'default' }
             <button
               type="button"
               onClick={() => change('en')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-all duration-200 ${!isSpanish ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50 text-gray-700'}`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-all duration-200 ${!isSpanish ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50 text-gray-700'}`}
+              role="option"
+              aria-selected={!isSpanish}
+            >
+              <FlagEN />
+              <span className="text-sm font-medium">English</span>
+              {!isSpanish && (
+                <svg className="w-4 h-4 text-brand-600 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Variante "flag-only": globo como botón principal, banderas en dropdown
+  if (variant === 'flag-only') {
+    return (
+      <div ref={dropdownRef} className={`relative ${className}`}>
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="group flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          aria-label={t('language.selectLanguage', 'Seleccionar idioma')}
+          title={t('language.selectLanguage', 'Seleccionar idioma')}
+        >
+          <div className="text-gray-600 group-hover:text-brand-600 transition-all duration-200 group-hover:scale-110">
+            <GlobeIcon size="w-5 h-5" />
+          </div>
+        </button>
+
+        {/* Dropdown menu minimalista */}
+        {isOpen && (
+          <div 
+            className="absolute left-0 mt-1.5 w-40 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-9999 animate-fade-in origin-top-left"
+            role="listbox"
+            aria-label={t('language.availableLanguages', 'Idiomas disponibles')}
+          >
+            <button
+              type="button"
+              onClick={() => change('es')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-all duration-200 ${isSpanish ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50 text-gray-700'}`}
+              role="option"
+              aria-selected={isSpanish}
+            >
+              <FlagES />
+              <span className="text-sm font-medium">Español</span>
+              {isSpanish && (
+                <svg className="w-4 h-4 text-brand-600 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => change('en')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-all duration-200 ${!isSpanish ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50 text-gray-700'}`}
               role="option"
               aria-selected={!isSpanish}
             >
@@ -157,7 +183,7 @@ export default function LanguageSelector({ className = '', variant = 'default' }
 
   return (
     <div ref={dropdownRef} className={`relative ${className}`}>
-      {/* Botón principal con dropdown */}
+      {/* Botón principal con dropdown — globo como icono principal */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -173,9 +199,9 @@ export default function LanguageSelector({ className = '', variant = 'default' }
         aria-haspopup="listbox"
         aria-label={t('language.selectLanguage', 'Seleccionar idioma')}
       >
-        {/* Bandera actual */}
-        <div className="transition-transform duration-200 group-hover:scale-110">
-          {isSpanish ? <FlagES /> : <FlagEN />}
+        {/* Globo como icono principal */}
+        <div className="text-gray-600 group-hover:text-brand-600 transition-all duration-200 group-hover:scale-110">
+          <GlobeIcon size="w-5 h-5" />
         </div>
         
         {/* Código de idioma */}

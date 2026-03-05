@@ -67,18 +67,18 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
           </div>
         )}
 
-        {/* Título sobre la imagen */}
+        {/* Título sobre la imagen — siempre 1 línea */}
         <div className="absolute bottom-0 left-0 right-0 p-6">
-          <h3 className="text-2xl font-bold text-white drop-shadow-lg group-hover:scale-105 transition-transform duration-300">
+          <h3 className="text-2xl font-bold text-white drop-shadow-lg group-hover:scale-105 transition-transform duration-300 truncate" title={translatedName}>
             {translatedName}
           </h3>
         </div>
       </div>
 
-      {/* Contenido inferior */}
-      <div className="flex-1 flex flex-col p-6 bg-white">
-        {/* Descripción */}
-        <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
+      {/* Contenido inferior — altura fija para uniformidad entre tarjetas */}
+      <div className="flex flex-col p-6 bg-white" style={{ minHeight: '140px' }}>
+        {/* Descripción — altura fija de 3 líneas para uniformidad */}
+        <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3 min-h-15">
           {translatedDescription}
         </p>
 

@@ -877,7 +877,7 @@ export default function ClientRequests() {
                 <div>
                   <span className="font-semibold text-gray-900">{getTranslatedRequestInfo(inviteTarget, currentLang).title}</span>
                   <span className="mx-2 text-gray-300">·</span>
-                  <span className="text-brand-600 font-medium">{inviteTarget?.basicInfo?.category}</span>
+                  <span className="text-brand-600 font-medium">{t(`home.categories.${inviteTarget?.basicInfo?.category}`, inviteTarget?.basicInfo?.category)}</span>
                 </div>
               </div>
             </div>
@@ -1142,7 +1142,7 @@ export default function ClientRequests() {
                   {deleteTarget?.basicInfo?.category && (
                     <>
                       <span className="mx-2 text-gray-300">·</span>
-                      <span className="text-red-600 font-medium">{deleteTarget.basicInfo.category}</span>
+                      <span className="text-red-600 font-medium">{t(`home.categories.${deleteTarget.basicInfo.category}`, deleteTarget.basicInfo.category)}</span>
                     </>
                   )}
                 </div>

@@ -329,7 +329,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate }) {
               >
                 <option value="">{t('account.portfolioManager.noCategory')}</option>
                 {SERVICE_CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{t(`categories.${cat}`, cat)}</option>
+                  <option key={cat} value={cat}>{t(`home.categories.${cat}`, cat)}</option>
                 ))}
               </select>
             </div>

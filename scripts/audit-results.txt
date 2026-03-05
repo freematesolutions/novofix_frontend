@@ -1,0 +1,190 @@
+ÔòöÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòù
+Ôòæ           ­ƒöì TRANSLATION AUDIT ÔÇö novofix                   Ôòæ
+ÔòÜÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòØ
+
+­ƒôä ES translation: 2874 keys
+­ƒôä EN translation: 2756 keys
+­ƒôü Source files scanned: 89
+
+­ƒöæ Static t() keys found: 1840
+­ƒöä Dynamic t() patterns found: 60
+­ƒöô Dynamic keys expanded: 513
+ÔÜá´©Å  Unresolvable dynamic patterns: 7
+­ƒôè Total unique keys to check: 2348
+
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+                       ­ƒôï RESULTS
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+Ô£à All code keys exist in ES translation
+
+Ô£à All code keys exist in EN translation
+
+ÔÜá´©Å  IN ES BUT NOT EN (181 keys):
+   ÔÇó chat.proposalAccepted
+   ÔÇó chat.proposalRejected
+   ÔÇó chat.sendMessage
+   ÔÇó chat.system.infoRequestStarted
+   ÔÇó client.inbox.attachment
+   ÔÇó client.inbox.chat
+   ÔÇó client.inbox.close
+   ÔÇó client.inbox.conversations
+   ÔÇó client.inbox.errorLoading
+   ÔÇó client.inbox.errorLoadingChats
+   ÔÇó client.inbox.estimate
+   ÔÇó client.inbox.filterAll
+   ÔÇó client.inbox.filterBookings
+   ÔÇó client.inbox.filterEstimates
+   ÔÇó client.inbox.filterInquiries
+   ÔÇó client.inbox.myProposals
+   ÔÇó client.inbox.negotiate
+   ÔÇó client.inbox.negotiateInfo
+   ÔÇó client.inbox.negotiateProposal
+   ÔÇó client.inbox.negotiateTooltip
+   ÔÇó client.inbox.noChats
+   ÔÇó client.inbox.noChatsInFilter
+   ÔÇó client.inbox.noMessages
+   ÔÇó client.inbox.noPrice
+   ÔÇó client.inbox.noProposals
+   ÔÇó client.inbox.noProposalsDescription
+   ÔÇó client.inbox.proposal
+   ÔÇó client.inbox.proposalLabel
+   ÔÇó client.inbox.proposalsCount
+   ÔÇó client.inbox.providerOnly
+   ÔÇó client.inbox.selectConversation
+   ÔÇó client.inbox.selectConversationDesc
+   ÔÇó client.inbox.showAll
+   ÔÇó client.inbox.status.accepted
+   ÔÇó client.inbox.status.draft
+   ÔÇó client.inbox.status.pending
+   ÔÇó client.inbox.status.rejected
+   ÔÇó client.inbox.status.sent
+   ÔÇó client.inbox.status.viewed
+   ÔÇó client.inbox.status.withdrawn
+   ÔÇó client.inbox.subtitle
+   ÔÇó client.inbox.title
+   ÔÇó client.inbox.typeBooking
+   ÔÇó client.inbox.typeEstimate
+   ÔÇó client.inbox.typeInquiry
+   ÔÇó client.inbox.viewRequest
+   ÔÇó client.inbox.writeMessage
+   ÔÇó client.proposals.active
+   ÔÇó client.proposals.amountLabel
+   ÔÇó client.proposals.amountMaxMustBeGreater
+   ... and 131 more
+
+ÔÜá´©Å  IN EN BUT NOT ES (63 keys):
+   ÔÇó client.createRequest.address
+   ÔÇó client.createRequest.calculating
+   ÔÇó client.createRequest.compressing
+   ÔÇó client.createRequest.createSuccess
+   ÔÇó client.createRequest.description
+   ÔÇó client.createRequest.draftSuccess
+   ÔÇó client.createRequest.noProviders
+   ÔÇó client.createRequest.processingCloudinary
+   ÔÇó client.createRequest.requestTitle
+   ÔÇó client.createRequest.selectProviders
+   ÔÇó client.createRequest.sendToAll
+   ÔÇó client.createRequest.sortedByScore
+   ÔÇó client.createRequest.update
+   ÔÇó client.createRequest.urgency.immediate
+   ÔÇó client.createRequest.urgency.scheduled
+   ÔÇó client.editRequest.backToRequests
+   ÔÇó client.editRequest.saving
+   ÔÇó client.proposals.chatError
+   ÔÇó client.proposals.chatModal.title
+   ÔÇó client.proposals.proposalAccepted
+   ÔÇó client.proposals.proposalRejected
+   ÔÇó provider.jobs.noJobs
+   ÔÇó provider.jobs.noJobsDescription
+   ÔÇó provider.jobs.sendProposal
+   ÔÇó provider.jobs.viewDetails
+   ÔÇó provider.plan.codeApplied
+   ÔÇó provider.plan.codeError
+   ÔÇó provider.plan.loadError
+   ÔÇó provider.plan.updateError
+   ÔÇó provider.plan.updateSuccess
+   ÔÇó provider.plan.upgrade
+   ÔÇó provider.portfolio.addFirstWork
+   ÔÇó provider.portfolio.addWork
+   ÔÇó provider.portfolio.noWorks
+   ÔÇó provider.requestDetail.enableRange
+   ÔÇó provider.requestDetail.files
+   ÔÇó provider.requestDetail.fixedAmount
+   ÔÇó provider.requestDetail.infoRequestPlaceholder
+   ÔÇó provider.requestDetail.infoRequestTips
+   ÔÇó provider.requestDetail.proposalStatus.accepted
+   ÔÇó provider.requestDetail.proposalStatus.draft
+   ÔÇó provider.requestDetail.proposalStatus.rejected
+   ÔÇó provider.requestDetail.proposalStatus.sent
+   ÔÇó provider.requestDetail.proposalStatus.viewed
+   ÔÇó provider.requestDetail.rangeAmount
+   ÔÇó provider.requestDetail.rangeEnabled
+   ÔÇó provider.requestDetail.viewMedia
+   ÔÇó provider.reviews.categories.communication
+   ÔÇó provider.reviews.categories.professionalism
+   ÔÇó provider.reviews.categories.punctuality
+   ... and 13 more
+
+­ƒùæ´©Å  POTENTIALLY UNUSED (444 keys in ES JSON but not found in code):
+   ÔÇó auth.benefits.directChat
+   ÔÇó auth.benefits.requestsUnlimited
+   ÔÇó auth.benefits.verifiedProfessionals
+   ÔÇó auth.confirmNewPassword
+   ÔÇó auth.confirmPassword
+   ÔÇó auth.newPassword
+   ÔÇó auth.orContinueWith
+   ÔÇó auth.passwordPlaceholder
+   ÔÇó auth.passwordRequirements.length
+   ÔÇó auth.passwordRequirements.number
+   ÔÇó auth.passwordRequirements.special
+   ÔÇó auth.passwordRequirements.uppercase
+   ÔÇó auth.passwordStrength.good
+   ÔÇó auth.passwordStrength.veryStrong
+   ÔÇó auth.passwordUpdated
+   ÔÇó auth.privacyPolicy
+   ÔÇó auth.providerRegisterSubtitle
+   ÔÇó auth.providerRegisterTitle
+   ÔÇó auth.register
+   ÔÇó auth.registerAsClient
+   ÔÇó auth.registering
+   ÔÇó auth.resendCode
+   ÔÇó auth.resetPassword
+   ÔÇó auth.signUpHere
+   ÔÇó auth.termsOfService
+   ÔÇó auth.updatePassword
+   ÔÇó auth.updatingPassword
+   ÔÇó auth.validation.passwordNumber
+   ÔÇó auth.validation.passwordSpecial
+   ÔÇó auth.validation.passwordUppercase
+   ... and 414 more
+
+­ƒöä UNRESOLVABLE DYNAMIC PATTERNS (7 ÔÇö manual review needed):
+   ÔÇó `ui.providerProfile.tabs.${tab.labelKey}` ÔåÉ components/ui/ProviderProfileModal.jsx:429
+   ÔÇó `ui.requestWizard.dateOptions.${opt.labelKey}` ÔåÉ components/ui/RequestWizardModal.jsx:1322
+   ÔÇó `ui.reviewList.categories.${cat.labelKey}` ÔåÉ components/ui/ReviewList.jsx:691
+   ÔÇó `ui.reviewList.sortOptions.${opt.labelKey}` ÔåÉ components/ui/ReviewList.jsx:734
+   ÔÇó `ui.reviewList.dateOptions.${opt.labelKey}` ÔåÉ components/ui/ReviewList.jsx:763
+   ÔÇó `ui.reviewList.sortOptions.${SORT_OPTIONS.find(o => o.value === sortBy)?.labelKey}` ÔåÉ components/ui/ReviewList.jsx:834
+   ÔÇó `ui.reviewList.dateOptions.${DATE_FILTER_OPTIONS.find(o => o.value === dateFilter)?.labelKey}` ÔåÉ components/ui/ReviewList.jsx:844
+
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+                       ­ƒôè SUMMARY
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+   Static keys in code:       1840
+   Dynamic patterns:          60
+   Expanded dynamic keys:     513
+   Total audited keys:        2348
+   ES translation keys:       2874
+   EN translation keys:       2756
+
+   Missing in ES:             0
+   Missing in EN:             0
+   In ES but not EN:          181
+   In EN but not ES:          63
+   Potentially unused:        444
+   Unresolvable dynamic:      7
+
+   ÔÜá´©Å  244 ISSUES FOUND ÔÇö Review above for details
+

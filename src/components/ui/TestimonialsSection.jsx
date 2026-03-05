@@ -1217,12 +1217,14 @@ function TestimonialsSection() {
                 />
               )}
 
-              {/* Work Photos Gallery - Galería después */}
-              <WorkPhotoGallery 
-                photos={workPhotos} 
-                onImageClick={handleImageClick}
-                onViewProfile={handleViewProfile}
-              />
+              {/* Work Photos Gallery - Sección independiente con espaciado propio */}
+              <div id="gallery-section" className="pt-14 scroll-mt-20">
+                <WorkPhotoGallery 
+                  photos={workPhotos} 
+                  onImageClick={handleImageClick}
+                  onViewProfile={handleViewProfile}
+                />
+              </div>
             </>
           )}
 
