@@ -28,7 +28,7 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
       aria-disabled={disabled}
     >
       {/* Imagen de fondo con overlay */}
-      <div className="relative h-56 overflow-hidden">
+      <div className="relative h-64 sm:h-72 lg:h-80 overflow-hidden">
         {/* Skeleton mientras carga */}
         {!imageLoaded && (
           <div className="absolute inset-0 bg-linear-to-br from-gray-200 via-gray-300 to-gray-200 animate-pulse z-0" />
@@ -68,17 +68,17 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
         )}
 
         {/* Título sobre la imagen — siempre 1 línea */}
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <h3 className="text-2xl font-bold text-white drop-shadow-lg group-hover:scale-105 transition-transform duration-300 truncate" title={translatedName}>
+        <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
+          <h3 className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg group-hover:scale-105 transition-transform duration-300 leading-tight wrap-break-word" title={translatedName}>
             {translatedName}
           </h3>
         </div>
       </div>
 
       {/* Contenido inferior — altura fija para uniformidad entre tarjetas */}
-      <div className="flex flex-col p-6 bg-white" style={{ minHeight: '140px' }}>
-        {/* Descripción — altura fija de 3 líneas para uniformidad */}
-        <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3 min-h-15">
+      <div className="flex flex-col p-5 sm:p-6 bg-white">
+        {/* Descripción — mostrar completa en todas las resoluciones */}
+        <p className="text-gray-600 text-sm sm:text-[0.95rem] leading-relaxed mb-4 wrap-break-word">
           {translatedDescription}
         </p>
 

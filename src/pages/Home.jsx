@@ -587,7 +587,7 @@ useEffect(() => {
           {/* Ajustada para acomodar las tarjetas de imagen más grandes del carrusel */}
           <div 
             id="hero-section"
-            className="relative overflow-hidden rounded-xl sm:rounded-2xl shadow-2xl min-h-[480px] sm:min-h-[540px] md:min-h-[600px] lg:min-h-[580px] xl:min-h-[680px] 2xl:min-h-[760px] scroll-mt-20 -mx-2 sm:-mx-1"
+            className="relative overflow-hidden rounded-xl sm:rounded-2xl shadow-2xl min-h-[520px] sm:min-h-[600px] md:min-h-[660px] lg:min-h-[680px] xl:min-h-[760px] 2xl:min-h-[840px] scroll-mt-20 -mx-2 sm:-mx-1"
           >
             {/* Fondo degradado sólido de marca — sin imágenes para no competir con el carrusel */}
             <div className="absolute inset-0">
@@ -654,9 +654,9 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/* Carrusel de tarjetas con imágenes de categorías */}
+              {/* Carrusel de tarjetas con imágenes de categorías — borde a borde del hero */}
               {allCategoriesWithProviders.length > 0 && firstImageLoaded && (
-                <div className="w-full mx-auto shrink-0 overflow-hidden">
+                <div className="w-[calc(100%+1.5rem)] sm:w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] lg:w-[calc(100%+2.5rem)] xl:w-[calc(100%+4rem)] -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-5 xl:-mx-8 shrink-0 overflow-hidden">
                   <CategoryIconCarousel
                     categories={allCategoriesWithProviders}
                     currentIndex={carouselIndex}
@@ -871,7 +871,7 @@ useEffect(() => {
                 {sortedCategoriesForCards.map((service) => (
                   <div
                     key={service.instanceId}
-                    className={`w-[320px] sm:w-90 shrink-0${service.hasProviders ? ' service-card-with-providers' : ''}`}
+                    className={`w-[340px] sm:w-[380px] lg:w-[420px] shrink-0${service.hasProviders ? ' service-card-with-providers' : ''}`}
                     style={{ scrollSnapAlign: 'start' }}
                     data-has-providers={service.hasProviders ? 'true' : 'false'}
                   >

@@ -108,7 +108,7 @@ function CategoryIconCarousel({
     if (typeof window === 'undefined') return 160;
     const w = window.innerWidth;
     // Calcular ancho real de tarjeta: clamp(110, 0.22 * w, 240)
-    const cardW = Math.min(240, Math.max(110, w * 0.22));
+    const cardW = Math.min(280, Math.max(130, w * 0.26));
     // Gap proporcional: más gap en pantallas grandes, mínimo 20px
     const gap = Math.max(20, cardW * 0.18);
     return Math.round(cardW + gap);
@@ -393,7 +393,7 @@ function CategoryIconCarousel({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-52 sm:h-60 md:h-72 lg:h-72 xl:h-80 2xl:h-88 select-none"
+      className="relative w-full h-60 sm:h-72 md:h-80 lg:h-96 xl:h-96 2xl:h-[420px] select-none"
       style={{
         perspective: '1400px',
         touchAction: 'pan-y',
@@ -471,8 +471,8 @@ function CategoryIconCarousel({
                   transition-[transform,box-shadow] duration-300 ease-out
                   hover:-translate-y-2 hover:shadow-2xl"
                 style={{
-                  width: 'clamp(110px, 22vw, 240px)',
-                  height: 'clamp(135px, 27vw, 270px)',
+                  width: 'clamp(130px, 26vw, 280px)',
+                  height: 'clamp(165px, 33vw, 340px)',
                   boxShadow: '0 15px 40px -10px rgba(0,0,0,0.4), 0 5px 15px -5px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.15)',
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
@@ -485,7 +485,7 @@ function CategoryIconCarousel({
                   src={imageUrl}
                   alt={service.translatedName}
                   loading="eager"
-                  fetchpriority="high"
+                  fetchPriority="high"
                   decoding="async"
                   onError={(e) => {
                     if (e.target.src !== FALLBACK_IMAGE) e.target.src = FALLBACK_IMAGE;
@@ -543,12 +543,12 @@ function CategoryIconCarousel({
                     backdropFilter: 'blur(10px)',
                     WebkitBackdropFilter: 'blur(10px)',
                     boxShadow: '0 -2px 10px rgba(0,0,0,0.15)',
-                    height: 'clamp(52px, 11vw, 68px)'
+                    height: 'clamp(56px, 12vw, 76px)'
                   }}
                 >
                   {/* Nombre — siempre 1 línea, truncado si excede */}
                   <h3
-                    className="carousel-card-label font-bold text-gray-200 text-center leading-tight text-xs sm:text-sm md:text-base tracking-wide truncate"
+                    className="carousel-card-label font-bold text-gray-200 text-center leading-tight text-xs sm:text-sm md:text-base tracking-wide line-clamp-2"
                     style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)', letterSpacing: '0.06em' }}
                     title={service.translatedName}
                   >
