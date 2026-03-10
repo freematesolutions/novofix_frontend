@@ -176,7 +176,7 @@ export default function Messages() {
       amountMin: proposal.pricing?.amountMin,
       amountMax: proposal.pricing?.amountMax,
       isRange: proposal.pricing?.isRange || false,
-      currency: proposal.pricing?.currency || 'US$',
+      currency: proposal.pricing?.currency || '$',
       providerName,
       status: proposal.status || 'pending'
     };

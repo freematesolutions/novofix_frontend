@@ -456,15 +456,6 @@ export default function ClientRequests() {
                               </span>
                             );
                           })()}
-                          {/* Badge de tipo de solicitud */}
-                          {r.visibility === 'directed' && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-accent-50 text-accent-700 border border-accent-200">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                              </svg>
-                              {t('client.requests.directed')}
-                            </span>
-                          )}
                         </div>
                         
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">

@@ -81,7 +81,7 @@ export default function Plan() {
   // Plan icon based on tier
   const getPlanIcon = (name) => {
     const n = name?.toLowerCase();
-    if (n === 'premium' || n === 'professional') return <HiSparkles className="w-6 h-6" />;
+    if (n === 'premium' || n === 'professional' || n === 'pro') return <HiSparkles className="w-6 h-6" />;
     if (n === 'basic' || n === 'starter') return <HiLightningBolt className="w-6 h-6" />;
     return <HiStar className="w-6 h-6" />;
   };
@@ -90,7 +90,7 @@ export default function Plan() {
   const getPlanGradient = (name, isActive) => {
     const n = name?.toLowerCase();
     if (isActive) return 'from-brand-500 to-brand-600';
-    if (n === 'premium' || n === 'professional') return 'from-accent-400 to-accent-500';
+    if (n === 'premium' || n === 'professional' || n === 'pro') return 'from-accent-400 to-accent-500';
     if (n === 'basic' || n === 'starter') return 'from-dark-600 to-dark-700';
     return 'from-gray-400 to-gray-500';
   };
@@ -189,7 +189,7 @@ export default function Plan() {
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold bg-linear-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent">
-                  {Intl.NumberFormat('es-AR', { style: 'currency', currency: status.monthlyCharge.currency }).format(status.monthlyCharge.total)}
+                  {Intl.NumberFormat('en-US', { style: 'currency', currency: status.monthlyCharge.currency }).format(status.monthlyCharge.total)}
                   <span className="text-sm font-normal text-gray-500">{t('provider.plan.perMonth')}</span>
                 </p>
                 {status.monthlyCharge.discount > 0 && (
@@ -309,7 +309,9 @@ export default function Plan() {
                       ? 'border-brand-500 shadow-lg shadow-brand-500/10' 
                       : isPopular 
                         ? 'border-accent-400 shadow-md' 
-                        : 'border-gray-200 hover:border-gray-300'
+                        : ['pro', 'professional', 'premium'].includes(p.name?.toLowerCase())
+                          ? 'border-amber-400 shadow-md'
+                          : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   {/* Popular Badge */}
@@ -318,6 +320,16 @@ export default function Plan() {
                       <span className="inline-flex items-center gap-1 px-3 py-1 bg-linear-to-r from-accent-400 to-accent-500 text-white text-xs font-bold rounded-full shadow-lg">
                         <HiSparkles className="w-3.5 h-3.5" />
                         {t('provider.plan.mostPopular')}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Premium Badge */}
+                  {!active && !isPopular && ['pro', 'professional', 'premium'].includes(p.name?.toLowerCase()) && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-linear-to-r from-amber-400 to-amber-500 text-white text-xs font-bold rounded-full shadow-lg">
+                        <HiStar className="w-3.5 h-3.5" />
+                        {t('provider.plan.premiumBadge')}
                       </span>
                     </div>
                   )}
@@ -348,7 +360,7 @@ export default function Plan() {
                         <span className="text-brand-600">{t('provider.plan.free')}</span>
                       ) : (
                         <>
-                          {Intl.NumberFormat('es-AR', { style: 'currency', currency: p.price.currency }).format(p.price.monthly)}
+                          {Intl.NumberFormat('en-US', { style: 'currency', currency: p.price.currency }).format(p.price.monthly)}
                         </>
                       )}
                     </p>
@@ -414,7 +426,7 @@ export default function Plan() {
                             {t('provider.plan.processing')}
                           </span>
                         ) : (
-                          p.price.monthly === 0 ? t('provider.plan.changeToFree') : t('provider.plan.changeTo', { plan: p.displayName })
+                          p.price.monthly === 0 ? t('provider.plan.changeToFree') : t('provider.plan.changeTo', { plan: translatePlanName(p.displayName, p.name) })
                         )}
                       </button>
                     )}

@@ -383,8 +383,8 @@
     "newProposal": "Nueva propuesta",
     "proposalAccepted": "Propuesta aceptada",
     "proposalRejected": "Propuesta rechazada",
-    "bookingConfirmed": "Reserva confirmada",
-    "bookingCancelled": "Reserva cancelada",
+    "bookingConfirmed": "Contrato confirmado",
+    "bookingCancelled": "Contrato cancelado",
     "paymentReceived": "Pago recibido",
     "reviewReceived": "Nueva reseña recibida",
     "profileViewed": "Alguien vio tu perfil",
@@ -427,13 +427,13 @@
         "message": "El cliente ha rechazado tu propuesta para {{title}}"
       },
       "BOOKING_CONFIRMED": {
-        "title": "¡Tu reserva está confirmada! ✅",
-        "message": "Tu reserva con {{providerName}} ha sido confirmada.",
-        "messageDefault": "Tu reserva ha sido confirmada exitosamente."
+        "title": "¡Tu contrato está confirmado! ✅",
+        "message": "Tu contrato con {{providerName}} ha sido confirmado.",
+        "messageDefault": "Tu contrato ha sido confirmado exitosamente."
       },
       "BOOKING_CANCELLED": {
-        "title": "Reserva cancelada",
-        "message": "Tu reserva ha sido cancelada."
+        "title": "Contrato cancelado",
+        "message": "Tu contrato ha sido cancelado."
       },
       "VERIFY_EMAIL": {
         "title": "Verifica tu correo electrónico",
@@ -473,13 +473,13 @@
         "message": "Tu servicio ha sido completado. Déjanos saber cómo fue tu experiencia."
       },
       "BOOKING_STATUS_UPDATE": {
-        "title": "Actualización de reserva",
-        "message": "{{providerName}} ha actualizado el estado de tu reserva a: {{status}}",
-        "messageDefault": "El estado de tu reserva ha sido actualizado."
+        "title": "Actualización de contrato",
+        "message": "{{providerName}} ha actualizado el estado de tu contrato a: {{status}}",
+        "messageDefault": "El estado de tu contrato ha sido actualizado."
       },
       "PAYMENT_REQUIRED": {
         "title": "Pago pendiente 💳",
-        "message": "Se requiere pago para tu reserva."
+        "message": "Se requiere pago para tu contrato."
       },
       "NEW_MESSAGE": {
         "title": "Nuevo mensaje 💬",
@@ -517,9 +517,9 @@
     "exploreServices": "Explora nuestros servicios",
     "joinAsProfessional": "Únete como profesional",
     "requests": "Solicitudes",
-    "bookings": "Reservas",
+    "bookings": "Contratos",
     "messages": "Mensajes",
-    "jobs": "Empleos",
+    "jobs": "Proyectos",
     "becomeProfessional": "Ser profesional",
     "portfolio": "Portafolio",
     "plan": "Plan",
@@ -653,10 +653,10 @@
     "searchingProfessionals": "Buscando profesionales...",
     "clickToViewProviders": "Click para ver profesionales disponibles",
     "categories": {
-      "Reparaciones": "Reparaciones",
+      "Reparaciones": "Handyman",
       "Plomería": "Plomería",
       "Electricidad": "Electricidad",
-      "Climatización": "Climatización",
+      "Climatización": "HVAC",
       "Cerrajería": "Cerrajería",
       "Mantenimiento": "Mantenimiento",
       "Control de Plagas": "Control de Plagas",
@@ -994,7 +994,7 @@
       "loadError": "Error al cargar propuestas",
       "rejectError": "Error al rechazar la propuesta",
       "acceptError": "Error al aceptar la propuesta",
-      "acceptedSuccess": "¡Propuesta aceptada! Tu reserva ha sido confirmada",
+      "acceptedSuccess": "¡Propuesta aceptada! Tu contrato ha sido confirmado",
       "alreadyProcessed": "Esta propuesta ya fue procesada",
       "chatModal": {
         "acceptProposal": "Aceptar propuesta",
@@ -1069,11 +1069,11 @@
       "noPrice": "Sin precio",
       "negotiateInfo": "Negocia los detalles con el cliente antes de cerrar el acuerdo",
       "close": "Cerrar",
-      "typeBooking": "Reservas",
+      "typeBooking": "Contratos",
       "typeEstimate": "Estimados",
       "typeInquiry": "Consultas",
       "filterAll": "Todos",
-      "filterBookings": "Reservas",
+      "filterBookings": "Contratos",
       "filterEstimates": "Estimados",
       "filterInquiries": "Consultas",
       "noChatsInFilter": "Sin conversaciones en esta categoría",
@@ -1201,10 +1201,10 @@
       "acceptError": "Error al aceptar la propuesta",
       "rejectError": "Error al rechazar la propuesta",
       "filterAll": "Todos",
-      "filterBookings": "Reservas",
+      "filterBookings": "Contratos",
       "filterEstimates": "Estimados",
       "filterInquiries": "Consultas",
-      "typeBooking": "Reserva",
+      "typeBooking": "Contrato",
       "typeEstimate": "Estimado",
       "typeInquiry": "Consulta",
       "noChatsInFilter": "Sin conversaciones en esta categoría",
@@ -1405,7 +1405,7 @@
     "bookings": {
       "service": "Servicio",
       "title": {
-        "provider": "Mis Reservas",
+        "provider": "Mis Contratos",
         "client": "Mis Servicios Contratados"
       },
       "subtitle": {
@@ -1413,7 +1413,7 @@
         "client": "Revisa el estado de tus servicios"
       },
       "stats": {
-        "total": "Total reservas",
+        "total": "Total contratos",
         "pending": "Pendientes",
         "completed": "Completados"
       },
@@ -1435,10 +1435,10 @@
         "searchPlaceholder": "Buscar por título, cliente o proveedor...",
         "clear": "Limpiar filtros"
       },
-      "loading": "Cargando reservas...",
+      "loading": "Cargando contratos...",
       "empty": {
-        "title": "Sin reservas",
-        "noBookings": "Aún no tienes reservas",
+        "title": "Sin contratos",
+        "noBookings": "Aún no tienes contratos",
         "noResults": "No se encontraron resultados con los filtros aplicados"
       },
       "evidence": {
@@ -1480,7 +1480,7 @@
         "onMyWay": "En camino",
         "startService": "Iniciar servicio",
         "markCompleted": "Marcar como completado",
-        "confirmBooking": "Confirmar Reserva",
+        "confirmBooking": "Confirmar Contrato",
         "edit": "Editar",
         "delete": "Eliminar",
         "confirmCompletion": "Confirmar finalización",
@@ -1515,7 +1515,7 @@
         "serviceConfirmed": "Servicio confirmado"
       },
       "errors": {
-        "loadFailed": "No se pudieron cargar las reservas",
+        "loadFailed": "No se pudieron cargar los contratos",
         "chatError": "Error al abrir el chat",
         "responsePublishFailed": "No se pudo publicar la respuesta",
         "deleteFailed": "No se pudo eliminar",
@@ -2776,12 +2776,12 @@
       "cancel": "Cancelar",
       "stepOf": "Paso {{current}} de {{total}}",
       "steps": {
-        "problems": "Problema",
-        "problemsHint": "¿Qué problema tienes?",
+        "problems": "Proyecto",
+        "problemsHint": "¿Qué necesitas para tu proyecto?",
         "description": "Descripción",
         "descriptionHint": "Describe qué servicio necesitas",
-        "media": "Fotos y Videos",
-        "photosVideos": "Multimedia",
+        "media": "Visualización",
+        "photosVideos": "Visualización",
         "mediaHint": "Agrega fotos o videos del trabajo",
         "location": "Ubicación",
         "locationHint": "¿Dónde se realizará el servicio?",
@@ -2790,9 +2790,10 @@
         "summary": "Resumen",
         "summaryHint": "Revisa los detalles antes de enviar"
       },
-      "whatProblemHave": "¿Qué problema tienes?",
+      "whatProblemHave": "¿Qué necesitas resolver?",
       "selectProblemsHint": "Selecciona una o más opciones",
-      "problemsSelectedSummary": "{{count}} problema(s) seleccionado(s)",
+      "problemsSelectedSummary": "{{count}} seleccionado(s)",
+      "urgencyTitle": "Prioridad:",
       "whatServiceNeeded": "¿Qué servicio necesitas?",
       "descriptionPlaceholder": "Describe detalladamente lo que necesitas. Incluye medidas, materiales, estado actual, etc.",
       "minCharacters": "Mínimo {{min}} caracteres",
@@ -3121,7 +3122,7 @@
         "providers": "Proveedores",
         "clients": "Clientes",
         "requests": "Solicitudes",
-        "bookings": "Reservas",
+        "bookings": "Contratos",
         "pendingModeration": "Pendientes moderación"
       },
       "revenue": {
@@ -3135,11 +3136,11 @@
       },
       "recentActivity": {
         "title": "Actividad reciente",
-        "subtitle": "Últimas reservas del sistema",
+        "subtitle": "Últimos contratos del sistema",
         "records": "registros",
-        "booking": "Reserva",
+        "booking": "Contrato",
         "empty": "Sin actividad reciente",
-        "emptyHint": "Las nuevas reservas aparecerán aquí"
+        "emptyHint": "Los nuevos contratos aparecerán aquí"
       },
       "status": {
         "completed": "Completado",
@@ -3289,7 +3290,7 @@
       "metrics": {
         "newUsers": "Nuevos usuarios",
         "newRequests": "Nuevas solicitudes",
-        "completedBookings": "Reservas completadas",
+        "completedBookings": "Contratos completados",
         "revenue": "Ingresos"
       },
       "charts": {
@@ -3298,7 +3299,7 @@
           "subtitle": "Actividad diaria del período"
         },
         "distribution": {
-          "title": "Distribución de reservas",
+          "title": "Distribución de contratos",
           "subtitle": "Por estado"
         },
         "weeklyComparison": {
@@ -3322,11 +3323,11 @@
       }
     },
     "bookings": {
-      "title": "Reservas del Sistema",
-      "subtitle": "Monitorea todas las reservas y su estado",
-      "loadError": "Error al cargar reservas",
+      "title": "Contratos del Sistema",
+      "subtitle": "Monitorea todos los contratos y su estado",
+      "loadError": "Error al cargar contratos",
       "adminOnly": "Esta sección es solo para administradores",
-      "loading": "Cargando reservas...",
+      "loading": "Cargando contratos...",
       "filters": {
         "status": "Estado",
         "all": "Todas",
@@ -3342,8 +3343,8 @@
         "cancelled": "Cancelada"
       },
       "empty": {
-        "title": "Sin reservas",
-        "subtitle": "No hay reservas en el sistema"
+        "title": "Sin contratos",
+        "subtitle": "No hay contratos en el sistema"
       },
       "pagination": {
         "previous": "Anterior",
@@ -3568,19 +3569,20 @@
       "apply": "Aplicar",
       "availablePlans": "Planes disponibles",
       "mostPopular": "Más popular",
+      "premiumBadge": "Mejor valor",
       "free": "Gratis",
       "unlimited": "Ilimitado",
       "leadsMonth": "leads/mes",
       "changeTo": "Cambiar a {{plan}}",
-      "changeToFree": "Cambiar a plan gratuito",
+      "changeToFree": "Cambiar a plan básico",
       "processing": "Procesando...",
       "noPlansAvailable": "No hay planes disponibles",
       "plansComingSoon": "Planes próximamente",
       "planNames": {
-        "free": "Gratuito",
-        "basic": "Básico",
-        "pro": "Profesional",
-        "professional": "Profesional",
+        "free": "Básico",
+        "basic": "Experto",
+        "pro": "Elite",
+        "professional": "Elite",
         "premium": "Premium",
         "starter": "Inicial",
         "starterMonthly": "Inicial Mensual",
@@ -3867,11 +3869,11 @@
       "noPrice": "Sin precio",
       "negotiateInfo": "Negocia los detalles con el cliente antes de cerrar el acuerdo",
       "close": "Cerrar",
-      "typeBooking": "Reservas",
+      "typeBooking": "Contratos",
       "typeEstimate": "Estimados",
       "typeInquiry": "Consultas",
       "filterAll": "Todos",
-      "filterBookings": "Reservas",
+      "filterBookings": "Contratos",
       "filterEstimates": "Estimados",
       "filterInquiries": "Consultas",
       "noChatsInFilter": "Sin conversaciones en esta categoría",

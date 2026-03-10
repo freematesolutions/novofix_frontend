@@ -1055,10 +1055,43 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                 <p className="text-sm text-gray-500 mt-1">{t(`ui.requestWizard.steps.${step.descriptionKey}`)}</p>
               </div>
 
-              {/* ==================== STEP 0: PROBLEM SELECTION ==================== */}
+              {/* ==================== STEP 0: PROJECT SETUP ==================== */}
               {currentStep === 0 && (
                 <div className="space-y-5">
-                  {/* Info banner */}
+                  {/* ── Urgency Toggle - Minimal pill selector ── */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold text-gray-700 mr-1">{t('ui.requestWizard.urgencyTitle')}</span>
+                    <div className="inline-flex bg-gray-100 rounded-full p-1 gap-1">
+                      {URGENCY_OPTIONS.map((option) => {
+                        const isSelected = formData.urgency === option.value;
+                        const isUrgent = option.value === 'immediate';
+                        
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => updateField('urgency', option.value)}
+                            className={`
+                              inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap
+                              ${isSelected
+                                ? isUrgent
+                                  ? 'bg-red-500 text-white shadow-sm'
+                                  : 'bg-brand-600 text-white shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/60'}
+                            `}
+                          >
+                            <span className="text-base leading-none">{isUrgent ? '⚡' : '🗓️'}</span>
+                            {t(`ui.requestWizard.urgency.${option.labelKey}`)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {formErrors.urgency && (
+                      <p className="text-xs text-red-600 w-full">{formErrors.urgency}</p>
+                    )}
+                  </div>
+
+                  {/* ── Info banner ── */}
                   <div className="flex items-start gap-3 bg-brand-50 border border-brand-200 rounded-xl p-4">
                     <Icons.Wrench className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />
                     <div>
@@ -1067,7 +1100,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                     </div>
                   </div>
 
-                  {/* Problem Grid Selection */}
+                  {/* ── Problem Grid Selection ── */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <label className="block text-sm font-semibold text-gray-700">
@@ -1151,51 +1184,6 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                     </p>
                   </div>
 
-                  {/* Urgency selection */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      {t('ui.requestWizard.howUrgent')} *
-                    </label>
-                    <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
-                      {URGENCY_OPTIONS.map((option) => {
-                        const isSelected = formData.urgency === option.value;
-                        const isUrgent = option.value === 'immediate';
-                        
-                        // Estilos cuando está seleccionado
-                        const selectedStyles = isUrgent
-                          ? 'border-red-500 bg-red-50 ring-2 ring-red-500/20'
-                          : 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20';
-                        
-                        return (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => updateField('urgency', option.value)}
-                            className={`
-                              relative p-3 sm:p-4 rounded-xl border-2 text-left transition-all
-                              ${isSelected ? selectedStyles : option.color}
-                            `}
-                          >
-                            <div className="flex items-start gap-2 sm:gap-3">
-                              <ProblemIcon emoji={option.icon} className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 shrink-0 mt-0.5" />
-                              <div className="min-w-0 flex-1 pr-5">
-                                <p className="font-semibold text-sm sm:text-base text-gray-900 wrap-break-word">{t(`ui.requestWizard.urgency.${option.labelKey}`)}</p>
-                                <p className="text-xs text-gray-500 mt-0.5 leading-snug">{t(`ui.requestWizard.urgency.${option.descriptionKey}`)}</p>
-                              </div>
-                            </div>
-                            {isSelected && (
-                              <div className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center ${isUrgent ? 'bg-red-500' : 'bg-brand-500'}`}>
-                                <Icons.Check className="w-3 h-3 text-white" />
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {formErrors.urgency && (
-                      <p className="text-xs text-red-600 mt-2">{formErrors.urgency}</p>
-                    )}
-                  </div>
                 </div>
               )}
 

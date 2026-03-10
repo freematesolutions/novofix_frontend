@@ -123,7 +123,7 @@ const MessageBubble = memo(({
     
     // Para mensajes de sistema sin translationKey, intentar detectar el patrón y traducir
     if (isSystemMessage && rawText) {
-      // Detectar patrón: "💬 Conversación iniciada sobre la propuesta de US$ X..."
+      // Detectar patrón: "💬 Conversación iniciada sobre la propuesta de $ X..."
       const proposalMatch = rawText.match(/💬\s*Conversación iniciada sobre la propuesta de ([^.]+)\./);
       if (proposalMatch && i18n?.exists?.('chat.system.proposalStarted')) {
         return t('chat.system.proposalStarted', { formattedAmount: proposalMatch[1] });
@@ -1140,8 +1140,8 @@ function ChatRoom({
                 </p>
                 <p className="text-lg font-bold text-accent-600">
                   {proposalInfo.isRange 
-                    ? `${proposalInfo.currency || 'US$'} ${proposalInfo.amountMin?.toLocaleString()} - ${proposalInfo.amountMax?.toLocaleString()}`
-                    : `${proposalInfo.currency || 'US$'} ${proposalInfo.amount?.toLocaleString()}`
+                    ? `${proposalInfo.currency || '$'} ${proposalInfo.amountMin?.toLocaleString()} - ${proposalInfo.amountMax?.toLocaleString()}`
+                    : `${proposalInfo.currency || '$'} ${proposalInfo.amount?.toLocaleString()}`
                   }
                 </p>
               </div>

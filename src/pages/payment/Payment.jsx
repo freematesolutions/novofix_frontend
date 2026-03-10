@@ -27,7 +27,7 @@ function PaymentInner({ amount, currency }) {
   const [error, setError] = useState('');
 
   const formattedAmount = amount 
-    ? Intl.NumberFormat('es-AR', { style: 'currency', currency: currency || 'USD' }).format(amount)
+    ? Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(amount)
     : null;
 
   const onPay = async () => {

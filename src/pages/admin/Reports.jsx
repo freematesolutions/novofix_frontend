@@ -462,5 +462,5 @@ function MetricCard({ icon, label, value, gradient, isText }) {
 
 function fmtCurrency(v) {
   if (!v && v !== 0) return '—';
-  try { return Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(v); } catch { return String(v); }
+  try { return Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v); } catch { return String(v); }
 }

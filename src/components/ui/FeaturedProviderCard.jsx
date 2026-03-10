@@ -80,18 +80,18 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
 
         {/* Header Section with Avatar, Name, Rating & Badge */}
         <div className="p-4 pb-2.5">
-          <div className="flex items-stretch gap-3 sm:gap-4">
-            {/* Avatar — stretches to match info block height */}
-            <div className="shrink-0 self-stretch">
-              <div className="relative h-full">
+          <div className="flex items-start gap-3 sm:gap-4">
+            {/* Avatar — fixed square dimensions */}
+            <div className="shrink-0">
+              <div className="relative">
                 {profileImage ? (
                   <img 
                     src={profileImage} 
                     alt={businessName}
-                    className="w-18 sm:w-22 h-full min-h-18 sm:min-h-22 rounded-2xl object-cover ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105"
+                    className="w-18 h-18 sm:w-22 sm:h-22 rounded-2xl object-cover ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105"
                   />
                 ) : (
-                  <div className="w-18 sm:w-22 h-full min-h-18 sm:min-h-22 rounded-2xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-18 h-18 sm:w-22 sm:h-22 rounded-2xl bg-linear-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold ring-2 ring-brand-400 ring-offset-2 transition-transform duration-300 group-hover:scale-105">
                     {businessName.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -109,15 +109,15 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
               <h3 className="text-base font-bold text-gray-900 truncate group-hover:text-brand-600 transition-colors">
                 {businessName}
               </h3>
-              <div className="flex items-center gap-1.5 mt-1">
+              <div className="flex items-center gap-1.5 mt-0.5">
                 <StarRating rating={rating} size="xs" />
                 <span className="text-sm font-medium text-gray-700">{rating.toFixed(1)}</span>
                 <span className="text-xs text-gray-400">({reviewCount})</span>
               </div>
               {/* Main Service Badge */}
               {services.length > 0 && services[0]?.category && (
-                <div className="mt-1.5">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-brand-400 text-brand-600">
+                <div className="mt-1">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold border border-brand-400 text-brand-600">
                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                     </svg>
@@ -179,7 +179,7 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
               onClick={handlePortfolioClick}
               className="w-full"
             >
-              <div className={`grid gap-2.5 ${portfolio.length === 1 ? 'grid-cols-1 max-w-[60%] mx-auto' : 'grid-cols-2'}`}>
+              <div className={`grid gap-2.5 ${portfolio.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 {portfolio.slice(0, 2).map((item, idx) => {
                   // Generar URL del thumbnail para videos usando transformaciones de Cloudinary
                   const thumbnailUrl = item.type === 'video' 
@@ -187,7 +187,7 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
                     : item.url;
                   
                   return (
-                    <div key={idx} className="relative aspect-4/3 bg-gray-100 rounded-xl overflow-hidden group/img">
+                    <div key={idx} className="relative h-44 bg-gray-100 rounded-xl overflow-hidden group/img">
                       <img 
                         src={thumbnailUrl} 
                         alt={item.caption || `${t('home.featuredProviders.work')} ${idx + 1}`}

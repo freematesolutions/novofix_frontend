@@ -322,7 +322,7 @@ export default function ClientRequestProposals() {
             
             // Función para formatear precio (fijo o rango)
             const formatPrice = () => {
-              const formatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency });
+              const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency });
               if (isRange && amountMin && amountMax) {
                 return `${formatter.format(amountMin)} - ${formatter.format(amountMax)}`;
               }
@@ -498,7 +498,7 @@ export default function ClientRequestProposals() {
                 <p className="text-sm text-gray-500 font-normal">
                   {t('client.proposals.proposal')}: {(() => {
                     const pricing = activeProposal?.pricing;
-                    const formatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency: pricing?.currency || 'USD' });
+                    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: pricing?.currency || 'USD' });
                     if (pricing?.isRange && pricing?.amountMin && pricing?.amountMax) {
                       return `${formatter.format(pricing.amountMin)} - ${formatter.format(pricing.amountMax)}`;
                     }

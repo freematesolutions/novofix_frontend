@@ -670,7 +670,7 @@ export default function RequestDetail() {
                       <div className="text-2xl font-bold text-brand-700">
                         {(() => {
                           const pricing = myProposal.pricing;
-                          const formatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency: pricing?.currency || 'USD' });
+                          const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: pricing?.currency || 'USD' });
                           if (pricing?.isRange && pricing?.amountMin && pricing?.amountMax) {
                             return `${formatter.format(pricing.amountMin)} - ${formatter.format(pricing.amountMax)}`;
                           }
@@ -738,7 +738,7 @@ export default function RequestDetail() {
                         <HiChartBar className="w-5 h-5" />
                         <span className="font-medium">
                           {t('provider.requestDetail.commission')}: {myProposal.commission.rate ? `${Math.round(myProposal.commission.rate * 100)}%` : '-'}
-                          {myProposal.commission.amount && ` (${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(myProposal.commission.amount)})`}
+                          {myProposal.commission.amount && ` (${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(myProposal.commission.amount)})`}
                         </span>
                       </div>
                     </div>
@@ -1002,8 +1002,8 @@ export default function RequestDetail() {
                                 <HiChartBar className="w-4 h-4 text-amber-600" />
                                 <span className="text-sm text-amber-800">
                                   {t('provider.requestDetail.commission')}: {form.isRange 
-                                    ? `${Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(minAmount * context.commissionRateDecimal)} - ${Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(maxAmount * context.commissionRateDecimal)}`
-                                    : Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(displayAmount * context.commissionRateDecimal)
+                                    ? `${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(minAmount * context.commissionRateDecimal)} - ${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(maxAmount * context.commissionRateDecimal)}`
+                                    : Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(displayAmount * context.commissionRateDecimal)
                                   }
                                 </span>
                               </div>
@@ -1011,8 +1011,8 @@ export default function RequestDetail() {
                                 <HiTrendingUp className="w-4 h-4 text-green-600" />
                                 <span className="text-sm text-green-800">
                                   {t('provider.requestDetail.yourIncome')}: {form.isRange
-                                    ? `${Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(minAmount * (1 - context.commissionRateDecimal))} - ${Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(maxAmount * (1 - context.commissionRateDecimal))}`
-                                    : Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD' }).format(displayAmount * (1 - context.commissionRateDecimal))
+                                    ? `${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(minAmount * (1 - context.commissionRateDecimal))} - ${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(maxAmount * (1 - context.commissionRateDecimal))}`
+                                    : Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(displayAmount * (1 - context.commissionRateDecimal))
                                   }
                                 </span>
                               </div>

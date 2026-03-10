@@ -53,6 +53,7 @@ export default function Bookings() {
   const [search, setSearch] = useState('');
   const [dateFrom, setDateFrom] = useState(''); // yyyy-mm-dd
   const [dateTo, setDateTo] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   // Evidencia modal
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [evidenceBooking, setEvidenceBooking] = useState(null);
@@ -895,7 +896,31 @@ export default function Bookings() {
         </div>
 
         {/* Filtros Premium */}
-        <div className="relative overflow-hidden bg-white/70 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-lg shadow-gray-900/5 p-4 sm:p-6">
+        <div className="relative overflow-hidden bg-white/70 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-lg shadow-gray-900/5">
+          {/* Toggle header */}
+          <button
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            className="w-full flex items-center justify-between px-4 sm:px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50/50 transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              {t('shared.bookings.filters.status')}
+              {(statusFilter || search || dateFrom || dateTo) && (
+                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-brand-500 rounded-full">
+                  {[statusFilter, search, dateFrom, dateTo].filter(Boolean).length}
+                </span>
+              )}
+            </span>
+            <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${filtersOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {/* Collapsible content */}
+          {filtersOpen && (
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end">
             {/* Estado */}
             <div className="flex flex-col w-full sm:w-auto">
@@ -981,6 +1006,8 @@ export default function Bookings() {
               </button>
             )}
           </div>
+          </div>
+          )}
         </div>
 
         {error && <Alert type="error">{error}</Alert>}
@@ -1149,7 +1176,7 @@ export default function Bookings() {
                       {(() => {
                         const p = b.proposal?.pricing;
                         if (!p) return '—';
-                        const fmt = (val) => Intl.NumberFormat('es-AR', { style: 'currency', currency: p.currency || 'USD' }).format(val);
+                        const fmt = (val) => Intl.NumberFormat('en-US', { style: 'currency', currency: p.currency || 'USD' }).format(val);
                         if (p.isRange && p.amountMin && p.amountMax) {
                           return `${fmt(p.amountMin)} — ${fmt(p.amountMax)}`;
                         }

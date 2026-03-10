@@ -102,9 +102,9 @@
     "exploreServices": "Explore our services",
     "joinAsProfessional": "Join as professional",
     "requests": "Requests",
-    "bookings": "Bookings",
+    "bookings": "Contracts",
     "messages": "Messages",
-    "jobs": "Jobs",
+    "jobs": "Projects",
     "becomeProfessional": "Become professional",
     "portfolio": "Portfolio",
     "plan": "Plan",
@@ -476,7 +476,7 @@
       "proposalAccepted": "Proposal accepted",
       "proposalRejected": "Proposal rejected",
       "chatError": "Error opening chat",
-      "acceptedSuccess": "Proposal accepted! Your booking has been confirmed",
+      "acceptedSuccess": "Proposal accepted! Your contract has been confirmed",
       "acceptError": "Error accepting proposal",
       "alreadyProcessed": "This proposal has already been processed",
       "rejected": "Proposal rejected",
@@ -612,10 +612,10 @@
       "acceptError": "Error accepting proposal",
       "rejectError": "Error rejecting proposal",
       "filterAll": "All",
-      "filterBookings": "Bookings",
+      "filterBookings": "Contracts",
       "filterEstimates": "Estimates",
       "filterInquiries": "Inquiries",
-      "typeBooking": "Booking",
+      "typeBooking": "Contract",
       "typeEstimate": "Estimate",
       "typeInquiry": "Inquiry",
       "noChatsInFilter": "No conversations in this category",
@@ -727,7 +727,7 @@
       "errorLoadingChats": "Error loading conversations",
       "estimate": "Estimate",
       "filterAll": "All",
-      "filterBookings": "Bookings",
+      "filterBookings": "Contracts",
       "filterEstimates": "Estimates",
       "filterInquiries": "Inquiries",
       "myProposals": "My estimates",
@@ -759,7 +759,7 @@
       },
       "subtitle": "Manage your estimates and conversations",
       "title": "My Estimates",
-      "typeBooking": "Bookings",
+      "typeBooking": "Contracts",
       "typeEstimate": "Estimates",
       "typeInquiry": "Inquiries",
       "viewRequest": "View request",
@@ -872,19 +872,20 @@
       "apply": "Apply",
       "availablePlans": "Available plans",
       "mostPopular": "Most popular",
+      "premiumBadge": "Best value",
       "free": "Free",
       "unlimited": "Unlimited",
       "leadsMonth": "leads/month",
       "changeTo": "Change to {{plan}}",
-      "changeToFree": "Change to free plan",
+      "changeToFree": "Change to basic plan",
       "processing": "Processing...",
       "noPlansAvailable": "No plans available",
       "plansComingSoon": "Plans coming soon",
       "planNames": {
-        "free": "Free",
-        "basic": "Basic",
-        "pro": "Professional",
-        "professional": "Professional",
+        "free": "Basic",
+        "basic": "Expert",
+        "pro": "Elite",
+        "professional": "Elite",
         "premium": "Premium",
         "starter": "Starter",
         "starterMonthly": "Starter Monthly",
@@ -1165,11 +1166,11 @@
       "noPrice": "No price",
       "negotiateInfo": "Negotiate the details with the client before closing the deal",
       "close": "Close",
-      "typeBooking": "Bookings",
+      "typeBooking": "Contracts",
       "typeEstimate": "Estimates",
       "typeInquiry": "Inquiries",
       "filterAll": "All",
-      "filterBookings": "Bookings",
+      "filterBookings": "Contracts",
       "filterEstimates": "Estimates",
       "filterInquiries": "Inquiries",
       "noChatsInFilter": "No conversations in this category",
@@ -1379,7 +1380,7 @@
     "bookings": {
       "service": "Service",
       "title": {
-        "provider": "My Bookings",
+        "provider": "My Contracts",
         "client": "My Contracted Services"
       },
       "subtitle": {
@@ -1387,7 +1388,7 @@
         "client": "Check the status of your services"
       },
       "stats": {
-        "total": "Total bookings",
+        "total": "Total contracts",
         "pending": "Pending",
         "completed": "Completed"
       },
@@ -1409,10 +1410,10 @@
         "searchPlaceholder": "Search by title, client or provider...",
         "clear": "Clear filters"
       },
-      "loading": "Loading bookings...",
+      "loading": "Loading contracts...",
       "empty": {
-        "title": "No bookings",
-        "noBookings": "You don't have any bookings yet",
+        "title": "No contracts",
+        "noBookings": "You don't have any contracts yet",
         "noResults": "No results found with the applied filters"
       },
       "evidence": {
@@ -1454,7 +1455,7 @@
         "onMyWay": "On my way",
         "startService": "Start service",
         "markCompleted": "Mark as completed",
-        "confirmBooking": "Confirm Booking",
+        "confirmBooking": "Confirm Contract",
         "edit": "Edit",
         "delete": "Delete",
         "confirmCompletion": "Confirm completion",
@@ -1489,7 +1490,7 @@
         "serviceConfirmed": "Service confirmed"
       },
       "errors": {
-        "loadFailed": "Could not load bookings",
+        "loadFailed": "Could not load contracts",
         "chatError": "Failed to open chat",
         "responsePublishFailed": "Could not publish response",
         "deleteFailed": "Could not delete",
@@ -2750,12 +2751,12 @@
       "cancel": "Cancel",
       "stepOf": "Step {{current}} of {{total}}",
       "steps": {
-        "problems": "Problem",
-        "problemsHint": "What problem do you have?",
+        "problems": "Project",
+        "problemsHint": "What do you need for your project?",
         "description": "Description",
         "descriptionHint": "Describe what service you need",
-        "media": "Photos and Videos",
-        "photosVideos": "Media",
+        "media": "Visualization",
+        "photosVideos": "Visualization",
         "mediaHint": "Add photos or videos of the work",
         "location": "Location",
         "locationHint": "Where will the service be performed?",
@@ -2764,9 +2765,10 @@
         "summary": "Summary",
         "summaryHint": "Review details before sending"
       },
-      "whatProblemHave": "What problem do you have?",
+      "whatProblemHave": "What do you need to resolve?",
       "selectProblemsHint": "Select one or more options",
-      "problemsSelectedSummary": "{{count}} problem(s) selected",
+      "problemsSelectedSummary": "{{count}} selected",
+      "urgencyTitle": "Priority:",
       "whatServiceNeeded": "What service do you need?",
       "descriptionPlaceholder": "Describe in detail what you need. Include measurements, materials, current state, etc.",
       "minCharacters": "Minimum {{min}} characters",
@@ -3095,7 +3097,7 @@
         "providers": "Providers",
         "clients": "Clients",
         "requests": "Requests",
-        "bookings": "Bookings",
+        "bookings": "Contracts",
         "pendingModeration": "Pending moderation"
       },
       "revenue": {
@@ -3109,11 +3111,11 @@
       },
       "recentActivity": {
         "title": "Recent activity",
-        "subtitle": "Latest system bookings",
+        "subtitle": "Latest system contracts",
         "records": "records",
-        "booking": "Booking",
+        "booking": "Contract",
         "empty": "No recent activity",
-        "emptyHint": "New bookings will appear here"
+        "emptyHint": "New contracts will appear here"
       },
       "status": {
         "completed": "Completed",
@@ -3263,7 +3265,7 @@
       "metrics": {
         "newUsers": "New users",
         "newRequests": "New requests",
-        "completedBookings": "Completed bookings",
+        "completedBookings": "Completed contracts",
         "revenue": "Revenue"
       },
       "charts": {
@@ -3272,7 +3274,7 @@
           "subtitle": "Daily activity for the period"
         },
         "distribution": {
-          "title": "Booking distribution",
+          "title": "Contract distribution",
           "subtitle": "By status"
         },
         "weeklyComparison": {
@@ -3296,11 +3298,11 @@
       }
     },
     "bookings": {
-      "title": "System Bookings",
-      "subtitle": "Monitor all bookings and their status",
-      "loadError": "Error loading bookings",
+      "title": "System Contracts",
+      "subtitle": "Monitor all contracts and their status",
+      "loadError": "Error loading contracts",
       "adminOnly": "This section is for administrators only",
-      "loading": "Loading bookings...",
+      "loading": "Loading contracts...",
       "filters": {
         "status": "Status",
         "all": "All",
@@ -3316,8 +3318,8 @@
         "cancelled": "Cancelled"
       },
       "empty": {
-        "title": "No bookings",
-        "subtitle": "No bookings in the system"
+        "title": "No contracts",
+        "subtitle": "No contracts in the system"
       },
       "pagination": {
         "previous": "Previous",
@@ -3773,8 +3775,8 @@
     "newProposal": "New proposal",
     "proposalAccepted": "Proposal accepted",
     "proposalRejected": "Proposal rejected",
-    "bookingConfirmed": "Booking confirmed",
-    "bookingCancelled": "Booking cancelled",
+    "bookingConfirmed": "Contract confirmed",
+    "bookingCancelled": "Contract cancelled",
     "paymentReceived": "Payment received",
     "reviewReceived": "New review received",
     "profileViewed": "Someone viewed your profile",
@@ -3817,13 +3819,13 @@
         "message": "The client has rejected your proposal for {{title}}"
       },
       "BOOKING_CONFIRMED": {
-        "title": "Your booking is confirmed! ✅",
-        "message": "Your booking with {{providerName}} has been confirmed.",
-        "messageDefault": "Your booking has been successfully confirmed."
+        "title": "Your contract is confirmed! ✅",
+        "message": "Your contract with {{providerName}} has been confirmed.",
+        "messageDefault": "Your contract has been successfully confirmed."
       },
       "BOOKING_CANCELLED": {
-        "title": "Booking cancelled",
-        "message": "Your booking has been cancelled."
+        "title": "Contract cancelled",
+        "message": "Your contract has been cancelled."
       },
       "VERIFY_EMAIL": {
         "title": "Verify your email",
@@ -3863,13 +3865,13 @@
         "message": "Your service has been completed. Let us know how your experience was."
       },
       "BOOKING_STATUS_UPDATE": {
-        "title": "Booking update",
-        "message": "{{providerName}} has updated the status of your booking to: {{status}}",
-        "messageDefault": "The status of your booking has been updated."
+        "title": "Contract update",
+        "message": "{{providerName}} has updated the status of your contract to: {{status}}",
+        "messageDefault": "The status of your contract has been updated."
       },
       "PAYMENT_REQUIRED": {
         "title": "Payment pending 💳",
-        "message": "Payment is required for your booking."
+        "message": "Payment is required for your contract."
       },
       "NEW_MESSAGE": {
         "title": "New message 💬",
