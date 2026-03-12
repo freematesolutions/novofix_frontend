@@ -179,7 +179,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
       aria-labelledby="portfolio-modal-title"
     >
       <div 
-        className="bg-white rounded-xl shadow-2xl w-full h-full max-h-screen sm:m-4 sm:w-[calc(100%-2rem)] sm:h-[calc(100%-2rem)] sm:max-w-7xl flex flex-col overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl w-full h-full max-h-screen sm:m-2 sm:w-[calc(100%-1rem)] sm:h-[calc(100%-1rem)] lg:max-w-[95vw] xl:max-w-[90vw] 2xl:max-w-[85vw] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -250,7 +250,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
 
         {/* Content */}
         <div className="flex-1 min-h-0 overflow-hidden">
-          <div className="relative w-full h-full flex items-center justify-center p-2 sm:p-4">
+            <div className="relative w-full h-full flex items-center justify-center p-1 sm:p-2">
             {/* Media display */}
             <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
               {!currentItem ? (
@@ -320,13 +320,15 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
                     key={currentItem._id}
                     src={currentItem.url}
                     alt={currentItem.caption || `Portfolio ${selectedIndex + 1}`}
-                    className={`max-w-full max-h-full ${
+                    className={`w-full h-full object-contain ${
                       isZoomed 
                         ? 'cursor-move' 
                         : 'cursor-zoom-in'
                     }`}
                     style={isZoomed ? { 
                       transform: `translate3d(${zoomPosition.x}px, ${zoomPosition.y}px, 0) scale(2)`,
+                      width: 'auto',
+                      height: 'auto',
                       maxWidth: 'none',
                       maxHeight: 'none',
                       willChange: 'transform',

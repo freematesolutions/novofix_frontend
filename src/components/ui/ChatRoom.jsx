@@ -100,6 +100,7 @@ const MessageBubble = memo(({
   userName,
   onReply,
   onReact,
+  onViewPdf,
   allMessages = []
 }) => {
   const { t, i18n } = useTranslation();
@@ -327,17 +328,93 @@ const MessageBubble = memo(({
                   </video>
                 );
               }
-              // Documentos y otros
+              // PDFs — tarjeta enriquecida con vista previa y descarga
+              const isPdf = att.name?.toLowerCase().endsWith('.pdf')
+                || att.mimeType === 'application/pdf'
+                || att.url?.toLowerCase().includes('.pdf');
+
+              if (isPdf) {
+                return (
+                  <div
+                    key={idx}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border w-full max-w-72 ${
+                      isMine
+                        ? 'bg-white/15 border-white/20'
+                        : 'bg-red-50/60 border-red-100'
+                    }`}
+                  >
+                    {/* PDF Icon */}
+                    <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
+                      isMine ? 'bg-white/20' : 'bg-red-100'
+                    }`}>
+                      <svg className={`w-5 h-5 ${isMine ? 'text-white' : 'text-red-500'}`} viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
+                        <text x="7" y="17" fontSize="5.5" fontWeight="bold" fill="currentColor">PDF</text>
+                      </svg>
+                    </div>
+                    {/* Info + actions */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-medium truncate ${isMine ? 'text-white' : 'text-gray-800'}`}>
+                        {att.name || 'Document.pdf'}
+                      </p>
+                      <div className="flex gap-2 mt-1.5">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onViewPdf?.(att.url, att.name || 'Document.pdf'); }}
+                          className={`text-xs font-semibold px-2.5 py-1 rounded-md transition-colors ${
+                            isMine
+                              ? 'bg-white/25 hover:bg-white/35 text-white'
+                              : 'bg-brand-500 hover:bg-brand-600 text-white'
+                          }`}
+                        >
+                          {t('chat.pdfView')}
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              const resp = await fetch(att.url);
+                              const blob = await resp.blob();
+                              const blobUrl = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = blobUrl;
+                              a.download = att.name || 'Document.pdf';
+                              document.body.appendChild(a);
+                              a.click();
+                              a.remove();
+                              URL.revokeObjectURL(blobUrl);
+                            } catch {
+                              window.open(att.url, '_blank');
+                            }
+                          }}
+                          className={`text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
+                            isMine
+                              ? 'bg-white/15 hover:bg-white/25 text-white/90'
+                              : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                          }`}
+                        >
+                          {t('chat.pdfDownload')}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // Otros documentos (no PDF)
               return (
                 <a
                   key={idx}
                   href={att.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 hover:bg-gray-200 transition-colors"
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isMine
+                      ? 'bg-white/15 hover:bg-white/25 text-white/90'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
                 >
                   <Icons.Attachment className="w-4 h-4" />
-                  {att.name || 'Archivo'}
+                  {att.name || t('chat.attachment')}
                 </a>
               );
             })}
@@ -462,6 +539,7 @@ MessageBubble.propTypes = {
   userName: PropTypes.string,
   onReply: PropTypes.func,
   onReact: PropTypes.func,
+  onViewPdf: PropTypes.func,
   allMessages: PropTypes.array
 };
 
@@ -531,6 +609,7 @@ function ChatRoom({
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [replyingTo, setReplyingTo] = useState(null); // Mensaje al que se está respondiendo
   const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Estado para el picker de emojis
+  const [pdfViewer, setPdfViewer] = useState({ open: false, url: '', name: '' }); // PDF viewer modal
   
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
@@ -1234,6 +1313,7 @@ function ChatRoom({
                   userName={partnerName}
                   onReply={handleReply}
                   onReact={handleReaction}
+                  onViewPdf={(url, name) => setPdfViewer({ open: true, url, name })}
                   allMessages={messages}
                 />
               );
@@ -1511,6 +1591,91 @@ function ChatRoom({
           </p>
         )}
       </div>
+
+      {/* ── PDF Viewer Overlay ── */}
+      {pdfViewer.open && (
+        <div className="fixed inset-0 z-9999 bg-black/70 backdrop-blur-sm flex flex-col animate-fade-in">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 bg-gray-900/90 border-b border-white/10">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
+                  <text x="7" y="17" fontSize="5.5" fontWeight="bold" fill="currentColor">PDF</text>
+                </svg>
+              </div>
+              <p className="text-white text-sm font-medium truncate">{pdfViewer.name}</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Open in new tab */}
+              <a
+                href={pdfViewer.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                title={t('chat.pdfOpenNewTab')}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+              {/* Download — fetch + blob to force correct filename cross-origin */}
+              <button
+                onClick={async () => {
+                  try {
+                    const resp = await fetch(pdfViewer.url);
+                    const blob = await resp.blob();
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = pdfViewer.name || 'document.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(blobUrl);
+                  } catch {
+                    // Fallback: abrir URL directa
+                    window.open(pdfViewer.url, '_blank');
+                  }
+                }}
+                className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                title={t('chat.pdfDownload')}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </button>
+              {/* Close */}
+              <button
+                onClick={() => setPdfViewer({ open: false, url: '', name: '' })}
+                className="p-2 rounded-lg bg-white/10 hover:bg-red-500/80 text-white/80 hover:text-white transition-colors"
+              >
+                <Icons.Close className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          {/* PDF embed — Google Docs Viewer wraps the raw Cloudinary URL */}
+          <div className="flex-1 relative bg-gray-800">
+            <iframe
+              src={`https://docs.google.com/gview?url=${encodeURIComponent(pdfViewer.url)}&embedded=true`}
+              title={pdfViewer.name}
+              className="w-full h-full border-0"
+              style={{ minHeight: '400px' }}
+            />
+            {/* Fallback link if iframe fails to load */}
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none">
+              <a
+                href={pdfViewer.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pointer-events-auto px-4 py-2 bg-gray-900/80 hover:bg-gray-900 text-white/70 hover:text-white text-xs rounded-lg transition-colors"
+              >
+                {t('chat.pdfFallbackLink')}
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

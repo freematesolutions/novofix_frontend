@@ -11,6 +11,7 @@ import Modal from '@/components/ui/Modal.jsx';
 import { compressImages, validateFiles } from '@/utils/fileCompression.js';
 import UploadProgress from '@/components/ui/UploadProgress.jsx';
 import { getTranslatedRequestInfo, getTranslatedReviewInfo, useCurrentLanguage } from '@/utils/translations.js';
+import InvoiceGeneratorModal from '@/components/ui/InvoiceGeneratorModal.jsx';
 
 const PROVIDER_STATUSES = [
   { value: 'completed', labelKey: 'shared.bookings.status.completed' },
@@ -115,6 +116,10 @@ export default function Bookings() {
   const [viewClientReviewData, setViewClientReviewData] = useState(null);
   const [viewClientReviewLoading, setViewClientReviewLoading] = useState({});
   const [clientReviewsByBooking, setClientReviewsByBooking] = useState({});
+
+  // Invoice/Factura modal
+  const [invoiceOpen, setInvoiceOpen] = useState(false);
+  const [invoiceBooking, setInvoiceBooking] = useState(null);
 
   // Paginación básica
   const [page, setPage] = useState(1);
@@ -1497,6 +1502,34 @@ export default function Bookings() {
                           {t('shared.bookings.actions.openChat')}
                         </button>
                       )}
+                      
+                      {/* Generar Factura - solo para contratos activos */}
+                      {['confirmed', 'in_progress', 'completed'].includes(b.status) && (
+                        b.invoice?.sentAt ? (
+                          /* Ya se envió la factura → botón "Ver Factura" */
+                          <button 
+                            onClick={() => { setInvoiceBooking(b); setInvoiceOpen(true); }}
+                            className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500/90 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-semibold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/35 transition-all flex items-center justify-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            {t('invoice.viewInvoice')}
+                          </button>
+                        ) : (
+                          /* No se ha enviado → botón "Generar Factura" */
+                          <button 
+                            onClick={() => { setInvoiceBooking(b); setInvoiceOpen(true); }}
+                            className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400/90 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-dark-800 text-sm font-semibold shadow-lg shadow-accent-500/20 hover:shadow-accent-500/35 transition-all flex items-center justify-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            {t('invoice.generateInvoice')}
+                          </button>
+                        )
+                      )}
                     </>
                   )}
                   {isClient && (
@@ -1530,6 +1563,19 @@ export default function Bookings() {
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
                           )}
                           {t('shared.bookings.actions.openChat')}
+                        </button>
+                      )}
+
+                      {/* Ver Factura - solo si el proveedor ya envió una factura */}
+                      {b.invoice?.sentAt && (
+                        <button 
+                          onClick={() => { setInvoiceBooking(b); setInvoiceOpen(true); }}
+                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400/90 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-dark-800 text-sm font-semibold shadow-lg shadow-accent-500/20 hover:shadow-accent-500/35 transition-all flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          {t('invoice.viewInvoice')}
                         </button>
                       )}
                     </>
@@ -2412,6 +2458,25 @@ export default function Bookings() {
           </div>
         </div>
       </Modal>
+
+      {/* Invoice Generator Modal */}
+      <InvoiceGeneratorModal
+        open={invoiceOpen}
+        onClose={() => { setInvoiceOpen(false); setInvoiceBooking(null); }}
+        booking={invoiceBooking}
+        viewMode={!!invoiceBooking?.invoice?.sentAt}
+        onInvoiceSent={({ invoiceNumber, total, bookingId }) => {
+          toast.success(t('invoice.sentSuccess', { number: invoiceNumber }));
+          // Optimistic update — cambiar el botón inmediatamente sin esperar re-fetch
+          setBookings(prev => prev.map(b =>
+            b._id === bookingId
+              ? { ...b, invoice: { ...(b.invoice || {}), sentAt: new Date().toISOString(), invoiceNumber, total } }
+              : b
+          ));
+          // También recargar del servidor para tener datos completos
+          load();
+        }}
+      />
     </div>
   );
 }

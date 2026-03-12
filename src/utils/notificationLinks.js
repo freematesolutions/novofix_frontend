@@ -28,6 +28,7 @@ export function getNotificationActionUrl(n) {
         'REVIEW_RESPONSE_UPDATED',
         'REVIEW_RESPONSE_REMOVED',
         'PROPOSAL_ACCEPTED',
+        'INVOICE_RECEIVED',
       ].includes(type)
     ) {
       raw = '/reservas';
