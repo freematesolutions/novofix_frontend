@@ -128,7 +128,7 @@ function buildInvoicePDF(invoiceData, t) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(...GRAY_500);
-    doc.text(label, rightX - 45, ry);
+    doc.text(label, rightX - 60, ry);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(...GRAY_900);
@@ -198,13 +198,13 @@ function buildInvoicePDF(invoiceData, t) {
   y = doc.lastAutoTable.finalY + 8;
 
   // ── Totals section ──
-  const totalsX = pageW - marginR - 75;
+  const totalsX = pageW - marginR - 85;
   const totalsValX = pageW - marginR;
 
   const drawTotalRow = (label, value, bold = false, highlight = false) => {
     if (highlight) {
       doc.setFillColor(...BRAND_TEAL);
-      doc.roundedRect(totalsX - 5, y - 4, 80, 10, 2, 2, 'F');
+      doc.roundedRect(totalsX - 5, y - 4, 90, 10, 2, 2, 'F');
       doc.setTextColor(...WHITE);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
@@ -229,7 +229,7 @@ function buildInvoicePDF(invoiceData, t) {
   // Separator line
   doc.setDrawColor(...GRAY_100);
   doc.setLineWidth(0.5);
-  doc.line(totalsX - 5, y - 2, totalsValX, y - 2);
+  doc.line(totalsX - 5, y - 2, totalsValX + 5, y - 2);
   y += 3;
 
   drawTotalRow(t('invoice.subtotal'), fmtCurrency(subtotal, invoiceData.currency));
@@ -287,8 +287,7 @@ export default function InvoiceGeneratorModal({
   open,
   onClose,
   booking,
-  onInvoiceSent,
-  viewMode = false
+  onInvoiceSent
 }) {
   const { t } = useTranslation();
   const toast = useToast();
@@ -297,15 +296,12 @@ export default function InvoiceGeneratorModal({
 
   // ── Invoice state ──
   const [invoiceNumber] = useState(() => {
-    if (viewMode && booking?.invoice?.invoiceNumber) return booking.invoice.invoiceNumber;
     return generateInvoiceNumber();
   });
   const [invoiceDate, setInvoiceDate] = useState(() => {
-    if (viewMode && booking?.invoice?.invoiceDate) return booking.invoice.invoiceDate.split('T')[0];
     return today();
   });
   const [dueDate, setDueDate] = useState(() => {
-    if (viewMode && booking?.invoice?.dueDate) return booking.invoice.dueDate.split('T')[0];
     return addDays(today(), 30);
   });
   const [notes, setNotes] = useState('');
@@ -313,7 +309,6 @@ export default function InvoiceGeneratorModal({
   const [taxRate, setTaxRate] = useState(0);
   const [shipping, setShipping] = useState(0);
   const [currency] = useState(() => {
-    if (viewMode && booking?.invoice?.currency) return booking.invoice.currency;
     return booking?.proposal?.pricing?.currency || 'USD';
   });
 
@@ -342,32 +337,7 @@ export default function InvoiceGeneratorModal({
   useEffect(() => {
     if (!open || !booking) return;
 
-    // ── viewMode: populate from saved invoice data ──
-    if (viewMode && booking.invoice) {
-      const inv = booking.invoice;
-      setBusinessName(inv.businessInfo?.name || '');
-      setBusinessAddress(inv.businessInfo?.address || '');
-      setBusinessPhone(inv.businessInfo?.phone || '');
-      setBusinessEmail(inv.businessInfo?.email || '');
-      setClientName(inv.clientInfo?.name || '');
-      setClientAddress(inv.clientInfo?.address || '');
-      setClientCity(inv.clientInfo?.city || '');
-      setClientState(inv.clientInfo?.state || '');
-      setClientZip(inv.clientInfo?.zip || '');
-      setItems(inv.items?.length ? inv.items.map(it => ({
-        description: it.description || '',
-        qty: it.qty || 0,
-        unitPrice: it.unitPrice || 0,
-        total: it.total || 0
-      })) : [{ description: t('invoice.serviceItem'), qty: 1, unitPrice: 0, total: 0 }]);
-      setDiscount(inv.discount || 0);
-      setTaxRate(inv.taxRate || 0);
-      setShipping(inv.shipping || 0);
-      setNotes(inv.notes || '');
-      return;
-    }
-
-    // ── Normal mode: populate from booking data ──
+    // ── Populate from booking data ──
     // Provider info
     const prov = booking.provider;
     setBusinessName(
@@ -423,7 +393,7 @@ export default function InvoiceGeneratorModal({
 
     setItems(initialItems);
     setNotes(t('invoice.defaultNote'));
-  }, [open, booking, t, viewMode]);
+  }, [open, booking, t]);
 
   // ── Item management ──
   const updateItem = useCallback((index, field, value) => {
@@ -497,30 +467,6 @@ export default function InvoiceGeneratorModal({
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
-
-  // ── Auto-generate preview in viewMode ──
-  useEffect(() => {
-    if (!open || !viewMode || items.length === 0) return;
-    // Small delay to let state settle from populate
-    const timer = setTimeout(() => {
-      try {
-        const doc = buildInvoicePDF({
-          invoiceNumber, invoiceDate, dueDate,
-          businessName, businessAddress, businessPhone, businessEmail,
-          clientName, clientAddress, clientCity, clientState, clientZip,
-          items, discount, taxRate, shipping, currency, notes
-        }, t);
-        const blob = doc.output('blob');
-        const url = URL.createObjectURL(blob);
-        setPreviewUrl(url);
-        setStep(2);
-      } catch (err) {
-        console.error('Error generating view-mode preview:', err);
-      }
-    }, 100);
-    return () => clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, viewMode]);
 
   // ── Download PDF ──
   const downloadPDF = useCallback(() => {
@@ -609,8 +555,8 @@ export default function InvoiceGeneratorModal({
         }
       });
 
-      // 6. All succeeded — notify parent (include bookingId for optimistic UI update)
-      onInvoiceSent?.({ invoiceNumber, total: totals.total, chatId, bookingId: booking._id });
+      // 6. All succeeded — notify parent (include bookingId + pdfUrl for optimistic UI update)
+      onInvoiceSent?.({ invoiceNumber, total: totals.total, currency, pdfUrl: uploadedUrl, chatId, bookingId: booking._id });
       onClose();
     } catch (err) {
       console.error('Error sending invoice:', err);
@@ -673,22 +619,21 @@ export default function InvoiceGeneratorModal({
                 </svg>
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">{viewMode ? t('invoice.viewTitle') : t('invoice.title')}</h2>
+                <h2 className="text-lg font-bold text-white">{t('invoice.title')}</h2>
                 <p className="text-xs text-gray-400">
-                  {viewMode ? t('invoice.viewSubtitle') : (step === 1 ? t('invoice.stepForm') : t('invoice.stepPreview'))}
+                  {step === 1 ? t('invoice.stepForm') : t('invoice.stepPreview')}
                 </p>
               </div>
             </div>
 
             {/* Step indicator */}
             <div className="flex items-center gap-4">
-              {!viewMode && (
-                <div className="hidden sm:flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step === 1 ? 'bg-accent-400 text-dark-800 shadow-lg shadow-accent-500/40' : 'bg-white/20 text-white/60'}`}>1</div>
                   <div className={`w-6 h-0.5 ${step === 2 ? 'bg-accent-400' : 'bg-white/20'}`} />
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step === 2 ? 'bg-accent-400 text-dark-800 shadow-lg shadow-accent-500/40' : 'bg-white/20 text-white/60'}`}>2</div>
                 </div>
-              )}
+
               <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
                 <HiX className="w-5 h-5" />
               </button>
@@ -912,69 +857,47 @@ export default function InvoiceGeneratorModal({
               {t('invoice.pdfGenerated')}
             </div>
             <div className="flex items-center gap-2">
-              {viewMode ? (
-                /* ── View mode: Download + Close ── */
-                <>
-                  <button
-                    onClick={downloadPDF}
-                    className="px-5 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-700 text-white text-sm font-semibold shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:from-brand-600 hover:to-brand-800 transition-all flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    {t('invoice.downloadPdf')}
-                  </button>
-                  <button
-                    onClick={onClose}
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all"
-                  >
-                    {t('common.close')}
-                  </button>
-                </>
+              {step === 2 && (
+                <button
+                  onClick={() => { setStep(1); if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); } }}
+                  className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all"
+                >
+                  {t('invoice.backToEdit')}
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all"
+              >
+                {t('common.cancel')}
+              </button>
+              {step === 1 ? (
+                <button
+                  onClick={generatePreview}
+                  disabled={items.length === 0 || items.every(i => !i.description)}
+                  className="px-5 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-700 text-white text-sm font-semibold shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:from-brand-600 hover:to-brand-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  {t('invoice.preview')}
+                </button>
               ) : (
-                /* ── Edit mode: normal flow ── */
-                <>
-                  {step === 2 && (
-                    <button
-                      onClick={() => { setStep(1); if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); } }}
-                      className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all"
-                    >
-                      {t('invoice.backToEdit')}
-                    </button>
-                  )}
-                  <button
-                    onClick={onClose}
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all"
-                  >
-                    {t('common.cancel')}
-                  </button>
-                  {step === 1 ? (
-                    <button
-                      onClick={generatePreview}
-                      disabled={items.length === 0 || items.every(i => !i.description)}
-                      className="px-5 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-700 text-white text-sm font-semibold shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:from-brand-600 hover:to-brand-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                      {t('invoice.preview')}
-                    </button>
+                <button
+                  onClick={sendInvoice}
+                  disabled={sending}
+                  className="px-5 py-2.5 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 text-dark-800 text-sm font-bold shadow-lg shadow-accent-500/25 hover:shadow-accent-500/40 transition-all disabled:opacity-50 flex items-center gap-2"
+                >
+                  {sending ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                      {t('invoice.sending')}
+                    </>
                   ) : (
-                    <button
-                      onClick={sendInvoice}
-                      disabled={sending}
-                      className="px-5 py-2.5 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 text-dark-800 text-sm font-bold shadow-lg shadow-accent-500/25 hover:shadow-accent-500/40 transition-all disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {sending ? (
-                        <>
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                          {t('invoice.sending')}
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                          {t('invoice.sendInvoice')}
-                        </>
-                      )}
-                    </button>
+                    <>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                      {t('invoice.sendInvoice')}
+                    </>
                   )}
-                </>
+                </button>
               )}
             </div>
           </div>

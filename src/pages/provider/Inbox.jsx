@@ -73,19 +73,6 @@ export default function Inbox() {
     }
   }, [isAuthenticated, navigate]);
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  // Durante transición de rol, no mostrar mensaje de advertencia
-  if (isRoleSwitching) {
-    return null;
-  }
-
-  if (viewRole !== 'provider') {
-    return <Alert type="warning">{t('provider.inbox.providerOnly')}</Alert>;
-  }
-
   // Load user chats (provider side)
   const loadChats = useCallback(async () => {
     setChatError('');
@@ -111,7 +98,6 @@ export default function Inbox() {
       const msg = payload?.message || payload;
       if (!cid || !msg) return;
       setChats((prev) => {
-        // bump chat to top by last activity if present
         const copy = Array.from(prev || []);
         const idx = copy.findIndex(c => (c._id || c.id) === cid);
         if (idx >= 0) {
@@ -143,41 +129,9 @@ export default function Inbox() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      // On unmount, leave any joined chat
       try { if (selectedChat?._id) socketEmit('leave_chat', { chatId: selectedChat._id }); } catch { /* ignore */ }
     };
   }, [selectedChat]);
-
-  const selectChat = (chat) => {
-    if (!chat) return;
-    setSelectedChat(chat);
-  };
-
-  // Abrir chat de negociación con el cliente (para propuestas enviadas)
-  const openNegotiationChat = async (proposal) => {
-    setLoadingNegotiationChat(true);
-    setNegotiationProposal(proposal);
-    try {
-      const { data } = await api.post(`/chats/proposal/${proposal._id}`);
-      if (data?.success && data?.data?.chat) {
-        setNegotiationChat(data.data.chat);
-        setNegotiationModalOpen(true);
-      } else {
-        toast.error(data?.message || t('toast.errorOpeningChat'));
-      }
-    } catch (err) {
-      const msg = err?.response?.data?.message || t('toast.errorOpeningChat');
-      toast.error(msg);
-    } finally {
-      setLoadingNegotiationChat(false);
-    }
-  };
-
-  const closeNegotiationModal = () => {
-    setNegotiationModalOpen(false);
-    setNegotiationChat(null);
-    setNegotiationProposal(null);
-  };
 
   // Handler for new messages from ChatRoom - update chat list
   const handleNewMessage = useCallback((msg) => {
@@ -249,6 +203,52 @@ export default function Inbox() {
     if (activeFilter === 'inquiry') return chats.filter(c => c.chatType === 'info_request' || c.chatType === 'inquiry');
     return chats;
   }, [chats, activeFilter]);
+
+  // ── Early returns (AFTER all hooks) ──
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Durante transición de rol, no mostrar mensaje de advertencia
+  if (isRoleSwitching) {
+    return null;
+  }
+
+  if (viewRole !== 'provider') {
+    return <Alert type="warning">{t('provider.inbox.providerOnly')}</Alert>;
+  }
+
+  // Non-hook helpers (these are plain functions, safe after early returns)
+  const selectChat = (chat) => {
+    if (!chat) return;
+    setSelectedChat(chat);
+  };
+
+  // Abrir chat de negociación con el cliente (para propuestas enviadas)
+  const openNegotiationChat = async (proposal) => {
+    setLoadingNegotiationChat(true);
+    setNegotiationProposal(proposal);
+    try {
+      const { data } = await api.post(`/chats/proposal/${proposal._id}`);
+      if (data?.success && data?.data?.chat) {
+        setNegotiationChat(data.data.chat);
+        setNegotiationModalOpen(true);
+      } else {
+        toast.error(data?.message || t('toast.errorOpeningChat'));
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || t('toast.errorOpeningChat');
+      toast.error(msg);
+    } finally {
+      setLoadingNegotiationChat(false);
+    }
+  };
+
+  const closeNegotiationModal = () => {
+    setNegotiationModalOpen(false);
+    setNegotiationChat(null);
+    setNegotiationProposal(null);
+  };
 
   // Get other participant name (for provider, the other participant is the client)
   const getParticipantName = (chat) => {

@@ -419,7 +419,10 @@
     "serviceItem": "Servicio profesional",
     "labor": "Mano de obra",
     "materials": "Materiales",
-    "transportation": "Transporte"
+    "transportation": "Transporte",
+    "openNewTab": "Abrir en nueva pestaña",
+    "pdfNotAvailable": "El PDF de esta factura no está disponible",
+    "pdfFallbackLink": "¿No se ve el documento? Haz clic aquí para abrirlo"
   },
   "upload": {
     "defaultMessage": "Subiendo archivo...",
@@ -628,6 +631,7 @@
   "home": {
     "nav": {
       "hero": "Inicio",
+      "reels": "Reels",
       "services": "Servicios",
       "featured": "Destacados",
       "testimonials": "Testimonios",
@@ -691,6 +695,18 @@
       "featuredReview": "Reseña destacada",
       "completedJobs": "trabajos completados",
       "responseRate": "tasa de respuesta"
+    },
+    "reels": {
+      "title": "Reels de Profesionales",
+      "subtitle": "Mira el trabajo de nuestros profesionales en acción",
+      "count": "{{count}} videos",
+      "empty": "Próximamente videos de nuestros profesionales",
+      "viewProfile": "Ver perfil",
+      "mute": "Silenciar",
+      "unmute": "Activar sonido",
+      "videoError": "No se pudo cargar el video",
+      "scrollHint": "Desliza para ver más reels",
+      "swipeUp": "Desliza hacia arriba"
     },
     "benefit1Title": "Conexión Instantánea",
     "benefit1Desc": "Encuentra y contacta profesionales en minutos, no en días",

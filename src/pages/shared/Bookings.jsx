@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
@@ -12,6 +12,11 @@ import { compressImages, validateFiles } from '@/utils/fileCompression.js';
 import UploadProgress from '@/components/ui/UploadProgress.jsx';
 import { getTranslatedRequestInfo, getTranslatedReviewInfo, useCurrentLanguage } from '@/utils/translations.js';
 import InvoiceGeneratorModal from '@/components/ui/InvoiceGeneratorModal.jsx';
+
+const fmtCurrency = (val, currency = 'USD') => {
+  const num = Number(val) || 0;
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(num);
+};
 
 const PROVIDER_STATUSES = [
   { value: 'completed', labelKey: 'shared.bookings.status.completed' },
@@ -120,6 +125,37 @@ export default function Bookings() {
   // Invoice/Factura modal
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [invoiceBooking, setInvoiceBooking] = useState(null);
+  // PDF viewer for sent invoices (read-only)
+  const [invoicePdfViewer, setInvoicePdfViewer] = useState({ open: false, url: '', name: '', invoiceNumber: '', total: '', currency: '', blobUrl: '' });
+
+  // Fetch the PDF via server proxy for fast native rendering (avoids Cloudinary 401)
+  const openInvoicePdf = useCallback(async (invoiceData) => {
+    // Show overlay immediately with loading state
+    setInvoicePdfViewer({ ...invoiceData, open: true, blobUrl: '' });
+
+    if (!invoiceData.bookingId) return;
+    try {
+      // Use the server proxy endpoint that fetches from Cloudinary with proper auth
+      const resp = await fetch(`/api/bookings/${invoiceData.bookingId}/invoice-pdf`, {
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}`
+        }
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      if (blob.size < 100) throw new Error('Empty response');
+      const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      setInvoicePdfViewer(prev => prev.open ? { ...prev, blobUrl } : prev);
+    } catch (err) {
+      console.warn('Server proxy PDF fetch failed:', err);
+      // Ultimate fallback: try Google Docs Viewer with the original URL
+      if (invoiceData.url) {
+        const fallbackUrl = `https://docs.google.com/gview?url=${encodeURIComponent(invoiceData.url)}&embedded=true`;
+        setInvoicePdfViewer(prev => prev.open ? { ...prev, blobUrl: fallbackUrl } : prev);
+      }
+    }
+  }, []);
 
   // Paginación básica
   const [page, setPage] = useState(1);
@@ -1506,9 +1542,16 @@ export default function Bookings() {
                       {/* Generar Factura - solo para contratos activos */}
                       {['confirmed', 'in_progress', 'completed'].includes(b.status) && (
                         b.invoice?.sentAt ? (
-                          /* Ya se envió la factura → botón "Ver Factura" */
+                          /* Ya se envió la factura → botón "Ver Factura" (abre PDF viewer) */
                           <button 
-                            onClick={() => { setInvoiceBooking(b); setInvoiceOpen(true); }}
+                            onClick={() => openInvoicePdf({
+                              bookingId: b._id,
+                              url: b.invoice.pdfUrl || '',
+                              name: `Invoice_${b.invoice.invoiceNumber || ''}.pdf`,
+                              invoiceNumber: b.invoice.invoiceNumber || '',
+                              total: b.invoice.total != null ? fmtCurrency(b.invoice.total, b.invoice.currency || 'USD') : '',
+                              currency: b.invoice.currency || 'USD'
+                            })}
                             className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500/90 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-semibold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/35 transition-all flex items-center justify-center gap-2"
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1569,7 +1612,14 @@ export default function Bookings() {
                       {/* Ver Factura - solo si el proveedor ya envió una factura */}
                       {b.invoice?.sentAt && (
                         <button 
-                          onClick={() => { setInvoiceBooking(b); setInvoiceOpen(true); }}
+                          onClick={() => openInvoicePdf({
+                            bookingId: b._id,
+                            url: b.invoice.pdfUrl || '',
+                            name: `Invoice_${b.invoice.invoiceNumber || ''}.pdf`,
+                            invoiceNumber: b.invoice.invoiceNumber || '',
+                            total: b.invoice.total != null ? fmtCurrency(b.invoice.total, b.invoice.currency || 'USD') : '',
+                            currency: b.invoice.currency || 'USD'
+                          })}
                           className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400/90 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-dark-800 text-sm font-semibold shadow-lg shadow-accent-500/20 hover:shadow-accent-500/35 transition-all flex items-center justify-center gap-2"
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -2459,24 +2509,159 @@ export default function Bookings() {
         </div>
       </Modal>
 
-      {/* Invoice Generator Modal */}
+      {/* Invoice Generator Modal — solo para crear facturas nuevas */}
       <InvoiceGeneratorModal
         open={invoiceOpen}
         onClose={() => { setInvoiceOpen(false); setInvoiceBooking(null); }}
         booking={invoiceBooking}
-        viewMode={!!invoiceBooking?.invoice?.sentAt}
-        onInvoiceSent={({ invoiceNumber, total, bookingId }) => {
+        onInvoiceSent={({ invoiceNumber, total, currency, pdfUrl, bookingId }) => {
           toast.success(t('invoice.sentSuccess', { number: invoiceNumber }));
           // Optimistic update — cambiar el botón inmediatamente sin esperar re-fetch
           setBookings(prev => prev.map(b =>
             b._id === bookingId
-              ? { ...b, invoice: { ...(b.invoice || {}), sentAt: new Date().toISOString(), invoiceNumber, total } }
+              ? { ...b, invoice: { ...(b.invoice || {}), sentAt: new Date().toISOString(), invoiceNumber, total, currency, pdfUrl } }
               : b
           ));
           // También recargar del servidor para tener datos completos
           load();
         }}
       />
+
+      {/* ── Invoice PDF Viewer Overlay (read-only) ── */}
+      {invoicePdfViewer.open && (
+        <div className="fixed inset-0 z-9999 bg-black/70 backdrop-blur-sm flex flex-col animate-fade-in">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 bg-gray-900/90 border-b border-white/10">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-accent-400 to-accent-500 flex items-center justify-center shadow-lg shadow-accent-500/30 shrink-0">
+                <svg className="w-5 h-5 text-dark-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <p className="text-white text-sm font-semibold truncate">
+                  {t('invoice.viewTitle')} {invoicePdfViewer.invoiceNumber && `— ${invoicePdfViewer.invoiceNumber}`}
+                </p>
+                {invoicePdfViewer.total && (
+                  <p className="text-accent-400 text-xs font-medium">{invoicePdfViewer.total}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Open in new tab (via server proxy to bypass Cloudinary 401) */}
+              {(invoicePdfViewer.bookingId || invoicePdfViewer.url) && (
+                <button
+                  onClick={async () => {
+                    try {
+                      // If we have a blob: URL from successful fetch, reuse it
+                      if (invoicePdfViewer.blobUrl && invoicePdfViewer.blobUrl.startsWith('blob:')) {
+                        window.open(invoicePdfViewer.blobUrl, '_blank');
+                        return;
+                      }
+                      if (invoicePdfViewer.bookingId) {
+                        const resp = await fetch(`/api/bookings/${invoicePdfViewer.bookingId}/invoice-pdf`, {
+                          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}` }
+                        });
+                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        const blob = await resp.blob();
+                        const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+                        const blobUrl = URL.createObjectURL(pdfBlob);
+                        window.open(blobUrl, '_blank');
+                        return;
+                      }
+                      throw new Error('No bookingId');
+                    } catch {
+                      // Fallback: open via Google Docs Viewer in new tab
+                      if (invoicePdfViewer.url) {
+                        window.open(`https://docs.google.com/gview?url=${encodeURIComponent(invoicePdfViewer.url)}`, '_blank');
+                      }
+                    }
+                  }}
+                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                  title={t('invoice.openNewTab')}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </button>
+              )}
+              {/* Download via server proxy */}
+              {(invoicePdfViewer.bookingId || invoicePdfViewer.url) && (
+                <button
+                  onClick={async () => {
+                    try {
+                      // Reuse existing blob URL if available
+                      let blobUrl = invoicePdfViewer.blobUrl?.startsWith('blob:') ? invoicePdfViewer.blobUrl : null;
+                      if (!blobUrl && invoicePdfViewer.bookingId) {
+                        const resp = await fetch(`/api/bookings/${invoicePdfViewer.bookingId}/invoice-pdf`, {
+                          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}` }
+                        });
+                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        const blob = await resp.blob();
+                        blobUrl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+                      }
+                      if (blobUrl) {
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        a.download = invoicePdfViewer.name || 'invoice.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        // Only revoke if we created a new one
+                        if (blobUrl !== invoicePdfViewer.blobUrl) URL.revokeObjectURL(blobUrl);
+                      }
+                    } catch {
+                      if (invoicePdfViewer.url) window.open(invoicePdfViewer.url, '_blank');
+                    }
+                  }}
+                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                  title={t('invoice.downloadPdf')}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                </button>
+              )}
+              {/* Close */}
+              <button
+                onClick={() => {
+                  if (invoicePdfViewer.blobUrl && invoicePdfViewer.blobUrl.startsWith('blob:')) URL.revokeObjectURL(invoicePdfViewer.blobUrl);
+                  setInvoicePdfViewer({ open: false, url: '', name: '', invoiceNumber: '', total: '', currency: '', blobUrl: '' });
+                }}
+                className="p-2 rounded-lg bg-white/10 hover:bg-red-500/80 text-white/80 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          {/* PDF embed (native browser rendering via blob URL for speed) */}
+          <div className="flex-1 relative bg-gray-800">
+            {invoicePdfViewer.blobUrl ? (
+              <iframe
+                src={invoicePdfViewer.blobUrl}
+                title={invoicePdfViewer.name}
+                className="w-full h-full border-0"
+                style={{ minHeight: '400px' }}
+              />
+            ) : invoicePdfViewer.url ? (
+              /* Loading state while blob is being fetched */
+              <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
+                <div className="w-10 h-10 border-3 border-white/20 border-t-accent-400 rounded-full animate-spin" />
+                <p className="text-sm">{t('invoice.viewTitle')}...</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
+                <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p className="text-sm">{t('invoice.pdfNotAvailable')}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

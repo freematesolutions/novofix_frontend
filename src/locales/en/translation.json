@@ -152,6 +152,7 @@
   "home": {
     "nav": {
       "hero": "Home",
+      "reels": "Reels",
       "services": "Services",
       "featured": "Featured",
       "testimonials": "Testimonials",
@@ -215,6 +216,18 @@
       "featuredReview": "Featured review",
       "completedJobs": "completed jobs",
       "responseRate": "response rate"
+    },
+    "reels": {
+      "title": "Professional Reels",
+      "subtitle": "Watch our professionals' work in action",
+      "count": "{{count}} videos",
+      "empty": "Professional videos coming soon",
+      "viewProfile": "View profile",
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "videoError": "Could not load video",
+      "scrollHint": "Swipe to see more reels",
+      "swipeUp": "Swipe up"
     },
     "benefit1Title": "Instant Connection",
     "benefit1Desc": "Find and contact professionals in minutes, not days",
@@ -3811,7 +3824,10 @@
     "serviceItem": "Professional service",
     "labor": "Labor",
     "materials": "Materials",
-    "transportation": "Transportation"
+    "transportation": "Transportation",
+    "openNewTab": "Open in new tab",
+    "pdfNotAvailable": "The PDF for this invoice is not available",
+    "pdfFallbackLink": "Can't see the document? Click here to open it"
   },
   "upload": {
     "defaultMessage": "Uploading file...",

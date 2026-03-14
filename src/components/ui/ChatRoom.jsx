@@ -372,8 +372,15 @@ const MessageBubble = memo(({
                           onClick={async (e) => {
                             e.stopPropagation();
                             try {
-                              const resp = await fetch(att.url);
+                              const proxyUrl = `/api/uploads/proxy?url=${encodeURIComponent(att.url)}`;
+                              const resp = await fetch(proxyUrl, {
+                                headers: {
+                                  'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}`
+                                }
+                              });
+                              if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                               const blob = await resp.blob();
+                              if (!blob || blob.size < 100) throw new Error('Empty/invalid PDF response');
                               const blobUrl = URL.createObjectURL(blob);
                               const a = document.createElement('a');
                               a.href = blobUrl;
@@ -383,7 +390,7 @@ const MessageBubble = memo(({
                               a.remove();
                               URL.revokeObjectURL(blobUrl);
                             } catch {
-                              window.open(att.url, '_blank');
+                              onViewPdf?.(att.url, att.name || 'Document.pdf');
                             }
                           }}
                           className={`text-xs font-medium px-2.5 py-1 rounded-md transition-colors ${
@@ -609,7 +616,32 @@ function ChatRoom({
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [replyingTo, setReplyingTo] = useState(null); // Mensaje al que se está respondiendo
   const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Estado para el picker de emojis
-  const [pdfViewer, setPdfViewer] = useState({ open: false, url: '', name: '' }); // PDF viewer modal
+  const [pdfViewer, setPdfViewer] = useState({ open: false, url: '', name: '', blobUrl: '' }); // PDF viewer modal
+
+  // Fetch PDF via server proxy for fast native browser rendering (avoids Cloudinary 401)
+  const openPdfViewer = useCallback(async (url, name) => {
+    setPdfViewer({ open: true, url, name, blobUrl: '' });
+    if (!url) return;
+    try {
+      // Use server proxy to bypass Cloudinary access restrictions
+      const proxyUrl = `/api/uploads/proxy?url=${encodeURIComponent(url)}`;
+      const resp = await fetch(proxyUrl, {
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}`
+        }
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      if (blob.size < 100) throw new Error('Empty response');
+      const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      setPdfViewer(prev => prev.open ? { ...prev, blobUrl } : prev);
+    } catch (err) {
+      console.warn('Server proxy PDF fetch failed, falling back to Google Docs Viewer:', err);
+      const fallbackUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+      setPdfViewer(prev => prev.open ? { ...prev, blobUrl: fallbackUrl } : prev);
+    }
+  }, []);
   
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
@@ -1313,7 +1345,7 @@ function ChatRoom({
                   userName={partnerName}
                   onReply={handleReply}
                   onReact={handleReaction}
-                  onViewPdf={(url, name) => setPdfViewer({ open: true, url, name })}
+                  onViewPdf={(url, name) => openPdfViewer(url, name)}
                   allMessages={messages}
                 />
               );
@@ -1607,34 +1639,56 @@ function ChatRoom({
               <p className="text-white text-sm font-medium truncate">{pdfViewer.name}</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              {/* Open in new tab */}
-              <a
-                href={pdfViewer.url}
-                target="_blank"
-                rel="noopener noreferrer"
+              {/* Open in new tab (via server proxy) */}
+              <button
+                onClick={async () => {
+                  try {
+                    if (pdfViewer.blobUrl && pdfViewer.blobUrl.startsWith('blob:')) {
+                      window.open(pdfViewer.blobUrl, '_blank');
+                      return;
+                    }
+                    const proxyUrl = `/api/uploads/proxy?url=${encodeURIComponent(pdfViewer.url)}`;
+                    const resp = await fetch(proxyUrl, {
+                      headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}` }
+                    });
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const blob = await resp.blob();
+                    const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+                    const blobUrl = URL.createObjectURL(pdfBlob);
+                    window.open(blobUrl, '_blank');
+                  } catch {
+                    window.open(`https://docs.google.com/gview?url=${encodeURIComponent(pdfViewer.url)}`, '_blank');
+                  }
+                }}
                 className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors"
                 title={t('chat.pdfOpenNewTab')}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
-              </a>
-              {/* Download — fetch + blob to force correct filename cross-origin */}
+              </button>
+              {/* Download via server proxy */}
               <button
                 onClick={async () => {
                   try {
-                    const resp = await fetch(pdfViewer.url);
-                    const blob = await resp.blob();
-                    const blobUrl = URL.createObjectURL(blob);
+                    let blobUrl = pdfViewer.blobUrl?.startsWith('blob:') ? pdfViewer.blobUrl : null;
+                    if (!blobUrl) {
+                      const proxyUrl = `/api/uploads/proxy?url=${encodeURIComponent(pdfViewer.url)}`;
+                      const resp = await fetch(proxyUrl, {
+                        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}` }
+                      });
+                      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                      const blob = await resp.blob();
+                      blobUrl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+                    }
                     const a = document.createElement('a');
                     a.href = blobUrl;
                     a.download = pdfViewer.name || 'document.pdf';
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
-                    URL.revokeObjectURL(blobUrl);
+                    if (blobUrl !== pdfViewer.blobUrl) URL.revokeObjectURL(blobUrl);
                   } catch {
-                    // Fallback: abrir URL directa
                     window.open(pdfViewer.url, '_blank');
                   }
                 }}
@@ -1647,32 +1701,32 @@ function ChatRoom({
               </button>
               {/* Close */}
               <button
-                onClick={() => setPdfViewer({ open: false, url: '', name: '' })}
+                onClick={() => {
+                  if (pdfViewer.blobUrl && pdfViewer.blobUrl.startsWith('blob:')) URL.revokeObjectURL(pdfViewer.blobUrl);
+                  setPdfViewer({ open: false, url: '', name: '', blobUrl: '' });
+                }}
                 className="p-2 rounded-lg bg-white/10 hover:bg-red-500/80 text-white/80 hover:text-white transition-colors"
               >
                 <Icons.Close className="w-4 h-4" />
               </button>
             </div>
           </div>
-          {/* PDF embed — Google Docs Viewer wraps the raw Cloudinary URL */}
+          {/* PDF embed — native browser rendering via blob URL */}
           <div className="flex-1 relative bg-gray-800">
-            <iframe
-              src={`https://docs.google.com/gview?url=${encodeURIComponent(pdfViewer.url)}&embedded=true`}
-              title={pdfViewer.name}
-              className="w-full h-full border-0"
-              style={{ minHeight: '400px' }}
-            />
-            {/* Fallback link if iframe fails to load */}
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none">
-              <a
-                href={pdfViewer.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="pointer-events-auto px-4 py-2 bg-gray-900/80 hover:bg-gray-900 text-white/70 hover:text-white text-xs rounded-lg transition-colors"
-              >
-                {t('chat.pdfFallbackLink')}
-              </a>
-            </div>
+            {pdfViewer.blobUrl ? (
+              <iframe
+                src={pdfViewer.blobUrl}
+                title={pdfViewer.name}
+                className="w-full h-full border-0"
+                style={{ minHeight: '400px' }}
+              />
+            ) : (
+              /* Loading state while blob is being fetched */
+              <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
+                <div className="w-10 h-10 border-3 border-white/20 border-t-red-400 rounded-full animate-spin" />
+                <p className="text-sm">{t('chat.pdfView')}...</p>
+              </div>
+            )}
           </div>
         </div>
       )}

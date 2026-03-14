@@ -8,6 +8,7 @@ import ServiceCategoryCard from '@/components/ui/ServiceCategoryCard.jsx';
 import ProviderCard from '@/components/ui/ProviderCard.jsx';
 import FeaturedProviderCard from '@/components/ui/FeaturedProviderCard.jsx';
 import TestimonialsSection from '@/components/ui/TestimonialsSection.jsx';
+import ReelsSection from '@/components/ui/ReelsSection.jsx';
 import CategoryIconCarousel from '@/components/ui/CategoryIconCarousel.jsx';
 // Scroll automático para enfocar la primera tarjeta con proveedores al cargar la sección
 // (Este useEffect debe ir dentro del componente Home, no aquí)
@@ -17,6 +18,7 @@ import { SERVICE_CATEGORIES_WITH_DESCRIPTION } from '@/utils/categories.js';
 // Secciones de la página para la navegación flotante
 const HOME_SECTIONS = [
   { id: 'hero-section', icon: 'home', labelKey: 'home.nav.hero' },
+  { id: 'reels-section', icon: 'reels', labelKey: 'home.nav.reels' },
   { id: 'services-section', icon: 'services', labelKey: 'home.nav.services' },
   { id: 'featured-providers-section', icon: 'featured', labelKey: 'home.nav.featured' },
   { id: 'testimonials-section', icon: 'testimonials', labelKey: 'home.nav.testimonials' },
@@ -492,6 +494,11 @@ useEffect(() => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
                 )}
+                {section.icon === 'reels' && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                )}
                 {section.icon === 'services' && (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -547,6 +554,11 @@ useEffect(() => {
                 {section.icon === 'home' && (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                )}
+                {section.icon === 'reels' && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 )}
                 {section.icon === 'services' && (
@@ -820,6 +832,11 @@ useEffect(() => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Sección de Reels — videos de profesionales estilo TikTok */}
+      {searchResults === null && !selectedCategory && (
+        <ReelsSection />
       )}
 
       {/* Tarjetas de categorías (mostrar siempre, usando defaults si no hay proveedores) */}
