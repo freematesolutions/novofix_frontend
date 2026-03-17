@@ -31,7 +31,8 @@ function getTranslatedNotification(notification, t, i18n) {
     title: data.title || data.serviceTitle || '',
     amount: data.amount || '',
     providerName: data.providerName || '',
-    clientName: data.clientName || '',
+    clientName: data.clientName || t('notifications.aClient', 'Un cliente'),
+    requestTitle: data.requestTitle || data.title || data.serviceTitle || '',
     status: data.status || '',
     notes: data.notes || ''
   };
@@ -831,6 +832,21 @@ function Header() {
             })()}
           />
           <NavLinkWithTooltip
+            to="/reservas"
+            onClick={closeMenu}
+            icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>}
+            label={t('header.bookings')}
+            showLabel={isMobile}
+            badge={(() => {
+              const visible = getVisibleCount('provider.bookingsUpcoming', Number(counters?.provider?.bookingsUpcoming||0));
+              return visible > 0 && (
+                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-1.5 py-0.5 rounded-full bg-brand-500 text-white min-w-4.5 shadow-sm">
+                  {visible > 99 ? '99+' : visible}
+                </span>
+              );
+            })()}
+          />
+          <NavLinkWithTooltip
             to="/portafolio"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
@@ -872,21 +888,6 @@ function Header() {
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
             label={t('header.referrals')}
             showLabel={isMobile}
-          />
-          <NavLinkWithTooltip
-            to="/reservas"
-            onClick={closeMenu}
-            icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>}
-            label={t('header.bookings')}
-            showLabel={isMobile}
-            badge={(() => {
-              const visible = getVisibleCount('provider.bookingsUpcoming', Number(counters?.provider?.bookingsUpcoming||0));
-              return visible > 0 && (
-                <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-1.5 py-0.5 rounded-full bg-brand-500 text-white min-w-4.5 shadow-sm">
-                  {visible > 99 ? '99+' : visible}
-                </span>
-              );
-            })()}
           />
         </>
       )}
@@ -1858,11 +1859,11 @@ function Header() {
                 </div>
                 
 
-                <div className="relative shrink-0">
+                <div className="relative min-w-0 shrink">
                 <button
                   type="button"
                   onClick={()=>setAccountOpen((v)=>!v)}
-                  className={`group inline-flex items-center gap-2.5 px-3 py-2 text-sm rounded-xl border bg-white hover:bg-gray-50 shadow-sm hover:shadow-lg text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} ${accountOpen ? `border-brand-300 shadow-md` : 'border-gray-200 hover:border-brand-300'} min-w-0 max-w-[40vw] md:max-w-[28vw] lg:max-w-[22vw] 2xl:max-w-[20vw] transition-all duration-300 hover:scale-[1.02]`}
+                  className={`group inline-flex items-center gap-2 px-2.5 py-2 text-sm rounded-xl border bg-white hover:bg-gray-50 shadow-sm hover:shadow-lg text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} ${accountOpen ? `border-brand-300 shadow-md` : 'border-gray-200 hover:border-brand-300'} min-w-0 max-w-full md:max-w-[28vw] lg:max-w-[22vw] 2xl:max-w-[20vw] transition-all duration-300 hover:scale-[1.02]`}
                   aria-haspopup="menu"
                   aria-expanded={accountOpen}
                   aria-label={t('header.accountMenu', { name: firstName || email || 'Account' })}
@@ -1878,9 +1879,9 @@ function Header() {
                     <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full ring-2 ring-white"></div>
                   </div>
                   {/* Nombre completo truncado en pantallas grandes */}
-                  <div className="hidden lg:flex flex-col items-start min-w-0">
+                  <div className="hidden lg:flex flex-col items-start min-w-0 overflow-hidden">
                     <span
-                      className="font-semibold text-gray-800 truncate max-w-[20vw] lg:max-w-[20ch] xl:max-w-[28ch]"
+                      className="block font-semibold text-gray-800 truncate w-full max-w-[14ch] xl:max-w-[22ch] 2xl:max-w-[28ch]"
                       title={firstName || email || 'Cuenta'}
                     >
                       {firstName || email || 'Cuenta'}
@@ -1982,14 +1983,6 @@ function Header() {
                           </div>
                           <span className="font-medium">{t('header.switchToMode')} {viewRole === 'client' ? t('header.professional') : t('header.client')}</span>
                         </button>
-                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 group" onClick={()=>{ clearViewRoleLock(); toast.info(t('header.autoModeRestored')); setAccountOpen(false); }}>
-                          <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-yellow-50 transition-colors">
-                            <svg className="w-4 h-4 text-gray-500 group-hover:text-yellow-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                          </div>
-                          <span className="font-medium">{t('header.autoMode')}</span>
-                        </button>
                       </>
                     )}
                     </div>
@@ -2021,17 +2014,17 @@ function Header() {
         ref={mobileMenuRef}
         inert={!open}
         className={
-          `md:hidden border-t bg-white/98 backdrop-blur-xl overflow-y-auto transition-all duration-300 ease-out border-gray-200 ` +
+          `md:hidden border-t bg-white/98 backdrop-blur-xl overflow-y-auto overflow-x-hidden transition-all duration-300 ease-out border-gray-200 ` +
           (open ? 'max-h-[calc(100vh-4rem)] opacity-100 translate-y-0 shadow-xl' : 'max-h-0 opacity-0 -translate-y-4 pointer-events-none')
         }
       >
-  <div className={`container mx-auto ${role === 'guest' ? 'pl-4 pr-0' : 'px-4'} py-4 flex flex-col gap-3 text-sm min-w-0`}>
+  <div className="w-full px-4 py-4 flex flex-col gap-3 text-sm min-w-0">
           <nav role="navigation" aria-label={t('header.mobileMenu')} className="contents">
           
           {/* User info section for mobile - Premium design */}
           {isAuthenticated && role !== 'guest' && (
-            <div className={`pb-4 mb-3 border-b border-gray-200 -mx-4 px-4 bg-linear-to-br ${viewRole === 'provider' ? 'from-brand-50/50 to-transparent' : viewRole === 'client' ? 'from-brand-50/50 to-transparent' : viewRole === 'admin' ? 'from-gray-100/50 to-transparent' : 'from-gray-50 to-transparent'}`}>
-              <div className="flex items-center gap-4">
+            <div className={`pb-4 mb-3 border-b border-gray-200 -mx-4 px-4 overflow-hidden bg-linear-to-br ${viewRole === 'provider' ? 'from-brand-50/50 to-transparent' : viewRole === 'client' ? 'from-brand-50/50 to-transparent' : viewRole === 'admin' ? 'from-gray-100/50 to-transparent' : 'from-gray-50 to-transparent'}`}>
+              <div className="flex items-center gap-3 min-w-0">
                 {/* Avatar mejorado */}
                 <div className={`relative w-14 h-14 rounded-2xl bg-gray-200 overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-offset-2 shadow-lg ${viewRole === 'provider' ? 'ring-brand-400' : viewRole === 'client' ? 'ring-brand-400' : viewRole === 'admin' ? 'ring-dark-400' : 'ring-gray-300'}`}>
                   {user?.profile?.avatar ? (
@@ -2081,29 +2074,29 @@ function Header() {
           
           {/* Visible role switch for multi-role users (mobile) - Mejorado */}
           {roles?.includes('client') && roles?.includes('provider') && (
-            <div className="flex items-center gap-2 mb-3 p-1.5 bg-gray-100 rounded-xl border border-gray-200 shadow-inner" aria-label={t('header.switchMode', { mode: '' })}>
+            <div className="flex items-center gap-2 mb-3 p-1.5 bg-gray-100 rounded-xl border border-gray-200 shadow-inner overflow-hidden" aria-label={t('header.switchMode', { mode: '' })}>
               <button
                 type="button"
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-300 ${viewRole === 'client' ? 'bg-white text-gray-800 shadow-md ring-1 ring-gray-200' : 'text-gray-500 hover:text-gray-700 hover:bg-white/60'}`}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-semibold rounded-lg transition-all duration-300 min-w-0 ${viewRole === 'client' ? 'bg-white text-gray-800 shadow-md ring-1 ring-gray-200' : 'text-gray-500 hover:text-gray-700 hover:bg-white/60'}`}
                 onClick={() => switchToRole('client')}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                {t('header.client')}
+                <span className="truncate">{t('header.client')}</span>
               </button>
               <button
                 type="button"
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-300 ${viewRole === 'provider' ? 'bg-white text-gray-800 shadow-md ring-1 ring-gray-200' : 'text-gray-500 hover:text-gray-700 hover:bg-white/60'}`}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-semibold rounded-lg transition-all duration-300 min-w-0 ${viewRole === 'provider' ? 'bg-white text-gray-800 shadow-md ring-1 ring-gray-200' : 'text-gray-500 hover:text-gray-700 hover:bg-white/60'}`}
                 onClick={() => switchToRole('provider')}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                {t('header.professional')}
+                <span className="truncate">{t('header.professional')}</span>
               </button>
               {isViewLocked && (
-                <span className={`ml-1 inline-flex items-center gap-1 text-[10px] font-medium ${roleColorClass} bg-yellow-50 px-2 py-1 rounded-lg`} title={t('header.modeLocked')} aria-label={t('header.modeLocked')}>
+                <span className={`shrink-0 ml-1 inline-flex items-center gap-1 text-[10px] font-medium ${roleColorClass} bg-yellow-50 px-2 py-1 rounded-lg`} title={t('header.modeLocked')} aria-label={t('header.modeLocked')}>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3 text-yellow-600">
                     <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4z" clipRule="evenodd" />
                   </svg>
@@ -2174,14 +2167,6 @@ function Header() {
                         </svg>
                       </div>
                       <span className="font-medium">{t('header.switchToMode')} {viewRole === 'client' ? t('header.professional') : t('header.client')}</span>
-                    </button>
-                    <button onClick={()=>{ clearViewRoleLock(); toast.info(t('header.autoModeRestored')); closeMenu(); }} className="group flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-200">
-                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-yellow-50 transition-colors">
-                        <svg className="w-4 h-4 text-gray-500 group-hover:text-yellow-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                      </div>
-                      <span className="font-medium">{t('header.autoMode')}</span>
                     </button>
                   </>
                 )}

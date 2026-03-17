@@ -171,7 +171,7 @@ function ReviewResponseModal({
   const comment = review?.review?.comment;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -179,21 +179,21 @@ function ReviewResponseModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in max-h-[90vh] flex flex-col">
+      <div className="relative w-full sm:max-w-2xl bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden animate-fade-in max-h-[95vh] sm:max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="bg-linear-to-r from-dark-700 via-dark-800 to-brand-800 p-6 text-white relative overflow-hidden shrink-0">
+        <div className="bg-linear-to-r from-dark-700 via-dark-800 to-brand-800 p-4 sm:p-6 text-white relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
           
-          <div className="relative flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Icons.Reply className="w-6 h-6" />
+          <div className="relative flex items-start justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+                <Icons.Reply className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h2 className="text-xl font-bold">
+                <h2 className="text-lg sm:text-xl font-bold">
                   {hasExistingResponse ? t('ui.reviewResponse.yourResponse') : t('ui.reviewResponse.respondToReview')}
                 </h2>
-                <p className="text-brand-100 text-sm">
+                <p className="text-brand-100 text-xs sm:text-sm">
                   {hasExistingResponse 
                     ? t('ui.reviewResponse.manageYourResponse')
                     : t('ui.reviewResponse.respondProfessionally')
@@ -211,9 +211,9 @@ function ReviewResponseModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Original Review Preview */}
-          <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+          <div className="bg-gray-50 rounded-xl p-3 sm:p-5 border border-gray-100">
             <div className="flex items-start gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-semibold shadow-lg shadow-brand-500/20">
                 {clientInitial}
@@ -238,9 +238,9 @@ function ReviewResponseModal({
 
           {/* Delete Confirmation */}
           {showDeleteConfirm ? (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 sm:p-5">
               <div className="flex items-start gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
                   <Icons.Warning className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
@@ -248,7 +248,7 @@ function ReviewResponseModal({
                   <p className="text-sm text-red-700">{t('ui.reviewResponse.deleteConfirmMessage')}</p>
                 </div>
               </div>
-              <div className="flex gap-3 justify-end">
+              <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 sm:justify-end">
                 <Button
                   variant="outline"
                   size="sm"
@@ -269,8 +269,8 @@ function ReviewResponseModal({
             </div>
           ) : hasExistingResponse && !isEditing ? (
             /* View existing response */
-            <div className="bg-brand-50 rounded-xl p-5 border border-brand-100">
-              <div className="flex items-start justify-between gap-4 mb-3">
+            <div className="bg-brand-50 rounded-xl p-3 sm:p-5 border border-brand-100">
+              <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center">
                     <Icons.Reply className="w-4 h-4 text-brand-600" />
@@ -315,9 +315,9 @@ function ReviewResponseModal({
                   value={response}
                   onChange={(e) => setResponse(e.target.value)}
                   placeholder={t('ui.reviewResponse.placeholder')}
-                  rows={5}
+                  rows={4}
                   maxLength={MAX_RESPONSE_LENGTH}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none transition-shadow text-sm"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none transition-shadow text-sm"
                 />
               </label>
               
@@ -334,7 +334,7 @@ function ReviewResponseModal({
               </div>
 
               {/* Tips */}
-              <div className="bg-brand-50 rounded-xl p-4 border border-brand-100">
+              <div className="bg-brand-50 rounded-xl p-3 sm:p-4 border border-brand-100">
                 <h5 className="font-medium text-brand-900 text-sm mb-2 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
@@ -354,11 +354,12 @@ function ReviewResponseModal({
 
         {/* Footer */}
         {(isEditing || !hasExistingResponse) && !showDeleteConfirm && (
-          <div className="border-t border-gray-100 p-4 bg-gray-50 flex items-center justify-end gap-3 shrink-0">
+          <div className="border-t border-gray-100 p-3 sm:p-4 bg-gray-50 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 shrink-0">
             <Button
               variant="outline"
               onClick={handleClose}
               disabled={loading}
+              className="w-full sm:w-auto"
             >
               {t('ui.reviewResponse.cancel')}
             </Button>
@@ -366,7 +367,7 @@ function ReviewResponseModal({
               onClick={handleSubmit}
               loading={loading}
               disabled={!isValidLength}
-              className="bg-linear-to-r from-brand-500 to-brand-700 text-white"
+              className="w-full sm:w-auto bg-linear-to-r from-brand-500 to-brand-700 text-white"
             >
               <Icons.Check className="w-4 h-4 mr-2" />
               {hasExistingResponse ? t('ui.reviewResponse.saveChanges') : t('ui.reviewResponse.sendResponse')}

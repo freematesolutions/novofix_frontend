@@ -293,6 +293,9 @@ export default function InvoiceGeneratorModal({
   const toast = useToast();
   const dialogRef = useRef(null);
   const lastFocusedRef = useRef(null);
+  const itemsScrollRef = useRef(null);
+  const newItemDescRef = useRef(null);
+  const prevItemsLenRef = useRef(0);
 
   // ── Invoice state ──
   const [invoiceNumber] = useState(() => {
@@ -336,6 +339,12 @@ export default function InvoiceGeneratorModal({
   // ── Populate from booking on open ──
   useEffect(() => {
     if (!open || !booking) return;
+
+    // Always reset to step 1 (form) when the modal opens
+    setStep(1);
+    setSending(false);
+    if (previewUrl) { URL.revokeObjectURL(previewUrl); }
+    setPreviewUrl(null);
 
     // ── Populate from booking data ──
     // Provider info
@@ -414,6 +423,21 @@ export default function InvoiceGeneratorModal({
   const removeItem = useCallback((index) => {
     setItems(prev => prev.filter((_, i) => i !== index));
   }, []);
+
+  // Auto-scroll to bottom of items list and focus description input when a new item is added
+  useEffect(() => {
+    if (items.length > prevItemsLenRef.current && prevItemsLenRef.current > 0) {
+      requestAnimationFrame(() => {
+        // Scroll the items container to the bottom
+        if (itemsScrollRef.current) {
+          itemsScrollRef.current.scrollTo({ top: itemsScrollRef.current.scrollHeight, behavior: 'smooth' });
+        }
+        // Focus the description input of the new (last) item
+        setTimeout(() => newItemDescRef.current?.focus(), 150);
+      });
+    }
+    prevItemsLenRef.current = items.length;
+  }, [items.length]);
 
   // ── Computed totals ──
   const totals = useMemo(() => {
@@ -686,7 +710,7 @@ export default function InvoiceGeneratorModal({
                     <div className="space-y-2.5">
                       <input value={businessName} onChange={e => setBusinessName(e.target.value)} placeholder={t('invoice.businessNamePh')} className="w-full px-3 py-2 rounded-lg border border-brand-200/50 text-sm bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all" />
                       <input value={businessAddress} onChange={e => setBusinessAddress(e.target.value)} placeholder={t('invoice.addressPh')} className="w-full px-3 py-2 rounded-lg border border-brand-200/50 text-sm bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all" />
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <input value={businessPhone} onChange={e => setBusinessPhone(e.target.value)} placeholder={t('invoice.phonePh')} className="w-full px-3 py-2 rounded-lg border border-brand-200/50 text-sm bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all" />
                         <input value={businessEmail} onChange={e => setBusinessEmail(e.target.value)} placeholder={t('invoice.emailPh')} className="w-full px-3 py-2 rounded-lg border border-brand-200/50 text-sm bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all" />
                       </div>
@@ -702,7 +726,7 @@ export default function InvoiceGeneratorModal({
                     <div className="space-y-2.5">
                       <input value={clientName} onChange={e => setClientName(e.target.value)} placeholder={t('invoice.clientNamePh')} className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all" />
                       <input value={clientAddress} onChange={e => setClientAddress(e.target.value)} placeholder={t('invoice.addressPh')} className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all" />
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <input value={clientCity} onChange={e => setClientCity(e.target.value)} placeholder={t('invoice.cityPh')} className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all" />
                         <input value={clientState} onChange={e => setClientState(e.target.value)} placeholder={t('invoice.statePh')} className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all" />
                         <input value={clientZip} onChange={e => setClientZip(e.target.value)} placeholder={t('invoice.zipPh')} className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all" />
@@ -718,10 +742,6 @@ export default function InvoiceGeneratorModal({
                       <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                       {t('invoice.lineItems')}
                     </h3>
-                    <button onClick={addItem} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold transition-colors border border-brand-200">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-                      {t('invoice.addItem')}
-                    </button>
                   </div>
 
                   {/* Table header */}
@@ -733,13 +753,14 @@ export default function InvoiceGeneratorModal({
                     <div className="col-span-1"></div>
                   </div>
 
-                  {/* Items rows */}
-                  <div className="border border-gray-200 rounded-b-xl sm:rounded-t-none rounded-xl sm:border-t-0 divide-y divide-gray-100">
+                  {/* Items rows — scrollable container */}
+                  <div ref={itemsScrollRef} className="border border-gray-200 rounded-b-xl sm:rounded-t-none rounded-xl sm:border-t-0 divide-y divide-gray-100 max-h-64 overflow-y-auto">
                     {items.map((item, idx) => (
                       <div key={idx} className="grid grid-cols-1 sm:grid-cols-12 gap-2 px-3 py-3 items-center group hover:bg-gray-50/80 transition-colors">
                         <div className="sm:col-span-5">
                           <label className="sm:hidden text-[10px] font-semibold text-gray-400 uppercase">{t('invoice.description')}</label>
                           <input
+                            ref={idx === items.length - 1 ? newItemDescRef : undefined}
                             value={item.description}
                             onChange={e => updateItem(idx, 'description', e.target.value)}
                             placeholder={t('invoice.descriptionPh')}
@@ -785,6 +806,15 @@ export default function InvoiceGeneratorModal({
                       </div>
                     ))}
                   </div>
+
+                  {/* Add Line button — always visible below the scrollable items */}
+                  <button
+                    onClick={addItem}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mt-2 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-sm font-semibold transition-colors border border-dashed border-brand-300 hover:border-brand-400"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                    {t('invoice.addItem')}
+                  </button>
                 </div>
 
                 {/* ── Totals & extras row ── */}

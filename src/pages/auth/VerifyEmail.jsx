@@ -118,7 +118,7 @@ const VerifyEmail = () => {
       } else if (userRoles.includes('provider')) {
         redirectPath = '/empleos';
       } else if (userRoles.includes('client')) {
-        redirectPath = '/mis-solicitudes';
+        redirectPath = '/';
       }
 
       // Redirigir después de un breve delay para mostrar el mensaje de éxito

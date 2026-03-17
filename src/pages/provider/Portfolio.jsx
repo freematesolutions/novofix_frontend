@@ -12,6 +12,7 @@ export default function Portfolio() {
   const { isAuthenticated } = useAuth();
   const [portfolio, setPortfolio] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState('all');
 
   const { setAuthState } = useAuth();
   const fetchPortfolio = useCallback(async () => {
@@ -76,58 +77,53 @@ export default function Portfolio() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      {portfolio.length > 0 && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="relative overflow-hidden bg-white rounded-2xl border border-brand-100 shadow-sm p-5">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-brand-500/10 to-transparent rounded-bl-full" />
-            <div className="relative">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-brand-100 to-brand-50 mb-3">
-                <svg className="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-              </div>
-              <div className="text-3xl font-bold bg-linear-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent mb-1">{portfolio.length}</div>
-              <div className="text-sm text-gray-600">{t('provider.portfolio.totalItems')}</div>
-            </div>
+      {/* Compact Stats Indicators */}
+      {portfolio.length > 0 && (() => {
+        const photoCount = portfolio.filter(item => item.type === 'image').length;
+        const videoCount = portfolio.filter(item => item.type === 'video').length;
+        const categoryCount = new Set(portfolio.map(item => item.category).filter(Boolean)).size;
+        const stats = [
+          { key: 'all', count: portfolio.length, label: t('provider.portfolio.totalItems'), icon: '📁' },
+          { key: 'image', count: photoCount, label: t('provider.portfolio.photos'), icon: '📸' },
+          { key: 'video', count: videoCount, label: t('provider.portfolio.videos'), icon: '🎬' },
+          { key: 'categories', count: categoryCount, label: t('provider.portfolio.categories'), icon: '🏷️' },
+        ];
+        return (
+          <div className="flex flex-wrap gap-2">
+            {stats.map(({ key, count, label, icon }) => {
+              const isDisabled = count === 0;
+              return (
+              <button
+                key={key}
+                disabled={isDisabled}
+                onClick={() => {
+                  if (isDisabled) return;
+                  setActiveFilter(key === 'categories' ? 'all' : key);
+                  document.getElementById('portfolio-gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                className={`
+                  inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-sm font-medium transition-all
+                  ${isDisabled
+                    ? 'bg-gray-100 text-gray-400 border border-gray-100 cursor-default'
+                    : activeFilter === key
+                      ? 'bg-brand-600 text-white shadow-md shadow-brand-500/25'
+                      : 'bg-white text-gray-700 border border-gray-200 hover:border-brand-300 hover:bg-brand-50'
+                  }
+                `}
+              >
+                <span className="text-base leading-none">{icon}</span>
+                <span className="font-bold">{count}</span>
+                <span className="hidden sm:inline text-xs opacity-80">{label}</span>
+              </button>
+              );
+            })}
           </div>
-          
-          <div className="relative overflow-hidden bg-white rounded-2xl border border-brand-100 shadow-sm p-5">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-brand-500/10 to-transparent rounded-bl-full" />
-            <div className="relative">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-brand-100 to-brand-50 mb-3">
-                <svg className="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              </div>
-              <div className="text-3xl font-bold bg-linear-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent mb-1">{portfolio.filter(item => item.type === 'image').length}</div>
-              <div className="text-sm text-gray-600">{t('provider.portfolio.photos')}</div>
-            </div>
-          </div>
-          
-          <div className="relative overflow-hidden bg-white rounded-2xl border border-accent-100 shadow-sm p-5">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-accent-500/10 to-transparent rounded-bl-full" />
-            <div className="relative">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-accent-100 to-accent-50 mb-3">
-                <svg className="w-5 h-5 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-              </div>
-              <div className="text-3xl font-bold bg-linear-to-r from-accent-600 to-accent-700 bg-clip-text text-transparent mb-1">{portfolio.filter(item => item.type === 'video').length}</div>
-              <div className="text-sm text-gray-600">{t('provider.portfolio.videos')}</div>
-            </div>
-          </div>
-          
-          <div className="relative overflow-hidden bg-white rounded-2xl border border-brand-100 shadow-sm p-5">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-brand-500/10 to-transparent rounded-bl-full" />
-            <div className="relative">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-brand-100 to-brand-50 mb-3">
-                <svg className="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
-              </div>
-              <div className="text-3xl font-bold bg-linear-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent mb-1">{new Set(portfolio.map(item => item.category).filter(Boolean)).size}</div>
-              <div className="text-sm text-gray-600">{t('provider.portfolio.categories')}</div>
-            </div>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Portfolio Manager */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <PortfolioManager initialPortfolio={portfolio} onUpdate={fetchPortfolio} />
+      <div id="portfolio-gallery" className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <PortfolioManager initialPortfolio={portfolio} onUpdate={fetchPortfolio} activeFilter={activeFilter} />
       </div>
 
       {/* Tips Section */}

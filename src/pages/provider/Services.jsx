@@ -187,14 +187,6 @@ export default function Services() {
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-gray-900">{t('provider.services.mainServiceTitle')}</h3>
-            {isMainServiceLocked && (
-              <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 20.5a8.5 8.5 0 100-17 8.5 8.5 0 000 17z" />
-                </svg>
-                {t('provider.services.mainServiceLocked', 'Tu servicio principal no puede ser modificado una vez configurado')}
-              </p>
-            )}
           </div>
         </div>
         
@@ -244,7 +236,7 @@ export default function Services() {
               />
             </div>
             
-            {/* Experience */}
+            {/* Experience - always editable since years naturally increase */}
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                 <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -252,16 +244,30 @@ export default function Services() {
                 </svg>
                 {t('provider.services.experienceYears')}
               </label>
-              <input
-                type="number"
-                min="0"
-                className={`w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm placeholder-gray-400 transition-all ${isMainServiceLocked ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : 'bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300'}`}
-                value={mainService.experience}
-                onChange={(e)=>setMainService((s)=>({ ...s, experience: e.target.value }))}
-                placeholder="0"
-                disabled={isMainServiceLocked}
-                readOnly={isMainServiceLocked}
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="70"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300"
+                  value={mainService.experience}
+                  onChange={(e)=>setMainService((s)=>({ ...s, experience: e.target.value }))}
+                  placeholder="0"
+                />
+                {isMainServiceLocked && (
+                  <button
+                    type="button"
+                    onClick={saveMainService}
+                    disabled={loading}
+                    className="shrink-0 px-3 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                  >
+                    {loading ? t('provider.services.saving') : t('common.save')}
+                  </button>
+                )}
+              </div>
+              {isMainServiceLocked && (
+                <p className="text-xs text-gray-500">{t('provider.services.experienceEditableHint')}</p>
+              )}
             </div>
           </div>
           
@@ -283,14 +289,7 @@ export default function Services() {
             />
           </div>
           
-          {isMainServiceLocked ? (
-            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-dark-50 border border-dark-100 text-dark-600 text-sm">
-              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              {t('provider.services.mainServiceLockedNotice', 'El servicio principal está bloqueado y no puede ser editado. Solo puedes gestionar tus servicios adicionales.')}
-            </div>
-          ) : (
+          {isMainServiceLocked ? null : (
             <button
               type="button"
               onClick={saveMainService}

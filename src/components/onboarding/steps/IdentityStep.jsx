@@ -244,11 +244,11 @@ export default function IdentityStep() {
         <Alert type="error">{error}</Alert>
       )}
 
-      <div className="flex justify-between items-center pt-4 border-t">
-        <div className="text-sm text-gray-500">
+      <div className="flex flex-wrap justify-between items-center gap-3 pt-4 border-t">
+        <div className="text-sm text-gray-500 order-last sm:order-first w-full sm:w-auto text-center">
           {t('onboarding.identity.stepOf', { current: 1, total: 4 })}
         </div>
-        <Button type="submit" loading={loading}>
+        <Button type="submit" loading={loading} className="shrink-0 ml-auto sm:ml-0">
           {loading ? t('common.saving') : t('common.continue')}
         </Button>
       </div>

@@ -964,7 +964,7 @@ function GuestConversionModal({
                           </span>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-1.5">
                           {PASSWORD_REQUIREMENTS.map((req) => {
                             const passed = req.test(registerForm.password);
                             return (

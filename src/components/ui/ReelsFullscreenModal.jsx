@@ -1,10 +1,28 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 
 // ─── Constantes ───
 const SWIPE_THRESHOLD = 60;       // px mínimo para cambiar de reel
 const TRANSITION_DURATION = 350;  // ms de animación de slide
+
+// ─── Optimizar URL de video Cloudinary para fullscreen (mayor calidad) ───
+const getOptimizedFullscreenUrl = (url) => {
+  if (url?.includes('cloudinary.com') && url.includes('/video/')) {
+    return url.replace('/video/upload/', '/video/upload/f_auto,q_auto:good,vc_auto/');
+  }
+  return url;
+};
+
+// ─── Thumbnail para poster ───
+const getVideoThumbnail = (url) => {
+  if (url?.includes('cloudinary.com') && url.includes('/video/')) {
+    return url
+      .replace('/video/upload/', '/video/upload/so_0,f_jpg,w_720,h_1280,c_fill,g_center,q_auto/')
+      .replace(/\.[^.]+$/, '.jpg');
+  }
+  return null;
+};
 
 // ─── Fullscreen Reel Slide ───
 const FullscreenReelSlide = ({ reel, isActive, onViewProfile, t }) => {
@@ -14,6 +32,9 @@ const FullscreenReelSlide = ({ reel, isActive, onViewProfile, t }) => {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const progressInterval = useRef(null);
+
+  const optimizedUrl = useMemo(() => getOptimizedFullscreenUrl(reel.url), [reel.url]);
+  const posterUrl = useMemo(() => getVideoThumbnail(reel.url), [reel.url]);
 
   // Autoplay/pause basado en si es el slide activo
   useEffect(() => {
@@ -88,10 +109,11 @@ const FullscreenReelSlide = ({ reel, isActive, onViewProfile, t }) => {
 
   return (
     <div className="absolute inset-0 w-full h-full" onClick={togglePlay}>
-      {/* Video */}
+      {/* Video — URL optimizada con poster para carga rápida */}
       <video
         ref={videoRef}
-        src={reel.url}
+        src={optimizedUrl}
+        poster={posterUrl || undefined}
         className="absolute inset-0 w-full h-full object-contain bg-black"
         loop
         muted={isMuted}

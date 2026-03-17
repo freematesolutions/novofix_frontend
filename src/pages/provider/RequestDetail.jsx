@@ -14,7 +14,7 @@ import {
   HiArrowLeft, HiPhotograph, HiCurrencyDollar, HiClock, HiCalendar,
   HiLocationMarker, HiTag, HiExclamation, HiPaperAirplane, HiSave,
   HiX, HiRefresh, HiSparkles, HiCheckCircle, HiBadgeCheck, HiLightningBolt,
-  HiTrendingUp, HiChartBar, HiShieldCheck, HiCube, HiQuestionMarkCircle,
+  HiShieldCheck, HiCube, HiQuestionMarkCircle,
   HiChat
 } from 'react-icons/hi';
 
@@ -731,18 +731,7 @@ export default function RequestDetail() {
                     </div>
                   )}
 
-                  {/* Información de comisión si existe */}
-                  {myProposal.commission && (
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                      <div className="flex items-center gap-2 text-amber-700">
-                        <HiChartBar className="w-5 h-5" />
-                        <span className="font-medium">
-                          {t('provider.requestDetail.commission')}: {myProposal.commission.rate ? `${Math.round(myProposal.commission.rate * 100)}%` : '-'}
-                          {myProposal.commission.amount && ` (${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(myProposal.commission.amount)})`}
-                        </span>
-                      </div>
-                    </div>
-                  )}
+
 
                   {/* Acciones */}
                   <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
@@ -851,7 +840,7 @@ export default function RequestDetail() {
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-gray-500">{t('provider.requestDetail.commission')}: {context.commissionRatePercent}%</div>
+
                         </div>
                       </div>
                       <div className="text-right">
@@ -923,7 +912,7 @@ export default function RequestDetail() {
                           </svg>
                           {t('provider.requestDetail.rangeHint')}
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                             <input 
@@ -986,41 +975,7 @@ export default function RequestDetail() {
                         {formErrors.amountMax}
                       </p>
                     )}
-                    {/* Commission preview */}
-                    {context && ((form.isRange && form.amountMin && form.amountMax) || (!form.isRange && form.amount && Number(form.amount) > 0)) && (
-                      <div className="flex flex-wrap gap-3 mt-3">
-                        {(() => {
-                          const displayAmount = form.isRange 
-                            ? Math.round((Number(form.amountMin) + Number(form.amountMax)) / 2) 
-                            : Number(form.amount);
-                          const minAmount = form.isRange ? Number(form.amountMin) : displayAmount;
-                          const maxAmount = form.isRange ? Number(form.amountMax) : displayAmount;
-                          
-                          return (
-                            <>
-                              <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-                                <HiChartBar className="w-4 h-4 text-amber-600" />
-                                <span className="text-sm text-amber-800">
-                                  {t('provider.requestDetail.commission')}: {form.isRange 
-                                    ? `${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(minAmount * context.commissionRateDecimal)} - ${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(maxAmount * context.commissionRateDecimal)}`
-                                    : Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(displayAmount * context.commissionRateDecimal)
-                                  }
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
-                                <HiTrendingUp className="w-4 h-4 text-green-600" />
-                                <span className="text-sm text-green-800">
-                                  {t('provider.requestDetail.yourIncome')}: {form.isRange
-                                    ? `${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(minAmount * (1 - context.commissionRateDecimal))} - ${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(maxAmount * (1 - context.commissionRateDecimal))}`
-                                    : Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(displayAmount * (1 - context.commissionRateDecimal))
-                                  }
-                                </span>
-                              </div>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    )}
+
                   </div>
 
                   {/* Hours and Date grid */}

@@ -15,6 +15,8 @@ const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, s
 
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [geocodingLocation, setGeocodingLocation] = useState('');
+  const [geocodingLoading, setGeocodingLoading] = useState(false);
   const [form, setForm] = useState({
     businessName: '',
     description: '',
@@ -41,6 +43,53 @@ const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, s
   }, [user]);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  // Geocoding reverso: convertir coordenadas en nombre de lugar
+  const reverseGeocode = async (latitude, longitude) => {
+    setGeocodingLoading(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=14&addressdetails=1`,
+        { headers: { 'Accept-Language': 'es' } }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        const address = data.address || {};
+        const locationName = 
+          address.neighbourhood || 
+          address.suburb || 
+          address.district || 
+          address.city || 
+          address.town || 
+          address.village || 
+          address.state || 
+          data.display_name?.split(',')[0] || 
+          t('onboarding.coverage.locationSelected');
+        setGeocodingLocation(locationName);
+        // Auto-actualizar zona de servicio con la ubicación detectada
+        setForm((f) => ({ ...f, serviceAreaZone: locationName }));
+      }
+    } catch {
+      setGeocodingLocation('');
+    } finally {
+      setGeocodingLoading(false);
+    }
+  };
+
+  // Ejecutar geocoding reverso al cargar si hay coordenadas del usuario
+  useEffect(() => {
+    const lat = user?.providerProfile?.serviceArea?.coordinates?.lat;
+    const lng = user?.providerProfile?.serviceArea?.coordinates?.lng;
+    if (lat && lng) {
+      reverseGeocode(Number(lat), Number(lng));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const handleMapChange = (coords) => {
+    setForm((f) => ({ ...f, lat: coords.lat, lng: coords.lng }));
+    reverseGeocode(coords.lat, coords.lng);
+  };
 
   const onSave = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -108,6 +157,7 @@ const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, s
         <div>
           <label className="block text-sm text-gray-600 mb-1">{t('account.providerSetup.zone')}</label>
           <input name="serviceAreaZone" value={form.serviceAreaZone} onChange={onChange} className="w-full border rounded-md px-3 py-2" placeholder={t('account.providerSetup.zonePlaceholder')} />
+          <p className="text-xs text-gray-400 mt-1">{t('account.providerSetup.zoneAutoHint')}</p>
         </div>
         <div>
           <label className="block text-sm text-gray-600 mb-1">{t('account.providerSetup.radius')}</label>
@@ -118,19 +168,22 @@ const ProviderSetupForm = forwardRef(function ProviderSetupForm({ onCompleted, s
         <label className="block text-sm text-gray-600 mb-2">{t('account.providerSetup.locationLabel')}</label>
         <MapPicker
           value={(form.lat !== '' && form.lng !== '') ? { lat: Number(form.lat), lng: Number(form.lng) } : null}
-          onChange={(c)=> setForm((f)=>({ ...f, lat: c.lat, lng: c.lng }))}
+          onChange={handleMapChange}
           height={300}
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-          <div>
-            <label className="block text-xs text-gray-600 mb-1">{t('account.providerSetup.latitude')}</label>
-            <input name="lat" value={form.lat} onChange={onChange} className="w-full border rounded-md px-3 py-2" placeholder={t('account.providerSetup.latPlaceholder')} />
+        {/* Indicador de ubicación detectada */}
+        {(form.lat !== '' && form.lng !== '') && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-green-700">
+            <span>📍</span>
+            {geocodingLoading ? (
+              <span className="text-gray-500">{t('onboarding.coverage.detecting')}</span>
+            ) : geocodingLocation ? (
+              <span>{geocodingLocation}</span>
+            ) : (
+              <span>{t('onboarding.coverage.locationMarked')}</span>
+            )}
           </div>
-          <div>
-            <label className="block text-xs text-gray-600 mb-1">{t('account.providerSetup.longitude')}</label>
-            <input name="lng" value={form.lng} onChange={onChange} className="w-full border rounded-md px-3 py-2" placeholder={t('account.providerSetup.lngPlaceholder')} />
-          </div>
-        </div>
+        )}
       </div>
       <div>
         <label className="block text-sm text-gray-600 mb-1">{t('account.providerSetup.phone')}</label>

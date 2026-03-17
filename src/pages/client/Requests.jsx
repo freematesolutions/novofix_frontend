@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
@@ -20,6 +20,7 @@ export default function ClientRequests() {
   const { role, roles, viewRole, clearError, isAuthenticated } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [requests, setRequests] = useState([]);
@@ -71,6 +72,20 @@ export default function ClientRequests() {
   ), [viewRole, role, roles]);
 
   useEffect(() => { if (isAuthenticated && isClientCapable) load(); }, [isAuthenticated, isClientCapable, load]);
+
+  // Auto-open edit modal when ?edit=<requestId> query param is present
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId && requests.length > 0 && !editTarget) {
+      const target = requests.find(r => r._id === editId);
+      if (target && ['draft', 'published'].includes(target.status)) {
+        setEditTarget(target);
+      }
+      // Remove ?edit= from URL to prevent re-opening on close
+      searchParams.delete('edit');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, requests, editTarget, setSearchParams]);
 
   // WebSocket: actualizar cuando llegan nuevas propuestas
   useEffect(() => {

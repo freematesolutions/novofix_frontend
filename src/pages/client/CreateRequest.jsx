@@ -58,6 +58,7 @@ export default function CreateRequest() {
     currentFile: 0,
     status: 'uploading'
   });
+  const [duplicateWarning, setDuplicateWarning] = useState(null); // { requestId } if duplicate exists
 
   // Cargar categorías activas al montar
   useEffect(() => {
@@ -124,6 +125,27 @@ export default function CreateRequest() {
     const t = setTimeout(fetchEligibility, 400); // debounce
     return () => clearTimeout(t);
   }, [fetchEligibility]);
+
+  // Verificar si ya existe una solicitud activa para la categoría seleccionada
+  useEffect(() => {
+    if (!form.category) { setDuplicateWarning(null); return; }
+    let cancelled = false;
+    const checkDuplicate = async () => {
+      try {
+        const { data } = await api.get('/client/requests', { params: { limit: 100 } });
+        const requests = data?.data?.requests || data?.data || [];
+        const dup = requests.find(r =>
+          r.basicInfo?.category === form.category &&
+          ['published', 'draft'].includes(r.status)
+        );
+        if (!cancelled) setDuplicateWarning(dup ? { requestId: dup._id } : null);
+      } catch {
+        if (!cancelled) setDuplicateWarning(null);
+      }
+    };
+    checkDuplicate();
+    return () => { cancelled = true; };
+  }, [form.category]);
 
   useEffect(() => { clearError?.(); }, [clearError]);
 
@@ -214,7 +236,12 @@ export default function CreateRequest() {
       }
     } catch (err) {
       const msg = err?.response?.data?.message || t('client.createRequest.createError');
-      setError(msg);
+      if (err?.response?.data?.code === 'DUPLICATE_REQUEST') {
+        setDuplicateWarning({ requestId: err.response.data.data?.existingRequestId });
+        toast.warning(t('client.createRequest.duplicateWarning'));
+      } else {
+        setError(msg);
+      }
     } finally { setLoading(false); }
   };
 
@@ -761,10 +788,50 @@ export default function CreateRequest() {
           </div>
         </div>
 
+        {/* Alerta de solicitud duplicada */}
+        {duplicateWarning && (
+          <div className="rounded-xl bg-amber-50 border border-amber-200 text-amber-800 overflow-hidden">
+            <div className="flex items-start gap-3 p-4">
+              <svg className="w-5 h-5 mt-0.5 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">{t('client.createRequest.duplicateWarning')}</p>
+                <p className="text-xs mt-1 text-amber-600">{t('client.createRequest.duplicateExists')}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-4 pb-4">
+              <button
+                type="button"
+                onClick={() => navigate(`/mis-solicitudes`)}
+                className="flex-1 px-4 py-2 rounded-lg bg-amber-100 hover:bg-amber-200 border border-amber-300 text-sm font-medium text-amber-800 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                {t('client.createRequest.viewExistingRequest')}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate(`/mis-solicitudes?edit=${duplicateWarning.requestId}`)}
+                className="flex-1 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                {t('client.createRequest.editExistingRequest')}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
           {(() => {
-            const disabledPublish = !eligibility.loading && eligibility.count === 0;
-            const tooltipText = disabledPublish ? t('client.createRequest.noProvidersTooltip') : undefined;
+            const disabledPublish = (!eligibility.loading && eligibility.count === 0) || !!duplicateWarning;
+            const tooltipText = duplicateWarning
+              ? t('client.createRequest.duplicateWarning')
+              : disabledPublish ? t('client.createRequest.noProvidersTooltip') : undefined;
             return (
               <span className={disabledPublish ? 'inline-block' : ''} title={tooltipText}>
                 <Button type="submit" loading={loading} disabled={disabledPublish}>{t('client.createRequest.publishRequest')}</Button>

@@ -12,13 +12,41 @@ const CARD_GAP = 16;             // px – gap entre cards
 const ASPECT_RATIO = 16 / 9;     // Relación de aspecto invertida (video vertical 9:16)
 const AUTOPLAY_INTERVAL = 4000;  // ms entre auto-advance
 const SWIPE_THRESHOLD = 50;      // px mínimo para considerar swipe
+const PRELOAD_RANGE = 1;         // Cuántos videos adyacentes pre-cargar
 
-// ─── Thumbnail helper (Cloudinary) ───
-const getVideoThumbnail = (url) => {
+// ─── Thumbnail helper (Cloudinary) — baja resolución para carga rápida ───
+const getVideoThumbnail = (url, { width = 480, height = 854 } = {}) => {
   if (url?.includes('cloudinary.com') && url.includes('/video/')) {
-    return url.replace('/video/upload/', '/video/upload/so_0,f_jpg,w_480,h_854,c_fill,g_center/');
+    // f_jpg para generar imagen estática del primer frame
+    // so_0 = segundo 0 del video
+    return url
+      .replace('/video/upload/', `/video/upload/so_0,f_jpg,w_${width},h_${height},c_fill,g_center,q_auto/`)
+      .replace(/\.[^.]+$/, '.jpg'); // Forzar extensión .jpg
   }
   return null;
+};
+
+// ─── Optimizar URL de video Cloudinary para streaming rápido ───
+const getOptimizedVideoUrl = (url, { width = 480, quality = 'auto:low' } = {}) => {
+  if (url?.includes('cloudinary.com') && url.includes('/video/')) {
+    // f_auto selecciona WebM (VP9) o MP4 según navegador
+    // q_auto:low para carrusel (calidad aceptable, carga rápida)
+    // w_480 para carrusel (no necesita full HD)
+    // vc_auto para codec óptimo
+    return url.replace('/video/upload/', `/video/upload/f_auto,q_${quality},w_${width},vc_auto/`);
+  }
+  return url;
+};
+
+// ─── Prefetch de thumbnails (precargar imágenes en cache del navegador) ───
+const prefetchThumbnails = (reels) => {
+  reels.forEach((reel) => {
+    const thumb = getVideoThumbnail(reel.url, { width: 320, height: 568 });
+    if (thumb) {
+      const img = new Image();
+      img.src = thumb;
+    }
+  });
 };
 
 // ─── Skeleton card para loading ───
@@ -38,17 +66,22 @@ const SkeletonCard = () => (
   </div>
 );
 
-// ─── ReelCard individual ───
-const ReelCard = ({ reel, isActive, onViewProfile, onOpenFullscreen, isMobile }) => {
+// ─── ReelCard individual (optimizado) ───
+const ReelCard = ({ reel, isActive, isNearby, onViewProfile, onOpenFullscreen, isMobile }) => {
   const { t } = useTranslation();
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [showThumbnail, setShowThumbnail] = useState(true);
+  const [videoReady, setVideoReady] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
   const thumbnail = useMemo(() => getVideoThumbnail(reel.url), [reel.url]);
+  // URL optimizada para carrusel (menor resolución, codec automático)
+  const optimizedUrl = useMemo(() => getOptimizedVideoUrl(reel.url), [reel.url]);
   const cardWidth = isMobile ? CARD_WIDTH_MOBILE : CARD_WIDTH_DESKTOP;
+
+  // Solo renderizar <video> si está activo o nearby (± PRELOAD_RANGE)
+  const shouldMountVideo = isActive || isNearby;
 
   // Autoplay/pause basado en si está activo (visible)
   useEffect(() => {
@@ -56,13 +89,15 @@ const ReelCard = ({ reel, isActive, onViewProfile, onOpenFullscreen, isMobile })
     if (!video) return;
 
     if (isActive && !videoError) {
-      video.play().then(() => {
-        setIsPlaying(true);
-        setShowThumbnail(false);
-      }).catch(() => {
-        // Autoplay bloqueado por el navegador
-        setIsPlaying(false);
-      });
+      // Intentar play lo más rápido posible
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          setIsPlaying(true);
+        }).catch(() => {
+          setIsPlaying(false);
+        });
+      }
     } else {
       video.pause();
       setIsPlaying(false);
@@ -77,7 +112,6 @@ const ReelCard = ({ reel, isActive, onViewProfile, onOpenFullscreen, isMobile })
     if (video.paused) {
       video.play().then(() => {
         setIsPlaying(true);
-        setShowThumbnail(false);
       }).catch(() => {});
     } else {
       video.pause();
@@ -116,30 +150,48 @@ const ReelCard = ({ reel, isActive, onViewProfile, onOpenFullscreen, isMobile })
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
         </svg>
       </button>
-      {/* Thumbnail (se muestra mientras carga) */}
-      {showThumbnail && thumbnail && (
+
+      {/* Thumbnail — siempre visible como fondo hasta que el video esté listo */}
+      {thumbnail ? (
         <img
           src={thumbnail}
           alt={reel.providerName}
-          className="absolute inset-0 w-full h-full object-cover z-1"
-          loading="lazy"
+          className={`absolute inset-0 w-full h-full object-cover z-1 transition-opacity duration-300 ${
+            videoReady && isPlaying ? 'opacity-0' : 'opacity-100'
+          }`}
+          loading={isNearby || isActive ? 'eager' : 'lazy'}
+          decoding="async"
+          fetchPriority={isActive ? 'high' : 'auto'}
         />
+      ) : (
+        /* Fallback para videos no-Cloudinary: mostrar gradiente con icono de video */
+        !videoReady && (
+          <div className="absolute inset-0 z-1 bg-linear-to-br from-dark-700 to-dark-900 flex items-center justify-center">
+            <svg className="w-12 h-12 text-white/30" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        )
       )}
 
-      {/* Video */}
-      <video
-        ref={videoRef}
-        src={reel.url}
-        className="absolute inset-0 w-full h-full object-cover"
-        loop
-        muted={isMuted}
-        playsInline
-        preload="metadata"
-        onLoadedData={() => {
-          if (isActive) setShowThumbnail(false);
-        }}
-        onError={() => setVideoError(true)}
-      />
+      {/* Video — solo se monta si está activo o nearby */}
+      {shouldMountVideo && !videoError && (
+        <video
+          ref={videoRef}
+          src={optimizedUrl}
+          poster={thumbnail || undefined}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+            videoReady ? 'opacity-100' : 'opacity-0'
+          }`}
+          loop
+          muted={isMuted}
+          playsInline
+          preload={isActive ? 'auto' : 'metadata'}
+          onCanPlay={() => setVideoReady(true)}
+          onLoadedData={() => setVideoReady(true)}
+          onError={() => setVideoError(true)}
+        />
+      )}
 
       {/* Error state */}
       {videoError && (
@@ -245,6 +297,7 @@ const ReelCard = ({ reel, isActive, onViewProfile, onOpenFullscreen, isMobile })
 export default function ReelsSection() {
   const { t } = useTranslation();
   const carouselRef = useRef(null);
+  const sectionRef = useRef(null);
   const autoplayTimer = useRef(null);
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -254,6 +307,7 @@ export default function ReelsSection() {
   const [isMobile, setIsMobile] = useState(false);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
+  const [sectionVisible, setSectionVisible] = useState(false);
 
   // Detectar si es móvil
   useEffect(() => {
@@ -263,17 +317,41 @@ export default function ReelsSection() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  // IntersectionObserver — solo cargar datos cuando la sección está cerca del viewport
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setSectionVisible(true);
+          observer.disconnect(); // Solo necesitamos detectar la primera vez
+        }
+      },
+      { rootMargin: '200px 0px' } // Empezar a cargar 200px antes de ser visible
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
   const cardWidth = isMobile ? CARD_WIDTH_MOBILE : CARD_WIDTH_DESKTOP;
   const scrollStep = cardWidth + CARD_GAP;
 
-  // ─── Fetch reels (videos de portfolio) ───
+  // ─── Fetch reels (solo cuando la sección está visible/cerca) ───
   useEffect(() => {
+    if (!sectionVisible) return;
+
     const fetchReels = async () => {
       setLoading(true);
       try {
         const { data } = await api.get('/guest/reels');
         if (data?.success && data?.data?.reels) {
-          setReels(data.data.reels);
+          const fetchedReels = data.data.reels;
+          setReels(fetchedReels);
+          // Prefetch thumbnails inmediatamente para que estén en cache
+          prefetchThumbnails(fetchedReels);
         }
       } catch (err) {
         console.warn('ReelsSection: Could not load reels', err);
@@ -283,7 +361,7 @@ export default function ReelsSection() {
       }
     };
     fetchReels();
-  }, []);
+  }, [sectionVisible]);
 
   // ─── Autoplay carousel (solo si hay 3+ reels) ───
   const startAutoplay = useCallback(() => {
@@ -372,10 +450,10 @@ export default function ReelsSection() {
   }, [startAutoplay]);
 
   // ─── No renderizar si no hay reels y ya terminó de cargar ───
-  if (!loading && reels.length === 0) return null;
+  if (!loading && reels.length === 0 && sectionVisible) return null;
 
   return (
-    <section id="reels-section" className="py-2 scroll-mt-20">
+    <section id="reels-section" ref={sectionRef} className="py-2 scroll-mt-20">
       {/* Header de la sección */}
       <div className="flex items-center justify-between mb-5">
         <div>
@@ -461,6 +539,7 @@ export default function ReelsSection() {
                   <ReelCard
                     reel={reel}
                     isActive={index === activeIndex}
+                    isNearby={Math.abs(index - activeIndex) <= PRELOAD_RANGE}
                     onViewProfile={handleViewProfile}
                     onOpenFullscreen={() => handleOpenFullscreen(index)}
                     isMobile={isMobile}

@@ -142,7 +142,7 @@ function PaymentInner({ amount, currency }) {
         </div>
 
         {/* Badges de confianza */}
-        <div className="mt-8 grid grid-cols-3 gap-3">
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="flex flex-col items-center text-center p-4 bg-white/70 rounded-xl border border-gray-100 shadow-sm">
             <HiShieldCheck className="w-6 h-6 text-brand-500 mb-2" />
             <span className="text-xs font-medium text-gray-700">{t('payment.badges.secure')}</span>

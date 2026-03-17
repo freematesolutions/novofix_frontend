@@ -372,14 +372,12 @@ const MessageBubble = memo(({
                           onClick={async (e) => {
                             e.stopPropagation();
                             try {
-                              const proxyUrl = `/api/uploads/proxy?url=${encodeURIComponent(att.url)}`;
-                              const resp = await fetch(proxyUrl, {
-                                headers: {
-                                  'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}`
-                                }
+                              const resp = await api.get('/uploads/proxy', {
+                                params: { url: att.url },
+                                responseType: 'blob',
+                                timeout: 30000
                               });
-                              if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                              const blob = await resp.blob();
+                              const blob = resp.data;
                               if (!blob || blob.size < 100) throw new Error('Empty/invalid PDF response');
                               const blobUrl = URL.createObjectURL(blob);
                               const a = document.createElement('a');
@@ -623,16 +621,14 @@ function ChatRoom({
     setPdfViewer({ open: true, url, name, blobUrl: '' });
     if (!url) return;
     try {
-      // Use server proxy to bypass Cloudinary access restrictions
-      const proxyUrl = `/api/uploads/proxy?url=${encodeURIComponent(url)}`;
-      const resp = await fetch(proxyUrl, {
-        headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}`
-        }
+      // Use api client (axios) which has the correct baseURL for both dev & production
+      const resp = await api.get(`/uploads/proxy`, {
+        params: { url },
+        responseType: 'blob',
+        timeout: 30000
       });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const blob = await resp.blob();
-      if (blob.size < 100) throw new Error('Empty response');
+      const blob = resp.data;
+      if (!blob || blob.size < 100) throw new Error('Empty response');
       const pdfBlob = new Blob([blob], { type: 'application/pdf' });
       const blobUrl = URL.createObjectURL(pdfBlob);
       setPdfViewer(prev => prev.open ? { ...prev, blobUrl } : prev);
@@ -641,7 +637,12 @@ function ChatRoom({
       const fallbackUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
       setPdfViewer(prev => prev.open ? { ...prev, blobUrl: fallbackUrl } : prev);
     }
-  }, []);
+
+    // If the user is a CLIENT and this chat has a booking, mark the invoice as viewed (fire-and-forget)
+    if (userRole === 'client' && chat?.booking?._id) {
+      api.post(`/bookings/${chat.booking._id}/invoice-viewed`).catch(() => {});
+    }
+  }, [userRole, chat]);
   
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
@@ -1372,31 +1373,31 @@ function ChatRoom({
         if (!showProviderActions) return null;
         
         return (
-          <div className="px-4 py-3 border-t border-gray-100 bg-linear-to-r from-brand-50/50 to-brand-100/30">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white shadow-sm">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="px-3 sm:px-4 py-3 border-t border-gray-100 bg-linear-to-r from-brand-50/50 to-brand-100/30">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white shadow-sm shrink-0">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{t('chat.infoRequestProvider.title', 'Solicitud de información')}</p>
-                  <p className="text-xs text-gray-500">{t('chat.infoRequestProvider.subtitle', 'Continúa la conversación o envía una propuesta')}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{t('chat.infoRequestProvider.title', 'Solicitud de información')}</p>
+                  <p className="text-xs text-gray-500 truncate">{t('chat.infoRequestProvider.subtitle', 'Continúa la conversación o envía una propuesta')}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => onClose ? onClose() : navigate('/mensajes')}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                  className="flex-1 sm:flex-initial px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-center"
                 >
                   {t('chat.close', 'Cerrar')}
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate(`/empleos/${serviceRequestId}`)}
-                  className="px-3 py-1.5 text-sm font-semibold text-white bg-linear-to-r from-brand-600 to-brand-700 rounded-xl shadow-sm hover:from-brand-700 hover:to-brand-800 transition-colors"
+                  className="flex-1 sm:flex-initial px-3 py-1.5 text-sm font-semibold text-white bg-linear-to-r from-brand-600 to-brand-700 rounded-xl shadow-sm hover:from-brand-700 hover:to-brand-800 transition-colors whitespace-nowrap text-center"
                 >
                   {t('provider.requestDetail.sendProposal', 'Enviar estimado')}
                 </button>
@@ -1414,24 +1415,24 @@ function ChatRoom({
         if (!showClientActions) return null;
         
         return (
-          <div className="px-4 py-3 border-t border-gray-100 bg-linear-to-r from-accent-50/50 to-accent-100/30">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-accent-500 to-accent-600 flex items-center justify-center text-white shadow-sm">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="px-3 sm:px-4 py-3 border-t border-gray-100 bg-linear-to-r from-accent-50/50 to-accent-100/30">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-linear-to-br from-accent-500 to-accent-600 flex items-center justify-center text-white shadow-sm shrink-0">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{t('chat.infoRequestClient.title', 'Consulta del profesional')}</p>
-                  <p className="text-xs text-gray-500">{t('chat.infoRequestClient.subtitle', 'El profesional necesita más detalles sobre tu solicitud')}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{t('chat.infoRequestClient.title', 'Consulta del profesional')}</p>
+                  <p className="text-xs text-gray-500 truncate">{t('chat.infoRequestClient.subtitle', 'El profesional necesita más detalles sobre tu solicitud')}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => onClose ? onClose() : navigate('/mensajes')}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                  className="flex-1 sm:flex-initial px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-center"
                 >
                   {t('chat.close', 'Cerrar')}
                 </button>
@@ -1444,7 +1445,7 @@ function ChatRoom({
                       navigate(`/mis-solicitudes`);
                     }
                   }}
-                  className="px-3 py-1.5 text-sm font-semibold text-dark-900 bg-linear-to-r from-accent-500 to-accent-600 rounded-xl shadow-sm hover:from-accent-600 hover:to-accent-700 transition-colors"
+                  className="flex-1 sm:flex-initial px-3 py-1.5 text-sm font-semibold text-dark-900 bg-linear-to-r from-accent-500 to-accent-600 rounded-xl shadow-sm hover:from-accent-600 hover:to-accent-700 transition-colors whitespace-nowrap text-center"
                 >
                   {t('chat.infoRequestClient.updateRequest', 'Actualizar solicitud')}
                 </button>
@@ -1455,7 +1456,7 @@ function ChatRoom({
       })()}
 
       {/* Composer */}
-      <div className="p-4 border-t border-gray-100 bg-white">
+      <div className="p-3 sm:p-4 border-t border-gray-100 bg-white">
         {/* Reply preview - shown when replying to a message */}
         {replyingTo && (
           <div className="mb-3 p-3 bg-brand-50/50 rounded-lg border-l-[3px] border-brand-500 flex items-start gap-3">
@@ -1534,9 +1535,9 @@ function ChatRoom({
           </div>
         )}
         
-        <div className="flex items-end gap-3">
+        <div className="flex items-end gap-2 sm:gap-3">
           {/* Attachment buttons */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 sm:gap-1">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -1647,13 +1648,12 @@ function ChatRoom({
                       window.open(pdfViewer.blobUrl, '_blank');
                       return;
                     }
-                    const proxyUrl = `/api/uploads/proxy?url=${encodeURIComponent(pdfViewer.url)}`;
-                    const resp = await fetch(proxyUrl, {
-                      headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}` }
+                    const resp = await api.get('/uploads/proxy', {
+                      params: { url: pdfViewer.url },
+                      responseType: 'blob',
+                      timeout: 30000
                     });
-                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                    const blob = await resp.blob();
-                    const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+                    const pdfBlob = new Blob([resp.data], { type: 'application/pdf' });
                     const blobUrl = URL.createObjectURL(pdfBlob);
                     window.open(blobUrl, '_blank');
                   } catch {
@@ -1673,13 +1673,12 @@ function ChatRoom({
                   try {
                     let blobUrl = pdfViewer.blobUrl?.startsWith('blob:') ? pdfViewer.blobUrl : null;
                     if (!blobUrl) {
-                      const proxyUrl = `/api/uploads/proxy?url=${encodeURIComponent(pdfViewer.url)}`;
-                      const resp = await fetch(proxyUrl, {
-                        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}` }
+                      const resp = await api.get('/uploads/proxy', {
+                        params: { url: pdfViewer.url },
+                        responseType: 'blob',
+                        timeout: 30000
                       });
-                      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                      const blob = await resp.blob();
-                      blobUrl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+                      blobUrl = URL.createObjectURL(new Blob([resp.data], { type: 'application/pdf' }));
                     }
                     const a = document.createElement('a');
                     a.href = blobUrl;

@@ -354,11 +354,11 @@ export default function Profile() {
       {/* Main content */}
       <div className="max-w-4xl mx-auto px-2 sm:px-6 lg:px-8 -mt-10 relative z-10 pb-8">
         {/* Tabs con diseño premium */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden mb-6">
-          <div className="flex items-center border-b border-gray-100 p-1.5 bg-gray-50/50">
+        <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 mb-6">
+          <div className="flex flex-wrap items-center border-b border-gray-100 p-1.5 gap-1 bg-gray-50/50">
             <button
               type="button"
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl transition-all duration-300 ${
+              className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 text-sm font-semibold rounded-xl transition-all duration-300 ${
                 activeTab === 'personal' ? accent.tabActive : accent.tabInactive
               }`}
               onClick={() => setActiveTab('personal')}
@@ -369,7 +369,7 @@ export default function Profile() {
             {showProviderTab && (
               <button
                 type="button"
-                className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 text-sm font-semibold rounded-xl transition-all duration-300 ${
                   activeTab === 'provider' ? accent.tabActive : accent.tabInactive
                 }`}
                 onClick={() => setActiveTab('provider')}
@@ -378,21 +378,21 @@ export default function Profile() {
                 {t('account.profile.tabs.provider')}
               </button>
             )}
-            <div className="ml-auto flex items-center gap-3 pr-2">
+            <div className="w-full sm:w-auto sm:ml-auto flex items-center gap-2 sm:gap-3 px-1.5 sm:px-0 sm:pr-2 py-1 sm:py-0 overflow-x-auto">
               {hasProvider && viewRole === 'provider' && (
                 <>
-                  <a href="/servicios" className={`flex items-center gap-1.5 text-sm font-medium ${accent.text} hover:underline`}>
-                    <HiCollection className="w-4 h-4" />
+                  <a href="/servicios" className={`flex items-center gap-1.5 text-sm font-medium whitespace-nowrap ${accent.text} hover:underline`}>
+                    <HiCollection className="w-4 h-4 shrink-0" />
                     {t('account.profile.links.services')}
                   </a>
-                  <a href="/plan" className={`flex items-center gap-1.5 text-sm font-medium ${accent.text} hover:underline`}>
-                    <HiCurrencyDollar className="w-4 h-4" />
+                  <a href="/plan" className={`flex items-center gap-1.5 text-sm font-medium whitespace-nowrap ${accent.text} hover:underline`}>
+                    <HiCurrencyDollar className="w-4 h-4 shrink-0" />
                     {t('account.profile.links.plan')}
                   </a>
                 </>
               )}
-              <a href="/notificaciones" className={`flex items-center gap-1.5 text-sm font-medium ${accent.text} hover:underline`}>
-                <HiCog className="w-4 h-4" />
+              <a href="/notificaciones" className={`flex items-center gap-1.5 text-sm font-medium whitespace-nowrap ${accent.text} hover:underline`}>
+                <HiCog className="w-4 h-4 shrink-0" />
                 {t('account.profile.links.preferences')}
               </a>
             </div>

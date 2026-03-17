@@ -246,18 +246,19 @@ export default function CoverageStep() {
         <Alert type="error">{error}</Alert>
       )}
 
-      <div className="flex justify-between items-center pt-4 border-t">
+      <div className="flex flex-wrap justify-between items-center gap-3 pt-4 border-t">
         <Button 
           type="button" 
           variant="secondary" 
           onClick={prevStep}
+          className="shrink-0"
         >
           {t('common.back')}
         </Button>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-500 order-last sm:order-0 w-full sm:w-auto text-center">
           {t('onboarding.coverage.stepOf', { current: 3, total: 4 })}
         </div>
-        <Button type="submit" loading={loading}>
+        <Button type="submit" loading={loading} className="shrink-0">
           {loading ? t('common.saving') : t('common.continue')}
         </Button>
       </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
@@ -12,6 +12,7 @@ import { compressImages, validateFiles } from '@/utils/fileCompression.js';
 import UploadProgress from '@/components/ui/UploadProgress.jsx';
 import { getTranslatedRequestInfo, getTranslatedReviewInfo, useCurrentLanguage } from '@/utils/translations.js';
 import InvoiceGeneratorModal from '@/components/ui/InvoiceGeneratorModal.jsx';
+import { on as socketOn } from '@/state/socketClient.js';
 
 const fmtCurrency = (val, currency = 'USD') => {
   const num = Number(val) || 0;
@@ -23,9 +24,8 @@ const PROVIDER_STATUSES = [
   { value: 'cancelled', labelKey: 'shared.bookings.status.cancelled' }
 ];
 
-// Mapa de transiciones simplificado: confirmed → completed directamente
+// Flujo directo: booking se crea como 'completed' (servicio contratado)
 const STATUS_FLOW = {
-  confirmed: { next: 'completed', labelKey: 'shared.bookings.actions.confirmBooking', icon: '✅' },
   completed: null,
   cancelled: null
 };
@@ -49,6 +49,10 @@ export default function Bookings() {
   const { viewRole, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+
+  // Derived role flags (must be declared before any hooks that reference them)
+  const isProvider = viewRole === 'provider';
+  const isClient = viewRole === 'client';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [bookings, setBookings] = useState([]);
@@ -135,18 +139,21 @@ export default function Bookings() {
 
     if (!invoiceData.bookingId) return;
     try {
-      // Use the server proxy endpoint that fetches from Cloudinary with proper auth
-      const resp = await fetch(`/api/bookings/${invoiceData.bookingId}/invoice-pdf`, {
-        headers: {
-          'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}`
-        }
+      // Use the api client (axios) which has the correct baseURL for both dev & production
+      const resp = await api.get(`/bookings/${invoiceData.bookingId}/invoice-pdf`, {
+        responseType: 'blob',
+        timeout: 30000
       });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const blob = await resp.blob();
-      if (blob.size < 100) throw new Error('Empty response');
+      const blob = resp.data;
+      if (!blob || blob.size < 100) throw new Error('Empty response');
       const pdfBlob = new Blob([blob], { type: 'application/pdf' });
       const blobUrl = URL.createObjectURL(pdfBlob);
       setInvoicePdfViewer(prev => prev.open ? { ...prev, blobUrl } : prev);
+
+      // If the current user is the CLIENT, mark invoice as viewed (fire-and-forget)
+      if (isClient && invoiceData.bookingId) {
+        api.post(`/bookings/${invoiceData.bookingId}/invoice-viewed`).catch(() => {});
+      }
     } catch (err) {
       console.warn('Server proxy PDF fetch failed:', err);
       // Ultimate fallback: try Google Docs Viewer with the original URL
@@ -154,8 +161,12 @@ export default function Bookings() {
         const fallbackUrl = `https://docs.google.com/gview?url=${encodeURIComponent(invoiceData.url)}&embedded=true`;
         setInvoicePdfViewer(prev => prev.open ? { ...prev, blobUrl: fallbackUrl } : prev);
       }
+      // Still mark as viewed even if PDF render fails (client clicked "View Invoice")
+      if (isClient && invoiceData.bookingId) {
+        api.post(`/bookings/${invoiceData.bookingId}/invoice-viewed`).catch(() => {});
+      }
     }
-  }, []);
+  }, [isClient]);
 
   // Paginación básica
   const [page, setPage] = useState(1);
@@ -164,9 +175,26 @@ export default function Bookings() {
 
   useEffect(()=>{ clearError?.(); }, [clearError]);
 
-  // Usar viewRole para usuarios multirol (determina qué vista está activa)
-  const isProvider = viewRole === 'provider';
-  const isClient = viewRole === 'client';
+  // Real-time: update invoice viewed badge when provider receives INVOICE_VIEWED notification
+  useEffect(() => {
+    if (!isProvider) return;
+    const off = socketOn('notification', (payload) => {
+      if (payload?.type !== 'INVOICE_VIEWED') return;
+      const bId = payload?.data?.bookingId;
+      if (!bId) return;
+      setBookings(prev => prev.map(b =>
+        String(b._id) === String(bId)
+          ? { ...b, invoice: { ...b.invoice, viewedAt: payload?.timestamp || new Date().toISOString() } }
+          : b
+      ));
+    });
+    return off;
+  }, [isProvider]);
+
+  // Ref to always call the latest load() from socket callbacks (avoids stale closures)
+  const loadRef = useRef(null);
+
+  // viewRole-derived flags (isProvider / isClient) declared above, near useAuth()
 
   // Endpoint compartido según rol (server valida ownership)
   const listEndpoint = (isProvider || isClient) ? '/bookings' : null;
@@ -351,6 +379,24 @@ export default function Bookings() {
       toast.error(err?.response?.data?.message || t('shared.bookings.errors.deleteFailed'));
     }
   };
+
+  // Keep loadRef always pointing to the latest load function
+  useEffect(() => { loadRef.current = load; });
+
+  // Real-time: auto-refresh bookings + stats on key events (new booking, invoice sent, etc.)
+  useEffect(() => {
+    const offNotif = socketOn('notification', (payload) => {
+      if (['PROPOSAL_ACCEPTED', 'BOOKING_CONFIRMED', 'INVOICE_RECEIVED'].includes(payload?.type)) {
+        loadRef.current?.();
+      }
+    });
+    const offCounters = socketOn('counters_update', (payload) => {
+      if (['proposal_accepted', 'invoice_received'].includes(payload?.reason)) {
+        loadRef.current?.();
+      }
+    });
+    return () => { offNotif(); offCounters(); };
+  }, []);
 
   useEffect(()=>{ if (isAuthenticated && (isProvider || isClient)) load(); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [isAuthenticated, isProvider, isClient, statusFilter, page]);
 
@@ -1131,7 +1177,17 @@ export default function Bookings() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                         </div>
-                        <span>{new Date(b.schedule.scheduledDate).toLocaleString()}</span>
+                        <span>{new Date(b.schedule.scheduledDate).toLocaleDateString()}</span>
+                        {!!b.schedule.scheduledTime && (
+                          <>
+                            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-linear-to-br from-brand-50 to-brand-50 text-brand-600">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                            <span>{b.schedule.scheduledTime}</span>
+                          </>
+                        )}
                       </div>
                     )}
                     {b.serviceRequest?.location?.address && (
@@ -1148,7 +1204,7 @@ export default function Bookings() {
                   </div>
                   
                   {/* Evidence Section */}
-                  {(b?.serviceEvidence && (b.serviceEvidence.before?.length || b.serviceEvidence.during?.length || b.serviceEvidence.after?.length)) && (
+                  {(b?.serviceEvidence && (b.serviceEvidence.before?.length > 0 || b.serviceEvidence.during?.length > 0 || b.serviceEvidence.after?.length > 0)) && (
                     <div className="pt-3 border-t border-gray-100 space-y-3">
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1463,13 +1519,7 @@ export default function Bookings() {
                         <button 
                           onClick={()=>updateStatus(b._id, STATUS_FLOW[b.status].next)} 
                           disabled={updating === b._id}
-                          className={`w-full px-4 py-2.5 rounded-xl text-white text-sm font-medium shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${
-                            b.status === 'confirmed' 
-                              ? 'bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 shadow-brand-500/25 hover:shadow-brand-500/40'
-                              : b.status === 'provider_en_route'
-                              ? 'bg-linear-to-r from-accent-500 to-accent-600 hover:from-amber-600 hover:to-orange-600 shadow-accent-500/25 hover:shadow-amber-500/40'
-                              : 'bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-green-500/25 hover:shadow-green-500/40'
-                          }`}
+                          className="w-full px-4 py-2.5 rounded-xl text-white text-sm font-medium shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 shadow-brand-500/25 hover:shadow-brand-500/40"
                         >
                           {updating === b._id ? (
                             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
@@ -1485,32 +1535,6 @@ export default function Bookings() {
                         <div className="w-full px-4 py-2.5 rounded-xl bg-brand-50 border border-brand-200 text-sm text-brand-700 font-medium flex items-center justify-center gap-2">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           {t('shared.bookings.status.serviceCompleted')}
-                        </div>
-                      )}
-                      
-                      {/* Status dropdown para cambios manuales (solo estados válidos desde el actual) */}
-                      {b.status !== 'completed' && b.status !== 'cancelled' && (
-                        <div className="relative">
-                          <select 
-                            className="w-full appearance-none px-4 py-2.5 pr-10 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm font-medium text-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 cursor-pointer" 
-                            value="" 
-                            onChange={(e)=> updateStatus(b._id, e.target.value)} 
-                            disabled={updating === b._id}
-                          >
-                            <option value="" disabled>{t('shared.bookings.actions.changeStatus')}</option>
-                            {PROVIDER_STATUSES.filter(s => {
-                              // Filtrar solo transiciones válidas desde el estado actual
-                              const validTransitions = {
-                                'confirmed': ['provider_en_route', 'cancelled'],
-                                'provider_en_route': ['in_progress', 'cancelled'],
-                                'in_progress': ['completed', 'cancelled']
-                              };
-                              return validTransitions[b.status]?.includes(s.value);
-                            }).map((s)=> (
-                              <option key={s.value} value={s.value}>{t(s.labelKey)}</option>
-                            ))}
-                          </select>
-                          <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                         </div>
                       )}
                       
@@ -1542,24 +1566,42 @@ export default function Bookings() {
                       {/* Generar Factura - solo para contratos activos */}
                       {['confirmed', 'in_progress', 'completed'].includes(b.status) && (
                         b.invoice?.sentAt ? (
-                          /* Ya se envió la factura → botón "Ver Factura" (abre PDF viewer) */
-                          <button 
-                            onClick={() => openInvoicePdf({
-                              bookingId: b._id,
-                              url: b.invoice.pdfUrl || '',
-                              name: `Invoice_${b.invoice.invoiceNumber || ''}.pdf`,
-                              invoiceNumber: b.invoice.invoiceNumber || '',
-                              total: b.invoice.total != null ? fmtCurrency(b.invoice.total, b.invoice.currency || 'USD') : '',
-                              currency: b.invoice.currency || 'USD'
-                            })}
-                            className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500/90 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-semibold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/35 transition-all flex items-center justify-center gap-2"
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            {t('invoice.viewInvoice')}
-                          </button>
+                          /* Ya se envió la factura → botón "Ver Factura" + badge de estado */
+                          <div className="w-full space-y-2">
+                            <button 
+                              onClick={() => openInvoicePdf({
+                                bookingId: b._id,
+                                url: b.invoice.pdfUrl || '',
+                                name: `Invoice_${b.invoice.invoiceNumber || ''}.pdf`,
+                                invoiceNumber: b.invoice.invoiceNumber || '',
+                                total: b.invoice.total != null ? fmtCurrency(b.invoice.total, b.invoice.currency || 'USD') : '',
+                                currency: b.invoice.currency || 'USD'
+                              })}
+                              className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500/90 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-semibold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/35 transition-all flex items-center justify-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                              {t('invoice.viewInvoice')}
+                            </button>
+                            {/* Invoice viewed badge — visible only to provider */}
+                            {b.invoice?.viewedAt ? (
+                              <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 border border-green-200 text-green-700" title={t('invoice.viewedAt', { date: new Date(b.invoice.viewedAt).toLocaleDateString() })}>
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-xs font-semibold">{t('invoice.viewedBadge')}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-600">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-xs font-medium">{t('invoice.notViewedYet')}</span>
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           /* No se ha enviado → botón "Generar Factura" */
                           <button 
@@ -1577,22 +1619,6 @@ export default function Bookings() {
                   )}
                   {isClient && (
                     <>
-                      {/* Botón confirmar finalización - solo para status que permiten completarse */}
-                      {['confirmed', 'provider_en_route', 'in_progress'].includes(b.status) && (
-                        <button 
-                          onClick={()=>confirmCompletion(b._id)} 
-                          disabled={updating === b._id}
-                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-sm font-medium shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                          {updating === b._id ? (
-                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                          ) : (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          )}
-                          {t('shared.bookings.actions.confirmCompletion')}
-                        </button>
-                      )}
-                      
                       {/* Chat button - para comunicarse con el proveedor */}
                       {b.status !== 'cancelled' && (
                         <button 
@@ -1694,7 +1720,7 @@ export default function Bookings() {
               </svg>
               {t('shared.bookings.modal.serviceStage')}
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {[
                 { value: 'before', labelKey: 'shared.bookings.evidence.before', icon: '🏠', bgActive: 'bg-amber-50', borderActive: 'border-amber-400', textActive: 'text-amber-700', shadow: 'shadow-amber-500/10' },
                 { value: 'during', labelKey: 'shared.bookings.evidence.during', icon: '🔧', bgActive: 'bg-brand-50', borderActive: 'border-brand-400', textActive: 'text-brand-700', shadow: 'shadow-brand-500/10' },
@@ -1705,14 +1731,14 @@ export default function Bookings() {
                   type="button"
                   onClick={() => setEvidenceType(opt.value)}
                   disabled={evidenceLoading}
-                  className={`p-3 rounded-xl border-2 text-center transition-all ${
+                  className={`p-2 sm:p-3 rounded-xl border-2 text-center transition-all ${
                     evidenceType === opt.value
                       ? `${opt.borderActive} ${opt.bgActive} shadow-lg ${opt.shadow}`
                       : 'border-gray-200 hover:border-gray-300 bg-white'
                   } disabled:opacity-50`}
                 >
-                  <div className="text-2xl mb-1">{opt.icon}</div>
-                  <div className={`text-sm font-medium ${evidenceType === opt.value ? opt.textActive : 'text-gray-700'}`}>{t(opt.labelKey)}</div>
+                  <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">{opt.icon}</div>
+                  <div className={`text-xs sm:text-sm font-medium ${evidenceType === opt.value ? opt.textActive : 'text-gray-700'}`}>{t(opt.labelKey)}</div>
                 </button>
               ))}
             </div>
@@ -2559,12 +2585,11 @@ export default function Bookings() {
                         return;
                       }
                       if (invoicePdfViewer.bookingId) {
-                        const resp = await fetch(`/api/bookings/${invoicePdfViewer.bookingId}/invoice-pdf`, {
-                          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}` }
+                        const resp = await api.get(`/bookings/${invoicePdfViewer.bookingId}/invoice-pdf`, {
+                          responseType: 'blob',
+                          timeout: 30000
                         });
-                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                        const blob = await resp.blob();
-                        const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+                        const pdfBlob = new Blob([resp.data], { type: 'application/pdf' });
                         const blobUrl = URL.createObjectURL(pdfBlob);
                         window.open(blobUrl, '_blank');
                         return;
@@ -2593,12 +2618,11 @@ export default function Bookings() {
                       // Reuse existing blob URL if available
                       let blobUrl = invoicePdfViewer.blobUrl?.startsWith('blob:') ? invoicePdfViewer.blobUrl : null;
                       if (!blobUrl && invoicePdfViewer.bookingId) {
-                        const resp = await fetch(`/api/bookings/${invoicePdfViewer.bookingId}/invoice-pdf`, {
-                          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token') || localStorage.getItem('access_token')}` }
+                        const resp = await api.get(`/bookings/${invoicePdfViewer.bookingId}/invoice-pdf`, {
+                          responseType: 'blob',
+                          timeout: 30000
                         });
-                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                        const blob = await resp.blob();
-                        blobUrl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+                        blobUrl = URL.createObjectURL(new Blob([resp.data], { type: 'application/pdf' }));
                       }
                       if (blobUrl) {
                         const a = document.createElement('a');

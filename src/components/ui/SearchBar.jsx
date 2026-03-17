@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { SERVICE_CATEGORIES } from '@/utils/categories.js';
 import api from '@/state/apiClient.js';
 
-function SearchBar({ onSearch, variant = 'default', noResultsInfo = null, onClearNoResults, providerCountByCategory = {} }) {
+function SearchBar({ onSearch, variant = 'default', noResultsInfo = null, onClearNoResults, onClearAll, providerCountByCategory = {} }) {
   const { t, i18n } = useTranslation();
   const [textQuery, setTextQuery] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -107,7 +107,29 @@ function SearchBar({ onSearch, variant = 'default', noResultsInfo = null, onClea
   };
 
   const hasActiveFilters = filters.category || filters.location || filters.urgency;
+  const hasAnyInput = textQuery.trim() || hasActiveFilters;
   const isHeroVariant = variant === 'hero';
+
+  // Limpiar solo el texto del input
+  const handleClearInput = () => {
+    setTextQuery('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+    if (noResultsInfo && onClearNoResults) onClearNoResults();
+    inputRef.current?.focus();
+  };
+
+  // Limpiar todo: texto + filtros + resultados del padre
+  const handleClearAll = () => {
+    setTextQuery('');
+    setFilters({ category: '', location: '', urgency: '' });
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setShowAdvancedFilters(false);
+    if (onClearNoResults) onClearNoResults();
+    if (onClearAll) onClearAll();
+    inputRef.current?.focus();
+  };
 
   return (
     <div className={`
@@ -159,13 +181,33 @@ function SearchBar({ onSearch, variant = 'default', noResultsInfo = null, onClea
               className={`
                 w-full bg-transparent border-0 focus:ring-0 focus:outline-none
                 ${isHeroVariant 
-                  ? 'px-1.5 sm:px-2 lg:px-1.5 py-2 sm:py-3 lg:py-2 xl:py-2.5 text-sm sm:text-base lg:text-sm xl:text-base placeholder:text-gray-400' 
-                  : 'px-4 py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-brand-500'
+                  ? 'pl-1.5 sm:pl-2 lg:pl-1.5 py-2 sm:py-3 lg:py-2 xl:py-2.5 text-sm sm:text-base lg:text-sm xl:text-base placeholder:text-gray-400' 
+                  : 'pl-4 py-2.5 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-brand-500'
                 }
+                ${textQuery ? 'pr-8' : 'pr-1.5 sm:pr-2 lg:pr-1.5'}
                 text-gray-900 font-medium
               `}
             />
             
+            {/* Botón X para limpiar el texto del input */}
+            {textQuery && (
+              <button
+                type="button"
+                onClick={handleClearInput}
+                className={`
+                  absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-full transition-all duration-200
+                  text-gray-400 hover:text-gray-600 hover:bg-gray-200/70 active:scale-90
+                  ${isHeroVariant ? 'right-1.5' : 'right-2'}
+                `}
+                title={t('home.searchBar.clearInput')}
+                aria-label={t('home.searchBar.clearInput')}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+
             {/* Línea animada debajo del input */}
             {isHeroVariant && (
               <div className={`
@@ -344,22 +386,51 @@ function SearchBar({ onSearch, variant = 'default', noResultsInfo = null, onClea
               </div>
             </div>
 
-            {/* Botón para limpiar filtros */}
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={() => setFilters({ category: '', location: '', urgency: '' })}
-                className="text-sm text-brand-600 hover:text-brand-700 font-semibold flex items-center gap-2 hover:gap-3 transition-all duration-200"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                {t('home.searchBar.clearFilters')}
-              </button>
-            )}
+            {/* Botones de limpieza */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Botón para limpiar solo filtros */}
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={() => setFilters({ category: '', location: '', urgency: '' })}
+                  className="text-sm text-brand-600 hover:text-brand-700 font-semibold flex items-center gap-2 hover:gap-3 transition-all duration-200"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  {t('home.searchBar.clearFilters')}
+                </button>
+              )}
+            </div>
           </div>
         )}
       </form>
+
+      {/* ── Botón "Nueva búsqueda" — limpia texto + filtros + resultados ── */}
+      {hasAnyInput && (
+        <div className={`
+          mt-2 flex justify-end
+          ${isHeroVariant ? 'px-1' : ''}
+        `}>
+          <button
+            type="button"
+            onClick={handleClearAll}
+            className={`
+              inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold
+              transition-all duration-200 active:scale-95
+              ${isHeroVariant
+                ? 'text-white/80 hover:text-white hover:bg-white/10 border border-white/20 hover:border-white/40'
+                : 'text-brand-600 hover:text-brand-700 hover:bg-brand-50 border border-brand-200 hover:border-brand-300'
+              }
+            `}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {t('home.searchBar.newSearch')}
+          </button>
+        </div>
+      )}
 
       {/* ── Feedback inline: no hay profesionales disponibles ── */}
       {noResultsInfo && (
@@ -436,6 +507,7 @@ SearchBar.propTypes = {
     query: PropTypes.string
   }),
   onClearNoResults: PropTypes.func,
+  onClearAll: PropTypes.func,
   providerCountByCategory: PropTypes.object
 };
 

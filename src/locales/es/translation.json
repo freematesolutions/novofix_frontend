@@ -422,7 +422,10 @@
     "transportation": "Transporte",
     "openNewTab": "Abrir en nueva pestaña",
     "pdfNotAvailable": "El PDF de esta factura no está disponible",
-    "pdfFallbackLink": "¿No se ve el documento? Haz clic aquí para abrirlo"
+    "pdfFallbackLink": "¿No se ve el documento? Haz clic aquí para abrirlo",
+    "viewedBadge": "Factura vista",
+    "viewedAt": "Vista el {{date}}",
+    "notViewedYet": "Aún no vista por el cliente"
   },
   "upload": {
     "defaultMessage": "Subiendo archivo...",
@@ -436,6 +439,7 @@
   },
   "notifications": {
     "title": "Notificaciones",
+    "aClient": "Un cliente",
     "empty": "No tienes notificaciones",
     "willNotify": "Te avisaremos cuando tengas nuevas",
     "markAllRead": "Marcar todo como leído",
@@ -552,8 +556,18 @@
       },
       "REQUEST_UPDATED": {
         "title": "Solicitud actualizada 📝",
-        "message": "El cliente ha actualizado los detalles de la solicitud \"{{requestTitle}}\".",
-        "messageDefault": "Una solicitud de servicio ha sido actualizada por el cliente."
+        "message": "{{clientName}} ha actualizado los detalles de la solicitud \"{{requestTitle}}\". Revisa los cambios.",
+        "messageDefault": "Un cliente ha actualizado una solicitud de servicio. Revisa los nuevos detalles."
+      },
+      "INVOICE_RECEIVED": {
+        "title": "Factura recibida 📄",
+        "message": "{{providerName}} te ha enviado una factura por ${{amount}}.",
+        "messageDefault": "Has recibido una factura de un profesional."
+      },
+      "INVOICE_VIEWED": {
+        "title": "Factura vista 👁️",
+        "message": "{{clientName}} ha visto tu factura{{invoiceNumber}}.",
+        "messageDefault": "El cliente ha visto tu factura."
       },
       "DEFAULT": {
         "title": "Notificación",
@@ -826,6 +840,8 @@
       "soon": "Pronto (esta semana)",
       "flexible": "Flexible",
       "clearFilters": "Limpiar todos los filtros",
+      "clearInput": "Limpiar texto",
+      "newSearch": "Nueva búsqueda",
       "suggestedCategories": "Categorías detectadas en tu búsqueda",
       "pressEnterOrClick": "Presiona Enter para buscar o haz clic en una categoría",
       "noProvidersYet": "Aún no hay profesionales disponibles para estas categorías",
@@ -1190,6 +1206,10 @@
       "uploadingPhotos": "Subiendo fotos...",
       "uploadingVideos": "Subiendo videos...",
       "createError": "Error al crear la solicitud",
+      "duplicateWarning": "Ya tienes una solicitud activa para esta categoría",
+      "duplicateExists": "Ya tienes una solicitud activa en esta categoría. Edítala o cancélala antes de crear una nueva.",
+      "viewExistingRequest": "Ver solicitud existente",
+      "editExistingRequest": "Editar solicitud",
       "allEligible": "Todos los elegibles",
       "calculatingEligibility": "Calculando elegibilidad...",
       "compressingImages": "Comprimiendo imágenes...",
@@ -1392,6 +1412,9 @@
       "mainServiceLabel": "Servicio principal",
       "mainServicePlaceholder": "Ej: Reparación de cañerías, Instalación de aires acondicionados",
       "mainServiceHint": "Describe brevemente tu servicio más destacado",
+      "experienceLabel": "Años de experiencia en tu servicio principal",
+      "experiencePlaceholder": "Ej: 5",
+      "experienceHint": "Indica cuántos años llevas ofreciendo este servicio",
       "descriptionLabel": "Descripción profesional",
       "descriptionPlaceholder": "Cuéntales a los clientes sobre tu experiencia, especialidades y por qué deberían elegirte...",
       "descriptionHint": "caracteres mínimo",
@@ -1501,7 +1524,7 @@
         "inProgress": "En progreso",
         "completed": "Completado",
         "cancelled": "Cancelado",
-        "serviceCompleted": "Servicio completado"
+        "serviceCompleted": "Servicio contratado"
       },
       "filters": {
         "status": "Estado",
@@ -1519,7 +1542,7 @@
         "noResults": "No se encontraron resultados con los filtros aplicados"
       },
       "evidence": {
-        "title": "Evidencia",
+        "title": "Resultados",
         "before": "Antes",
         "during": "Durante",
         "after": "Después"
@@ -1549,7 +1572,7 @@
       },
       "actions": {
         "changeStatus": "Cambiar estado",
-        "uploadEvidence": "Subir evidencia",
+        "uploadEvidence": "Subir resultados",
         "leaveReview": "Dejar reseña",
         "showReview": "Ver reseña",
         "respondReview": "Responder reseña",
@@ -1584,7 +1607,7 @@
         "responseUpdated": "Respuesta actualizada",
         "responsePublished": "Respuesta publicada",
         "responseDeleted": "Respuesta eliminada",
-        "evidenceUploaded": "Evidencia subida correctamente",
+        "evidenceUploaded": "Resultados subidos correctamente",
         "filesUploaded": "{{count}} archivo(s) subido(s)",
         "reviewThanks": "¡Gracias por tu reseña!",
         "clientReviewThanks": "¡Gracias por tu calificación!",
@@ -1596,8 +1619,8 @@
         "chatError": "Error al abrir el chat",
         "responsePublishFailed": "No se pudo publicar la respuesta",
         "deleteFailed": "No se pudo eliminar",
-        "noEvidenceUrls": "No se obtuvieron URLs de evidencia",
-        "evidenceUploadFailed": "Error al subir evidencia",
+        "noEvidenceUrls": "No se obtuvieron URLs de resultados",
+        "evidenceUploadFailed": "Error al subir resultados",
         "reviewFailed": "Error al enviar reseña",
         "clientReviewFailed": "Error al enviar calificación del cliente",
         "roleRequired": "Debes iniciar sesión como cliente o proveedor",
@@ -1615,10 +1638,10 @@
         "uploadingWithVideos": "Subiendo archivos (los videos pueden tardar más)...",
         "uploading": "Subiendo archivos...",
         "uploadingImages": "Subiendo imágenes...",
-        "saving": "Guardando evidencia..."
+        "saving": "Guardando resultados..."
       },
       "modal": {
-        "evidenceTitle": "Subir Evidencia",
+        "evidenceTitle": "Subir Resultados",
         "documentWork": "Documenta tu trabajo",
         "evidenceSubtitle": "Sube fotos o videos del antes, durante y después",
         "serviceStage": "Etapa del servicio",
@@ -1634,7 +1657,7 @@
         "cancel": "Cancelar",
         "uploading": "Subiendo...",
         "uploadFiles": "Subir {{count}} archivo(s)",
-        "uploadEvidence": "Subir evidencia",
+        "uploadEvidence": "Subir resultados",
         "reviewTitle": "Dejar Reseña",
         "shareExperience": "Comparte tu experiencia",
         "helpOthers": "Tu opinión ayuda a otros usuarios",
@@ -1651,7 +1674,7 @@
         "commentPlaceholder": "Cuéntanos tu experiencia...",
         "photosOptional": "Fotos (opcional)",
         "submitReview": "Enviar reseña",
-        "evidenceViewer": "Visor de evidencia ({{current}}/{{total}})",
+        "evidenceViewer": "Visor de resultados ({{current}}/{{total}})",
         "editResponse": "Editar respuesta",
         "respondReviewTitle": "Responder reseña",
         "respondToClient": "Responder al cliente",
@@ -3141,6 +3164,7 @@
       "description": "Descripción",
       "zone": "Zona (etiqueta)",
       "zonePlaceholder": "Ej: Centro",
+      "zoneAutoHint": "Se actualiza automáticamente al seleccionar en el mapa",
       "radius": "Radio (millas)",
       "locationLabel": "Ubicación (haz clic en el mapa o usa tu ubicación)",
       "latitude": "Latitud",
@@ -3156,6 +3180,10 @@
     "portfolioManager": {
       "processingFiles": "Procesando archivos...",
       "selectAtLeastOne": "Selecciona al menos un archivo",
+      "onlyImagesAllowed": "Solo se permiten archivos de imagen",
+      "onlyVideosAllowed": "Solo se permiten archivos de video",
+      "compressionTip": "Las imágenes se optimizan automáticamente para una carga más rápida",
+      "maxVideoSize": "máx. 200MB",
       "compressingImages": "Comprimiendo imágenes...",
       "preparingVideos": "Preparando subida de videos...",
       "uploadingFilesVideos": "Subiendo archivos (videos pueden tardar más)...",
@@ -3539,13 +3567,13 @@
       "clientReviews": "Reseñas de clientes",
       "providerReviews": "Reseñas de profesionales",
       "portfolio": "Portafolio",
-      "evidence": "Evidencias"
+      "evidence": "Resultados"
     },
     "source": {
       "client_review": "Reseña cliente",
       "provider_review": "Reseña profesional",
       "portfolio": "Portafolio",
-      "service_evidence": "Evidencia"
+      "service_evidence": "Resultados"
     }
   },
   "portfolio": {
@@ -3685,6 +3713,7 @@
       "mainServiceName": "Nombre del servicio",
       "mainServicePlaceholder": "Ej: Instalación de aires acondicionados",
       "experienceYears": "Años de experiencia",
+      "experienceEditableHint": "Puedes actualizar tus años de experiencia en cualquier momento",
       "subcategories": "Subcategorías",
       "subcategoriesPlaceholder": "Ej: Instalación, Reparación, Mantenimiento...",
       "saving": "Guardando...",

@@ -187,7 +187,7 @@ export default function ResetPassword() {
 
                   {/* Requisitos */}
                   {password && (
-                    <div className="grid grid-cols-2 gap-2 mt-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
                       {PASSWORD_REQUIREMENTS.map((req) => (
                         <div 
                           key={req.id}

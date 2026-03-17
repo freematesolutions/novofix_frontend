@@ -412,6 +412,19 @@ useEffect(() => {
     }
   }, [selectedCategory, navigate]);
 
+  // Limpiar todo desde el SearchBar (botón "Nueva búsqueda")
+  const handleClearAllSearch = useCallback(() => {
+    setSearchResults(null);
+    setSelectedCategory(null);
+    setCategoryProviders([]);
+    setDetectedCategories([]);
+    setNoResultsInfo(null);
+    // Limpiar parámetros de URL si hay categoría seleccionada
+    if (searchParams.get('category')) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   // Notificar al Header cuando hay búsqueda o categoría activa
   // Solo para usuarios guest o con viewRole 'client' (no provider)
   useEffect(() => {
@@ -599,7 +612,7 @@ useEffect(() => {
           {/* Ajustada para acomodar las tarjetas de imagen más grandes del carrusel */}
           <div 
             id="hero-section"
-            className="relative overflow-hidden rounded-xl sm:rounded-2xl shadow-2xl min-h-[520px] sm:min-h-[600px] md:min-h-[660px] lg:min-h-[680px] xl:min-h-[760px] 2xl:min-h-[840px] scroll-mt-20 -mx-2 sm:-mx-1"
+            className="relative overflow-hidden rounded-none sm:rounded-2xl shadow-2xl min-h-[520px] sm:min-h-[600px] md:min-h-[660px] lg:min-h-[680px] xl:min-h-[760px] 2xl:min-h-[840px] scroll-mt-20 -mx-4 sm:-mx-1"
           >
             {/* Fondo degradado sólido de marca — sin imágenes para no competir con el carrusel */}
             <div className="absolute inset-0">
@@ -661,7 +674,7 @@ useEffect(() => {
                       boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)'
                     }}
                   >
-                    <SearchBar onSearch={handleSearch} variant="hero" noResultsInfo={noResultsInfo} onClearNoResults={() => setNoResultsInfo(null)} providerCountByCategory={providerCountByCategory} />
+                    <SearchBar onSearch={handleSearch} variant="hero" noResultsInfo={noResultsInfo} onClearNoResults={() => setNoResultsInfo(null)} onClearAll={handleClearAllSearch} providerCountByCategory={providerCountByCategory} />
                   </div>
                 </div>
               </div>
@@ -763,7 +776,7 @@ useEffect(() => {
       {/* Resultados de búsqueda por texto/filtros */}
       {searchResults !== null && !isSearching && (
         <div className="w-full">
-          <div className="bg-white rounded-xl border p-6">
+          <div className="bg-white rounded-xl border p-3 sm:p-6">
             {/* Badge de categorías detectadas por búsqueda inteligente */}
             {detectedCategories.length > 0 && (
               <div className="mb-4 p-3 bg-brand-50 border border-brand-200 rounded-xl">
@@ -786,8 +799,8 @@ useEffect(() => {
               </div>
             )}
 
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+              <h2 className="text-base sm:text-xl font-bold">
                 {searchResults.length > 0 
                   ? t('home.foundProfessionals', { count: searchResults.length })
                   : t('home.noProfessionalsFound')}
@@ -1249,9 +1262,9 @@ useEffect(() => {
       {/* Vista de proveedores por categoría */}
       {selectedCategory && (
         <div className="w-full">
-          <div className="rounded-xl bg-white p-6 min-h-100 border border-gray-200 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold mb-0 text-gray-900">
+          <div className="rounded-xl bg-white p-3 sm:p-6 min-h-100 border border-gray-200 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                <h2 className="text-base sm:text-xl font-bold mb-0 text-gray-900">
                   {categoryProviders.length} {categoryProviders.length === 1 ? t('home.oneProfessionalFound') : t('home.manyProfessionalsFound')} {t('home.inCategory')} <span className="capitalize text-brand-600">{t(`home.categories.${selectedCategory}`, selectedCategory)}</span>
                 </h2>
                 <button

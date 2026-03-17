@@ -1,8 +1,10 @@
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import { createPortal } from 'react-dom';
 
 /**
- * Componente para mostrar el progreso de subida de archivos
+ * Componente para mostrar el progreso de subida de archivos.
+ * Se renderiza vía portal para estar SIEMPRE encima de cualquier modal (z-9999).
  */
 export default function UploadProgress({ 
   show = false, 
@@ -84,8 +86,8 @@ export default function UploadProgress({
     }
   };
 
-  return (
-    <div className="fixed bottom-4 right-4 max-w-md w-full animate-slide-up" style={{ zIndex: 9999 }}>
+  return createPortal(
+    <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 max-w-md w-auto sm:w-full animate-slide-up" style={{ zIndex: 10010 }}>
       <div className={`rounded-lg border-2 shadow-xl p-4 ${getStatusColor()}`}>
         <div className="flex items-start gap-3">
           {/* Icono */}
@@ -148,7 +150,8 @@ export default function UploadProgress({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

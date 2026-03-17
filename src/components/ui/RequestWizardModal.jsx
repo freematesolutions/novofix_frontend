@@ -283,12 +283,15 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
   const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
-  const isEditMode = !!editRequest;
+  const [internalEditRequest, setInternalEditRequest] = useState(null);
+  const effectiveEditRequest = editRequest || internalEditRequest;
+  const isEditMode = !!effectiveEditRequest;
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [showConfirmClose, setShowConfirmClose] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState(null);
   const [uploadProgress, setUploadProgress] = useState({
     show: false,
     progress: 0,
@@ -353,8 +356,8 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
 
   // Pre-populate form when editing an existing request
   useEffect(() => {
-    if (isEditMode && isOpen && editRequest) {
-      const r = editRequest;
+    if (isEditMode && isOpen && effectiveEditRequest) {
+      const r = effectiveEditRequest;
       setFormData({
         title: r.basicInfo?.title || '',
         description: r.basicInfo?.description || '',
@@ -372,18 +375,21 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
         videos: (r.media?.videos || []).map(v => typeof v === 'string' ? { url: v, cloudinaryId: '', caption: '' } : v)
       });
       setFormErrors({});
+      setDuplicateWarning(null);
       // Mark all steps as completed so user can navigate freely
       setCompletedSteps([0, 1, 2, 3, 4]);
       // Open directly at Summary (last step) so user can review and update
       setCurrentStep(4);
     }
-  }, [isEditMode, isOpen, editRequest]);
+  }, [isEditMode, isOpen, effectiveEditRequest]);
 
   // Reset al cerrar
   useEffect(() => {
     if (!isOpen) {
       setCurrentStep(0);
       setCompletedSteps([]);
+      setDuplicateWarning(null);
+      setInternalEditRequest(null);
       setFormData({
         title: '',
         description: '',
@@ -404,6 +410,27 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
       setShowConfirmClose(false);
     }
   }, [isOpen]);
+
+  // Verificar si ya existe una solicitud activa para la categoría seleccionada
+  useEffect(() => {
+    if (!isOpen || !formData.category || isEditMode) { setDuplicateWarning(null); return; }
+    let cancelled = false;
+    const checkDuplicate = async () => {
+      try {
+        const { data } = await api.get('/client/requests', { params: { limit: 100 } });
+        const requests = data?.data?.requests || data?.data || [];
+        const dup = requests.find(r =>
+          r.basicInfo?.category === formData.category &&
+          ['published', 'draft'].includes(r.status)
+        );
+        if (!cancelled) setDuplicateWarning(dup || null);
+      } catch {
+        if (!cancelled) setDuplicateWarning(null);
+      }
+    };
+    checkDuplicate();
+    return () => { cancelled = true; };
+  }, [isOpen, formData.category, isEditMode]);
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -828,7 +855,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
       };
 
       if (isEditMode) {
-        data = await api.put(`/client/requests/${editRequest._id}`, payload);
+        data = await api.put(`/client/requests/${effectiveEditRequest._id}`, payload);
       } else {
         data = await api.post('/client/requests', payload);
       }
@@ -838,6 +865,24 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
         toast.info(isEditMode ? t('ui.requestWizard.updateSuccess') : t('ui.requestWizard.requestMayBeCreated'));
         onClose();
         if (!isEditMode) navigate('/mis-solicitudes');
+        return;
+      } else if (err?.response?.status === 409 || err?.response?.data?.code === 'DUPLICATE_REQUEST') {
+        // Intentar obtener la solicitud completa para permitir edición
+        try {
+          const existingId = err.response.data?.data?.existingRequestId;
+          if (existingId) {
+            const { data: reqData } = await api.get(`/client/requests/${existingId}`);
+            const existingReq = reqData?.data?.request || reqData?.data;
+            if (existingReq) {
+              setDuplicateWarning(existingReq);
+            } else {
+              setDuplicateWarning({ _id: existingId });
+            }
+          }
+        } catch {
+          setDuplicateWarning({ _id: err.response.data?.data?.existingRequestId });
+        }
+        toast.warning(t('client.createRequest.duplicateWarning'));
         return;
       } else {
         console.error(`Error ${isEditMode ? 'updating' : 'creating'} request:`, err);
@@ -852,7 +897,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
     if (data?.data?.success) {
       if (isEditMode) {
         toast.success(t('ui.requestWizard.updateSuccess'));
-        onEditSuccess?.(data.data.data?.request || editRequest);
+        onEditSuccess?.(data.data.data?.request || effectiveEditRequest);
       } else {
         const pName = provider?.providerProfile?.businessName || provider?.profile?.firstName || t('ui.requestWizard.theProvider');
         toast.success(t('ui.requestWizard.requestSent', { provider: pName }));
@@ -867,7 +912,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
   if (!isOpen || (!provider && !isEditMode)) return null;
 
   const providerName = isEditMode 
-    ? (editRequest?.basicInfo?.category || t('ui.requestWizard.service'))
+    ? (effectiveEditRequest?.basicInfo?.category || t('ui.requestWizard.service'))
     : (provider?.providerProfile?.businessName || provider?.profile?.firstName || t('ui.requestWizard.thisProfessional'));
   const providerAvatar = isEditMode ? null : (provider?.providerProfile?.avatar || provider?.profile?.avatar);
   const step = STEPS[currentStep];
@@ -1228,7 +1273,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                       </label>
 
                       {formData.photos.length > 0 && (
-                        <div className="mt-3 grid grid-cols-3 gap-2">
+                        <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                           {formData.photos.map((photo, idx) => (
                             <div key={idx} className="relative group aspect-square">
                               <img
@@ -1607,7 +1652,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                         </button>
                       </div>
                       
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                         {/* Miniaturas de fotos */}
                         {formData.photos.map((photo, index) => (
                           <div 
@@ -1698,6 +1743,54 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
           {/* ============================================================ */}
           {/* FOOTER - Botones de navegación */}
           {/* ============================================================ */}
+          
+          {/* Overlay de solicitud duplicada - se muestra sobre el footer cuando hay duplicado */}
+          {duplicateWarning && currentStep === STEPS.length - 1 && (
+            <div className="bg-amber-50 border-t-2 border-amber-400 px-4 py-4 animate-in slide-in-from-bottom duration-300">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 border-2 border-amber-300 flex items-center justify-center shrink-0">
+                  <Icons.Warning className="w-5 h-5 text-amber-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-amber-900">{t('client.createRequest.duplicateWarning')}</p>
+                  <p className="text-xs mt-0.5 text-amber-700">{t('client.createRequest.duplicateExists')}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => { onClose(); navigate('/mis-solicitudes'); }}
+                  className="flex-1 px-3 py-2.5 rounded-xl bg-white hover:bg-amber-100 border-2 border-amber-300 text-sm font-semibold text-amber-800 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  {t('client.createRequest.viewExistingRequest')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (duplicateWarning?.basicInfo) {
+                      // Tenemos la solicitud completa, cambiar a modo edición
+                      setInternalEditRequest(duplicateWarning);
+                    } else {
+                      // Fallback: navegar a mis solicitudes
+                      onClose();
+                      navigate('/mis-solicitudes');
+                    }
+                  }}
+                  className="flex-1 px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  {t('client.createRequest.editExistingRequest')}
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="bg-gray-50 border-t px-3 sm:px-4 py-3 flex items-center justify-between gap-2 sm:gap-3">
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {/* Botón Cancelar */}
@@ -1767,7 +1860,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
               <Button 
                 onClick={handleSubmit} 
                 loading={loading} 
-                disabled={uploadingMedia}
+                disabled={uploadingMedia || !!duplicateWarning}
                 className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-sm sm:text-base whitespace-nowrap"
               >
                 <Icons.Send className="w-4 h-4 shrink-0" />

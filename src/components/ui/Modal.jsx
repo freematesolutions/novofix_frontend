@@ -109,7 +109,7 @@ function Modal({ open, title, children, onClose, actions, size = 'md', icon: Ico
         onClick={onClose}
       />
       {/* Dialog - centrado con safe-area para móviles */}
-      <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
         <div
           ref={dialogRef}
           role="dialog"
@@ -126,7 +126,7 @@ function Modal({ open, title, children, onClose, actions, size = 'md', icon: Ico
         >
           {/* Header */}
           {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 {IconComponent && (
                   <div className="p-2 bg-brand-100 rounded-xl">
@@ -148,7 +148,7 @@ function Modal({ open, title, children, onClose, actions, size = 'md', icon: Ico
           )}
           
           {/* Content */}
-          <div className="px-6 py-5 text-sm text-gray-700 max-h-[60vh] overflow-y-auto">
+          <div className="px-4 sm:px-6 py-4 sm:py-5 text-sm text-gray-700 max-h-[70vh] sm:max-h-[60vh] overflow-y-auto">
             {children}
           </div>
           

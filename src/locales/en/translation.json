@@ -347,6 +347,8 @@
       "soon": "Soon (this week)",
       "flexible": "Flexible",
       "clearFilters": "Clear all filters",
+      "clearInput": "Clear text",
+      "newSearch": "New search",
       "suggestedCategories": "Categories detected in your search",
       "pressEnterOrClick": "Press Enter to search or click a category",
       "noProvidersYet": "No professionals available yet for these categories",
@@ -671,6 +673,10 @@
       "update": "Update",
       "createSuccess": "Request created successfully",
       "createError": "Error creating request",
+      "duplicateWarning": "You already have an active request for this category",
+      "duplicateExists": "You already have an active request in this category. Edit or cancel it before creating a new one.",
+      "viewExistingRequest": "View existing request",
+      "editExistingRequest": "Edit request",
       "draftSuccess": "Draft saved",
       "viewPortfolio": "View portfolio",
       "noProvidersTooltip": "No providers available for this category/urgency in your area",
@@ -923,6 +929,7 @@
       "mainServiceName": "Service name",
       "mainServicePlaceholder": "E.g.: Air conditioner installation",
       "experienceYears": "Years of experience",
+      "experienceEditableHint": "You can update your years of experience at any time",
       "subcategories": "Subcategories",
       "subcategoriesPlaceholder": "E.g.: Installation, Repair, Maintenance...",
       "saving": "Saving...",
@@ -1303,6 +1310,9 @@
       "mainServiceLabel": "Main service",
       "mainServicePlaceholder": "E.g.: Pipe repair, Air conditioning installation",
       "mainServiceHint": "Briefly describe your most outstanding service",
+      "experienceLabel": "Years of experience in your main service",
+      "experiencePlaceholder": "E.g.: 5",
+      "experienceHint": "Enter how many years you have been providing this service",
       "descriptionLabel": "Professional description",
       "descriptionPlaceholder": "Tell clients about your experience, specialties and why they should choose you...",
       "descriptionHint": "minimum characters",
@@ -1412,7 +1422,7 @@
         "inProgress": "In progress",
         "completed": "Completed",
         "cancelled": "Cancelled",
-        "serviceCompleted": "Service completed"
+        "serviceCompleted": "Service hired"
       },
       "filters": {
         "status": "Status",
@@ -1430,7 +1440,7 @@
         "noResults": "No results found with the applied filters"
       },
       "evidence": {
-        "title": "Evidence",
+        "title": "Results",
         "before": "Before",
         "during": "During",
         "after": "After"
@@ -1460,7 +1470,7 @@
       },
       "actions": {
         "changeStatus": "Change status",
-        "uploadEvidence": "Upload evidence",
+        "uploadEvidence": "Upload results",
         "leaveReview": "Leave review",
         "showReview": "Show review",
         "respondReview": "Respond to review",
@@ -1495,7 +1505,7 @@
         "responseUpdated": "Response updated",
         "responsePublished": "Response published",
         "responseDeleted": "Response deleted",
-        "evidenceUploaded": "Evidence uploaded successfully",
+        "evidenceUploaded": "Results uploaded successfully",
         "filesUploaded": "{{count}} file(s) uploaded",
         "reviewThanks": "Thank you for your review!",
         "clientReviewThanks": "Thank you for rating the client!",
@@ -1507,8 +1517,8 @@
         "chatError": "Failed to open chat",
         "responsePublishFailed": "Could not publish response",
         "deleteFailed": "Could not delete",
-        "noEvidenceUrls": "No evidence URLs obtained",
-        "evidenceUploadFailed": "Error uploading evidence",
+        "noEvidenceUrls": "No result URLs obtained",
+        "evidenceUploadFailed": "Error uploading results",
         "reviewFailed": "Error submitting review",
         "clientReviewFailed": "Error submitting client rating",
         "roleRequired": "You must log in as a client or provider",
@@ -1526,10 +1536,10 @@
         "uploadingWithVideos": "Uploading files (videos may take longer)...",
         "uploading": "Uploading files...",
         "uploadingImages": "Uploading images...",
-        "saving": "Saving evidence..."
+        "saving": "Saving results..."
       },
       "modal": {
-        "evidenceTitle": "Upload Evidence",
+        "evidenceTitle": "Upload Results",
         "documentWork": "Document your work",
         "evidenceSubtitle": "Upload photos or videos of before, during and after",
         "serviceStage": "Service stage",
@@ -1545,7 +1555,7 @@
         "cancel": "Cancel",
         "uploading": "Uploading...",
         "uploadFiles": "Upload {{count}} file(s)",
-        "uploadEvidence": "Upload evidence",
+        "uploadEvidence": "Upload results",
         "reviewTitle": "Leave Review",
         "shareExperience": "Share your experience",
         "helpOthers": "Your opinion helps other users",
@@ -1562,7 +1572,7 @@
         "commentPlaceholder": "Tell us about your experience...",
         "photosOptional": "Photos (optional)",
         "submitReview": "Submit review",
-        "evidenceViewer": "Evidence viewer ({{current}}/{{total}})",
+        "evidenceViewer": "Results viewer ({{current}}/{{total}})",
         "editResponse": "Edit response",
         "respondReviewTitle": "Respond to review",
         "respondToClient": "Respond to client",
@@ -3052,6 +3062,7 @@
       "description": "Description",
       "zone": "Zone (label)",
       "zonePlaceholder": "E.g.: Downtown",
+      "zoneAutoHint": "Automatically updated when selecting on the map",
       "radius": "Radius (miles)",
       "locationLabel": "Location (click on the map or use your location)",
       "latitude": "Latitude",
@@ -3067,6 +3078,10 @@
     "portfolioManager": {
       "processingFiles": "Processing files...",
       "selectAtLeastOne": "Select at least one file",
+      "onlyImagesAllowed": "Only image files are allowed",
+      "onlyVideosAllowed": "Only video files are allowed",
+      "compressionTip": "Images are automatically optimized for faster upload",
+      "maxVideoSize": "max. 200MB",
       "compressingImages": "Compressing images...",
       "preparingVideos": "Preparing video upload...",
       "uploadingFilesVideos": "Uploading files (videos may take longer)...",
@@ -3450,13 +3465,13 @@
       "clientReviews": "Client reviews",
       "providerReviews": "Professional reviews",
       "portfolio": "Portfolio",
-      "evidence": "Evidence"
+      "evidence": "Results"
     },
     "source": {
       "client_review": "Client review",
       "provider_review": "Pro review",
       "portfolio": "Portfolio",
-      "service_evidence": "Evidence"
+      "service_evidence": "Results"
     }
   },
   "portfolio": {
@@ -3827,7 +3842,10 @@
     "transportation": "Transportation",
     "openNewTab": "Open in new tab",
     "pdfNotAvailable": "The PDF for this invoice is not available",
-    "pdfFallbackLink": "Can't see the document? Click here to open it"
+    "pdfFallbackLink": "Can't see the document? Click here to open it",
+    "viewedBadge": "Invoice viewed",
+    "viewedAt": "Viewed on {{date}}",
+    "notViewedYet": "Not yet viewed by client"
   },
   "upload": {
     "defaultMessage": "Uploading file...",
@@ -3841,6 +3859,7 @@
   },
   "notifications": {
     "title": "Notifications",
+    "aClient": "A client",
     "empty": "No notifications",
     "willNotify": "We'll notify you when you have new ones",
     "markAllRead": "Mark all as read",
@@ -3957,8 +3976,8 @@
       },
       "REQUEST_UPDATED": {
         "title": "Request updated 📝",
-        "message": "The client has updated the details of the request \"{{requestTitle}}\".",
-        "messageDefault": "A service request has been updated by the client."
+        "message": "{{clientName}} has updated the details of the request \"{{requestTitle}}\". Review the changes.",
+        "messageDefault": "A client has updated a service request. Review the new details."
       },
       "DEFAULT": {
         "title": "Notification",

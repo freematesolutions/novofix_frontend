@@ -263,11 +263,12 @@ export default function ReviewStep() {
       )}
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button 
             type="button" 
             variant="secondary" 
             onClick={prevStep}
+            className="shrink-0"
           >
             {t('common.back')}
           </Button>
@@ -275,6 +276,7 @@ export default function ReviewStep() {
             type="button" 
             variant="outline" 
             onClick={handleContinueLater}
+            className="shrink-0"
           >
             {t('onboarding.review.continueLater')}
           </Button>

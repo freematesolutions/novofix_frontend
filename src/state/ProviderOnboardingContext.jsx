@@ -66,6 +66,7 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
       primaryCategory: user?.providerProfile?.services?.[0]?.category || '',
       additionalCategories: user?.providerProfile?.additionalServices || user?.providerProfile?.services?.slice(1).map(s => s.category).filter(Boolean) || [],
       mainService: user?.providerProfile?.services?.[0]?.name || '',
+      experience: user?.providerProfile?.services?.[0]?.experience || '',
       servicesList: user?.providerProfile?.services || [],
 
       // Paso 3: Cobertura
@@ -298,7 +299,8 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
           : [{
               category: primaryCategory,
               name: mergedData.mainService,
-              description: mergedData.description
+              description: mergedData.description,
+              experience: Number(mergedData.experience) || 0
             }],
         additionalServices: mergedData.additionalCategories || [],
         serviceArea: {

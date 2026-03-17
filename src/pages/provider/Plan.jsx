@@ -304,14 +304,10 @@ export default function Plan() {
               return (
                 <div 
                   key={p._id || p.name} 
-                  className={`relative bg-white rounded-2xl border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col ${
+                  className={`relative bg-white rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col ${
                     active 
-                      ? 'border-brand-500 shadow-lg shadow-brand-500/10' 
-                      : isPopular 
-                        ? 'border-accent-400 shadow-md' 
-                        : ['pro', 'professional', 'premium'].includes(p.name?.toLowerCase())
-                          ? 'border-amber-400 shadow-md'
-                          : 'border-gray-200 hover:border-gray-300'
+                      ? 'border border-gray-100 shadow-sm' 
+                      : 'border-2 border-brand-400 shadow-md'
                   }`}
                 >
                   {/* Popular Badge */}

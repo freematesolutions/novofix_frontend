@@ -3,6 +3,7 @@
 
 /* Base tweaks */
 html, body, #root { height: 100%; }
+html { overflow-x: hidden; }
 body { margin: 0; color: #2D2D2D; }
 
 /* Normalize dark text on white backgrounds */

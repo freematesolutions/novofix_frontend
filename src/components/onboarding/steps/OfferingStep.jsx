@@ -20,6 +20,7 @@ export default function OfferingStep() {
   const [additionalCategories, setAdditionalCategories] = useState(formData.additionalCategories || []);
   const [mainService, setMainService] = useState(formData.mainService || '');
   const [description, setDescription] = useState(formData.description || '');
+  const [experience, setExperience] = useState(formData.experience || '');
   const [customAdditional, setCustomAdditional] = useState('');
 
   useEffect(() => {
@@ -27,9 +28,10 @@ export default function OfferingStep() {
       primaryCategory, 
       additionalCategories, 
       mainService, 
-      description 
+      description,
+      experience 
     });
-  }, [primaryCategory, additionalCategories, mainService, description, updateFormData]);
+  }, [primaryCategory, additionalCategories, mainService, description, experience, updateFormData]);
 
   useEffect(() => {
     if (!primaryCategory) return;
@@ -125,19 +127,20 @@ export default function OfferingStep() {
           ))}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             value={customAdditional}
             onChange={(e) => setCustomAdditional(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomAdditional())}
-            className="flex-1 border border-gray-300 rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+            className="flex-1 min-w-0 border border-gray-300 rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             placeholder={t('onboarding.offering.additionalServicePlaceholder')}
           />
           <Button
             type="button"
             variant="secondary"
             onClick={addCustomAdditional}
+            className="shrink-0 w-full sm:w-auto"
           >
             {t('onboarding.offering.addButton')}
           </Button>
@@ -185,6 +188,25 @@ export default function OfferingStep() {
         </p>
       </div>
 
+      {/* Años de experiencia */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {t('onboarding.offering.experienceLabel')} <span className="text-gray-400">({t('onboarding.identity.optional')})</span>
+        </label>
+        <input
+          type="number"
+          min="0"
+          max="70"
+          value={experience}
+          onChange={(e) => setExperience(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+          placeholder={t('onboarding.offering.experiencePlaceholder')}
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          {t('onboarding.offering.experienceHint')}
+        </p>
+      </div>
+
       {/* Descripción */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -213,18 +235,19 @@ export default function OfferingStep() {
         <Alert type="error">{error}</Alert>
       )}
 
-      <div className="flex justify-between items-center pt-4 border-t">
+      <div className="flex flex-wrap justify-between items-center gap-3 pt-4 border-t">
         <Button 
           type="button" 
           variant="secondary" 
           onClick={prevStep}
+          className="shrink-0"
         >
           {t('common.back')}
         </Button>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-500 order-last sm:order-none w-full sm:w-auto text-center">
           {t('onboarding.offering.stepOf', { current: 2, total: 4 })}
         </div>
-        <Button type="submit" loading={loading}>
+        <Button type="submit" loading={loading} className="shrink-0">
           {loading ? t('common.saving') : t('common.continue')}
         </Button>
       </div>

@@ -251,7 +251,7 @@ function RegisterClient() {
     } else if (result.ok) {
       // Registro exitoso y ya verificado (caso raro)
       toast.success(t('toast.welcomeClient'));
-      navigate('/mis-solicitudes', { replace: true });
+      navigate('/', { replace: true });
     } else {
       // Error en el registro
       toast.error(t('toast.registerError') + '. ' + t('toast.tryAgain'));
@@ -473,7 +473,7 @@ function RegisterClient() {
                       </span>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-1.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                       {PASSWORD_REQUIREMENTS.map((req) => {
                         const passed = req.test(form.password);
                         return (
