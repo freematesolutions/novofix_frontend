@@ -53,8 +53,14 @@ function CategoryIconCarousel({
   const autoPausedUntilRef = useRef(0);
 
   // ─── Precargar TODAS las imágenes en paralelo (sin lotes) ──────────
+  // Con timeout de seguridad: si las imágenes no cargan en 4s, mostrar igual
   useEffect(() => {
     let cancelled = false;
+
+    // Timeout de seguridad — mostrar carrusel aunque no todas las imágenes carguen
+    const safetyTimeout = setTimeout(() => {
+      if (!cancelled) setAllImagesReady(true);
+    }, 4000);
 
     const preloadAll = () => {
       const promises = categories.map((service) => {
@@ -64,11 +70,18 @@ function CategoryIconCarousel({
         return new Promise((resolve) => {
           const url = CATEGORY_IMAGES[service.category] || FALLBACK_IMAGE;
           const img = new Image();
+          // Timeout individual por imagen (3s)
+          const imgTimeout = setTimeout(() => {
+            if (!cancelled) loadedImagesRef.current[service.category] = true;
+            resolve();
+          }, 3000);
           img.onload = () => {
+            clearTimeout(imgTimeout);
             if (!cancelled) loadedImagesRef.current[service.category] = true;
             resolve();
           };
           img.onerror = () => {
+            clearTimeout(imgTimeout);
             if (url !== FALLBACK_IMAGE) {
               const fallback = new Image();
               fallback.onload = () => {
@@ -90,13 +103,17 @@ function CategoryIconCarousel({
       });
 
       Promise.all(promises).then(() => {
+        clearTimeout(safetyTimeout);
         if (!cancelled) setAllImagesReady(true);
       });
     };
 
     preloadAll();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      clearTimeout(safetyTimeout);
+    };
   }, [categories]);
 
 
