@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import useModalHistory from '@/utils/useModalHistory.js';
 
 export default function ImageZoomModal({ isOpen, onClose, imageUrl, alt, mediaData }) {
   const { t } = useTranslation();
+  const closeModal = useModalHistory(isOpen, onClose, 'image-zoom');
   const [isZoomed, setIsZoomed] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -114,19 +116,19 @@ export default function ImageZoomModal({ isOpen, onClose, imageUrl, alt, mediaDa
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && isOpen) {
-        onClose();
+        closeModal();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, closeModal]);
 
   if (!isOpen) return null;
 
   const showVideo = isVideo();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90" onClick={closeModal}>
       <div className="relative max-w-full max-h-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
         
         {/* Video Player */}
@@ -161,7 +163,7 @@ export default function ImageZoomModal({ isOpen, onClose, imageUrl, alt, mediaDa
 
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={closeModal}
           className="absolute top-2 right-2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg transition-colors z-10"
           aria-label={t('common.close', 'Cerrar')}
         >

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import useModalHistory from '@/utils/useModalHistory.js';
 import RequestWizardModal from './RequestWizardModal.jsx';
 import GuestConversionModal from './GuestConversionModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
@@ -124,6 +125,7 @@ const TABS = [
 ];
 
 function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedCategory = null, readOnly = false }) {
+  const closeModal = useModalHistory(isOpen, onClose, 'provider-profile');
   const { t } = useTranslation();
   const { isAuthenticated, viewRole } = useAuth();
   const toast = useToast();
@@ -276,11 +278,11 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') closeModal();
     };
     if (isOpen) window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, closeModal]);
 
   // Scroll to section when tab changes
   const handleTabClick = (tabId) => {
@@ -357,7 +359,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-10000 transition-opacity duration-300"
-        onClick={onClose}
+        onClick={closeModal}
       />
 
       {/* Modal */}
@@ -369,7 +371,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
         <div className={`relative bg-linear-to-br ${planInfo.gradient} px-4 py-3 sm:px-6 sm:py-4`}>
           {/* Close button */}
           <button
-            onClick={onClose}
+            onClick={closeModal}
             className="absolute top-2 right-2 sm:top-3 sm:right-3 z-30 p-2 bg-white/90 hover:bg-white text-gray-700 hover:text-gray-900 rounded-full transition-all shadow-md"
           >
             <Icons.Close className="w-4 h-4 sm:w-5 sm:h-5" />

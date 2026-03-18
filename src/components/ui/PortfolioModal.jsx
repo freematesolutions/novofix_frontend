@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import useModalHistory from '@/utils/useModalHistory.js';
 
 export default function PortfolioModal({ isOpen, onClose, portfolio, providerName }) {
   const { t, i18n } = useTranslation();
+  const closeModal = useModalHistory(isOpen, onClose, 'portfolio');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [filter, setFilter] = useState('all'); // 'all' | 'image' | 'video'
   const [isZoomed, setIsZoomed] = useState(false);
@@ -106,7 +108,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
     
     switch (e.key) {
       case 'Escape':
-        onClose();
+        closeModal();
         break;
       case 'ArrowLeft':
         e.preventDefault();
@@ -119,7 +121,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
       default:
         break;
     }
-  }, [isOpen, onClose, filteredPortfolio.length]);
+  }, [isOpen, closeModal, filteredPortfolio.length]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -191,7 +193,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
   return createPortal(
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm" 
-      onClick={onClose}
+      onClick={closeModal}
       role="dialog"
       aria-modal="true"
       aria-labelledby="portfolio-modal-title"
@@ -211,7 +213,7 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={closeModal}
             className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full shrink-0"
             title={t('portfolio.closeEsc')}
             aria-label={t('portfolio.closeModal')}

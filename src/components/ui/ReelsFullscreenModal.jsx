@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
+import useModalHistory from '@/utils/useModalHistory.js';
 
 // ─── Constantes ───
 const SWIPE_THRESHOLD = 60;       // px mínimo para cambiar de reel
@@ -235,6 +236,7 @@ const FullscreenReelSlide = ({ reel, isActive, onViewProfile, t }) => {
 // ─── Componente principal: Modal Fullscreen de Reels ───
 export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIndex = 0, onViewProfile }) {
   const { t } = useTranslation();
+  const closeModal = useModalHistory(isOpen, onClose, 'reels-fullscreen');
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [translateY, setTranslateY] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -303,9 +305,9 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
   const handleClose = useCallback(() => {
     setIsClosing(true);
     setTimeout(() => {
-      onClose();
+      closeModal();
     }, 250);
-  }, [onClose]);
+  }, [closeModal]);
 
   // ─── Keyboard navigation ───
   useEffect(() => {
