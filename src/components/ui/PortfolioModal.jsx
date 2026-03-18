@@ -42,15 +42,33 @@ export default function PortfolioModal({ isOpen, onClose, portfolio, providerNam
     setZoomPosition({ x: 0, y: 0 });
   }, [selectedIndex]);
 
-  // Lock body scroll when modal is open
+  // Lock body scroll when modal is open — preserving scroll position on mobile
   useEffect(() => {
     if (isOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
       document.body.style.overflow = 'hidden';
+      document.body.dataset.scrollY = scrollY;
     } else {
+      const savedScrollY = parseInt(document.body.dataset.scrollY || '0', 10);
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
       document.body.style.overflow = '';
+      window.scrollTo(0, savedScrollY);
     }
     return () => {
+      const savedScrollY = parseInt(document.body.dataset.scrollY || '0', 10);
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
       document.body.style.overflow = '';
+      window.scrollTo(0, savedScrollY);
     };
   }, [isOpen]);
 

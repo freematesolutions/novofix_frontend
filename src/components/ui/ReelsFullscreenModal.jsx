@@ -247,6 +247,8 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
   const isDragging = useRef(false);
   const isHorizontalSwipe = useRef(false);
   const containerRef = useRef(null);
+  const previousBodyOverscrollY = useRef('');
+  const previousHtmlOverscrollY = useRef('');
 
   // Sincronizar índice cuando cambia desde fuera
   useEffect(() => {
@@ -254,13 +256,38 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
       setCurrentIndex(initialIndex);
       setTranslateY(0);
       setIsClosing(false);
-      // Bloquear scroll del body
-      document.body.style.overflow = 'hidden';
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
   }, [isOpen, initialIndex]);
+
+  // Bloquear scroll y pull-to-refresh mientras el modal está abierto
+  // Usa position:fixed + top:-scrollY para preservar posición de scroll al cerrar
+  const savedScrollY = useRef(0);
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    savedScrollY.current = window.scrollY;
+    previousBodyOverscrollY.current = document.body.style.overscrollBehaviorY;
+    previousHtmlOverscrollY.current = document.documentElement.style.overscrollBehaviorY;
+
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${savedScrollY.current}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.overflow = 'hidden';
+    document.body.style.overscrollBehaviorY = 'none';
+    document.documentElement.style.overscrollBehaviorY = 'none';
+
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehaviorY = previousBodyOverscrollY.current;
+      document.documentElement.style.overscrollBehaviorY = previousHtmlOverscrollY.current;
+      window.scrollTo(0, savedScrollY.current);
+    };
+  }, [isOpen]);
 
   // Navegar a un índice
   const goToIndex = useCallback((newIndex) => {
@@ -276,7 +303,6 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
   const handleClose = useCallback(() => {
     setIsClosing(true);
     setTimeout(() => {
-      document.body.style.overflow = '';
       onClose();
     }, 250);
   }, [onClose]);
@@ -359,6 +385,23 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
     }
   }, [isAnimating, currentIndex, reels.length, goToIndex, handleClose]);
 
+  // Evita el comportamiento nativo de overscroll/pull-to-refresh en móvil
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    const preventNativePullToRefresh = (e) => {
+      if (e.touches && e.touches.length > 1) return;
+      e.preventDefault();
+    };
+
+    container.addEventListener('touchmove', preventNativePullToRefresh, { passive: false });
+    return () => {
+      container.removeEventListener('touchmove', preventNativePullToRefresh);
+    };
+  }, [isOpen]);
+
   // ─── Mouse wheel navigation (desktop) ───
   useEffect(() => {
     if (!isOpen) return;
@@ -397,6 +440,10 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
       className={`fixed inset-0 z-100 bg-black transition-opacity duration-250 ${
         isClosing ? 'opacity-0' : 'opacity-100'
       }`}
+      style={{
+        touchAction: 'none',
+        overscrollBehavior: 'none'
+      }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
