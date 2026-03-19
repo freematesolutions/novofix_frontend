@@ -12,6 +12,7 @@ import { compressImages, validateFiles } from '@/utils/fileCompression.js';
 import UploadProgress from '@/components/ui/UploadProgress.jsx';
 import { getTranslatedRequestInfo, getTranslatedReviewInfo, useCurrentLanguage } from '@/utils/translations.js';
 import InvoiceGeneratorModal from '@/components/ui/InvoiceGeneratorModal.jsx';
+import PdfCanvasViewer from '@/components/ui/PdfCanvasViewer.jsx';
 import { on as socketOn } from '@/state/socketClient.js';
 
 const fmtCurrency = (val, currency = 'USD') => {
@@ -1153,16 +1154,24 @@ export default function Bookings() {
               <div className="p-5 pl-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Column 1: Service Info */}
                 <div className="lg:col-span-5 space-y-4">
-                  {/* Header with title and status */}
-                  <div className="flex items-start justify-between gap-3">
+                  {/* Header with contract title and status */}
+                  <div className="flex items-start gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-gray-100 to-gray-50 border border-gray-200 shrink-0">
+                      <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                      </svg>
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-lg leading-tight truncate group-hover:text-brand-700 transition-colors">
-                        {getTranslatedRequestInfo(b.serviceRequest, currentLang).title || t('shared.bookings.service')}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-bold text-gray-900 text-base leading-tight group-hover:text-brand-700 transition-colors">
+                          {t('shared.bookings.card.contractTitle')} — {t(`home.categories.${b.serviceRequest?.basicInfo?.category || ''}`) || b.serviceRequest?.basicInfo?.category || t('shared.bookings.service')}
+                        </h3>
+                        <span className="text-xs font-mono text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">#{(b._id || '').slice(-6).toUpperCase()}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${currentStatus.bg} ${currentStatus.text} ${currentStatus.border} border`}>
                           <span>{currentStatus.icon}</span>
-                          {t(currentStatus.labelKey)}
+                          {b.status === 'completed' ? t('shared.bookings.status.serviceCompleted') : t(currentStatus.labelKey)}
                         </span>
                       </div>
                     </div>
@@ -1300,6 +1309,41 @@ export default function Bookings() {
                         <div className="text-xs text-gray-500">{t('shared.bookings.participants.provider')}</div>
                         <div className="text-sm font-medium text-gray-900 truncate">{b.provider?.providerProfile?.businessName || '—'}</div>
                       </div>
+                      {/* Client quick-actions: Chat + Ver Calificación as icons */}
+                      {isClient && (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {/* Chat icon */}
+                          {b.status !== 'cancelled' && (
+                            <button
+                              onClick={() => openBookingChat(b)}
+                              disabled={chatLoading === b._id}
+                              title={t('shared.bookings.actions.openChat')}
+                              className="group/icon w-8 h-8 rounded-lg bg-brand-50 hover:bg-brand-100 border border-brand-200/60 text-brand-600 hover:text-brand-700 flex items-center justify-center transition-all disabled:opacity-50 hover:shadow-md hover:shadow-brand-500/10"
+                            >
+                              {chatLoading === b._id ? (
+                                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                              ) : (
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                              )}
+                            </button>
+                          )}
+                          {/* Ver Calificación del profesional icon */}
+                          {b.status === 'completed' && (
+                            <button
+                              onClick={() => openViewClientReview(b)}
+                              disabled={viewClientReviewLoading[b._id]}
+                              title={t('shared.bookings.actions.viewProviderReview')}
+                              className="group/icon w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200/60 text-gray-400 hover:text-brand-600 flex items-center justify-center transition-all disabled:opacity-50 hover:shadow-md hover:shadow-gray-500/10"
+                            >
+                              {viewClientReviewLoading[b._id] ? (
+                                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                              ) : (
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 border border-gray-100">
                       <div className="flex items-center justify-center w-9 h-9 rounded-full bg-linear-to-br from-brand-500 to-brand-600 text-white text-sm font-medium shadow-lg shadow-brand-500/20">
@@ -1309,6 +1353,45 @@ export default function Bookings() {
                         <div className="text-xs text-gray-500">{t('shared.bookings.participants.client')}</div>
                         <div className="text-sm font-medium text-gray-900 truncate">{b.client?.profile?.firstName || b.client?.email || '—'}</div>
                       </div>
+                      {/* Provider quick-actions: Chat + Ver Reseña as icons */}
+                      {isProvider && (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {/* Chat icon */}
+                          {b.status !== 'cancelled' && (
+                            <button
+                              onClick={() => openBookingChat(b)}
+                              disabled={chatLoading === b._id}
+                              title={t('shared.bookings.actions.openChat')}
+                              className="group/icon w-8 h-8 rounded-lg bg-brand-50 hover:bg-brand-100 border border-brand-200/60 text-brand-600 hover:text-brand-700 flex items-center justify-center transition-all disabled:opacity-50 hover:shadow-md hover:shadow-brand-500/10"
+                            >
+                              {chatLoading === b._id ? (
+                                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                              ) : (
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                              )}
+                            </button>
+                          )}
+                          {/* Review icon */}
+                          <button
+                            onClick={() => { if (reviewsByBooking[b._id] === undefined) loadSingleReview(b._id); }}
+                            disabled={!!reviewLoadingMap[b._id]}
+                            title={reviewsByBooking[b._id] !== undefined && reviewsByBooking[b._id] !== null ? t('shared.bookings.review.serviceReview') : reviewsByBooking[b._id] === null ? t('shared.bookings.review.noClientReview') : t('shared.bookings.actions.showReview')}
+                            className={`group/icon w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 hover:shadow-md ${
+                              reviewsByBooking[b._id] !== undefined && reviewsByBooking[b._id] !== null
+                                ? 'bg-accent-50 border border-accent-200/60 text-accent-500 hover:bg-accent-100 hover:shadow-accent-500/10'
+                                : reviewsByBooking[b._id] === null
+                                  ? 'bg-gray-50 border border-gray-200/60 text-gray-300 cursor-default'
+                                  : 'bg-gray-50 hover:bg-gray-100 border border-gray-200/60 text-gray-400 hover:text-accent-500 hover:shadow-gray-500/10'
+                            }`}
+                          >
+                            {reviewLoadingMap[b._id] ? (
+                              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                            ) : (
+                              <svg className="w-3.5 h-3.5" fill={reviewsByBooking[b._id] !== undefined && reviewsByBooking[b._id] !== null ? 'currentColor' : 'none'} viewBox="0 0 20 20" stroke={reviewsByBooking[b._id] !== undefined && reviewsByBooking[b._id] !== null ? 'none' : 'currentColor'} strokeWidth={1.5}><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            )}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -1382,132 +1465,7 @@ export default function Bookings() {
                     </div>
                   )}
                   
-                  {/* Botones de reseña según estado */}
-                  {/* Para PROVEEDORES: Mostrar botón para cargar reseña existente o mensaje si no hay */}
-                  {isProvider && reviewsByBooking[b._id] === undefined && (
-                    <button onClick={()=> loadSingleReview(b._id)} disabled={!!reviewLoadingMap[b._id]} className="w-full px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm text-gray-600 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                      {reviewLoadingMap[b._id] ? (
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
-                      )}
-                      {t('shared.bookings.actions.showReview')}
-                    </button>
-                  )}
-                  
-                  {/* Para PROVEEDORES: Mostrar mensaje cuando no hay reseña */}
-                  {isProvider && reviewsByBooking[b._id] === null && (
-                    <div className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-center">
-                      <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        <span>{t('shared.bookings.review.noClientReview')}</span>
-                      </div>
-                      <p className="text-xs text-gray-400 mt-1">{t('shared.bookings.review.willAppearHere')}</p>
-                    </div>
-                  )}
 
-                  {/* Para PROVEEDORES: Botón para calificar al cliente */}
-                  {isProvider && b.status === 'completed' && !clientReviewedIds.has(b._id) && (
-                    <button 
-                      onClick={() => openClientReview(b)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      {t('shared.bookings.actions.rateClient')}
-                    </button>
-                  )}
-                  
-                  {/* Para PROVEEDORES: Ya calificó al cliente - mostrar calificación enviada */}
-                  {isProvider && clientReviewedIds.has(b._id) && sentClientReviews[b._id] && (
-                    <div className="w-full p-3 rounded-xl bg-brand-50 border border-brand-200 space-y-2">
-                      {/* Header con checkmark */}
-                      <div className="flex items-center gap-2 text-brand-700 font-medium text-sm">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                        {t('shared.bookings.review.clientReviewSent')}
-                      </div>
-                      
-                      {/* Calificación con estrellas */}
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-gray-600">{t('shared.bookings.modal.overallRating')}:</span>
-                        <div className="flex items-center gap-0.5">
-                          {[1,2,3,4,5].map((s) => (
-                            <svg key={s} className={`w-3.5 h-3.5 ${s <= (sentClientReviews[b._id]?.rating?.overall || 0) ? 'text-accent-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                            </svg>
-                          ))}
-                        </div>
-                        <span className="text-sm font-semibold text-gray-700">{(sentClientReviews[b._id]?.rating?.overall || 0).toFixed(1)}</span>
-                      </div>
-                      
-                      {/* Comentario si existe */}
-                      {sentClientReviews[b._id]?.review?.comment && (
-                        <p className="text-xs text-gray-600 italic bg-white/50 p-2 rounded-lg">
-                          "{sentClientReviews[b._id].review.comment}"
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Para CLIENTES: Mostrar botón según si ya existe reseña o no */}
-                  {isClient && b.status === 'completed' && (
-                    <>
-                      {/* Cargando estado de reseña */}
-                      {reviewsByBooking[b._id] === undefined && reviewLoadingMap[b._id] && (
-                        <div className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-500 font-medium flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                          {t('shared.bookings.review.verifying')}
-                        </div>
-                      )}
-                      
-                      {/* No hay reseña (null) - mostrar botón para crear */}
-                      {reviewsByBooking[b._id] === null && !reviewedIds.has(b._id) && (
-                        <button 
-                          onClick={()=> openReview(b)} 
-                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-white text-sm font-medium shadow-lg shadow-accent-500/25 transition-all flex items-center justify-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                          ⭐ {t('shared.bookings.actions.leaveReview')}
-                        </button>
-                      )}
-                      
-                      {/* Aún no se ha cargado (undefined) y no está cargando - mostrar botón para crear */}
-                      {reviewsByBooking[b._id] === undefined && !reviewLoadingMap[b._id] && !reviewedIds.has(b._id) && (
-                        <button 
-                          onClick={()=> openReview(b)} 
-                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-white text-sm font-medium shadow-lg shadow-accent-500/25 transition-all flex items-center justify-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                          ⭐ {t('shared.bookings.actions.leaveReview')}
-                        </button>
-                      )}
-                      
-                      {/* Ya se envió reseña en esta sesión */}
-                      {reviewedIds.has(b._id) && (
-                        <div className="w-full px-4 py-2.5 rounded-xl bg-brand-50 border border-brand-200 text-sm text-brand-700 font-medium flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                          ✓ {t('shared.bookings.review.reviewSent')}
-                        </div>
-                      )}
-                      
-                      {/* Botón para ver reseña que el proveedor dejó al cliente */}
-                      <button 
-                        onClick={() => openViewClientReview(b)}
-                        disabled={viewClientReviewLoading[b._id]}
-                        className="w-full px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm text-gray-600 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                      >
-                        {viewClientReviewLoading[b._id] ? (
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                        )}
-                        {t('shared.bookings.actions.viewProviderReview')}
-                      </button>
-                    </>
-                  )}
                 </div>
                 
                 {/* Column 3: Actions */}
@@ -1529,113 +1487,133 @@ export default function Bookings() {
                           {t(STATUS_FLOW[b.status].labelKey)}
                         </button>
                       )}
-                      
-                      {/* Estado completado - badge de éxito */}
-                      {b.status === 'completed' && (
-                        <div className="w-full px-4 py-2.5 rounded-xl bg-brand-50 border border-brand-200 text-sm text-brand-700 font-medium flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          {t('shared.bookings.status.serviceCompleted')}
+
+                      {/* Calificar Cliente - solo si completado y no calificado aún */}
+                      {b.status === 'completed' && !clientReviewedIds.has(b._id) && (
+                        <button 
+                          onClick={() => openClientReview(b)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          {t('shared.bookings.actions.rateClient')}
+                        </button>
+                      )}
+
+                      {/* Ya calificó al cliente — resumen compacto */}
+                      {clientReviewedIds.has(b._id) && sentClientReviews[b._id] && (
+                        <div className="w-full px-3 py-2 rounded-xl bg-brand-50 border border-brand-200 flex items-center gap-2">
+                          <svg className="w-4 h-4 text-brand-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                          <span className="text-xs font-medium text-brand-700 truncate">{t('shared.bookings.review.clientReviewSent')}</span>
+                          <div className="flex items-center gap-0.5 ml-auto shrink-0">
+                            {[1,2,3,4,5].map((s) => (
+                              <svg key={s} className={`w-3 h-3 ${s <= (sentClientReviews[b._id]?.rating?.overall || 0) ? 'text-accent-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            ))}
+                          </div>
                         </div>
                       )}
                       
-                      {/* Upload evidence button */}
-                      <button 
-                        onClick={()=> openEvidence(b)} 
-                        className="w-full px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-sm font-medium text-gray-700 transition-all flex items-center justify-center gap-2"
-                      >
-                        <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        {t('shared.bookings.actions.uploadEvidence')}
-                      </button>
-                      
-                      {/* Chat button - para comunicarse con el cliente */}
-                      {b.status !== 'cancelled' && (
-                        <button 
-                          onClick={()=> openBookingChat(b)} 
-                          disabled={chatLoading === b._id}
-                          className="w-full px-4 py-2.5 rounded-xl bg-brand-50 hover:bg-brand-100 border border-brand-200 text-sm font-medium text-brand-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                        >
-                          {chatLoading === b._id ? (
-                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                          ) : (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                          )}
-                          {t('shared.bookings.actions.openChat')}
-                        </button>
-                      )}
-                      
-                      {/* Generar Factura - solo para contratos activos */}
+                      {/* Generar / Ver Factura — botón PRINCIPAL más destacado con indicador de estado integrado */}
                       {['confirmed', 'in_progress', 'completed'].includes(b.status) && (
                         b.invoice?.sentAt ? (
-                          /* Ya se envió la factura → botón "Ver Factura" + badge de estado */
-                          <div className="w-full space-y-2">
-                            <button 
-                              onClick={() => openInvoicePdf({
-                                bookingId: b._id,
-                                url: b.invoice.pdfUrl || '',
-                                name: `Invoice_${b.invoice.invoiceNumber || ''}.pdf`,
-                                invoiceNumber: b.invoice.invoiceNumber || '',
-                                total: b.invoice.total != null ? fmtCurrency(b.invoice.total, b.invoice.currency || 'USD') : '',
-                                currency: b.invoice.currency || 'USD'
-                              })}
-                              className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500/90 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-semibold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/35 transition-all flex items-center justify-center gap-2"
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                              {t('invoice.viewInvoice')}
-                            </button>
-                            {/* Invoice viewed badge — visible only to provider */}
+                          <button 
+                            onClick={() => openInvoicePdf({
+                              bookingId: b._id,
+                              url: b.invoice.pdfUrl || '',
+                              name: `Invoice_${b.invoice.invoiceNumber || ''}.pdf`,
+                              invoiceNumber: b.invoice.invoiceNumber || '',
+                              total: b.invoice.total != null ? fmtCurrency(b.invoice.total, b.invoice.currency || 'USD') : '',
+                              currency: b.invoice.currency || 'USD'
+                            })}
+                            className="w-full px-4 py-3 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-dark-800 text-sm font-bold shadow-lg shadow-accent-500/25 hover:shadow-accent-500/40 transition-all flex items-center justify-center gap-2 relative"
+                          >
+                            <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            {t('invoice.viewInvoice')}
+                            {/* Indicador de vista integrado */}
                             {b.invoice?.viewedAt ? (
-                              <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 border border-green-200 text-green-700" title={t('invoice.viewedAt', { date: new Date(b.invoice.viewedAt).toLocaleDateString() })}>
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span className="text-xs font-semibold">{t('invoice.viewedBadge')}</span>
-                              </div>
+                              <span className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-green-600/20 text-green-900 text-[10px] font-semibold" title={t('invoice.viewedAt', { date: new Date(b.invoice.viewedAt).toLocaleDateString() })}>
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                {t('invoice.viewedBadge')}
+                              </span>
                             ) : (
-                              <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-600">
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span className="text-xs font-medium">{t('invoice.notViewedYet')}</span>
-                              </div>
+                              <span className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-dark-800/15 text-dark-800/70 text-[10px] font-medium">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                {t('invoice.notViewedYet')}
+                              </span>
                             )}
-                          </div>
+                          </button>
                         ) : (
-                          /* No se ha enviado → botón "Generar Factura" */
                           <button 
                             onClick={() => { setInvoiceBooking(b); setInvoiceOpen(true); }}
-                            className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400/90 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-dark-800 text-sm font-semibold shadow-lg shadow-accent-500/20 hover:shadow-accent-500/35 transition-all flex items-center justify-center gap-2"
+                            className="w-full px-4 py-3 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-dark-800 text-sm font-bold shadow-lg shadow-accent-500/25 hover:shadow-accent-500/40 transition-all flex items-center justify-center gap-2"
                           >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                             {t('invoice.generateInvoice')}
                           </button>
                         )
                       )}
+
+                      {/* Subir Resultados — enlace compacto */}
+                      <button 
+                        onClick={()=> openEvidence(b)}
+                        className="w-full flex items-center justify-center gap-1.5 text-xs font-medium text-gray-500 hover:text-brand-600 transition-colors py-1"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        {t('shared.bookings.actions.uploadEvidence')}
+                      </button>
                     </>
                   )}
                   {isClient && (
                     <>
-                      {/* Chat button - para comunicarse con el proveedor */}
-                      {b.status !== 'cancelled' && (
-                        <button 
-                          onClick={()=> openBookingChat(b)} 
-                          disabled={chatLoading === b._id}
-                          className="w-full px-4 py-2.5 rounded-xl bg-brand-50 hover:bg-brand-100 border border-brand-200 text-sm font-medium text-brand-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                        >
-                          {chatLoading === b._id ? (
-                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                          ) : (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                      {/* Dejar Reseña — solo si completado y aún no reseñó */}
+                      {b.status === 'completed' && (
+                        <>
+                          {/* Cargando estado de reseña */}
+                          {reviewsByBooking[b._id] === undefined && reviewLoadingMap[b._id] && (
+                            <div className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-500 font-medium flex items-center justify-center gap-2">
+                              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                              {t('shared.bookings.review.verifying')}
+                            </div>
                           )}
-                          {t('shared.bookings.actions.openChat')}
-                        </button>
+
+                          {/* No hay reseña (null) — botón para crear */}
+                          {reviewsByBooking[b._id] === null && !reviewedIds.has(b._id) && (
+                            <button 
+                              onClick={()=> openReview(b)} 
+                              className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-white text-sm font-medium shadow-lg shadow-accent-500/25 transition-all flex items-center justify-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                              {t('shared.bookings.actions.leaveReview')}
+                            </button>
+                          )}
+
+                          {/* Aún no cargado y no cargando — botón para crear */}
+                          {reviewsByBooking[b._id] === undefined && !reviewLoadingMap[b._id] && !reviewedIds.has(b._id) && (
+                            <button 
+                              onClick={()=> openReview(b)} 
+                              className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-white text-sm font-medium shadow-lg shadow-accent-500/25 transition-all flex items-center justify-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                              {t('shared.bookings.actions.leaveReview')}
+                            </button>
+                          )}
+
+                          {/* Ya envió reseña en esta sesión */}
+                          {reviewedIds.has(b._id) && (
+                            <div className="w-full px-3 py-2 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center gap-2">
+                              <svg className="w-4 h-4 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                              <span className="text-xs font-medium text-brand-700">{t('shared.bookings.review.reviewSent')}</span>
+                            </div>
+                          )}
+                        </>
                       )}
 
-                      {/* Ver Factura - solo si el proveedor ya envió una factura */}
+                      {/* Ver Factura — botón principal, solo si el proveedor ya envió factura */}
                       {b.invoice?.sentAt && (
                         <button 
                           onClick={() => openInvoicePdf({
@@ -1646,9 +1624,9 @@ export default function Bookings() {
                             total: b.invoice.total != null ? fmtCurrency(b.invoice.total, b.invoice.currency || 'USD') : '',
                             currency: b.invoice.currency || 'USD'
                           })}
-                          className="w-full px-4 py-2.5 rounded-xl bg-linear-to-r from-accent-400/90 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-dark-800 text-sm font-semibold shadow-lg shadow-accent-500/20 hover:shadow-accent-500/35 transition-all flex items-center justify-center gap-2"
+                          className="w-full px-4 py-3 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-dark-800 text-sm font-bold shadow-lg shadow-accent-500/25 hover:shadow-accent-500/40 transition-all flex items-center justify-center gap-2"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
                           {t('invoice.viewInvoice')}
@@ -2663,11 +2641,12 @@ export default function Bookings() {
           {/* PDF embed (native browser rendering via blob URL for speed) */}
           <div className="flex-1 relative bg-gray-800">
             {invoicePdfViewer.blobUrl ? (
-              <iframe
+              <PdfCanvasViewer
                 src={invoicePdfViewer.blobUrl}
                 title={invoicePdfViewer.name}
-                className="w-full h-full border-0"
+                className="w-full h-full"
                 style={{ minHeight: '400px' }}
+                accentColor="teal"
               />
             ) : invoicePdfViewer.url ? (
               /* Loading state while blob is being fetched */

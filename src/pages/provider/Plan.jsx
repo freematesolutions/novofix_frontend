@@ -304,11 +304,7 @@ export default function Plan() {
               return (
                 <div 
                   key={p._id || p.name} 
-                  className={`relative bg-white rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col ${
-                    active 
-                      ? 'border border-gray-100 shadow-sm' 
-                      : 'border-2 border-brand-400 shadow-md'
-                  }`}
+                  className="relative bg-white rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col border-2 border-brand-400 shadow-md"
                 >
                   {/* Popular Badge */}
                   {isPopular && !active && (

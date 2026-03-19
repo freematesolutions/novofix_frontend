@@ -6,6 +6,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import api from '@/state/apiClient.js';
 import { useToast } from '@/components/ui/Toast.jsx';
+import PdfCanvasViewer from '@/components/ui/PdfCanvasViewer.jsx';
 
 /* ───────────────────────────────────────
    Constantes de diseño
@@ -862,13 +863,13 @@ export default function InvoiceGeneratorModal({
             ) : (
               /* ── Step 2: Preview ── */
               <div className="px-5 sm:px-6 py-5">
-                <div className="bg-gray-100 rounded-xl overflow-hidden border border-gray-200" style={{ height: '60vh' }}>
+                <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-200" style={{ height: '60vh' }}>
                   {previewUrl ? (
-                    <iframe
+                    <PdfCanvasViewer
                       src={previewUrl}
                       title={t('invoice.previewTitle')}
                       className="w-full h-full"
-                      style={{ border: 'none' }}
+                      accentColor="brand"
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full text-gray-400">

@@ -6,6 +6,7 @@ import api from '@/state/apiClient.js';
 import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketClient.js';
 import { compressImage } from '@/utils/fileCompression.js';
 import { useTranslation } from 'react-i18next';
+import PdfCanvasViewer from '@/components/ui/PdfCanvasViewer.jsx';
 
 /**
  * ChatRoom Component - Componente de chat en tiempo real reutilizable
@@ -1713,11 +1714,12 @@ function ChatRoom({
           {/* PDF embed — native browser rendering via blob URL */}
           <div className="flex-1 relative bg-gray-800">
             {pdfViewer.blobUrl ? (
-              <iframe
+              <PdfCanvasViewer
                 src={pdfViewer.blobUrl}
                 title={pdfViewer.name}
-                className="w-full h-full border-0"
+                className="w-full h-full"
                 style={{ minHeight: '400px' }}
+                accentColor="red"
               />
             ) : (
               /* Loading state while blob is being fetched */

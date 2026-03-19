@@ -1402,6 +1402,9 @@
   "shared": {
     "bookings": {
       "service": "Service",
+      "card": {
+        "contractTitle": "Service Contract"
+      },
       "title": {
         "provider": "My Contracts",
         "client": "My Contracted Services"
@@ -3845,7 +3848,12 @@
     "pdfFallbackLink": "Can't see the document? Click here to open it",
     "viewedBadge": "Invoice viewed",
     "viewedAt": "Viewed on {{date}}",
-    "notViewedYet": "Not yet viewed by client"
+    "notViewedYet": "Not viewed",
+    "loadingPdf": "Loading document...",
+    "pdfRenderError": "Could not render the document",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
+    "pageOf": "{{current}} / {{total}}"
   },
   "upload": {
     "defaultMessage": "Uploading file...",

@@ -425,7 +425,12 @@
     "pdfFallbackLink": "¿No se ve el documento? Haz clic aquí para abrirlo",
     "viewedBadge": "Factura vista",
     "viewedAt": "Vista el {{date}}",
-    "notViewedYet": "Aún no vista por el cliente"
+    "notViewedYet": "Aún no vista",
+    "loadingPdf": "Cargando documento...",
+    "pdfRenderError": "No se pudo renderizar el documento",
+    "prevPage": "Página anterior",
+    "nextPage": "Página siguiente",
+    "pageOf": "{{current}} / {{total}}"
   },
   "upload": {
     "defaultMessage": "Subiendo archivo...",
@@ -1504,6 +1509,9 @@
   "shared": {
     "bookings": {
       "service": "Servicio",
+      "card": {
+        "contractTitle": "Contrato de Servicio"
+      },
       "title": {
         "provider": "Mis Contratos",
         "client": "Mis Servicios Contratados"
