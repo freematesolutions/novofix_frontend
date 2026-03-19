@@ -423,7 +423,7 @@
     "openNewTab": "Abrir en nueva pestaña",
     "pdfNotAvailable": "El PDF de esta factura no está disponible",
     "pdfFallbackLink": "¿No se ve el documento? Haz clic aquí para abrirlo",
-    "viewedBadge": "Factura vista",
+    "viewedBadge": "Vista",
     "viewedAt": "Vista el {{date}}",
     "notViewedYet": "Aún no vista",
     "loadingPdf": "Cargando documento...",

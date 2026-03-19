@@ -1526,21 +1526,21 @@ export default function Bookings() {
                               total: b.invoice.total != null ? fmtCurrency(b.invoice.total, b.invoice.currency || 'USD') : '',
                               currency: b.invoice.currency || 'USD'
                             })}
-                            className="w-full px-4 py-3 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-dark-800 text-sm font-bold shadow-lg shadow-accent-500/25 hover:shadow-accent-500/40 transition-all flex items-center justify-center gap-2 relative"
+                            className="w-full px-3 sm:px-4 py-3 rounded-xl bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-dark-800 text-sm font-bold shadow-lg shadow-accent-500/25 hover:shadow-accent-500/40 transition-all flex items-center justify-center gap-1.5 sm:gap-2 flex-nowrap"
                           >
-                            <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            {t('invoice.viewInvoice')}
+                            <span className="whitespace-nowrap">{t('invoice.viewInvoice')}</span>
                             {/* Indicador de vista integrado */}
                             {b.invoice?.viewedAt ? (
-                              <span className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-green-600/20 text-green-900 text-[10px] font-semibold" title={t('invoice.viewedAt', { date: new Date(b.invoice.viewedAt).toLocaleDateString() })}>
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                              <span className="ml-0.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-green-600/20 text-green-900 text-[10px] font-semibold whitespace-nowrap shrink-0" title={t('invoice.viewedAt', { date: new Date(b.invoice.viewedAt).toLocaleDateString() })}>
+                                <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                                 {t('invoice.viewedBadge')}
                               </span>
                             ) : (
-                              <span className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-dark-800/15 text-dark-800/70 text-[10px] font-medium">
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              <span className="ml-0.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-dark-800/15 text-dark-800/70 text-[10px] font-medium whitespace-nowrap shrink-0">
+                                <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 {t('invoice.notViewedYet')}
                               </span>
                             )}

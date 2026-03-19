@@ -3846,7 +3846,7 @@
     "openNewTab": "Open in new tab",
     "pdfNotAvailable": "The PDF for this invoice is not available",
     "pdfFallbackLink": "Can't see the document? Click here to open it",
-    "viewedBadge": "Invoice viewed",
+    "viewedBadge": "Viewed",
     "viewedAt": "Viewed on {{date}}",
     "notViewedYet": "Not viewed",
     "loadingPdf": "Loading document...",
