@@ -293,6 +293,8 @@
     "welcomeClient": "¡Bienvenido! Te has registrado como cliente",
     "tryAgain": "Por favor intenta de nuevo",
     "planUpdated": "Plan actualizado correctamente",
+    "subscriptionActivated": "¡Suscripción activada exitosamente!",
+    "checkoutCanceled": "Pago cancelado. Puedes intentarlo cuando desees.",
     "proposalSent": "Estimado enviado correctamente",
     "draftSaved": "Borrador guardado",
     "codeApplied": "Código aplicado correctamente",
@@ -573,6 +575,14 @@
         "title": "Factura vista 👁️",
         "message": "{{clientName}} ha visto tu factura{{invoiceNumber}}.",
         "messageDefault": "El cliente ha visto tu factura."
+      },
+      "SUBSCRIPTION_ACTIVATED": {
+        "title": "¡Suscripción activada! 🎉",
+        "message": "Tu plan {{planName}} ha sido activado exitosamente. ¡Ya puedes disfrutar de todos sus beneficios!"
+      },
+      "SUBSCRIPTION_DOWNGRADED": {
+        "title": "Plan actualizado",
+        "message": "Tu suscripción ha sido cancelada. Ahora estás en el plan Básico gratuito."
       },
       "DEFAULT": {
         "title": "Notificación",
@@ -3686,20 +3696,15 @@
       "free": "Gratis",
       "unlimited": "Ilimitado",
       "leadsMonth": "leads/mes",
-      "changeTo": "Cambiar a {{plan}}",
-      "changeToFree": "Cambiar a plan básico",
+      "changeTo": "Activar {{plan}}",
+      "changeToFree": "Cambiar a plan Básico",
       "processing": "Procesando...",
       "noPlansAvailable": "No hay planes disponibles",
       "plansComingSoon": "Planes próximamente",
       "planNames": {
         "free": "Básico",
-        "basic": "Experto",
-        "pro": "Elite",
-        "professional": "Elite",
-        "premium": "Premium",
-        "starter": "Inicial",
-        "starterMonthly": "Inicial Mensual",
-        "starterAnnual": "Inicial Anual"
+        "expert": "Experto",
+        "elite": "Élite"
       },
       "perMonth": "/mes",
       "codeApplied": "Código aplicado",
@@ -3707,7 +3712,22 @@
       "loadError": "No se pudo cargar la información del plan",
       "updateError": "Error al cambiar de plan",
       "updateSuccess": "Plan actualizado",
-      "upgrade": "Mejorar plan"
+      "upgrade": "Mejorar plan",
+      "urgentAndScheduled": "Leads Urgentes + Programados",
+      "scheduledOnly": "Solo Programados (24h retardo)",
+      "scheduledWithDelay": "Leads Programados (24h retardo)",
+      "verifiedBadge": "Badge Verificado",
+      "profileViews": "Visualización de visitas al perfil",
+      "performanceReports": "Reportes de rendimiento mensual",
+      "vipSupport": "Soporte VIP directo",
+      "portfolioVideos": "Portafolio",
+      "maxVideos": "máx. {{count}} video(s)",
+      "cancelsAtEnd": "Se cancela al final del periodo",
+      "subscriptionActivated": "¡Suscripción activada exitosamente!",
+      "checkoutCanceled": "Pago cancelado. Puedes intentarlo cuando desees.",
+      "activateExpert": "¡Activa Plan Experto para contacto instantáneo!",
+      "choosePlan": "Elige el plan que mejor se adapte a tu negocio",
+      "referralHint": "Obtén beneficios al ingresar un código de referido"
     },
     "services": {
       "title": "Mis Servicios",

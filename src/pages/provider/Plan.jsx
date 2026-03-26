@@ -1,28 +1,165 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Alert from '@/components/ui/Alert.jsx';
-import Button from '@/components/ui/Button.jsx';
 import Spinner from '@/components/ui/Spinner.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
-import { HiSparkles, HiLightningBolt, HiStar, HiCheck, HiCreditCard, HiCalendar, HiChartBar, HiGift, HiTicket, HiBadgeCheck } from 'react-icons/hi';
+import {
+  HiSparkles, HiLightningBolt, HiStar, HiCheck, HiCreditCard,
+  HiCalendar, HiChartBar, HiGift, HiBadgeCheck,
+  HiEye, HiDocumentReport, HiSupport, HiFilm, HiArrowRight,
+  HiClock, HiTrendingUp
+} from 'react-icons/hi';
 
+/* ────────────────────────────────────────────────────── */
+/*  Helper: translate plan name                          */
+/* ────────────────────────────────────────────────────── */
+const PLAN_KEY_MAP = {
+  gratis: 'free', free: 'free', basico: 'free', basic: 'free',
+  experto: 'expert', expert: 'expert',
+  elite: 'elite', 'elité': 'elite'
+};
+
+function usePlanHelpers(t) {
+  const translateName = (displayName, planName) => {
+    const raw = (displayName || planName || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const key = PLAN_KEY_MAP[raw];
+    return key ? t(`provider.plan.planNames.${key}`) : displayName || planName;
+  };
+
+  const icon = (name, cls = 'w-6 h-6') => {
+    const n = name?.toLowerCase();
+    if (n === 'elite') return <HiSparkles className={cls} />;
+    if (n === 'expert') return <HiLightningBolt className={cls} />;
+    return <HiStar className={cls} />;
+  };
+
+  const gradient = (name) => {
+    const n = name?.toLowerCase();
+    if (n === 'elite') return 'from-amber-500 to-amber-600';
+    if (n === 'expert') return 'from-brand-500 to-brand-600';
+    return 'from-gray-400 to-gray-500';
+  };
+
+  const ring = (name) => {
+    const n = name?.toLowerCase();
+    if (n === 'elite') return 'ring-amber-400/40';
+    if (n === 'expert') return 'ring-brand-400/40';
+    return 'ring-gray-300/40';
+  };
+
+  return { translateName, icon, gradient, ring };
+}
+
+/* ────────────────────────────────────────────────────── */
+/*  Feature list builder                                 */
+/* ────────────────────────────────────────────────────── */
+function buildFeatures(plan, t) {
+  const f = plan.features || {};
+  const items = [];
+
+  // Lead types
+  const hasUrgent = (f.leadTypes || []).includes('urgent');
+  items.push({
+    icon: hasUrgent ? <HiLightningBolt className="w-3.5 h-3.5" /> : <HiClock className="w-3.5 h-3.5" />,
+    text: hasUrgent
+      ? t('provider.plan.urgentAndScheduled')
+      : t('provider.plan.scheduledWithDelay'),
+    highlight: hasUrgent
+  });
+
+  // Visibility
+  items.push({
+    icon: <HiTrendingUp className="w-3.5 h-3.5" />,
+    text: `${t('provider.plan.visibility')} x${f.visibilityMultiplier}`,
+    highlight: f.visibilityMultiplier > 1
+  });
+
+  // Verified badge
+  if (f.verifiedBadge) {
+    items.push({
+      icon: <HiBadgeCheck className="w-3.5 h-3.5" />,
+      text: t('provider.plan.verifiedBadge'),
+      highlight: true
+    });
+  }
+
+  // Profile views
+  if (f.profileViewsVisible) {
+    items.push({
+      icon: <HiEye className="w-3.5 h-3.5" />,
+      text: t('provider.plan.profileViews'),
+      highlight: true
+    });
+  }
+
+  // Performance reports
+  if (f.performanceReports) {
+    items.push({
+      icon: <HiDocumentReport className="w-3.5 h-3.5" />,
+      text: t('provider.plan.performanceReports'),
+      highlight: true
+    });
+  }
+
+  // VIP support
+  if (f.vipSupport) {
+    items.push({
+      icon: <HiSupport className="w-3.5 h-3.5" />,
+      text: t('provider.plan.vipSupport'),
+      highlight: true
+    });
+  }
+
+  // Portfolio
+  const vids = f.maxPortfolioVideos;
+  items.push({
+    icon: <HiFilm className="w-3.5 h-3.5" />,
+    text: `${t('provider.plan.portfolioVideos')}: ${vids < 0 ? t('provider.plan.unlimited') : t('provider.plan.maxVideos', { count: vids })}`,
+    highlight: vids < 0 || vids > 1
+  });
+
+  return items;
+}
+
+/* ════════════════════════════════════════════════════ */
+/*  PLAN PAGE                                         */
+/* ════════════════════════════════════════════════════ */
 export default function Plan() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
   const { viewRole, clearError, isAuthenticated, isRoleSwitching } = useAuth();
   const toast = useToast();
+  const { translateName, icon, gradient, ring } = usePlanHelpers(t);
+
   const [loading, setLoading] = useState(true);
   const [plans, setPlans] = useState([]);
   const [status, setStatus] = useState(null);
-  const [changing, setChanging] = useState(false);
+  const [changing, setChanging] = useState(null);
   const [referralCode, setReferralCode] = useState('');
   const [referralLoading, setReferralLoading] = useState(false);
 
-  useEffect(()=>{ clearError?.(); }, [clearError]);
+  useEffect(() => { clearError?.(); }, [clearError]);
 
+  /* ── Checkout return handler ── */
+  useEffect(() => {
+    const result = searchParams.get('checkout');
+    if (result === 'success') {
+      toast.success(t('toast.subscriptionActivated', '¡Suscripción activada exitosamente!'));
+      setSearchParams({}, { replace: true });
+      // Reload plan data — the webhook may have already updated the DB
+      load();
+    } else if (result === 'canceled') {
+      toast.info(t('toast.checkoutCanceled', 'Pago cancelado. Puedes intentarlo cuando desees.'));
+      setSearchParams({}, { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, setSearchParams, toast, t]);
+
+  /* ── Load data ── */
   const load = async () => {
     if (!isAuthenticated) return;
     setLoading(true);
@@ -33,44 +170,49 @@ export default function Plan() {
       ]);
       if (plansRes.data?.success) setPlans(plansRes.data.data.plans || []);
       if (statusRes.data?.success) setStatus(statusRes.data.data);
-    } catch (err) {
+    } catch {
       toast.error(t('toast.errorLoadingPlans'));
     } finally {
       setLoading(false);
     }
   };
-  useEffect(()=>{ if (isAuthenticated) load(); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [isAuthenticated]);
+  useEffect(() => {
+    if (isAuthenticated) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
+  /* ── Change plan ── */
   const changePlan = async (name) => {
     if (!name || changing) return;
-    setChanging(true);
+    setChanging(name);
     try {
-      const { data } = await api.post('/provider/subscription/change', { planName: name });
-      if (data?.success) {
-        toast.success(t('toast.planUpdated'));
-        await load();
+      if (name === 'free') {
+        const { data } = await api.post('/provider/subscription/downgrade');
+        if (data?.success) { toast.success(t('toast.planUpdated')); await load(); }
+        else toast.warning(data?.message || t('toast.couldNotChangePlan'));
       } else {
+        const { data } = await api.post('/provider/subscription/checkout', { planName: name });
+        if (data?.success && data.data?.checkoutUrl) {
+          window.location.href = data.data.checkoutUrl;
+          return;
+        }
         toast.warning(data?.message || t('toast.couldNotChangePlan'));
       }
     } catch (err) {
       toast.error(err?.response?.data?.message || t('toast.errorChangingPlan'));
     } finally {
-      setChanging(false);
+      setChanging(null);
     }
   };
 
+  /* ── Referral ── */
   const applyReferral = async () => {
     if (!referralCode.trim()) return;
     setReferralLoading(true);
     try {
       const { data } = await api.post('/provider/subscription/apply-referral', { code: referralCode.trim() });
-      if (data?.success) {
-        toast.success(t('toast.codeApplied'));
-        setReferralCode('');
-        await load();
-      } else {
-        toast.warning(data?.message || t('toast.couldNotApplyCode'));
-      }
+      if (data?.success) { toast.success(t('toast.codeApplied')); setReferralCode(''); await load(); }
+      else toast.warning(data?.message || t('toast.couldNotApplyCode'));
     } catch (err) {
       toast.error(err?.response?.data?.message || t('toast.errorApplyingCode'));
     } finally {
@@ -78,347 +220,276 @@ export default function Plan() {
     }
   };
 
-  // Plan icon based on tier
-  const getPlanIcon = (name) => {
-    const n = name?.toLowerCase();
-    if (n === 'premium' || n === 'professional' || n === 'pro') return <HiSparkles className="w-6 h-6" />;
-    if (n === 'basic' || n === 'starter') return <HiLightningBolt className="w-6 h-6" />;
-    return <HiStar className="w-6 h-6" />;
-  };
+  /* ── Sorted plans: free → expert → elite ── */
+  const sortedPlans = useMemo(
+    () => [...plans].sort((a, b) => (a.metadata?.order || 0) - (b.metadata?.order || 0)),
+    [plans]
+  );
 
-  // Plan gradient based on tier
-  const getPlanGradient = (name, isActive) => {
-    const n = name?.toLowerCase();
-    if (isActive) return 'from-brand-500 to-brand-600';
-    if (n === 'premium' || n === 'professional' || n === 'pro') return 'from-accent-400 to-accent-500';
-    if (n === 'basic' || n === 'starter') return 'from-dark-600 to-dark-700';
-    return 'from-gray-400 to-gray-500';
-  };
-
-  // Translate plan name from API (backend returns Spanish names)
-  const translatePlanName = (displayName, planName) => {
-    const name = displayName || planName || '';
-    const normalized = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    // Map Spanish plan names to translation keys
-    const planKeyMap = {
-      'gratis': 'free',
-      'free': 'free',
-      'basico': 'basic',
-      'basic': 'basic',
-      'starter': 'starterMonthly',
-      'pro': 'pro',
-      'profesional': 'professional',
-      'professional': 'professional',
-      'premium': 'premium'
-    };
-    const key = planKeyMap[normalized];
-    return key ? t(`provider.plan.planNames.${key}`) : name;
-  };
-
-  // Redirigir al inicio si no está autenticado
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/', { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  // Durante transición de rol, no mostrar mensaje de advertencia
-  if (isRoleSwitching) {
-    return null;
-  }
-
+  /* ── Guards ── */
+  useEffect(() => { if (!isAuthenticated) navigate('/', { replace: true }); }, [isAuthenticated, navigate]);
+  if (!isAuthenticated || isRoleSwitching) return null;
   if (viewRole !== 'provider') {
-    return (
-      <div className="max-w-xl mx-auto">
-        <Alert type="warning">{t('provider.plan.providerOnly')}</Alert>
-      </div>
-    );
+    return <div className="max-w-xl mx-auto"><Alert type="warning">{t('provider.plan.providerOnly')}</Alert></div>;
   }
 
+  const currentPlanName = status?.plan?.name || status?.subscription?.plan || 'free';
+  const isPaid = currentPlanName !== 'free';
+
+  /* ── Currency formatter ── */
+  const fmtPrice = (amount, currency = 'USD') =>
+    amount === 0
+      ? t('provider.plan.free')
+      : Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+
+  /* ════════════════════════════════════════════ */
+  /*  RENDER                                     */
+  /* ════════════════════════════════════════════ */
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      {/* Header Section */}
-      <div className="overflow-hidden bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 rounded-2xl p-8 text-white relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
-        <div className="relative">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+    <div className="max-w-5xl mx-auto space-y-6 pb-10">
+
+      {/* ─────────── HERO HEADER ─────────── */}
+      <div className="relative overflow-hidden bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 rounded-2xl px-6 py-8 sm:px-8 sm:py-10 text-white">
+        {/* Decorative blobs */}
+        <div className="absolute top-0 right-0 w-72 h-72 bg-brand-500/15 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-56 h-56 bg-accent-500/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
+
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0">
               <HiCreditCard className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{t('provider.plan.title')}</h1>
-              <p className="text-brand-100 text-sm">{t('provider.plan.subtitle')}</p>
+              <h1 className="text-xl sm:text-2xl font-bold leading-tight">{t('provider.plan.title')}</h1>
+              <p className="text-brand-200 text-sm mt-0.5">{t('provider.plan.subtitle')}</p>
             </div>
           </div>
+
+          {/* Quick current plan pill */}
+          {!loading && status && (
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 self-start sm:self-auto">
+              <span className={`w-2 h-2 rounded-full ${isPaid ? 'bg-brand-400' : 'bg-gray-400'} animate-pulse`} />
+              <span className="text-sm font-medium">
+                {translateName(status.plan.displayName, status.plan.name)}
+              </span>
+              {isPaid && (
+                <span className="text-xs text-brand-200">
+                  {fmtPrice(status.plan.price?.monthly, status.plan.price?.currency)}{t('provider.plan.perMonth')}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Loading State */}
+      {/* ─────────── LOADING ─────────── */}
       {loading && (
-        <div className="flex items-center justify-center gap-3 py-16">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center animate-pulse">
+        <div className="flex flex-col items-center justify-center gap-3 py-20">
+          <div className="w-12 h-12 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center animate-pulse">
             <Spinner size="sm" className="text-white" />
           </div>
-          <span className="text-gray-600 font-medium">{t('provider.plan.loading')}</span>
+          <span className="text-gray-500 text-sm">{t('provider.plan.loading')}</span>
         </div>
       )}
 
-      {/* Current Plan Status */}
+      {/* ─────────── CURRENT PLAN STATUS BAR ─────────── */}
       {!loading && status && (
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-4">
-                <div className={`w-14 h-14 rounded-xl bg-linear-to-br ${getPlanGradient(status.plan.name, true)} flex items-center justify-center text-white shadow-lg`}>
-                  {getPlanIcon(status.plan.name)}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-xl font-bold text-gray-900 capitalize">{translatePlanName(status.plan.displayName, status.plan.name)}</h3>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${status.subscription.status === 'active' ? 'bg-brand-100 text-brand-700' : 'bg-accent-100 text-accent-700'}`}>
-                      {status.subscription.status === 'active' ? t('provider.plan.active') : status.subscription.status}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-0.5">{t('provider.plan.yourCurrentPlan')}</p>
-                </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-100">
+            {/* Plan name */}
+            <div className="p-4 sm:p-5">
+              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1.5">
+                {icon(currentPlanName, 'w-4 h-4')}
+                {t('provider.plan.currentPlan')}
               </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold bg-linear-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent">
-                  {Intl.NumberFormat('en-US', { style: 'currency', currency: status.monthlyCharge.currency }).format(status.monthlyCharge.total)}
-                  <span className="text-sm font-normal text-gray-500">{t('provider.plan.perMonth')}</span>
-                </p>
-                {status.monthlyCharge.discount > 0 && (
-                  <span className="inline-flex items-center gap-1 text-xs text-brand-600 font-medium">
-                    <HiGift className="w-3.5 h-3.5" />
-                    {t('provider.plan.discountApplied')}
-                  </span>
-                )}
-              </div>
+              <p className="text-base font-bold text-gray-900 capitalize">{translateName(status.plan.displayName, status.plan.name)}</p>
+              <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                status.subscription.status === 'active' ? 'bg-brand-100 text-brand-700' : 'bg-amber-100 text-amber-700'
+              }`}>
+                {status.subscription.status === 'active' ? t('provider.plan.active') : status.subscription.status}
+              </span>
             </div>
-          </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
-            {/* Leads Usage */}
-            <div className="p-5">
-              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
+            {/* Leads */}
+            <div className="p-4 sm:p-5">
+              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1.5">
                 <HiChartBar className="w-4 h-4" />
                 {t('provider.plan.leadsUsed')}
               </div>
-              <p className="text-lg font-bold text-gray-900">
-                {status.subscription.leadsUsed}
-                <span className="text-gray-400 font-normal text-sm">
-                  {status.plan.features.leadLimit < 0 ? ' / ∞' : ` / ${status.plan.features.leadLimit}`}
-                </span>
+              <p className="text-base font-bold text-gray-900">
+                {status.subscription.leadsUsed}<span className="text-gray-400 font-normal text-sm"> / ∞</span>
               </p>
-              <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-linear-to-r from-brand-500 to-brand-600 rounded-full transition-all duration-500" 
-                  style={{ width: `${status.plan.features.leadLimit < 0 ? 30 : Math.min(100, (status.subscription.leadsUsed / status.plan.features.leadLimit) * 100)}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Commission Rate */}
-            <div className="p-5">
-              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
-                <HiTicket className="w-4 h-4" />
-                {t('provider.plan.commission')}
-              </div>
-              <p className="text-lg font-bold text-gray-900">{status.plan.features.commissionRate}%</p>
-              <p className="text-xs text-gray-500 mt-1">{t('provider.plan.perTransaction')}</p>
+              <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">
+                {(status.plan.features?.leadTypes || []).includes('urgent')
+                  ? t('provider.plan.urgentAndScheduled')
+                  : t('provider.plan.scheduledOnly')}
+              </p>
             </div>
 
             {/* Visibility */}
-            <div className="p-5">
-              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
-                <HiBadgeCheck className="w-4 h-4" />
+            <div className="p-4 sm:p-5">
+              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1.5">
+                <HiTrendingUp className="w-4 h-4" />
                 {t('provider.plan.visibility')}
               </div>
-              <p className="text-lg font-bold text-gray-900">x{status.plan.features.visibilityMultiplier}</p>
-              <p className="text-xs text-gray-500 mt-1">{t('provider.plan.multiplier')}</p>
+              <p className="text-base font-bold text-gray-900">x{status.plan.features?.visibilityMultiplier || 1}</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">{t('provider.plan.multiplier')}</p>
             </div>
 
-            {/* Next Period */}
-            <div className="p-5">
-              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-2">
+            {/* Next period */}
+            <div className="p-4 sm:p-5">
+              <div className="flex items-center gap-2 text-gray-500 text-xs font-medium mb-1.5">
                 <HiCalendar className="w-4 h-4" />
                 {t('provider.plan.nextPeriod')}
               </div>
-              <p className="text-lg font-bold text-gray-900">
-                {status.subscription.currentPeriodEnd 
-                  ? new Date(status.subscription.currentPeriodEnd).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) 
+              <p className="text-base font-bold text-gray-900">
+                {status.subscription.currentPeriodEnd
+                  ? new Date(status.subscription.currentPeriodEnd).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
                   : '—'}
               </p>
-              <p className="text-xs text-gray-500 mt-1">{t('provider.plan.renewal')}</p>
-            </div>
-          </div>
-
-          {/* Referral Code Section */}
-          <div className="p-5 bg-linear-to-r from-gray-50 to-brand-50/30 border-t border-gray-100">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <div className="flex items-center gap-2 text-gray-700">
-                <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center">
-                  <HiGift className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-sm font-medium">{t('provider.plan.haveReferralCode')}</span>
-              </div>
-              <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
-                <input
-                  type="text"
-                  placeholder={t('provider.plan.enterCode')}
-                  className="flex-1 sm:max-w-50 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all placeholder:text-gray-400"
-                  value={referralCode}
-                  onChange={(e) => setReferralCode(e.target.value)}
-                  disabled={referralLoading}
-                />
-                <Button 
-                  size="sm" 
-                  disabled={referralLoading || !referralCode.trim()} 
-                  onClick={applyReferral}
-                  className="px-5! py-2.5! bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white rounded-xl font-medium shadow-sm"
-                >
-                  {referralLoading ? (
-                    <span className="flex items-center gap-2"><Spinner size="xs" /> {t('provider.plan.applying')}</span>
-                  ) : t('provider.plan.apply')}
-                </Button>
-              </div>
+              <p className="text-[11px] text-gray-500 mt-0.5">
+                {status.subscription?.cancelAtPeriodEnd
+                  ? <span className="text-amber-600 font-medium">{t('provider.plan.cancelsAtEnd')}</span>
+                  : t('provider.plan.renewal')}
+              </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Plans Grid */}
-      {!loading && plans.length > 0 && (
+      {/* ─────────── PLANS GRID ─────────── */}
+      {!loading && sortedPlans.length > 0 && (
         <div>
-          <h2 className="text-lg font-bold text-gray-900 mb-4">{t('provider.plan.availablePlans')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {plans.map(p => {
-              const active = status?.plan?.name === p.name;
-              const isPopular = p?.metadata?.mostPopular;
+          <h2 className="text-lg font-bold text-gray-900 mb-1">{t('provider.plan.availablePlans')}</h2>
+          <p className="text-sm text-gray-500 mb-5">{t('provider.plan.choosePlan')}</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {sortedPlans.map((p) => {
+              const isActive = currentPlanName === p.name;
+              const isPopular = p.metadata?.mostPopular;
+              const isElite = p.name?.toLowerCase() === 'elite';
+              const features = buildFeatures(p, t);
+
               return (
-                <div 
-                  key={p._id || p.name} 
-                  className="relative bg-white rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col border-2 border-brand-400 shadow-md"
+                <div
+                  key={p._id || p.name}
+                  className={`relative bg-white rounded-2xl flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${
+                    isActive
+                      ? `ring-2 ${ring(p.name)} shadow-md`
+                      : isPopular
+                        ? 'ring-2 ring-brand-400/50 shadow-md'
+                        : isElite
+                          ? 'ring-1 ring-amber-300/40 shadow-sm'
+                          : 'ring-1 ring-gray-200 shadow-sm'
+                  }`}
                 >
-                  {/* Popular Badge */}
-                  {isPopular && !active && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-linear-to-r from-accent-400 to-accent-500 text-white text-xs font-bold rounded-full shadow-lg">
-                        <HiSparkles className="w-3.5 h-3.5" />
-                        {t('provider.plan.mostPopular')}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Premium Badge */}
-                  {!active && !isPopular && ['pro', 'professional', 'premium'].includes(p.name?.toLowerCase()) && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-linear-to-r from-amber-400 to-amber-500 text-white text-xs font-bold rounded-full shadow-lg">
-                        <HiStar className="w-3.5 h-3.5" />
-                        {t('provider.plan.premiumBadge')}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Active Badge */}
-                  {active && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-linear-to-r from-brand-500 to-brand-600 text-white text-xs font-bold rounded-full shadow-lg">
-                        <HiCheck className="w-3.5 h-3.5" />
-                        {t('provider.plan.currentPlan')}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Plan Header */}
-                  <div className="p-6 pt-8 text-center border-b border-gray-100">
-                    <div className={`w-14 h-14 mx-auto mb-4 rounded-xl bg-linear-to-br ${getPlanGradient(p.name, active)} flex items-center justify-center text-white shadow-lg`}>
-                      {getPlanIcon(p.name)}
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 capitalize mb-1">{translatePlanName(p.displayName, p.name)}</h3>
-                    <p className="text-sm text-gray-500">{p.metadata?.description}</p>
-                  </div>
-
-                  {/* Pricing */}
-                  <div className="p-6 text-center border-b border-gray-100">
-                    <p className="text-4xl font-bold text-gray-900">
-                      {p.price.monthly === 0 ? (
-                        <span className="text-brand-600">{t('provider.plan.free')}</span>
+                  {/* ── Top Badge ── */}
+                  {(isActive || isPopular || isElite) && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                      {isActive ? (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-linear-to-r from-brand-500 to-brand-600 text-white text-xs font-bold rounded-full shadow-lg">
+                          <HiCheck className="w-3.5 h-3.5" />
+                          {t('provider.plan.currentPlan')}
+                        </span>
+                      ) : isPopular ? (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-linear-to-r from-brand-400 to-brand-500 text-white text-xs font-bold rounded-full shadow-lg">
+                          <HiLightningBolt className="w-3.5 h-3.5" />
+                          {t('provider.plan.mostPopular')}
+                        </span>
                       ) : (
-                        <>
-                          {Intl.NumberFormat('en-US', { style: 'currency', currency: p.price.currency }).format(p.price.monthly)}
-                        </>
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-linear-to-r from-amber-400 to-amber-500 text-white text-xs font-bold rounded-full shadow-lg">
+                          <HiSparkles className="w-3.5 h-3.5" />
+                          {t('provider.plan.premiumBadge')}
+                        </span>
                       )}
-                    </p>
-                    {p.price.monthly > 0 && (
-                      <span className="text-sm text-gray-500">{t('provider.plan.perMonth')}</span>
-                    )}
+                    </div>
+                  )}
+
+                  {/* ── Plan Header ── */}
+                  <div className="p-6 pt-8 text-center">
+                    <div className={`w-14 h-14 mx-auto mb-3 rounded-xl bg-linear-to-br ${gradient(p.name)} flex items-center justify-center text-white shadow-lg`}>
+                      {icon(p.name)}
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 capitalize">
+                      {translateName(p.displayName, p.name)}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1 min-h-8 line-clamp-2">{p.metadata?.description}</p>
                   </div>
 
-                  {/* Features */}
+                  {/* ── Price ── */}
+                  <div className="px-6 pb-4 text-center">
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className={`text-3xl font-extrabold ${
+                        p.price.monthly === 0 ? 'text-gray-700' : isElite ? 'text-amber-600' : 'text-brand-600'
+                      }`}>
+                        {fmtPrice(p.price.monthly, p.price.currency)}
+                      </span>
+                      {p.price.monthly > 0 && (
+                        <span className="text-sm text-gray-400 font-normal">{t('provider.plan.perMonth')}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ── Divider ── */}
+                  <div className="mx-6 border-t border-gray-100" />
+
+                  {/* ── Features ── */}
                   <div className="p-6 flex-1">
-                    <ul className="space-y-3">
-                      <li className="flex items-center gap-3 text-sm text-gray-700">
-                        <span className="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center shrink-0">
-                          <HiCheck className="w-3 h-3 text-brand-600" />
-                        </span>
-                        <span><strong>{p.features.leadLimit < 0 ? t('provider.plan.unlimited') : p.features.leadLimit}</strong> {t('provider.plan.leadsMonth')}</span>
-                      </li>
-                      <li className="flex items-center gap-3 text-sm text-gray-700">
-                        <span className="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center shrink-0">
-                          <HiCheck className="w-3 h-3 text-brand-600" />
-                        </span>
-                        <span>{t('provider.plan.commission')} <strong>{p.features.commissionRate}%</strong></span>
-                      </li>
-                      <li className="flex items-center gap-3 text-sm text-gray-700">
-                        <span className="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center shrink-0">
-                          <HiCheck className="w-3 h-3 text-brand-600" />
-                        </span>
-                        <span>{t('provider.plan.visibility')} <strong>x{p.features.visibilityMultiplier}</strong></span>
-                      </li>
-                      {Array.isArray(p.features.benefits) && p.features.benefits.slice(0, 3).map(b => (
-                        <li key={b} className="flex items-center gap-3 text-sm text-gray-700">
-                          <span className="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center shrink-0">
-                            <HiCheck className="w-3 h-3 text-brand-600" />
+                    <ul className="space-y-2.5">
+                      {features.map((feat, i) => (
+                        <li key={i} className="flex items-start gap-2.5 text-sm">
+                          <span className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                            feat.highlight
+                              ? 'bg-brand-100 text-brand-600'
+                              : 'bg-gray-100 text-gray-400'
+                          }`}>
+                            {feat.icon || <HiCheck className="w-3 h-3" />}
                           </span>
-                          <span className="capitalize">{b.replace(/_/g, ' ')}</span>
+                          <span className={feat.highlight ? 'text-gray-800 font-medium' : 'text-gray-500'}>
+                            {feat.text}
+                          </span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  {/* Action Button */}
-                  <div className="p-6 pt-0">
-                    {active ? (
-                      <button 
-                        disabled 
-                        className="w-full py-3 px-4 rounded-xl bg-gray-100 text-gray-500 font-medium cursor-not-allowed"
+                  {/* ── Action ── */}
+                  <div className="p-6 pt-2">
+                    {isActive ? (
+                      <button
+                        disabled
+                        className="w-full py-3 px-4 rounded-xl bg-gray-100 text-gray-400 text-sm font-medium cursor-not-allowed flex items-center justify-center gap-2"
                       >
+                        <HiCheck className="w-4 h-4" />
                         {t('provider.plan.yourCurrentPlan')}
                       </button>
                     ) : (
-                      <button 
-                        disabled={changing} 
+                      <button
+                        disabled={!!changing}
                         onClick={() => changePlan(p.name)}
-                        className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-200 ${
-                          isPopular 
-                            ? 'bg-linear-to-r from-accent-400 to-accent-500 hover:from-accent-500 hover:to-accent-600 text-white shadow-lg hover:shadow-xl' 
-                            : 'bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white shadow-md hover:shadow-lg'
+                        className={`w-full py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+                          isPopular
+                            ? 'bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white shadow-md hover:shadow-lg'
+                            : isElite
+                              ? 'bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md hover:shadow-lg'
+                              : p.price.monthly === 0
+                                ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                                : 'bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white shadow-md hover:shadow-lg'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
-                        {changing ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <Spinner size="xs" />
+                        {changing === p.name ? (
+                          <>
+                            <Spinner size="xs" className="text-current" />
                             {t('provider.plan.processing')}
-                          </span>
+                          </>
                         ) : (
-                          p.price.monthly === 0 ? t('provider.plan.changeToFree') : t('provider.plan.changeTo', { plan: translatePlanName(p.displayName, p.name) })
+                          <>
+                            {p.price.monthly === 0
+                              ? t('provider.plan.changeToFree')
+                              : t('provider.plan.changeTo', { plan: translateName(p.displayName, p.name) })
+                            }
+                            {p.price.monthly > 0 && <HiArrowRight className="w-4 h-4" />}
+                          </>
                         )}
                       </button>
                     )}
@@ -430,7 +501,43 @@ export default function Plan() {
         </div>
       )}
 
-      {/* Empty State */}
+      {/* ─────────── REFERRAL SECTION ─────────── */}
+      {!loading && status && (
+        <div className="bg-linear-to-r from-brand-50/60 to-accent-50/40 rounded-2xl border border-brand-100/60 p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-sm">
+                <HiGift className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">{t('provider.plan.haveReferralCode')}</p>
+                <p className="text-xs text-gray-500">{t('provider.plan.referralHint')}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
+              <input
+                type="text"
+                placeholder={t('provider.plan.enterCode')}
+                className="flex-1 sm:max-w-[200px] px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all placeholder:text-gray-400"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value)}
+                disabled={referralLoading}
+              />
+              <button
+                disabled={referralLoading || !referralCode.trim()}
+                onClick={applyReferral}
+                className="px-5 py-2.5 bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-medium rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {referralLoading ? (
+                  <span className="flex items-center gap-2"><Spinner size="xs" className="text-white" /> {t('provider.plan.applying')}</span>
+                ) : t('provider.plan.apply')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────── EMPTY STATE ─────────── */}
       {!loading && plans.length === 0 && (
         <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center">

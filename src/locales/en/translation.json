@@ -895,22 +895,38 @@
       "free": "Free",
       "unlimited": "Unlimited",
       "leadsMonth": "leads/month",
-      "changeTo": "Change to {{plan}}",
-      "changeToFree": "Change to basic plan",
+      "changeTo": "Activate {{plan}}",
+      "changeToFree": "Change to Basic plan",
       "processing": "Processing...",
       "noPlansAvailable": "No plans available",
       "plansComingSoon": "Plans coming soon",
       "planNames": {
         "free": "Basic",
-        "basic": "Expert",
-        "pro": "Elite",
-        "professional": "Elite",
-        "premium": "Premium",
-        "starter": "Starter",
-        "starterMonthly": "Starter Monthly",
-        "starterAnnual": "Starter Annual"
+        "expert": "Expert",
+        "elite": "Elite"
       },
-      "perMonth": "/month"
+      "perMonth": "/month",
+      "codeApplied": "Code applied",
+      "codeError": "Could not apply code",
+      "loadError": "Could not load plan information",
+      "updateError": "Error changing plan",
+      "updateSuccess": "Plan updated",
+      "upgrade": "Upgrade plan",
+      "urgentAndScheduled": "Urgent + Scheduled Leads",
+      "scheduledOnly": "Scheduled Only (24h delay)",
+      "scheduledWithDelay": "Scheduled Leads (24h delay)",
+      "verifiedBadge": "Verified Badge",
+      "profileViews": "Profile views analytics",
+      "performanceReports": "Monthly performance reports",
+      "vipSupport": "Direct VIP support",
+      "portfolioVideos": "Portfolio",
+      "maxVideos": "max. {{count}} video(s)",
+      "cancelsAtEnd": "Cancels at end of billing period",
+      "subscriptionActivated": "Subscription activated successfully!",
+      "checkoutCanceled": "Payment canceled. You can try again anytime.",
+      "activateExpert": "Activate Expert Plan for instant contact!",
+      "choosePlan": "Choose the plan that best fits your business",
+      "referralHint": "Get benefits by entering a referral code"
     },
     "services": {
       "title": "My Services",
@@ -3716,6 +3732,8 @@
     "welcomeClient": "Welcome! You've registered as a client",
     "tryAgain": "Please try again",
     "planUpdated": "Plan updated successfully",
+    "subscriptionActivated": "Subscription activated successfully!",
+    "checkoutCanceled": "Payment canceled. You can try again anytime.",
     "proposalSent": "Estimate sent successfully",
     "draftSaved": "Draft saved",
     "draftUpdated": "Draft updated",
@@ -3986,6 +4004,14 @@
         "title": "Request updated 📝",
         "message": "{{clientName}} has updated the details of the request \"{{requestTitle}}\". Review the changes.",
         "messageDefault": "A client has updated a service request. Review the new details."
+      },
+      "SUBSCRIPTION_ACTIVATED": {
+        "title": "Subscription activated! 🎉",
+        "message": "Your {{planName}} plan has been activated successfully. Enjoy all its benefits!"
+      },
+      "SUBSCRIPTION_DOWNGRADED": {
+        "title": "Plan updated",
+        "message": "Your subscription has been canceled. You are now on the free Basic plan."
       },
       "DEFAULT": {
         "title": "Notification",

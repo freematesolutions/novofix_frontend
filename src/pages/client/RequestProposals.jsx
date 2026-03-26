@@ -146,11 +146,10 @@ export default function ClientRequestProposals() {
   // Plan badge styles
   const getPlanStyle = (plan) => {
     switch (plan?.toLowerCase()) {
-      case 'premium':
-      case 'pro':
-        return 'bg-linear-to-r from-accent-500 to-accent-600 text-white';
-      case 'business':
-        return 'bg-linear-to-r from-accent-500 to-accent-600 text-white';
+      case 'elite':
+        return 'bg-linear-to-r from-amber-500 to-amber-600 text-white';
+      case 'expert':
+        return 'bg-linear-to-r from-brand-500 to-brand-600 text-white';
       default:
         return 'bg-gray-100 text-gray-700';
     }
@@ -361,7 +360,7 @@ export default function ClientRequestProposals() {
                           <h3 className="text-lg font-bold text-gray-900 truncate">{providerName}</h3>
                           {plan && (
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${getPlanStyle(plan)}`}>
-                              {plan.toLowerCase() === 'premium' || plan.toLowerCase() === 'pro' ? (
+                              {plan.toLowerCase() === 'elite' || plan.toLowerCase() === 'expert' ? (
                                 <HiLightningBolt className="w-3 h-3" />
                               ) : null}
                               {plan}

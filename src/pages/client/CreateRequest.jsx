@@ -418,8 +418,8 @@ export default function CreateRequest() {
                             )}
                             {p.plan && (
                               <span className={`px-1.5 py-0.5 rounded font-medium ${
-                                p.plan === 'pro' ? 'bg-brand-100 text-brand-700' :
-                                p.plan === 'basic' ? 'bg-gray-100 text-gray-700' :
+                                p.plan === 'elite' ? 'bg-amber-100 text-amber-700' :
+                                p.plan === 'expert' ? 'bg-brand-100 text-brand-700' :
                                 'bg-gray-100 text-gray-600'
                               }`}>
                                 {p.plan.toUpperCase()}

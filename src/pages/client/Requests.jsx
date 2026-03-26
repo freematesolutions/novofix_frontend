@@ -762,8 +762,8 @@ export default function ClientRequests() {
                                   <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-0.5">
                                     {ep.plan && (
                                       <span className={`px-1.5 py-0.5 rounded font-medium ${
-                                        ep.plan === 'pro' ? 'bg-brand-100 text-brand-700' :
-                                        ep.plan === 'basic' ? 'bg-gray-100 text-gray-700' :
+                                        ep.plan === 'elite' ? 'bg-amber-100 text-amber-700' :
+                                        ep.plan === 'expert' ? 'bg-brand-100 text-brand-700' :
                                         'bg-gray-100 text-gray-600'
                                       }`}>
                                         {ep.plan.toUpperCase()}
@@ -965,8 +965,8 @@ export default function ClientRequests() {
                           <span className="font-semibold text-gray-900 truncate">{name}</span>
                           {plan && (
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                              plan === 'pro' ? 'bg-brand-100 text-brand-700' :
-                              plan === 'basic' ? 'bg-gray-100 text-gray-700' :
+                              plan === 'elite' ? 'bg-amber-100 text-amber-700' :
+                              plan === 'expert' ? 'bg-brand-100 text-brand-700' :
                               'bg-gray-100 text-gray-600'
                             }`}>
                               {plan.toUpperCase()}

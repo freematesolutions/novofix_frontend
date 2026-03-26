@@ -90,16 +90,16 @@ const Icons = {
 
 // Plan badges config
 const planConfig = {
-  pro: { 
-    label: 'PRO', 
-    gradient: 'from-dark-500 to-dark-700',
-    bgLight: 'bg-dark-50',
-    textColor: 'text-dark-600',
-    ring: 'ring-dark-400',
+  elite: { 
+    label: 'ÉLITE', 
+    gradient: 'from-amber-500 to-amber-700',
+    bgLight: 'bg-amber-50',
+    textColor: 'text-amber-700',
+    ring: 'ring-amber-400',
     icon: '👑'
   },
-  basic: { 
-    label: 'BASIC', 
+  expert: { 
+    label: 'EXPERTO', 
     gradient: 'from-brand-500 to-brand-600',
     bgLight: 'bg-brand-50',
     textColor: 'text-brand-600',
@@ -107,7 +107,7 @@ const planConfig = {
     icon: '⭐'
   },
   free: { 
-    label: 'FREE', 
+    label: 'BÁSICO', 
     gradient: 'from-gray-400 to-gray-500',
     bgLight: 'bg-gray-50',
     textColor: 'text-gray-600',

@@ -51,6 +51,10 @@ export function getNotificationActionUrl(n) {
       ['ACCOUNT_ACTIVATED', 'ACCOUNT_DEACTIVATED'].includes(type)
     ) {
       raw = '/perfil';
+    } else if (
+      ['SUBSCRIPTION_ACTIVATED', 'SUBSCRIPTION_DOWNGRADED'].includes(type)
+    ) {
+      raw = '/plan';
     } else if (type === 'NEW_MESSAGE') {
       raw = n?.data?.chatId
         ? `/mensajes?chat=${n.data.chatId}`
