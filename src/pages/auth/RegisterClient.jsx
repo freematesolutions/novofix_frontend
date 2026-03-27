@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/state/AuthContext.jsx';
 import Button from '@/components/ui/Button.jsx';
 import PasswordToggle from '@/components/ui/PasswordToggle.jsx';
@@ -78,6 +78,8 @@ function RegisterClient() {
   useEffect(() => { clearError(); }, [clearError]);
   const toast = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const referredByCode = searchParams.get('ref') || '';
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '' });
   const [localLoading, setLocalLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -234,7 +236,7 @@ function RegisterClient() {
       return;
     }
     
-    const result = await registerClient(form);
+    const result = await registerClient({ ...form, ...(referredByCode ? { referredByCode } : {}) });
     
     if (result.pending) {
       // Registro exitoso, pendiente de verificación
@@ -541,7 +543,7 @@ function RegisterClient() {
           <div className="flex flex-col items-center mt-6 mb-4">
             <span className="text-sm text-gray-500 mb-2">{t('auth.areYouProfessional', '¿Eres profesional?')}</span>
             <Link
-              to="/registro-proveedor"
+              to={referredByCode ? `/registro-proveedor?ref=${encodeURIComponent(referredByCode)}` : '/registro-proveedor'}
               className="flex items-center gap-2 px-4 py-2.5 bg-brand-50 text-brand-700 rounded-xl font-medium hover:bg-brand-100 transition-all"
             >
               <Icons.Briefcase className="w-4 h-4" />

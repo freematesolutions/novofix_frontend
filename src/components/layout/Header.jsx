@@ -980,7 +980,7 @@ function Header() {
     ];
     // Nota: '/reservas' es compartida entre cliente y proveedor, tratar como neutral (sin auto-switch)
     const clientPaths = [
-      '/mis-solicitudes', '/mis-solicitudes/nueva', '/mis-solicitudes/'
+      '/mis-solicitudes', '/mis-solicitudes/nueva', '/mis-solicitudes/', '/mis-resenas'
     ];
     if (providerPaths.some(seg => p === seg || p.startsWith(seg))) return 'provider';
     if (clientPaths.some(seg => p === seg || p.startsWith(seg))) return 'client';
@@ -1970,6 +1970,16 @@ function Header() {
                           <span className="font-medium">{t('header.paymentsAndPlan')}</span>
                         </Link>
                       </>
+                    )}
+                    {(viewRole === 'client') && (
+                      <Link to="/mis-resenas" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 group" onClick={()=>setAccountOpen(false)}>
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-amber-50 transition-colors">
+                          <svg className="w-4 h-4 text-gray-500 group-hover:text-amber-600 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        </div>
+                        <span className="font-medium">{t('header.myReviews')}</span>
+                      </Link>
                     )}
                     {/* Switch de modo si multi-rol */}
                     {roles?.includes('client') && roles?.includes('provider') && (

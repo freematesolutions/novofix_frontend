@@ -6,7 +6,7 @@ import api from '@/state/apiClient';
 import Button from '@/components/ui/Button.jsx';
 import Alert from '@/components/ui/Alert.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
-import { HiGift, HiUsers, HiCalendar, HiShieldCheck, HiClipboardCopy, HiMail, HiShare, HiSparkles, HiCurrencyDollar, HiTrendingUp, HiCheckCircle } from 'react-icons/hi';
+import { HiGift, HiUsers, HiCalendar, HiShieldCheck, HiClipboardCopy, HiMail, HiShare, HiSparkles, HiTrendingUp, HiCheckCircle, HiClock, HiLightningBolt } from 'react-icons/hi';
 
 export default function Referrals() {
   const navigate = useNavigate();
@@ -15,10 +15,20 @@ export default function Referrals() {
   const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [data, setData] = useState({ code: '', referralsCount: 0, discountMonths: 0 });
+  const [data, setData] = useState({
+    code: '',
+    referralsCount: 0,
+    earnedDays: 0,
+    bonusActive: false,
+    bonusExpiresAt: null,
+    maxDays: 30,
+    daysPerSignup: 7,
+    programActive: true,
+    referredUsers: []
+  });
   const [copied, setCopied] = useState(false);
 
-  useEffect(()=>{ clearError?.(); }, [clearError]);
+  useEffect(() => { clearError?.(); }, [clearError]);
 
   const origin = useMemo(() => (typeof window !== 'undefined' ? window.location.origin : ''), []);
   const referralLink = data.code ? `${origin}/unete?ref=${encodeURIComponent(data.code)}` : '';
@@ -27,18 +37,25 @@ export default function Referrals() {
     if (!isAuthenticated) return;
     setLoading(true); setError('');
     try {
-      const { data: res } = await api.get('/auth/profile');
-      const u = res?.data?.user;
-      const code = u?.referral?.code || '';
-      const count = u?.referral?.referralsCount || 0;
-      const months = u?.referral?.discountMonths || 0;
-      setData({ code, referralsCount: count, discountMonths: months });
+      const { data: res } = await api.get('/provider/subscription/referral-info');
+      const info = res?.data || {};
+      setData({
+        code: info.code || '',
+        referralsCount: info.referralsCount || 0,
+        earnedDays: info.earnedDays || 0,
+        bonusActive: info.bonusActive || false,
+        bonusExpiresAt: info.bonusExpiresAt || null,
+        maxDays: info.maxDays || 30,
+        daysPerSignup: info.daysPerSignup || 7,
+        programActive: info.programActive !== false,
+        referredUsers: info.referredUsers || []
+      });
     } catch (err) {
       setError(err?.response?.data?.message || t('provider.referrals.errorLoading'));
     } finally { setLoading(false); }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, t]);
 
-  useEffect(()=>{ if (isAuthenticated) load(); }, [isAuthenticated, load]);
+  useEffect(() => { if (isAuthenticated) load(); }, [isAuthenticated, load]);
 
   const copyLink = async () => {
     try {
@@ -60,11 +77,40 @@ export default function Referrals() {
     }
   };
 
+  // Email share — internacionalizado
   const sendEmail = () => {
-    const subject = encodeURIComponent('Únete a FixNow como profesional y obtén beneficios');
-    const body = encodeURIComponent(`Hola,\n\nTe recomiendo registrarte como profesional en FixNow. Usa mi enlace para unirte:\n\n${referralLink}\n\nBeneficios: si te registras con mi enlace, yo recibo 50% de descuento en mi plan hasta por 3 meses.\n\n¡Gracias!`);
+    const subject = encodeURIComponent(t('provider.referrals.emailSubject'));
+    const body = encodeURIComponent(t('provider.referrals.emailBody', { link: referralLink, days: data.daysPerSignup }));
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
+
+  // Web Share API (WhatsApp, redes sociales, etc.)
+  const shareNative = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: t('provider.referrals.shareTitle'),
+          text: t('provider.referrals.shareText', { days: data.daysPerSignup }),
+          url: referralLink
+        });
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setError(t('provider.referrals.shareError'));
+        }
+      }
+    } else {
+      // Fallback: WhatsApp directo
+      const waText = encodeURIComponent(`${t('provider.referrals.shareText', { days: data.daysPerSignup })} ${referralLink}`);
+      window.open(`https://wa.me/?text=${waText}`, '_blank');
+    }
+  };
+
+  // Calcular días restantes del bono
+  const bonusDaysRemaining = useMemo(() => {
+    if (!data.bonusActive || !data.bonusExpiresAt) return 0;
+    const diff = new Date(data.bonusExpiresAt) - new Date();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }, [data.bonusActive, data.bonusExpiresAt]);
 
   // Redirigir al inicio si no está autenticado
   useEffect(() => {
@@ -73,14 +119,8 @@ export default function Referrals() {
     }
   }, [isAuthenticated, navigate]);
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  // Durante transición de rol, no mostrar mensaje de advertencia
-  if (isRoleSwitching) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
+  if (isRoleSwitching) return null;
 
   if (viewRole !== 'provider') {
     return (
@@ -90,10 +130,24 @@ export default function Referrals() {
     );
   }
 
-  const progressPercentage = Math.min(100, (data.discountMonths / 3) * 100);
+  const progressPercentage = Math.min(100, (data.earnedDays / data.maxDays) * 100);
+  const canEarnMore = data.earnedDays < data.maxDays;
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      {/* Urgency Banner — Programa Promocional */}
+      {data.programActive && (
+        <div className="bg-linear-to-r from-accent-500 via-accent-400 to-accent-500 rounded-2xl p-4 text-dark-900 flex items-center gap-3 shadow-lg shadow-accent-500/25 animate-pulse-subtle">
+          <div className="w-10 h-10 rounded-xl bg-dark-900/20 flex items-center justify-center shrink-0">
+            <HiLightningBolt className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-sm">{t('provider.referrals.urgencyTitle')}</p>
+            <p className="text-xs opacity-90">{t('provider.referrals.urgencyDesc', { days: data.daysPerSignup })}</p>
+          </div>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="overflow-hidden bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 rounded-2xl p-8 text-white relative">
         <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
@@ -117,14 +171,31 @@ export default function Referrals() {
             </div>
             <div className="w-px h-10 bg-white/20"></div>
             <div className="text-center px-4">
-              <p className="text-3xl font-bold">{data.discountMonths}<span className="text-lg">/3</span></p>
-              <p className="text-xs text-brand-200">{t('provider.referrals.monthsEarned')}</p>
+              <p className="text-3xl font-bold">{data.earnedDays}<span className="text-lg">/{data.maxDays}</span></p>
+              <p className="text-xs text-brand-200">{t('provider.referrals.daysEarned')}</p>
             </div>
           </div>
         </div>
       </div>
 
       {error && <Alert type="error">{error}</Alert>}
+
+      {/* Active Bonus Banner */}
+      {data.bonusActive && bonusDaysRemaining > 0 && (
+        <div className="bg-linear-to-r from-brand-500/10 to-brand-600/10 border border-brand-200 rounded-2xl p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-brand-500 flex items-center justify-center shrink-0">
+            <HiCheckCircle className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-brand-800 text-sm">{t('provider.referrals.bonusActiveTitle')}</p>
+            <p className="text-xs text-brand-600">{t('provider.referrals.bonusActiveDesc', { days: bonusDaysRemaining })}</p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-2xl font-bold text-brand-700">{bonusDaysRemaining}</p>
+            <p className="text-xs text-brand-500">{t('provider.referrals.daysLeft')}</p>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className={`space-y-6 ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
@@ -189,14 +260,25 @@ export default function Referrals() {
                     </>
                   )}
                 </button>
-                <button
-                  onClick={sendEmail}
-                  className="flex items-center gap-2 px-5 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all"
-                >
-                  <HiMail className="w-5 h-5" />
-                  Email
-                </button>
               </div>
+            </div>
+
+            {/* Share Buttons */}
+            <div className="flex items-center gap-2 mt-4">
+              <button
+                onClick={shareNative}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-brand-50 text-brand-700 rounded-xl font-medium hover:bg-brand-100 transition-all"
+              >
+                <HiShare className="w-5 h-5" />
+                {t('provider.referrals.shareWhatsapp')}
+              </button>
+              <button
+                onClick={sendEmail}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all"
+              >
+                <HiMail className="w-5 h-5" />
+                Email
+              </button>
             </div>
           </div>
         </div>
@@ -212,19 +294,21 @@ export default function Referrals() {
               <span className="px-2.5 py-1 bg-brand-100 text-brand-700 text-xs font-semibold rounded-full">Total</span>
             </div>
             <p className="text-3xl font-bold text-gray-900 mb-1">{data.referralsCount}</p>
-            <p className="text-sm text-gray-500">{t('provider.referrals.referredProfessionals')}</p>
+            <p className="text-sm text-gray-500">{t('provider.referrals.referredUsers')}</p>
           </div>
 
-          {/* Discount Months */}
+          {/* Days Earned */}
           <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-linear-to-br from-brand-500 to-brand-700 flex items-center justify-center">
                 <HiCalendar className="w-6 h-6 text-white" />
               </div>
-              <span className="px-2.5 py-1 bg-brand-100 text-brand-700 text-xs font-semibold rounded-full">50% OFF</span>
+              <span className="px-2.5 py-1 bg-brand-100 text-brand-700 text-xs font-semibold rounded-full">
+                {data.daysPerSignup} {t('provider.referrals.daysPerRef')}
+              </span>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{data.discountMonths} <span className="text-lg text-gray-400 font-normal">{t('provider.referrals.months')}</span></p>
-            <p className="text-sm text-gray-500">{t('provider.referrals.accumulatedDiscount')}</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{data.earnedDays} <span className="text-lg text-gray-400 font-normal">{t('provider.referrals.days')}</span></p>
+            <p className="text-sm text-gray-500">{t('provider.referrals.expertPlanEarned')}</p>
             {/* Progress bar */}
             <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
               <div 
@@ -232,21 +316,67 @@ export default function Referrals() {
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1">{t('provider.referrals.maxMonths', { current: data.discountMonths })}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('provider.referrals.maxDays', { current: data.earnedDays, max: data.maxDays })}</p>
           </div>
 
-          {/* Limit Info */}
+          {/* Bonus Status */}
           <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-accent-500 to-accent-600 flex items-center justify-center">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                data.bonusActive 
+                  ? 'bg-linear-to-br from-brand-500 to-brand-600' 
+                  : 'bg-linear-to-br from-gray-400 to-gray-500'
+              }`}>
                 <HiShieldCheck className="w-6 h-6 text-white" />
               </div>
-              <span className="px-2.5 py-1 bg-accent-100 text-accent-700 text-xs font-semibold rounded-full">{t('provider.referrals.maximum')}</span>
+              <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
+                data.bonusActive 
+                  ? 'bg-brand-100 text-brand-700' 
+                  : 'bg-gray-100 text-gray-500'
+              }`}>
+                {data.bonusActive ? t('provider.referrals.active') : t('provider.referrals.inactive')}
+              </span>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">3 <span className="text-lg text-gray-400 font-normal">{t('provider.referrals.months')}</span></p>
-            <p className="text-sm text-gray-500">{t('provider.referrals.discountLimit')}</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {data.bonusActive ? bonusDaysRemaining : 0} <span className="text-lg text-gray-400 font-normal">{t('provider.referrals.days')}</span>
+            </p>
+            <p className="text-sm text-gray-500">
+              {data.bonusActive ? t('provider.referrals.expertPlanRemaining') : t('provider.referrals.referToActivate')}
+            </p>
           </div>
         </div>
+
+        {/* Referral History */}
+        {data.referredUsers.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-200 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <HiTrendingUp className="w-5 h-5 text-brand-500" />
+              {t('provider.referrals.historyTitle')}
+            </h3>
+            <div className="space-y-3">
+              {data.referredUsers.map((ref, idx) => (
+                <div key={idx} className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center">
+                      <HiUsers className="w-4 h-4 text-brand-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {t(`provider.referrals.role_${ref.userRole}`, ref.userRole)}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {ref.registeredAt ? new Date(ref.registeredAt).toLocaleDateString() : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-sm font-semibold text-brand-600">
+                    +{ref.daysAwarded || data.daysPerSignup} {t('provider.referrals.days')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* How It Works Section */}
         <div className="bg-linear-to-r from-gray-50 to-brand-50/30 rounded-2xl border border-gray-200 p-6">
@@ -283,6 +413,16 @@ export default function Referrals() {
               </div>
             </div>
           </div>
+
+          {/* CTA for more referrals */}
+          {canEarnMore && (
+            <div className="mt-6 pt-4 border-t border-gray-200 text-center">
+              <p className="text-sm text-gray-600 mb-1">
+                {t('provider.referrals.canEarnMore', { remaining: data.maxDays - data.earnedDays })}
+              </p>
+              <p className="text-xs text-gray-400">{t('provider.referrals.maxDaysNote', { max: data.maxDays })}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@ export function useProviderOnboarding() {
 
 const STORAGE_KEY = 'provider_onboarding_draft';
 
-export function ProviderOnboardingProvider({ children, user, isExistingClient = false, onRegistrationComplete }) {
+export function ProviderOnboardingProvider({ children, user, isExistingClient = false, onRegistrationComplete, initialReferralCode = '' }) {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
@@ -30,6 +30,10 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
           if (parsed.timestamp && Date.now() - parsed.timestamp < 7 * 24 * 60 * 60 * 1000) {
             if (!user?.email || parsed.data?.email !== user.email) {
               const draftData = parsed.data || {};
+              // Si viene un referral code desde la URL, siempre tiene prioridad sobre el draft
+              if (initialReferralCode) {
+                draftData.referredByCode = initialReferralCode;
+              }
               if (!draftData.primaryCategory && Array.isArray(draftData.categories) && draftData.categories.length > 0) {
                 return {
                   ...draftData,
@@ -79,7 +83,7 @@ export function ProviderOnboardingProvider({ children, user, isExistingClient = 
       // Paso 4: Verificación (opcional)
       acceptTerms: false,
       acceptPrivacy: false,
-      referredByCode: '',
+      referredByCode: initialReferralCode || '',
 
       // Metadata
       isExistingClient

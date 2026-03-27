@@ -52,9 +52,17 @@ export function getNotificationActionUrl(n) {
     ) {
       raw = '/perfil';
     } else if (
-      ['SUBSCRIPTION_ACTIVATED', 'SUBSCRIPTION_DOWNGRADED'].includes(type)
+      ['SUBSCRIPTION_ACTIVATED', 'SUBSCRIPTION_DOWNGRADED', 'REFERRAL_BONUS_EXPIRED'].includes(type)
     ) {
       raw = '/plan';
+    } else if (type === 'REFERRAL_BONUS') {
+      raw = '/referidos';
+    } else if (['REVIEW_MILESTONE_FIRST', 'REVIEW_MILESTONE_THREE'].includes(type)) {
+      raw = '/reservas';
+    } else if (type === 'REVIEW_NUDGE') {
+      raw = '/reservas';
+    } else if (type === 'REVIEW_RESPONSE_NUDGE') {
+      raw = '/resenas';
     } else if (type === 'NEW_MESSAGE') {
       raw = n?.data?.chatId
         ? `/mensajes?chat=${n.data.chatId}`

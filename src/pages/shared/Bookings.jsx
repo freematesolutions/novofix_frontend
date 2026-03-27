@@ -10,6 +10,7 @@ import { useAuth } from '@/state/AuthContext.jsx';
 import Modal from '@/components/ui/Modal.jsx';
 import { compressImages, validateFiles } from '@/utils/fileCompression.js';
 import UploadProgress from '@/components/ui/UploadProgress.jsx';
+import ReviewNudgeBanner from '@/components/ui/ReviewNudgeBanner.jsx';
 import { getTranslatedRequestInfo, getTranslatedReviewInfo, useCurrentLanguage } from '@/utils/translations.js';
 import InvoiceGeneratorModal from '@/components/ui/InvoiceGeneratorModal.jsx';
 import PdfCanvasViewer from '@/components/ui/PdfCanvasViewer.jsx';
@@ -1099,6 +1100,16 @@ export default function Bookings() {
         </div>
 
         {error && <Alert type="error">{error}</Alert>}
+
+        {/* Review nudge banner — only for clients */}
+        {isClient && !loading && (
+          <ReviewNudgeBanner
+            onReviewClick={(bookingId) => {
+              const b = bookings.find(bk => bk._id === bookingId);
+              if (b) openReview(b);
+            }}
+          />
+        )}
         
         {/* Loading state premium */}
         {loading && (

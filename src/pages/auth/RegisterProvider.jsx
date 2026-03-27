@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { ProviderOnboardingProvider } from '@/state/ProviderOnboardingContext.jsx';
 import ProviderOnboardingWizard from '@/components/onboarding/ProviderOnboardingWizard.jsx';
@@ -11,8 +11,12 @@ function RegisterProvider() {
   const { user, role, roles, isAuthenticated, clearError, registerProvider } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
+
+  // Capturar código de referido desde ?ref= en la URL
+  const initialReferralCode = searchParams.get('ref') || '';
   
   useEffect(() => { clearError?.(); }, [clearError]);
   
@@ -91,6 +95,7 @@ function RegisterProvider() {
       user={user} 
       isExistingClient={isExistingClient}
       onRegistrationComplete={handleProviderRegistration}
+      initialReferralCode={initialReferralCode}
     >
       <ProviderOnboardingWizard />
     </ProviderOnboardingProvider>
