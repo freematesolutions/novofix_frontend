@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Header from './components/layout/Header.jsx';
 import Footer from './components/layout/Footer.jsx';
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx';
-import Spinner from './components/ui/Spinner.jsx';
+import { PageSkeleton } from './components/ui/SkeletonLoader.jsx';
 import VerifyEmail from './pages/auth/VerifyEmail.jsx';
 import { useAuth } from './state/AuthContext.jsx';
 import { useLocation } from 'react-router-dom';
@@ -65,7 +65,7 @@ function App() {
       {!hideHeader && <Header />}
       <ErrorBoundary>
       <main id="main-content" role="main" tabIndex="-1" className="flex-1 container mx-auto px-4 py-6">
-        <Suspense fallback={<div className="flex items-center gap-2 text-gray-600"><Spinner size="sm"/> {t('common.loading')}</div>}>
+        <Suspense fallback={<PageSkeleton />}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient.js';
 import { getNotificationActionUrl } from '@/utils/notificationLinks.js';
 import Spinner from '@/components/ui/Spinner.jsx';
+import { NotificationSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import Button from '@/components/ui/Button.jsx';
 import { 
   HiBell, 
@@ -186,10 +187,7 @@ export default function Notifications() {
 
         {/* Loading state */}
         {loading && (
-          <div className="flex items-center justify-center gap-3 py-8 text-gray-600">
-            <Spinner size="sm"/>
-            <span className="text-sm font-medium">{t('shared.notifications.loading')}</span>
-          </div>
+          <NotificationSkeleton count={4} />
         )}
 
         {/* Lista de notificaciones */}

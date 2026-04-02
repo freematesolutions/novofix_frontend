@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
+import { CalendarSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 
 export default function Calendar() {
@@ -146,12 +147,7 @@ export default function Calendar() {
         </div>
         
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-10 h-10 rounded-full border-4 border-brand-100 border-t-brand-500 animate-spin" />
-              <p className="text-sm text-gray-500">{t('provider.calendar.loadingSlots')}</p>
-            </div>
-          </div>
+          <CalendarSkeleton />
         ) : slots.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4">
             <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-gray-100 to-gray-200 mb-4">

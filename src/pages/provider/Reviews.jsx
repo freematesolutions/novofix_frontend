@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
-import Spinner from '@/components/ui/Spinner.jsx';
+import { ReviewSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import ReviewList from '@/components/ui/ReviewList.jsx';
 import StarRating from '@/components/ui/StarRating.jsx';
 import { HiStar, HiTrendingUp, HiTrendingDown, HiChat, HiClock, HiCheckCircle, HiExclamation, HiRefresh, HiChartBar } from 'react-icons/hi';
@@ -251,12 +251,7 @@ export default function ProviderReviews() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center justify-center py-16">
-          <div className="text-center">
-            <Spinner size="lg" className="text-brand-500 mx-auto mb-3" />
-            <p className="text-gray-600">{t('provider.reviews.loading')}</p>
-          </div>
-        </div>
+        <ReviewSkeleton count={3} />
       )}
 
       {/* Content */}

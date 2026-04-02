@@ -3,6 +3,7 @@
   "logoAlt": "NovoFix Logo",
   "common": {
     "loading": "Loading...",
+    "loadingContent": "Loading content",
     "secureConnection": "Secure connection",
     "trusted": "100% trusted",
     "save": "Save",
@@ -3510,6 +3511,16 @@
       "provider_review": "Pro review",
       "portfolio": "Portfolio",
       "service_evidence": "Results"
+    },
+    "beforeAfter": {
+      "title": "Before & After",
+      "subtitle": "Real results from jobs completed by our professionals",
+      "before": "Before",
+      "after": "After",
+      "viewProfile": "View profile",
+      "completedWork": "Completed work",
+      "empty": "Work results coming soon",
+      "scrollHint": "Swipe to see more transformations"
     }
   },
   "portfolio": {

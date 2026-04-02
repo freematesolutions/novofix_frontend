@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
-import Spinner from '@/components/ui/Spinner.jsx';
+import { ListSkeleton, InviteSearchSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
 import { useToast } from '@/components/ui/Toast.jsx';
@@ -379,15 +379,7 @@ export default function ClientRequests() {
 
         {/* Loading state premium */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-16 bg-white/60 backdrop-blur-xl rounded-3xl border border-brand-100/40 shadow-lg">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full border-4 border-brand-100 border-t-brand-500 animate-spin"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full bg-brand-500/20"></div>
-              </div>
-            </div>
-            <p className="mt-4 text-gray-600 font-medium">{t('client.requests.loading')}</p>
-          </div>
+          <ListSkeleton count={3} />
         )}
 
         {/* Empty state premium */}
@@ -902,10 +894,7 @@ export default function ClientRequests() {
 
             {/* Loading state */}
             {searching && (
-              <div className="flex flex-col items-center justify-center py-10">
-                <div className="w-10 h-10 rounded-full border-3 border-brand-100 border-t-brand-500 animate-spin"></div>
-                <p className="mt-3 text-sm text-gray-500">{t('client.requests.inviteModal.loading', 'Buscando profesionales...')}</p>
-              </div>
+              <InviteSearchSkeleton count={3} />
             )}
 
             {/* Lista de profesionales */}

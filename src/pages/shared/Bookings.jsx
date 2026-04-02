@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
-import Spinner from '@/components/ui/Spinner.jsx';
+import { ListSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import Modal from '@/components/ui/Modal.jsx';
@@ -1113,15 +1113,7 @@ export default function Bookings() {
         
         {/* Loading state premium */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-16 bg-white/60 backdrop-blur-xl rounded-3xl border border-brand-100/40 shadow-lg">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full border-4 border-brand-100 border-t-brand-500 animate-spin"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full bg-brand-500/20"></div>
-              </div>
-            </div>
-            <p className="mt-4 text-gray-600 font-medium">{t('shared.bookings.loading')}</p>
-          </div>
+          <ListSkeleton count={3} variant="booking" />
         )}
 
         {/* Empty state premium */}

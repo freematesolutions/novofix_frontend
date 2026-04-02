@@ -348,7 +348,8 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-scroll-indicator,
   .animate-bounce-slow,
-  .animate-pulse-glow {
+  .animate-pulse-glow,
+  .animate-bell-ring {
     animation: none;
   }
 }

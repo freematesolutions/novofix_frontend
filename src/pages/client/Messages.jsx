@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import ChatRoom from '@/components/ui/ChatRoom.jsx';
+import { ChatListSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import RequestWizardModal from '@/components/ui/RequestWizardModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
@@ -405,9 +406,7 @@ export default function Messages() {
           {/* Chat Items */}
           <div className="max-h-125 overflow-auto">
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 rounded-full border-3 border-brand-100 border-t-brand-500 animate-spin" />
-              </div>
+              <ChatListSkeleton count={4} />
             ) : filteredChats.length > 0 ? (
               filteredChats.map((chat) => {
                 const id = chat._id || chat.id;

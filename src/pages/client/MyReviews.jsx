@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
-import Spinner from '@/components/ui/Spinner.jsx';
+import { ReviewSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 
 const StarIcon = ({ filled }) => (
@@ -91,10 +91,7 @@ export default function MyReviews() {
 
         {/* Loading */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-16 bg-white/60 backdrop-blur-xl rounded-3xl border border-brand-100/40 shadow-lg">
-            <Spinner size="lg" />
-            <p className="mt-4 text-gray-600 font-medium">{t('client.myReviews.loading')}</p>
-          </div>
+          <ReviewSkeleton count={3} />
         )}
 
         {/* Empty state */}

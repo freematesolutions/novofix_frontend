@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 import api from '@/state/apiClient.js';
 import ImageZoomModal from './ImageZoomModal.jsx';
 import ProviderProfileModal from './ProviderProfileModal.jsx';
+import BeforeAfterGallery from './BeforeAfterGallery.jsx';
+import { TestimonialSkeleton, ProfileOverlaySkeleton } from './SkeletonLoader.jsx';
 
 // Star Rating Component
 const StarRating = ({ rating, size = 'sm' }) => {
@@ -1147,19 +1149,19 @@ function TestimonialsSection() {
     !!(item.hasPlatformFeedback && item.platformFeedback?.comment)
   ), [testimonials]);
 
-  const isEmpty = !loading && testimonials.length === 0 && workPhotos.length === 0;
+  const workPhotosOnly = useMemo(
+    () => workPhotos.filter(photo => photo?.type !== 'video' && !photo?.url?.includes('/video/')),
+    [workPhotos]
+  );
+
+  const isEmpty = !loading && testimonials.length === 0 && workPhotosOnly.length === 0;
 
   return (
     <div id="testimonials-section" className="py-2 scroll-mt-20">
 
       {/* Loading State */}
       {loading && (
-        <div className="flex justify-center py-12">
-          <div className="flex flex-col items-center gap-3">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600"></div>
-            <p className="text-gray-500">{t('testimonials.loading')}</p>
-          </div>
-        </div>
+        <TestimonialSkeleton />
       )}
 
       {!loading && (
@@ -1220,11 +1222,14 @@ function TestimonialsSection() {
               {/* Work Photos Gallery - Sección independiente con espaciado propio */}
               <div id="gallery-section" className="pt-14 scroll-mt-20">
                 <WorkPhotoGallery 
-                  photos={workPhotos} 
+                  photos={workPhotosOnly} 
                   onImageClick={handleImageClick}
                   onViewProfile={handleViewProfile}
                 />
               </div>
+
+              {/* Before/After de trabajos completados */}
+              <BeforeAfterGallery onViewProfile={handleViewProfile} />
             </>
           )}
 
@@ -1311,12 +1316,7 @@ function TestimonialsSection() {
 
       {/* Loading overlay para cargar perfil */}
       {loadingProvider && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 shadow-2xl flex flex-col items-center gap-3">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600"></div>
-            <p className="text-gray-600">{t('common.loading')}</p>
-          </div>
-        </div>
+        <ProfileOverlaySkeleton />
       )}
     </div>
   );

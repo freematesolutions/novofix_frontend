@@ -5,6 +5,7 @@ import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
 import Spinner from '@/components/ui/Spinner.jsx';
+import { ListSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import Button from '@/components/ui/Button.jsx';
 import { HiShieldCheck, HiFilter, HiCheck, HiX, HiExclamation, HiStar, HiUser, HiBriefcase, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
@@ -129,10 +130,7 @@ export default function AdminModeration() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center justify-center gap-3 py-12">
-          <Spinner size="sm" />
-          <span className="text-gray-600">{t('admin.moderation.loading')}</span>
-        </div>
+        <ListSkeleton count={3} />
       )}
 
       {/* Reviews List */}

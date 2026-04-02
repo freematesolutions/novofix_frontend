@@ -120,6 +120,13 @@ const FullscreenReelSlide = ({ reel, isActive, onViewProfile, t }) => {
         muted={isMuted}
         playsInline
         preload="auto"
+        onError={() => {
+          // Fallback: si falla la URL optimizada, intentar con la original
+          const video = videoRef.current;
+          if (video && video.src !== reel.url) {
+            video.src = reel.url;
+          }
+        }}
       />
 
       {/* Play/Pause indicator (fade) */}
@@ -322,7 +329,13 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
   }, [isOpen, currentIndex, goToIndex, handleClose]);
 
   // ─── Touch handlers (vertical swipe) ───
-  const handleTouchStart = useCallback((e) => {
+  // Usamos refs para los handlers de touch y los registramos como listeners nativos
+  // con { passive: false } para poder llamar e.preventDefault() sin warnings
+  const handleTouchStartRef = useRef(null);
+  const handleTouchMoveRef = useRef(null);
+  const handleTouchEndRef = useRef(null);
+
+  handleTouchStartRef.current = (e) => {
     if (isAnimating) return;
     const touch = e.touches[0];
     touchStartY.current = touch.clientY;
@@ -330,9 +343,9 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
     touchCurrentY.current = touch.clientY;
     isDragging.current = true;
     isHorizontalSwipe.current = false;
-  }, [isAnimating]);
+  };
 
-  const handleTouchMove = useCallback((e) => {
+  handleTouchMoveRef.current = (e) => {
     if (!isDragging.current || isAnimating) return;
     const touch = e.touches[0];
     const deltaY = touch.clientY - touchStartY.current;
@@ -345,6 +358,7 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
 
     if (isHorizontalSwipe.current) return;
 
+    // Prevent scroll nativo — esto funciona porque el listener es non-passive
     e.preventDefault();
     touchCurrentY.current = touch.clientY;
 
@@ -355,9 +369,9 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
     }
 
     setTranslateY(adjustedDelta);
-  }, [isAnimating, currentIndex, reels.length]);
+  };
 
-  const handleTouchEnd = useCallback(() => {
+  handleTouchEndRef.current = () => {
     if (!isDragging.current || isAnimating || isHorizontalSwipe.current) {
       isDragging.current = false;
       isHorizontalSwipe.current = false;
@@ -385,22 +399,26 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
       // No pasó el umbral, volver a posición
       setTranslateY(0);
     }
-  }, [isAnimating, currentIndex, reels.length, goToIndex, handleClose]);
+  };
 
-  // Evita el comportamiento nativo de overscroll/pull-to-refresh en móvil
+  // Registrar listeners touch nativos con { passive: false } para permitir preventDefault
   useEffect(() => {
     if (!isOpen) return undefined;
     const container = containerRef.current;
     if (!container) return undefined;
 
-    const preventNativePullToRefresh = (e) => {
-      if (e.touches && e.touches.length > 1) return;
-      e.preventDefault();
-    };
+    const onTouchStart = (e) => handleTouchStartRef.current?.(e);
+    const onTouchMove = (e) => handleTouchMoveRef.current?.(e);
+    const onTouchEnd = (e) => handleTouchEndRef.current?.(e);
 
-    container.addEventListener('touchmove', preventNativePullToRefresh, { passive: false });
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
+    container.addEventListener('touchend', onTouchEnd, { passive: true });
+
     return () => {
-      container.removeEventListener('touchmove', preventNativePullToRefresh);
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchmove', onTouchMove);
+      container.removeEventListener('touchend', onTouchEnd);
     };
   }, [isOpen]);
 
@@ -446,83 +464,17 @@ export default function ReelsFullscreenModal({ isOpen, onClose, reels, initialIn
         touchAction: 'none',
         overscrollBehavior: 'none'
       }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
     >
-      {/* Botón cerrar */}
+      {/* Botón cerrar — z-50 para estar siempre por encima de slides y controles */}
       <button
         onClick={handleClose}
-        className="absolute top-4 left-4 z-30 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+        className="absolute top-4 left-4 z-50 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/80 transition-colors shadow-lg"
         aria-label={t('common.close')}
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-
-      {/* Indicador de posición (lateral derecho - dots verticales) */}
-      {reels.length > 1 && (
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-1.5">
-          {reels.map((_, i) => (
-            <button
-              key={i}
-              onClick={(e) => { e.stopPropagation(); goToIndex(i); }}
-              className={`rounded-full transition-all duration-300 ${
-                i === currentIndex
-                  ? 'h-5 w-1.5 bg-brand-400'
-                  : 'h-1.5 w-1.5 bg-white/40 hover:bg-white/60'
-              }`}
-              aria-label={`Reel ${i + 1}`}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Counter */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
-        <span className="text-sm text-white/70 bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full font-medium">
-          {currentIndex + 1} / {reels.length}
-        </span>
-      </div>
-
-      {/* Hint de navegación (solo visible en primer uso) */}
-      {currentIndex === 0 && reels.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 animate-bounce pointer-events-none">
-          <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-          </svg>
-          <span className="text-xs text-white/50 font-medium">{t('home.reels.swipeUp')}</span>
-        </div>
-      )}
-
-      {/* Botones de navegación (desktop) */}
-      {reels.length > 1 && (
-        <>
-          {currentIndex > 0 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); goToIndex(currentIndex - 1); }}
-              className="hidden sm:flex absolute top-6 left-1/2 -translate-x-1/2 z-30 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm items-center justify-center text-white hover:bg-black/60 transition-colors"
-              aria-label={t('common.previous')}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
-              </svg>
-            </button>
-          )}
-          {currentIndex < reels.length - 1 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); goToIndex(currentIndex + 1); }}
-              className="hidden sm:flex absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm items-center justify-center text-white hover:bg-black/60 transition-colors"
-              aria-label={t('common.next')}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          )}
-        </>
-      )}
 
       {/* Contenedor de slides con transición vertical */}
       <div

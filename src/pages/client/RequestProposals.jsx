@@ -5,6 +5,7 @@ import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
 import Spinner from '@/components/ui/Spinner.jsx';
+import { DetailSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import Modal from '@/components/ui/Modal.jsx';
 import ChatRoom from '@/components/ui/ChatRoom.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
@@ -222,14 +223,7 @@ export default function ClientRequestProposals() {
         )}
 
         {loading && (
-          <div className="flex items-center justify-center py-16">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg animate-pulse">
-                <Spinner size="lg" className="text-white" />
-              </div>
-              <p className="text-gray-600 font-medium">{t('client.proposals.loading')}</p>
-            </div>
-          </div>
+          <DetailSkeleton />
         )}
 
         {!loading && (!Array.isArray(proposals) || proposals.length === 0) && (

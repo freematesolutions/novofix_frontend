@@ -548,6 +548,24 @@ body { margin: 0; color: #2D2D2D; }
 	animation: pulse-badge 2s ease-in-out infinite;
 }
 
+/* Bell ring animation — periodic swing every ~5s when unread notifications exist */
+@keyframes bell-ring {
+	0%   { transform: rotate(0deg); }
+	2%   { transform: rotate(14deg); }
+	4%   { transform: rotate(-12deg); }
+	6%   { transform: rotate(10deg); }
+	8%   { transform: rotate(-8deg); }
+	10%  { transform: rotate(5deg); }
+	12%  { transform: rotate(-2deg); }
+	14%  { transform: rotate(0deg); }
+	100% { transform: rotate(0deg); }
+}
+
+.animate-bell-ring {
+	animation: bell-ring 5s ease-in-out infinite;
+	transform-origin: top center;
+}
+
 /* Slide down animation for dropdowns */
 @keyframes slide-down {
 	0% {
@@ -735,6 +753,67 @@ body { margin: 0; color: #2D2D2D; }
 
 .work-gallery-card--active {
 	/* No scale jump - smooth continuous scroll with pause only */
+}
+
+/* ============================================
+   Skeleton Shimmer — Loading placeholders
+   ============================================ */
+
+/* Base skeleton block */
+.skeleton-shimmer {
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(90deg, #f0f0f0 0%, #f0f0f0 100%);
+	/* No content — purely decorative */
+}
+
+/* Shimmer sweep overlay */
+.skeleton-shimmer::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		rgba(255, 255, 255, 0.45) 40%,
+		rgba(255, 255, 255, 0.65) 50%,
+		rgba(255, 255, 255, 0.45) 60%,
+		transparent 100%
+	);
+	animation: skeleton-sweep 1.6s ease-in-out infinite;
+	transform: translateX(-100%);
+}
+
+@keyframes skeleton-sweep {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(100%);
+	}
+}
+
+/* Brand-tinted variant (for brand-colored sections) */
+.skeleton-shimmer-brand {
+	background: linear-gradient(90deg, rgba(0, 128, 128, 0.08) 0%, rgba(0, 128, 128, 0.08) 100%);
+}
+
+.skeleton-shimmer-brand::after {
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		rgba(0, 128, 128, 0.08) 40%,
+		rgba(0, 128, 128, 0.14) 50%,
+		rgba(0, 128, 128, 0.08) 60%,
+		transparent 100%
+	);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.skeleton-shimmer::after {
+		animation: none;
+	}
 }
 
 @media (hover: none) and (pointer: coarse) {

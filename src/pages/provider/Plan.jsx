@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Alert from '@/components/ui/Alert.jsx';
 import Spinner from '@/components/ui/Spinner.jsx';
+import { PageSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
@@ -284,12 +285,7 @@ export default function Plan() {
 
       {/* ─────────── LOADING ─────────── */}
       {loading && (
-        <div className="flex flex-col items-center justify-center gap-3 py-20">
-          <div className="w-12 h-12 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 flex items-center justify-center animate-pulse">
-            <Spinner size="sm" className="text-white" />
-          </div>
-          <span className="text-gray-500 text-sm">{t('provider.plan.loading')}</span>
-        </div>
+        <PageSkeleton />
       )}
 
       {/* ─────────── CURRENT PLAN STATUS BAR ─────────── */}

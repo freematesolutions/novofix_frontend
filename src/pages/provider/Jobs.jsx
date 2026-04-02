@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
+import { ListSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
 import { getTranslatedRequestInfo, useCurrentLanguage } from '@/utils/translations.js';
@@ -110,12 +111,7 @@ export default function Jobs() {
       {/* Jobs Grid */}
       <div className={`space-y-4 transition-opacity ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
         {loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-full border-4 border-brand-100 border-t-brand-500 animate-spin" />
-              <p className="text-sm text-gray-500">{t('provider.jobs.loading')}</p>
-            </div>
-          </div>
+          <ListSkeleton count={3} />
         )}
         
         {/* Filtrar solicitudes: solo mostrar donde NO hay propuesta aceptada/rechazada del proveedor */}

@@ -14,6 +14,7 @@ import api from '@/state/apiClient.js';
 
 
 import LanguageSelector from '@/components/ui/LanguageSelector.jsx';
+import { NotificationSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import { useTranslation } from 'react-i18next';
 import { getNotificationActionUrl } from '@/utils/notificationLinks.js';
 
@@ -1489,19 +1490,7 @@ function Header() {
             }}
             className={`flex items-center gap-2 sm:gap-3 group transition-all duration-300 ${role === 'guest' ? 'text-brand-600 hover:text-brand-700' : `${accent.text600} ${accent.hoverText700}`}`}
           >
-            {/* Logo icon mejorado con efectos premium */}
-            <div className="relative">
-              {/* Glow effect animado */}
-              <div className="absolute inset-0 bg-linear-to-br from-brand-400/40 to-accent-400/40 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 group-hover:scale-125 animate-pulse-slow"></div>
-              <div className="absolute inset-0 bg-brand-500/20 rounded-full blur-lg group-hover:blur-xl transition-all duration-300 group-hover:scale-110"></div>
-              {/* Logo NovoFix - SVG optimizado */}
-              <img 
-                src="/novofix-logo.svg" 
-                alt={t('logoAlt')} 
-                className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 relative drop-shadow-lg"
-              />
-            </div>
-            {/* Brand name con efecto hover y gradiente mejorado */}
+            {/* Brand name NovoFix — solo texto, sin icono */}
             <span className={`text-xl sm:text-2xl font-bold tracking-tight transition-all duration-300 ${searchBarState.show ? 'hidden sm:inline' : ''}`}>
               <span className="text-brand-800 group-hover:text-brand-700 transition-colors duration-300">Novo</span>
               <span className="text-gray-800 group-hover:text-gray-700 transition-colors duration-300">Fix</span>
@@ -1596,10 +1585,10 @@ function Header() {
               <button
                 type="button"
                 aria-label={t('header.notifications')}
-                className={`inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl border bg-white hover:bg-gray-50 shadow-sm hover:shadow-md text-gray-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} border-gray-200 hover:border-brand-300 transition-all duration-300 hover:scale-105`}
+                className={`inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl border bg-white hover:bg-gray-50 shadow-sm hover:shadow-md text-gray-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} border-gray-200 hover:border-brand-300 transition-all duration-300 hover:scale-105 ${unreadCount > 0 ? 'ring-2 ring-brand-400/30' : ''}`}
                 onClick={() => setNotifOpen(v => !v)}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`h-5 w-5 ${unreadCount > 0 ? 'animate-bell-ring text-brand-600' : ''}`}>
                   <path d="M12 2a6 6 0 00-6 6v2.586l-.707.707A1 1 0 005 13h14a1 1 0 00.707-1.707L19 10.586V8a6 6 0 00-6-6zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                 </svg>
                 {unreadCount > 0 && (
@@ -1628,9 +1617,8 @@ function Header() {
                   </div>
                   <div className="max-h-80 overflow-auto">
                     {notifLoading && (
-                      <div className="px-4 py-8 text-center">
-                        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                        <p className="text-sm text-gray-500">{t('common.loading')}</p>
+                      <div className="px-3 py-4">
+                        <NotificationSkeleton count={3} />
                       </div>
                     )}
                     {!notifLoading && notifications.length === 0 && (
@@ -1698,6 +1686,19 @@ function Header() {
               )}
             </svg>
           </button>
+
+          {/* Mobile: Compact login button to the RIGHT of hamburger (guests only) */}
+          {!isAuthenticated && role === 'guest' && (
+            <Link
+              to="/login"
+              className="md:hidden inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg text-white bg-linear-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 shadow-sm shadow-brand-500/20 transition-all duration-300 active:scale-95 shrink-0"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              {t('header.login')}
+            </Link>
+          )}
 
           {/* Desktop auth actions */
           }
@@ -1772,10 +1773,10 @@ function Header() {
                   <button
                     type="button"
                     aria-label={t('header.notifications')}
-                    className={`group inline-flex items-center justify-center w-10 h-10 rounded-xl border bg-white hover:bg-gray-50 shadow-sm hover:shadow-md text-gray-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} border-gray-200 hover:border-brand-300 transition-all duration-300 hover:scale-105`}
+                    className={`group inline-flex items-center justify-center w-10 h-10 rounded-xl border bg-white hover:bg-gray-50 shadow-sm hover:shadow-md text-gray-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} border-gray-200 hover:border-brand-300 transition-all duration-300 hover:scale-105 ${unreadCount > 0 ? 'ring-2 ring-brand-400/30' : ''}`}
                     onClick={() => setNotifOpen(v => !v)}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12 ${unreadCount > 0 ? 'animate-bell-ring text-brand-600' : ''}`}>
                       <path d="M12 2a6 6 0 00-6 6v2.586l-.707.707A1 1 0 005 13h14a1 1 0 00.707-1.707L19 10.586V8a6 6 0 00-6-6zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                     </svg>
                     {unreadCount > 0 && (
@@ -1806,9 +1807,8 @@ function Header() {
                       </div>
                       <div className="max-h-96 overflow-auto">
                         {notifLoading && (
-                          <div className="px-4 py-10 text-center">
-                            <div className="w-10 h-10 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                            <p className="text-sm text-gray-500">{t('common.loading')}</p>
+                          <div className="px-3 py-4">
+                            <NotificationSkeleton count={4} />
                           </div>
                         )}
                         {!notifLoading && notifications.length === 0 && (

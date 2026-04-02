@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
-import Spinner from '@/components/ui/Spinner.jsx';
+import { AdminSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import { HiChartBar, HiUsers, HiUserGroup, HiBriefcase, HiClipboardList, HiCalendar, HiShieldCheck, HiCurrencyDollar, HiTrendingUp, HiClock, HiCheckCircle, HiRefresh } from 'react-icons/hi';
 
 export default function AdminDashboard() {
@@ -73,12 +73,7 @@ export default function AdminDashboard() {
 
       {/* Loading State */}
       {loading && (
-        <div className="flex items-center justify-center gap-3 py-16">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dark-500 to-dark-600 flex items-center justify-center animate-pulse">
-            <Spinner size="sm" className="text-white" />
-          </div>
-          <span className="text-gray-600 font-medium">{t('admin.dashboard.loading')}</span>
-        </div>
+        <AdminSkeleton />
       )}
 
       {/* Error State */}

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
 import Button from '@/components/ui/Button.jsx';
-import Spinner from '@/components/ui/Spinner.jsx';
+import { DetailSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import MapPicker from '@/components/ui/MapPicker.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
@@ -160,9 +160,8 @@ export default function EditRequest() {
 
   if (loadingRequest) {
     return (
-      <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-16">
-        <Spinner size="lg" />
-        <p className="mt-4 text-gray-500">{t('client.editRequest.loading', 'Cargando solicitud...')}</p>
+      <div className="max-w-2xl mx-auto py-8">
+        <DetailSkeleton />
       </div>
     );
   }

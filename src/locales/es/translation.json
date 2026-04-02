@@ -3,6 +3,7 @@
   "logoAlt": "NovoFix Logo",
   "common": {
     "loading": "Cargando...",
+    "loadingContent": "Cargando contenido",
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
@@ -3593,6 +3594,16 @@
       "provider_review": "Reseña profesional",
       "portfolio": "Portafolio",
       "service_evidence": "Resultados"
+    },
+    "beforeAfter": {
+      "title": "Antes y Después",
+      "subtitle": "Resultados reales de trabajos completados por nuestros profesionales",
+      "before": "Antes",
+      "after": "Después",
+      "viewProfile": "Ver perfil",
+      "completedWork": "Trabajo completado",
+      "empty": "Pronto tendremos resultados de trabajos para mostrar",
+      "scrollHint": "Desliza para ver más transformaciones"
     }
   },
   "portfolio": {

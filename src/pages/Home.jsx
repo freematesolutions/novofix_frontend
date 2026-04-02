@@ -10,6 +10,7 @@ import FeaturedProviderCard from '@/components/ui/FeaturedProviderCard.jsx';
 import TestimonialsSection from '@/components/ui/TestimonialsSection.jsx';
 import ReelsSection from '@/components/ui/ReelsSection.jsx';
 import CategoryIconCarousel from '@/components/ui/CategoryIconCarousel.jsx';
+import { SearchResultSkeleton, FeaturedProviderSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 // Scroll automático para enfocar la primera tarjeta con proveedores al cargar la sección
 // (Este useEffect debe ir dentro del componente Home, no aquí)
 import { CATEGORY_IMAGES, FALLBACK_IMAGE } from '@/utils/categoryImages.js';
@@ -612,7 +613,7 @@ useEffect(() => {
           {/* Ajustada para acomodar las tarjetas de imagen más grandes del carrusel */}
           <div 
             id="hero-section"
-            className="relative overflow-hidden rounded-none sm:rounded-2xl shadow-2xl min-h-[520px] sm:min-h-[600px] md:min-h-[660px] lg:min-h-[680px] xl:min-h-[760px] 2xl:min-h-[840px] scroll-mt-20 -mx-4 sm:-mx-1"
+            className="relative overflow-hidden rounded-none sm:rounded-2xl min-h-[420px] sm:min-h-[500px] md:min-h-[560px] lg:min-h-[580px] xl:min-h-[660px] 2xl:min-h-[740px] scroll-mt-20 -mx-4 sm:-mx-1"
           >
             {/* Fondo degradado sólido de marca — sin imágenes para no competir con el carrusel */}
             <div className="absolute inset-0">
@@ -692,85 +693,17 @@ useEffect(() => {
                   />
                 </div>
               )}
-
-              {/* Contenedor glassmorphism: Stats */}
-              <div 
-                className="w-full max-w-3xl shrink-0 p-3 sm:p-4 rounded-2xl"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.15))',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  boxShadow: '0 4px 24px rgba(0, 0, 0, 0.2)'
-                }}
-              >
-                {/* Stats destacados */}
-                <div className="flex items-center justify-center gap-3 sm:gap-4 lg:gap-3">
-                  <div className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105">
-                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-accent-300 transition-colors">{SERVICE_CATEGORIES_WITH_DESCRIPTION.length}+</span>
-                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.services')}</span>
-                  </div>
-                  <div className="w-px h-8 bg-white/30"></div>
-                  <div className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105">
-                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-accent-300 transition-colors">{totalUniqueProviders > 0 ? totalUniqueProviders : '—'}+</span>
-                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.professionals')}</span>
-                  </div>
-                  <div className="w-px h-8 bg-white/30"></div>
-                  <div className="group text-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-4 lg:py-2 rounded-xl transition-all duration-300 hover:scale-105">
-                    <span className="block text-base sm:text-lg lg:text-base xl:text-xl font-bold text-white group-hover:text-accent-300 transition-colors">{totalClients > 0 ? totalClients : '—'}+</span>
-                    <span className="text-[10px] sm:text-xs lg:text-[10px] xl:text-xs text-white/70 font-medium uppercase tracking-wider">{t('home.clients')}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Botón Ver más - FUERA del contenedor glassmorphism */}
-              <button
-                onClick={() => {
-                  const servicesSection = document.getElementById('services-section');
-                  if (servicesSection) {
-                    servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }}
-                className="group flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full px-5 py-2 sm:px-6 sm:py-2.5 lg:px-5 lg:py-2 transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08))',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
-                }}
-                aria-label={t('common.seeMoreContent')}
-              >
-                <span className="text-xs sm:text-sm lg:text-xs text-white font-semibold group-hover:text-accent-300 transition-colors">
-                  {t('home.exploreBadge')}
-                </span>
-                <svg 
-                  className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 text-white animate-bounce group-hover:text-accent-300 transition-colors" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
             </div>
 
-            {/* Onda decorativa inferior - sutil */}
-            <div className="absolute bottom-0 left-0 right-0 z-4 pointer-events-none">
-              <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto" preserveAspectRatio="none">
-                <path d="M0,32L80,34.7C160,37,320,43,480,40C640,37,800,27,960,24C1120,21,1280,27,1360,29.3L1440,32L1440,60L1360,60C1280,60,1120,60,960,60C800,60,640,60,480,60C320,60,160,60,80,60L0,60Z" fill="white" fillOpacity="0.03"/>
-              </svg>
-            </div>
+            {/* Degradado inferior suave — funde el hero con la siguiente sección */}
+            <div className="absolute bottom-0 left-0 right-0 z-4 pointer-events-none h-32 sm:h-40 md:h-48" style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.03) 15%, rgba(255,255,255,0.10) 35%, rgba(255,255,255,0.30) 55%, rgba(255,255,255,0.60) 75%, rgba(255,255,255,0.90) 90%, #ffffff 100%)' }} />
           </div>
         </>
       )}
 
       {/* Resultados de búsqueda */}
       {isSearching && (
-        <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
-          <p className="mt-2 text-gray-600">{t('home.searchingProfessionals')}</p>
-        </div>
+        <SearchResultSkeleton count={3} />
       )}
 
       {/* Resultados de búsqueda por texto/filtros */}
@@ -909,10 +842,8 @@ useEffect(() => {
                       category={service.category}
                       translatedName={service.translatedName}
                       translatedDescription={service.translatedDescription}
-                      translatedComingSoon={t('home.comingSoon')}
                       providerCount={service.providerCount}
                       onClick={handleCategoryClick}
-                      showComingSoon={!service.hasProviders}
                       disabled={!service.hasProviders}
                     />
                   </div>
@@ -983,12 +914,7 @@ useEffect(() => {
 
           {/* Loading state */}
           {loadingFeatured && (
-            <div className="flex justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600"></div>
-                <p className="text-gray-500">{t('home.featuredProviders.loading')}</p>
-              </div>
-            </div>
+            <FeaturedProviderSkeleton count={4} />
           )}
 
           {/* Empty state */}
@@ -1285,10 +1211,7 @@ useEffect(() => {
               </div>
 
               {loadingProviders && (
-                <div className="text-center py-12">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
-                  <p className="mt-4 text-gray-500">{t('home.searchingProfessionals')}</p>
-                </div>
+                <SearchResultSkeleton count={3} />
               )}
 
               {!loadingProviders && categoryProviders.length === 0 && (

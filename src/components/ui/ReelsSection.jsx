@@ -4,6 +4,7 @@ import api from '@/state/apiClient.js';
 import ProviderProfileModal from './ProviderProfileModal.jsx';
 import ReelsFullscreenModal from './ReelsFullscreenModal.jsx';
 import Spinner from './Spinner.jsx';
+import { ProfileOverlaySkeleton } from './SkeletonLoader.jsx';
 
 // ─── Constantes ───
 const CARD_WIDTH_MOBILE = 260;   // px – ancho card en móvil
@@ -453,7 +454,7 @@ export default function ReelsSection() {
   if (!loading && reels.length === 0 && sectionVisible) return null;
 
   return (
-    <section id="reels-section" ref={sectionRef} className="py-2 scroll-mt-20">
+    <section id="reels-section" ref={sectionRef} className="-mt-6 sm:-mt-8 md:-mt-10 pt-0 pb-2 scroll-mt-20 relative z-10">
       {/* Header de la sección */}
       <div className="flex items-center justify-between mb-5">
         <div>
@@ -614,12 +615,7 @@ export default function ReelsSection() {
 
       {/* Loading overlay para cargar perfil */}
       {loadingProvider && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 shadow-2xl flex flex-col items-center gap-3">
-            <Spinner size="lg" />
-            <p className="text-gray-600">{t('common.loading')}</p>
-          </div>
-        </div>
+        <ProfileOverlaySkeleton />
       )}
 
       {/* Fullscreen Reels Modal (TikTok-style) */}
