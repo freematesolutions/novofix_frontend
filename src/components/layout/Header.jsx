@@ -1668,36 +1668,54 @@ function Header() {
             </div>
           )}
 
-          {/* Mobile menu button */}
-          <button
-            type="button"
-            className={`md:hidden inline-flex items-center justify-center rounded-xl p-2 sm:p-2.5 border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 text-gray-700 hover:text-brand-600 ${open ? 'bg-gray-100 border-gray-300 shadow-inner' : 'bg-white border-gray-200 shadow-sm hover:shadow-md hover:bg-gray-50 hover:border-gray-300'} ${!isAuthenticated ? 'ml-auto' : ''} shrink-0 hover:scale-105 active:scale-95`}
-            aria-label={open ? t('header.closeMenu') : t('header.openMenu')}
-            aria-expanded={open}
-            aria-controls="mobile-menu"
-            ref={mobileToggleRef}
-            onClick={() => setOpen((v) => !v)}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`h-5 w-5 transition-all duration-300 ease-out ${open ? 'rotate-180 scale-90' : 'rotate-0'}`}>
-              {open ? (
-                <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 11-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
-              ) : (
-                <path fillRule="evenodd" d="M3.75 6.75A.75.75 0 014.5 6h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75zm0 5.25a.75.75 0 01.75-.75h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75zm0 5.25a.75.75 0 01.75-.75h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75z" clipRule="evenodd" />
-              )}
-            </svg>
-          </button>
+          {!isAuthenticated && role === 'guest' ? (
+            <div className="ml-auto flex items-center gap-2 shrink-0 md:hidden">
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg text-white bg-linear-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 shadow-sm shadow-brand-500/20 transition-all duration-300 active:scale-95 shrink-0"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                {t('header.login')}
+              </Link>
 
-          {/* Mobile: Compact login button to the RIGHT of hamburger (guests only) */}
-          {!isAuthenticated && role === 'guest' && (
-            <Link
-              to="/login"
-              className="md:hidden inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg text-white bg-linear-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 shadow-sm shadow-brand-500/20 transition-all duration-300 active:scale-95 shrink-0"
+              <button
+                type="button"
+                className={`inline-flex items-center justify-center rounded-xl p-2 sm:p-2.5 border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 text-gray-700 hover:text-brand-600 ${open ? 'bg-gray-100 border-gray-300 shadow-inner' : 'bg-white border-gray-200 shadow-sm hover:shadow-md hover:bg-gray-50 hover:border-gray-300'} shrink-0 hover:scale-105 active:scale-95`}
+                aria-label={open ? t('header.closeMenu') : t('header.openMenu')}
+                aria-expanded={open}
+                aria-controls="mobile-menu"
+                ref={mobileToggleRef}
+                onClick={() => setOpen((v) => !v)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`h-5 w-5 transition-all duration-300 ease-out ${open ? 'rotate-180 scale-90' : 'rotate-0'}`}>
+                  {open ? (
+                    <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 11-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
+                  ) : (
+                    <path fillRule="evenodd" d="M3.75 6.75A.75.75 0 014.5 6h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75zm0 5.25a.75.75 0 01.75-.75h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75zm0 5.25a.75.75 0 01.75-.75h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75z" clipRule="evenodd" />
+                  )}
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className={`md:hidden inline-flex items-center justify-center rounded-xl p-2 sm:p-2.5 border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 text-gray-700 hover:text-brand-600 ${open ? 'bg-gray-100 border-gray-300 shadow-inner' : 'bg-white border-gray-200 shadow-sm hover:shadow-md hover:bg-gray-50 hover:border-gray-300'} shrink-0 hover:scale-105 active:scale-95`}
+              aria-label={open ? t('header.closeMenu') : t('header.openMenu')}
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+              ref={mobileToggleRef}
+              onClick={() => setOpen((v) => !v)}
             >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`h-5 w-5 transition-all duration-300 ease-out ${open ? 'rotate-180 scale-90' : 'rotate-0'}`}>
+                {open ? (
+                  <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 11-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
+                ) : (
+                  <path fillRule="evenodd" d="M3.75 6.75A.75.75 0 014.5 6h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75zm0 5.25a.75.75 0 01.75-.75h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75zm0 5.25a.75.75 0 01.75-.75h15a.75.75 0 010 1.5h-15a.75.75 0 01-.75-.75z" clipRule="evenodd" />
+                )}
               </svg>
-              {t('header.login')}
-            </Link>
+            </button>
           )}
 
           {/* Desktop auth actions */

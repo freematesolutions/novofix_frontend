@@ -1580,8 +1580,10 @@
       "modal": {
         "evidenceTitle": "Upload Results",
         "documentWork": "Document your work",
-        "evidenceSubtitle": "Upload photos or videos of before, during and after",
+        "evidenceSubtitle": "Upload photos or videos of before and after",
         "serviceStage": "Service stage",
+        "balanceHint": "Upload equal number of before and after photos",
+        "balanceOk": "Pairs complete ✓",
         "filesLabel": "Files",
         "filesSelected": "{{count}} file(s) selected",
         "dragDropFiles": "Drag files here or click to select",

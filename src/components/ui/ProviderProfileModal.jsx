@@ -365,7 +365,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
       {/* Modal */}
       <div 
         ref={modalRef}
-        className="fixed left-2 right-2 top-16 bottom-2 sm:left-4 sm:right-4 sm:top-24 sm:bottom-4 lg:left-8 lg:right-8 lg:top-32 lg:bottom-8 bg-white rounded-2xl shadow-2xl z-10000 flex flex-col overflow-hidden animate-modal-enter"
+        className="fixed left-2 right-2 top-4 bottom-4 sm:left-4 sm:right-4 sm:top-8 sm:bottom-8 lg:left-8 lg:right-8 lg:top-12 lg:bottom-12 bg-white rounded-2xl shadow-2xl z-10000 flex flex-col overflow-hidden animate-modal-enter"
       >
         {/* Compact Header with Provider Basic Info */}
         <div className={`relative bg-linear-to-br ${planInfo.gradient} px-4 py-3 sm:px-6 sm:py-4`}>

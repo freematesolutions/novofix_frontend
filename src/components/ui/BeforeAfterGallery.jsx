@@ -17,6 +17,8 @@ function BeforeAfterGallery({ onViewProfile }) {
   const [canScrollRight, setCanScrollRight] = useState(false);
   // Slider state por tarjeta (posición del slider 0-100)
   const [sliderPositions, setSliderPositions] = useState({});
+  // Active image index per card for multi-image navigation
+  const [activeImageIndex, setActiveImageIndex] = useState({});
 
   useEffect(() => {
     const fetchPairs = async () => {
@@ -24,10 +26,12 @@ function BeforeAfterGallery({ onViewProfile }) {
         const { data } = await api.get('/guest/before-after', { params: { limit: 20 } });
         if (data?.data?.pairs) {
           setPairs(data.data.pairs);
-          // Inicializar sliders en 50%
+          // Inicializar sliders en 50% y image index en 0
           const positions = {};
-          data.data.pairs.forEach(p => { positions[p.id] = 50; });
+          const imageIndices = {};
+          data.data.pairs.forEach(p => { positions[p.id] = 50; imageIndices[p.id] = 0; });
           setSliderPositions(positions);
+          setActiveImageIndex(imageIndices);
         }
       } catch (error) {
         console.error('Error fetching before/after pairs:', error);
@@ -75,6 +79,15 @@ function BeforeAfterGallery({ onViewProfile }) {
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const pct = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
     setSliderPositions(prev => ({ ...prev, [pairId]: pct }));
+  }, []);
+
+  // Navigate between image pairs within a card (circular)
+  const navigatePairImage = useCallback((pairId, direction, totalSlides) => {
+    setActiveImageIndex(prev => {
+      const current = prev[pairId] || 0;
+      const next = (current + direction + totalSlides) % totalSlides;
+      return { ...prev, [pairId]: next };
+    });
   }, []);
 
   if (loading) {
@@ -125,22 +138,45 @@ function BeforeAfterGallery({ onViewProfile }) {
         {/* Scroll container */}
         <div
           ref={scrollRef}
-          className="overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1"
+          className="overflow-x-auto scrollbar-hide pb-2 pt-4 -mx-1 px-1"
           style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           <div className="flex gap-6 min-w-max">
             {pairs.map((pair) => {
               const sliderPos = sliderPositions[pair.id] ?? 50;
+              const beforeImages = pair.beforeImages || [pair.before];
+              const afterImages = pair.afterImages || [pair.after];
+              // Math.min → only show real 1:1 pairs (no repeated/stretched images)
+              const totalSlides = Math.min(beforeImages.length, afterImages.length);
+              const currentIdx = Math.min(activeImageIndex[pair.id] || 0, totalSlides - 1);
+              const currentBefore = beforeImages[currentIdx];
+              const currentAfter = afterImages[currentIdx];
 
               return (
                 <div
                   key={pair.id}
-                  className="ba-card shrink-0 w-[340px] sm:w-[400px] bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                  className="ba-card shrink-0 w-[340px] sm:w-[400px] bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 relative"
                   style={{ scrollSnapAlign: 'start' }}
                 >
+                  {/* Labels Antes / Después — protruding ribbon style */}
+                  <div className="absolute -top-3 left-3 z-20 pointer-events-none">
+                    <div className="bg-linear-to-r from-gray-900 to-gray-700 text-white px-4 py-1.5 rounded-xl shadow-lg shadow-gray-900/30">
+                      <span className="text-sm sm:text-base font-extrabold uppercase tracking-wider drop-shadow-md">
+                        {t('testimonials.beforeAfter.before')}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="absolute -top-3 right-3 z-20 pointer-events-none">
+                    <div className="bg-linear-to-l from-brand-600 to-brand-500 text-white px-4 py-1.5 rounded-xl shadow-lg shadow-brand-600/40">
+                      <span className="text-sm sm:text-base font-extrabold uppercase tracking-wider drop-shadow-md">
+                        {t('testimonials.beforeAfter.after')}
+                      </span>
+                    </div>
+                  </div>
+
                   {/* Comparación de imágenes con slider */}
                   <div
-                    className="relative h-56 sm:h-64 overflow-hidden cursor-col-resize select-none"
+                    className="relative h-56 sm:h-64 overflow-hidden rounded-t-2xl cursor-col-resize select-none"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       const container = e.currentTarget;
@@ -167,7 +203,7 @@ function BeforeAfterGallery({ onViewProfile }) {
                   >
                     {/* After image (fondo completo) */}
                     <img
-                      src={pair.after.url}
+                      src={currentAfter.url}
                       alt={t('testimonials.beforeAfter.after')}
                       className="absolute inset-0 w-full h-full object-cover"
                       draggable="false"
@@ -179,7 +215,7 @@ function BeforeAfterGallery({ onViewProfile }) {
                       style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
                     >
                       <img
-                        src={pair.before.url}
+                        src={currentBefore.url}
                         alt={t('testimonials.beforeAfter.before')}
                         className="w-full h-full object-cover"
                         draggable="false"
@@ -199,13 +235,41 @@ function BeforeAfterGallery({ onViewProfile }) {
                       </div>
                     </div>
 
-                    {/* Labels Antes / Después */}
-                    <div className="absolute top-3 left-3 z-10 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                      {t('testimonials.beforeAfter.before')}
-                    </div>
-                    <div className="absolute top-3 right-3 z-10 bg-brand-600/80 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                      {t('testimonials.beforeAfter.after')}
-                    </div>
+                    {/* Multi-image navigation (only when multiple images exist) */}
+                    {totalSlides > 1 && (
+                      <>
+                        {/* Previous image */}
+                        <button
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onTouchStart={(e) => e.stopPropagation()}
+                          onClick={() => navigatePairImage(pair.id, -1, totalSlides)}
+                          className="absolute left-2 bottom-3 z-20 w-8 h-8 bg-black/50 hover:bg-black/70 active:bg-black/80 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"
+                          aria-label={t('common.previous')}
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+
+                        {/* Image counter pill */}
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 bg-black/50 backdrop-blur-sm text-white text-[11px] font-bold px-3 py-1 rounded-full pointer-events-none tabular-nums">
+                          {currentIdx + 1} / {totalSlides}
+                        </div>
+
+                        {/* Next image */}
+                        <button
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onTouchStart={(e) => e.stopPropagation()}
+                          onClick={() => navigatePairImage(pair.id, 1, totalSlides)}
+                          className="absolute right-2 bottom-3 z-20 w-8 h-8 bg-black/50 hover:bg-black/70 active:bg-black/80 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"
+                          aria-label={t('common.next')}
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
                   </div>
 
                   {/* Info del proveedor */}

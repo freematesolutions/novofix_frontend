@@ -613,9 +613,9 @@ useEffect(() => {
           {/* Ajustada para acomodar las tarjetas de imagen más grandes del carrusel */}
           <div 
             id="hero-section"
-            className="relative overflow-hidden rounded-none sm:rounded-2xl min-h-[420px] sm:min-h-[500px] md:min-h-[560px] lg:min-h-[580px] xl:min-h-[660px] 2xl:min-h-[740px] scroll-mt-20 -mx-4 sm:-mx-1"
+            className="relative overflow-hidden rounded-none sm:rounded-t-2xl min-h-[420px] sm:min-h-[500px] md:min-h-[560px] lg:min-h-[580px] xl:min-h-[660px] 2xl:min-h-[740px] scroll-mt-20 -mx-4 sm:-mx-1"
           >
-            {/* Fondo degradado sólido de marca — sin imágenes para no competir con el carrusel */}
+            {/* Fondo degradado sólido de marca */}
             <div className="absolute inset-0">
               {/* Degradado principal: Charcoal → Teal profundo → Teal medio */}
               <div className="absolute inset-0 bg-linear-to-br from-dark-900 via-brand-900 to-brand-700" />
@@ -695,8 +695,16 @@ useEffect(() => {
               )}
             </div>
 
-            {/* Degradado inferior suave — funde el hero con la siguiente sección */}
-            <div className="absolute bottom-0 left-0 right-0 z-4 pointer-events-none h-32 sm:h-40 md:h-48" style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.03) 15%, rgba(255,255,255,0.10) 35%, rgba(255,255,255,0.30) 55%, rgba(255,255,255,0.60) 75%, rgba(255,255,255,0.90) 90%, #ffffff 100%)' }} />
+            {/* Degradado inferior — DENTRO del hero para que el browser componga correctamente sobre el fondo oscuro.
+                z-1 = por debajo de blobs (z-2) y contenido/tarjetas (z-3), así las tarjetas no se opacan.
+                Muy alto (h-48/h-56/h-64) con 11 stops para transición ultra-suave. */}
+            <div
+              className="absolute bottom-0 left-0 right-0 z-1 pointer-events-none h-48 sm:h-56 md:h-64"
+              aria-hidden="true"
+              style={{
+                background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.03) 12%, rgba(255,255,255,0.08) 24%, rgba(255,255,255,0.16) 36%, rgba(255,255,255,0.28) 46%, rgba(255,255,255,0.42) 56%, rgba(255,255,255,0.58) 65%, rgba(255,255,255,0.74) 74%, rgba(255,255,255,0.88) 83%, rgba(255,255,255,0.96) 92%, #ffffff 100%)'
+              }}
+            />
           </div>
         </>
       )}

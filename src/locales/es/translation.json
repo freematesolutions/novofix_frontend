@@ -1663,8 +1663,10 @@
       "modal": {
         "evidenceTitle": "Subir Resultados",
         "documentWork": "Documenta tu trabajo",
-        "evidenceSubtitle": "Sube fotos o videos del antes, durante y después",
+        "evidenceSubtitle": "Sube fotos o videos del antes y después",
         "serviceStage": "Etapa del servicio",
+        "balanceHint": "Sube igual cantidad de fotos antes y después",
+        "balanceOk": "Pares completos ✓",
         "filesLabel": "Archivos",
         "filesSelected": "{{count}} archivo(s) seleccionado(s)",
         "dragDropFiles": "Arrastra archivos aquí o haz clic para seleccionar",

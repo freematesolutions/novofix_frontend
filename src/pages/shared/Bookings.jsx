@@ -632,6 +632,19 @@ export default function Bookings() {
         descriptions: evidenceCaptions.filter(c => c.trim()) 
       };
       await api.post(`/bookings/${evidenceBooking._id}/evidence`, payload);
+
+      // Update local evidenceBooking so the balance indicator reflects the new upload
+      setEvidenceBooking(prev => {
+        if (!prev) return prev;
+        const newItems = urls.map((url, i) => ({ url, description: evidenceCaptions[i] || '' }));
+        return {
+          ...prev,
+          serviceEvidence: {
+            ...prev.serviceEvidence,
+            [evidenceType]: [...(prev.serviceEvidence?.[evidenceType] || []), ...newItems]
+          }
+        };
+      });
       
       setEvidenceProgress({
         show: true,
@@ -1216,7 +1229,7 @@ export default function Bookings() {
                   </div>
                   
                   {/* Evidence Section */}
-                  {(b?.serviceEvidence && (b.serviceEvidence.before?.length > 0 || b.serviceEvidence.during?.length > 0 || b.serviceEvidence.after?.length > 0)) && (
+                  {(b?.serviceEvidence && (b.serviceEvidence.before?.length > 0 || b.serviceEvidence.after?.length > 0)) && (
                     <div className="pt-3 border-t border-gray-100 space-y-3">
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1224,11 +1237,11 @@ export default function Bookings() {
                         </svg>
                         {t('shared.bookings.evidence.title')}
                       </div>
-                      {['before','during','after'].map((section)=>{
+                      {['before','after'].map((section)=>{
                         const items = b.serviceEvidence?.[section] || [];
                         if (!items.length) return null;
-                        const label = section === 'before' ? t('shared.bookings.evidence.before') : section === 'during' ? t('shared.bookings.evidence.during') : t('shared.bookings.evidence.after');
-                        const sectionColor = section === 'before' ? 'amber' : section === 'during' ? 'brand' : 'green';
+                        const label = section === 'before' ? t('shared.bookings.evidence.before') : t('shared.bookings.evidence.after');
+                        const sectionColor = section === 'before' ? 'amber' : 'green';
                         return (
                           <div key={section}>
                             <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-${sectionColor}-50 text-${sectionColor}-700 mb-2`}>
@@ -1701,10 +1714,9 @@ export default function Bookings() {
               </svg>
               {t('shared.bookings.modal.serviceStage')}
             </label>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {[
                 { value: 'before', labelKey: 'shared.bookings.evidence.before', icon: '🏠', bgActive: 'bg-amber-50', borderActive: 'border-amber-400', textActive: 'text-amber-700', shadow: 'shadow-amber-500/10' },
-                { value: 'during', labelKey: 'shared.bookings.evidence.during', icon: '🔧', bgActive: 'bg-brand-50', borderActive: 'border-brand-400', textActive: 'text-brand-700', shadow: 'shadow-brand-500/10' },
                 { value: 'after', labelKey: 'shared.bookings.evidence.after', icon: '✨', bgActive: 'bg-green-50', borderActive: 'border-green-400', textActive: 'text-green-700', shadow: 'shadow-green-500/10' }
               ].map((opt) => (
                 <button
@@ -1724,6 +1736,53 @@ export default function Bookings() {
               ))}
             </div>
           </div>
+
+          {/* Balance indicator: show current before/after counts */}
+          {evidenceBooking?.serviceEvidence && (
+            (() => {
+              const bCount = evidenceBooking.serviceEvidence.before?.length || 0;
+              const aCount = evidenceBooking.serviceEvidence.after?.length || 0;
+              const isBalanced = bCount === aCount;
+              const hasAny = bCount > 0 || aCount > 0;
+              if (!hasAny) return null;
+              return (
+                <div className={`flex items-center gap-3 p-3 rounded-xl border text-sm ${
+                  isBalanced
+                    ? 'bg-green-50 border-green-200 text-green-700'
+                    : 'bg-amber-50 border-amber-200 text-amber-700'
+                }`}>
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="text-base">📷</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold">{t('shared.bookings.evidence.before')}:</span>
+                      <span className="font-bold text-base">{bCount}</span>
+                    </div>
+                    <span className="text-gray-300 mx-1">|</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold">{t('shared.bookings.evidence.after')}:</span>
+                      <span className="font-bold text-base">{aCount}</span>
+                    </div>
+                  </div>
+                  {!isBalanced && (
+                    <div className="flex items-center gap-1 text-xs">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>{t('shared.bookings.modal.balanceHint')}</span>
+                    </div>
+                  )}
+                  {isBalanced && bCount > 0 && (
+                    <div className="flex items-center gap-1 text-xs">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>{t('shared.bookings.modal.balanceOk')}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()
+          )}
           
           {/* Zona de upload drag & drop */}
           <div className="space-y-3">

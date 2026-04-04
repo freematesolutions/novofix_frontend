@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient.js';
 import ProviderProfileModal from './ProviderProfileModal.jsx';
@@ -206,9 +207,9 @@ const ReelCard = ({ reel, isActive, isNearby, onViewProfile, onOpenFullscreen, i
         </div>
       )}
 
-      {/* Play/Pause overlay central */}
+      {/* Play/Pause overlay central — pointer-events-none para que clicks abran fullscreen */}
       {!isPlaying && !videoError && (
-        <div className="absolute inset-0 flex items-center justify-center z-3 bg-black/20" onClick={(e) => { e.stopPropagation(); togglePlay(e); }}>
+        <div className="absolute inset-0 flex items-center justify-center z-3 bg-black/20 pointer-events-none">
           <div className="w-14 h-14 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center border border-white/30 transition-transform duration-200 group-hover:scale-110">
             <svg className="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
@@ -424,6 +425,9 @@ export default function ReelsSection() {
 
   // ─── Ver perfil del profesional ───
   const handleViewProfile = useCallback(async (providerId) => {
+    // Cerrar fullscreen modal primero para evitar conflicto de z-index
+    setFullscreenOpen(false);
+
     setLoadingProvider(true);
     try {
       const { data } = await api.get(`/guest/providers/${providerId}`);
@@ -454,7 +458,7 @@ export default function ReelsSection() {
   if (!loading && reels.length === 0 && sectionVisible) return null;
 
   return (
-    <section id="reels-section" ref={sectionRef} className="-mt-6 sm:-mt-8 md:-mt-10 pt-0 pb-2 scroll-mt-20 relative z-10">
+    <section id="reels-section" ref={sectionRef} className="-mt-10 sm:-mt-14 md:-mt-16 pt-0 pb-2 scroll-mt-20 relative z-10">
       {/* Header de la sección */}
       <div className="flex items-center justify-between mb-5">
         <div>
@@ -603,19 +607,21 @@ export default function ReelsSection() {
         </div>
       )}
 
-      {/* Provider Profile Modal */}
-      {selectedProvider && (
+      {/* Provider Profile Modal — portal a body para escapar del stacking context z-10 */}
+      {selectedProvider && createPortal(
         <ProviderProfileModal
           isOpen={!!selectedProvider}
-          onClose={() => setSelectedProvider(null)}
+          onClose={() => { setSelectedProvider(null); startAutoplay(); }}
           provider={selectedProvider}
           initialTab="portfolio"
-        />
+        />,
+        document.body
       )}
 
-      {/* Loading overlay para cargar perfil */}
-      {loadingProvider && (
-        <ProfileOverlaySkeleton />
+      {/* Loading overlay para cargar perfil — portal a body */}
+      {loadingProvider && createPortal(
+        <ProfileOverlaySkeleton />,
+        document.body
       )}
 
       {/* Fullscreen Reels Modal (TikTok-style) */}
