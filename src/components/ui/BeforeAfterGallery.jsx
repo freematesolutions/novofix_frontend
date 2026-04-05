@@ -155,7 +155,7 @@ function BeforeAfterGallery({ onViewProfile }) {
               return (
                 <div
                   key={pair.id}
-                  className="ba-card shrink-0 w-[340px] sm:w-[400px] bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 relative"
+                  className="ba-card shrink-0 w-[340px] sm:w-[400px] bg-white rounded-2xl transition-shadow duration-300 relative"
                   style={{ scrollSnapAlign: 'start' }}
                 >
                   {/* Labels Antes / Después — protruding ribbon style */}
@@ -192,12 +192,15 @@ function BeforeAfterGallery({ onViewProfile }) {
                     onTouchStart={(e) => {
                       const container = e.currentTarget;
                       handleSliderDrag(pair.id, e, container);
-                      const onMove = (ev) => handleSliderDrag(pair.id, ev, container);
+                      const onMove = (ev) => {
+                        ev.preventDefault(); // Prevent parent carousel from scrolling
+                        handleSliderDrag(pair.id, ev, container);
+                      };
                       const onEnd = () => {
                         container.removeEventListener('touchmove', onMove);
                         container.removeEventListener('touchend', onEnd);
                       };
-                      container.addEventListener('touchmove', onMove, { passive: true });
+                      container.addEventListener('touchmove', onMove, { passive: false });
                       container.addEventListener('touchend', onEnd);
                     }}
                   >

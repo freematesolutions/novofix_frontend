@@ -25,10 +25,10 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
   return (
     <div
       onClick={handleClick}
-      className={`group relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-500 flex flex-col ${
+      className={`group relative overflow-hidden rounded-2xl bg-white transition-all duration-500 flex flex-col ${
         disabled 
-          ? 'cursor-not-allowed hover:shadow-2xl hover:-translate-y-2' 
-          : 'cursor-pointer hover:shadow-2xl hover:-translate-y-2'
+          ? 'cursor-not-allowed hover:-translate-y-2' 
+          : 'cursor-pointer hover:-translate-y-2'
       }`}
       role="button"
       tabIndex={0}

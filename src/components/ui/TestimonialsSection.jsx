@@ -74,7 +74,7 @@ const TestimonialCard = ({ testimonial, variant = 'all' }) => {
   );
 
   return (
-    <div className="group bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden h-full flex flex-col">
+    <div className="group bg-white rounded-xl transition-all duration-300 overflow-hidden h-full flex flex-col">
       {/* Content */}
       <div className="px-3 py-2.5 flex-1 flex flex-col">
         {/* Header: User Identity */}
@@ -965,7 +965,7 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
           return (
             <div 
               key={`${photo.url}-${idx}`}
-              className={`shrink-0 w-[170px] sm:w-[190px] md:w-[210px] group relative aspect-3/4 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 work-gallery-card ${isActive ? 'work-gallery-card--active' : ''}`}
+              className={`shrink-0 w-[170px] sm:w-[190px] md:w-[210px] group relative aspect-3/4 rounded-xl overflow-hidden transition-all duration-300 work-gallery-card ${isActive ? 'work-gallery-card--active' : ''}`}
             >
               {/* Imagen o thumbnail de video - área clickeable */}
               <div 

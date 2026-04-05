@@ -138,7 +138,7 @@ const ReelCard = ({ reel, isActive, isNearby, onViewProfile, onOpenFullscreen, i
 
   return (
     <div
-      className="shrink-0 relative rounded-2xl overflow-hidden bg-dark-900 shadow-xl group cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
+      className="shrink-0 relative rounded-2xl overflow-hidden bg-dark-900 group cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
       style={{ width: cardWidth, aspectRatio: '9/16' }}
       onClick={() => onOpenFullscreen()}
     >

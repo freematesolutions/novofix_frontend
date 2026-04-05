@@ -73,7 +73,7 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
       {/* Featured Provider Card */}
       <div 
         onClick={handleCardClick}
-        className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden h-full flex flex-col"
+        className="group relative bg-white rounded-2xl transition-all duration-500 cursor-pointer overflow-hidden h-full flex flex-col"
       >
         {/* Top gradient accent */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-brand-400 via-brand-500 to-brand-500"></div>
