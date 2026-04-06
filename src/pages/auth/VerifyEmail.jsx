@@ -112,18 +112,38 @@ const VerifyEmail = () => {
       // Determinar ruta de redirección según roles
       const userRoles = Array.isArray(user.roles) ? user.roles : [user.role];
       let redirectPath = '/';
+      let redirectSearch = '';
+      let redirectState = null;
       
       if (userRoles.includes('admin')) {
         redirectPath = '/admin/users';
       } else if (userRoles.includes('provider')) {
         redirectPath = '/empleos';
       } else if (userRoles.includes('client')) {
-        redirectPath = '/';
+        // Verificar si hay un proveedor pendiente de contactar (flujo guest → registro → verificación)
+        // Leemos de localStorage porque el link de verificación puede abrirse en nueva pestaña
+        try {
+          const pendingProvider = localStorage.getItem('pending_provider_contact');
+          if (pendingProvider) {
+            const { providerId, category } = JSON.parse(pendingProvider);
+            if (providerId) {
+              const searchParams = new URLSearchParams();
+              if (category) searchParams.set('category', category);
+              searchParams.set('providerId', providerId);
+              redirectSearch = searchParams.toString();
+              redirectState = { openProvider: providerId };
+            }
+            localStorage.removeItem('pending_provider_contact');
+          }
+        } catch { /* ignore parse errors */ }
       }
 
       // Redirigir después de un breve delay para mostrar el mensaje de éxito
       setTimeout(() => {
-        navigate(redirectPath, { replace: true });
+        navigate(
+          { pathname: redirectPath, search: redirectSearch },
+          { replace: true, state: redirectState }
+        );
       }, 1500);
     } catch (err) {
       setStatus('error');

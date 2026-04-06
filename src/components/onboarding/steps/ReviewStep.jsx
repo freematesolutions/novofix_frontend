@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useProviderOnboarding } from '@/state/ProviderOnboardingContext.jsx';
 import Button from '@/components/ui/Button.jsx';
 import Alert from '@/components/ui/Alert.jsx';
@@ -215,14 +215,14 @@ export default function ReviewStep() {
           />
           <label htmlFor="acceptTerms" className="text-sm text-gray-700">
             {t('onboarding.review.termsLabel')}{' '}
-            <a 
-              href="/terminos" 
+            <Link 
+              to="/terminos?from=registro-proveedor"
               target="_blank" 
               rel="noopener noreferrer"
               className="text-brand-600 hover:text-brand-700 underline"
             >
               {t('onboarding.review.termsLink')}
-            </a>
+            </Link>
             {' '}<span className="text-red-500">*</span>
           </label>
         </div>
@@ -238,14 +238,14 @@ export default function ReviewStep() {
           />
           <label htmlFor="acceptPrivacy" className="text-sm text-gray-700">
             {t('onboarding.review.privacyLabel')}{' '}
-            <a 
-              href="/privacidad" 
+            <Link 
+              to="/privacidad?from=registro-proveedor"
               target="_blank" 
               rel="noopener noreferrer"
               className="text-brand-600 hover:text-brand-700 underline"
             >
               {t('onboarding.review.privacyLink')}
-            </a>
+            </Link>
             {' '}<span className="text-red-500">*</span>
           </label>
         </div>

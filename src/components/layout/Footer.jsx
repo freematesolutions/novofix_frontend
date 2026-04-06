@@ -1,9 +1,11 @@
 import { useAuth } from '@/state/AuthContext.jsx';
 import { useTranslation } from 'react-i18next';
+import { Link, useLocation } from 'react-router-dom';
 
 function Footer() {
   const { role, viewRole } = useAuth();
   const { t } = useTranslation();
+  const location = useLocation();
   const r = role === 'guest' ? 'guest' : viewRole;
   const accent = (() => {
     switch (r) {
@@ -29,9 +31,9 @@ function Footer() {
           <span className="hidden sm:inline">- {t('footer.tagline')}</span>
         </div>
         <nav className="flex items-center gap-4" role="navigation" aria-label={t('footer.ariaLabel', 'Enlaces del pie')}>
-          <a href="#accesibilidad" className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.accessibility')}</a>
-          <a href="#privacidad" className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.privacy')}</a>
-          <a href="#soporte" className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.support')}</a>
+          <Link to={`/terminos?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.terms')}</Link>
+          <Link to={`/privacidad?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.privacy')}</Link>
+          <Link to={`/sobre-nosotros?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.aboutUs')}</Link>
         </nav>
       </div>
     </footer>

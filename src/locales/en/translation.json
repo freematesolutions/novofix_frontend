@@ -47,7 +47,11 @@
     "myAccount": "My account",
     "miles": "miles",
     "saving": "Saving...",
-    "update": "Update"
+    "update": "Update",
+    "home": "Home",
+    "backToHome": "Back to home",
+    "backToRegistration": "Back to registration",
+    "goBack": "Go back"
   },
   "passwordToggle": {
     "show": "Show password",
@@ -102,6 +106,7 @@
     "autoMode": "Auto mode",
     "autoModeRestored": "Auto mode restored",
     "exploreServices": "Explore our services",
+    "joinAsClient": "Join as client",
     "joinAsProfessional": "Join as professional",
     "requests": "Requests",
     "bookings": "Contracts",
@@ -159,7 +164,7 @@
       "featured": "Featured",
       "testimonials": "Testimonials",
       "gallery": "Gallery",
-      "mission": "Our Essence"
+      "mission": "Join"
     },
     "title1": "Find the professional",
     "title2": "you need now",
@@ -199,6 +204,33 @@
       "value3Desc": "Clear and fair prices",
       "value4Title": "Innovation",
       "value4Desc": "Technology at your service"
+    },
+    "ctaSection": {
+      "guest": {
+        "badge": "Join NovoFix",
+        "title": "Find professionals or grow your business",
+        "subtitle": "Thousands of clients and professionals already trust NovoFix. Sign up for free and connect with the best in your area.",
+        "clientBtn": "Find a solution",
+        "providerBtn": "Offer my services"
+      },
+      "client": {
+        "badge": "All set for you",
+        "title": "Need a service?",
+        "subtitle": "Post what you need and receive proposals from verified professionals. Compare, choose, and hire in minutes.",
+        "requestsBtn": "Manage my requests",
+        "bookingsBtn": "Review my hired services"
+      },
+      "provider": {
+        "badge": "Grow your business",
+        "title": "New opportunities await",
+        "subtitle": "Explore client requests in your area, update your portfolio, and stand out from the competition.",
+        "jobsBtn": "View available jobs",
+        "portfolioBtn": "My portfolio",
+        "profileLink": "Edit my profile",
+        "profileDesc": "Update your information",
+        "calendarLink": "My calendar",
+        "calendarDesc": "Manage your schedule"
+      }
     },
     "featuredProviders": {
       "title": "Top Featured Professionals",
@@ -3611,6 +3643,11 @@
     "signInHere": "Sign in here",
     "orContinueWith": "Or continue with",
     "termsAgree": "By signing up, you agree to our",
+    "acceptTerms": "I accept the",
+    "acceptTermsLink": "Terms and Conditions",
+    "acceptPrivacy": "I accept the",
+    "acceptPrivacyLink": "Privacy Policy",
+    "termsRequired": "You must accept the terms and privacy policy",
     "termsOfService": "Terms of Service",
     "privacyPolicy": "Privacy Policy",
     "registerAsClient": "Register as client",
@@ -4058,6 +4095,137 @@
         "title": "Notification",
         "message": "You have a new notification"
       }
+    }
+  },
+  "termsPage": {
+    "title": "Terms and Conditions",
+    "lastUpdated": "Last updated",
+    "updatedDate": "April 2026",
+    "intro": "Welcome to NovoFix. By accessing and using our platform, you agree to comply with the following terms and conditions. We recommend reading them carefully.",
+    "acceptance": {
+      "title": "Acceptance of Terms",
+      "content": "By registering or using NovoFix, you accept these terms of service in their entirety. If you disagree with any part of these terms, you should not use the platform. Continued use of NovoFix after any modifications constitutes acceptance of the new terms."
+    },
+    "services": {
+      "title": "Service Description",
+      "content": "NovoFix is a technology platform that connects clients with home and commercial service professionals. NovoFix acts exclusively as an intermediary facilitating the connection between users, without being a direct party to service agreements between clients and providers."
+    },
+    "accounts": {
+      "title": "User Accounts",
+      "content": "To use certain features of NovoFix, you must create an account providing truthful, complete, and up-to-date information. You are responsible for maintaining the confidentiality of your password and all activities that occur under your account. You must notify us immediately of any unauthorized use."
+    },
+    "providers": {
+      "title": "Provider Obligations",
+      "content": "Service providers commit to:\n• Providing accurate information about their skills and experience\n• Keeping their profiles updated with real photos and descriptions\n• Fulfilling service agreements made with clients\n• Respecting agreed schedules and budgets\n• Maintaining the platform's quality standards"
+    },
+    "clients": {
+      "title": "Client Obligations",
+      "content": "Clients commit to:\n• Providing clear and accurate descriptions of required services\n• Treating providers with respect and professionalism\n• Making agreed payments in a timely manner\n• Providing honest and constructive reviews\n• Not requesting services for illegal or inappropriate purposes"
+    },
+    "payments": {
+      "title": "Payments and Billing",
+      "content": "Payments are securely processed through our authorized payment providers. NovoFix may charge commissions for its intermediation services. Service prices are agreed directly between clients and providers. NovoFix is not responsible for payment disputes between users."
+    },
+    "intellectual": {
+      "title": "Intellectual Property",
+      "content": "All content on the NovoFix platform, including but not limited to logos, designs, texts, graphics, and interfaces, is the property of NovoFix or its licensors. Content uploaded by users (photos, reviews, descriptions) remains the property of their respective authors, granting NovoFix a non-exclusive license for use within the platform."
+    },
+    "liability": {
+      "title": "Limitation of Liability",
+      "content": "NovoFix does not guarantee the quality, safety, or legality of services offered by providers. The platform is provided \"as is\" and \"as available\". NovoFix shall not be liable for indirect, incidental, or consequential damages arising from the use of the platform."
+    },
+    "termination": {
+      "title": "Termination",
+      "content": "NovoFix reserves the right to suspend or cancel accounts that violate these terms, without prior notice. Users may delete their accounts at any time from their profile. Termination does not affect pending obligations between users."
+    },
+    "modifications": {
+      "title": "Modifications",
+      "content": "NovoFix reserves the right to modify these terms at any time. Significant changes will be notified to users by email or through a notice on the platform. Continued use after modifications implies acceptance of the new terms."
+    },
+    "contact": {
+      "title": "Contact",
+      "content": "For questions about these terms, you can contact us through the platform or by sending an email to support@novofix.com."
+    }
+  },
+  "privacyPage": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated",
+    "updatedDate": "April 2026",
+    "intro": "At NovoFix, we take your privacy very seriously. This policy describes how we collect, use, store, and protect your personal information when you use our platform.",
+    "collection": {
+      "title": "Information We Collect",
+      "content": "We collect the following information:\n• Registration data: name, email, phone number, and password\n• Profile information: photo, description, skills, and location\n• Usage data: platform interactions, searches, and preferences\n• User-generated content: work photos, reviews, and messages\n• Technical information: IP address, device type, and browser"
+    },
+    "usage": {
+      "title": "Use of Information",
+      "content": "We use your information to:\n• Provide and improve our services\n• Connect clients with relevant providers\n• Process payments and transactions\n• Send important notifications about your account\n• Personalize your platform experience\n• Prevent fraud and unauthorized activities\n• Comply with legal obligations"
+    },
+    "sharing": {
+      "title": "Data Sharing",
+      "content": "We do not sell your personal information to third parties. We share limited data only with:\n• Payment service providers to process transactions\n• Cloud storage services to store files\n• Legal authorities when required by law\n• Other platform users as necessary for service delivery (e.g., name and profile photo)"
+    },
+    "cookies": {
+      "title": "Cookies and Similar Technologies",
+      "content": "We use cookies and similar technologies to keep your session active, remember your preferences, analyze platform usage, and improve user experience. You can configure your browser to reject cookies, although this may affect the functionality of some services."
+    },
+    "security": {
+      "title": "Data Security",
+      "content": "We implement industry-standard security measures to protect your information, including SSL/TLS encryption, secure password storage with hashing, restricted access to personal data, and continuous security monitoring. However, no method of Internet transmission is 100% secure."
+    },
+    "rights": {
+      "title": "Your Rights",
+      "content": "You have the right to:\n• Access your stored personal information\n• Correct inaccurate or outdated data\n• Request deletion of your account and data\n• Export your data in a portable format\n• Withdraw your consent at any time\n• File a complaint with the data protection authority"
+    },
+    "retention": {
+      "title": "Data Retention",
+      "content": "We retain your personal information while your account is active or as needed to provide services. If you delete your account, we will delete or anonymize your information within 30 days, unless the law requires retention for a longer period."
+    },
+    "minors": {
+      "title": "Minors",
+      "content": "NovoFix is not intended for users under 18 years of age. We do not knowingly collect information from minors. If we discover that a minor has provided us with personal information, we will delete it immediately."
+    },
+    "changes": {
+      "title": "Changes to this Policy",
+      "content": "We may update this privacy policy periodically. We will notify you of significant changes by email or through a notice on the platform. We recommend reviewing this policy regularly."
+    },
+    "contact": {
+      "title": "Contact",
+      "content": "For privacy questions or to exercise your rights, contact us at privacy@novofix.com or through the platform's support section."
+    }
+  },
+  "aboutPage": {
+    "title": "About Us",
+    "intro": "NovoFix was born from a simple but powerful idea: making it as easy to find trusted professionals as sending a message. We connect clients with the best home and commercial service professionals in your area.",
+    "mission": {
+      "title": "Our Mission",
+      "content": "To democratize access to quality professional services, creating an ecosystem where clients find fast and reliable solutions, and where professionals can grow and thrive by showcasing their best work."
+    },
+    "vision": {
+      "title": "Our Vision",
+      "content": "To be the leading platform for home and commercial services, recognized for the trust, transparency, and quality we offer to both clients and professionals across Latin America."
+    },
+    "valuesTitle": "Our Values",
+    "values": {
+      "trust": {
+        "title": "Trust",
+        "desc": "We verify profiles and encourage real reviews so that every connection is safe and transparent."
+      },
+      "innovation": {
+        "title": "Innovation",
+        "desc": "We use smart technology like natural language search and automatic matching to facilitate every interaction."
+      },
+      "community": {
+        "title": "Community",
+        "desc": "We believe in the power of connecting people. Every professional and every client is part of a community that grows together."
+      },
+      "quality": {
+        "title": "Quality",
+        "desc": "We promote excellence through visual portfolios, ratings, and a reputation system that rewards good work."
+      }
+    },
+    "story": {
+      "title": "Our Story",
+      "content": "NovoFix emerged from the frustration of looking for a good plumber, electrician, or painter and not knowing who to turn to. We knew there were thousands of talented professionals, but there was no easy and reliable way to find them.\n\nThat's how NovoFix was born: a platform that combines modern technology with human warmth. Since our launch, we've connected hundreds of clients with verified professionals, facilitating thousands of successfully completed services.\n\nToday, we continue to grow with the same passion as day one, constantly improving our platform to offer the best possible experience to our community."
     }
   }
 }

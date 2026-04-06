@@ -61,6 +61,8 @@ function Home() {
   // Estado para navegación flotante
   const [showFloatingNav, setShowFloatingNav] = useState(false);
   const [activeSection, setActiveSection] = useState('hero-section');
+  // Auto-open provider profile after email verification redirect
+  const [autoOpenProviderId, setAutoOpenProviderId] = useState(null);
 
   // Efecto para detectar scroll y mostrar/ocultar navegación flotante
   useEffect(() => {
@@ -183,6 +185,43 @@ function Home() {
       navigate('/empleos', { replace: true });
     }
   }, [isAuthenticated, viewRole, navigate]);
+
+  // Detectar providerId en URL params o location.state (redirección post-verificación de email)
+  useEffect(() => {
+    const providerIdFromUrl = searchParams.get('providerId');
+    const categoryFromUrl = searchParams.get('category');
+    // Fallback: también leer de location.state por si los params ya se limpiaron
+    const providerIdToOpen = providerIdFromUrl || location.state?.openProvider;
+    
+    if (providerIdToOpen) {
+      setAutoOpenProviderId(providerIdToOpen);
+      // Si no hay categoría, cargar el proveedor directamente por ID
+      if (!categoryFromUrl) {
+        const loadProviderById = async () => {
+          try {
+            const { data } = await api.get(`/guest/providers/${providerIdToOpen}`);
+            if (data?.data) {
+              setSearchResults([data.data]);
+            }
+          } catch { /* provider not found, ignore */ }
+        };
+        loadProviderById();
+      }
+      // Limpiar el param providerId de la URL sin recargar
+      if (providerIdFromUrl) {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('providerId');
+        const remaining = newParams.toString();
+        setSearchParams(remaining ? newParams : {}, { replace: true });
+      }
+      // Limpiar location.state para evitar re-apertura en re-renders
+      if (location.state?.openProvider) {
+        navigate(location.pathname + location.search, { replace: true, state: {} });
+      }
+      // Limpiar localStorage residual por seguridad
+      try { localStorage.removeItem('pending_provider_contact'); } catch { /* ignore */ }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sincronizar categoría desde URL params (para que el botón "atrás" funcione)
   useEffect(() => {
@@ -772,6 +811,7 @@ useEffect(() => {
                     onSelect={handleProviderSelect}
                     onViewPortfolio={handleViewPortfolio}
                     selectedCategory={selectedCategory}
+                    autoOpenProfile={autoOpenProviderId === provider._id}
                   />
                 ))}
               </div>
@@ -1025,171 +1065,156 @@ useEffect(() => {
         <TestimonialsSection />
       )}
 
-      {/* Sección de Beneficios - Después de testimonios */}
+      {/* Sección CTA por rol - Después de testimonios */}
       {searchResults === null && !selectedCategory && (
         <div id="mission-vision-section" className="py-2 scroll-mt-20">
-          {/* Header de la sección */}
-          <div className="mb-6">
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-4">
-              {t('home.missionVision.title')}
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl">
-              {t('home.missionVision.subtitle')}
-            </p>
-          </div>
+          {/* CTA para Guests (no autenticados) */}
+          {!isAuthenticated && (
+            <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-dark-800 via-dark-700 to-brand-900 p-8 sm:p-12">
+              {/* Decoraciones */}
+              <div className="absolute top-0 right-0 w-80 h-80 bg-brand-500/10 rounded-full -mr-40 -mt-40"></div>
+              <div className="absolute bottom-0 left-0 w-60 h-60 bg-accent-500/10 rounded-full -ml-30 -mb-30"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-400/5 rounded-full"></div>
 
-          {/* Misión y Visión - Cards principales */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {/* Card de Misión */}
-            <div className="group relative bg-linear-to-br from-brand-50 via-brand-50/50 to-accent-50/30 rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden border border-brand-100/50">
-              {/* Decoraciones de fondo */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-200/20 rounded-full -mr-32 -mt-32 group-hover:scale-125 transition-transform duration-700"></div>
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-accent-200/20 rounded-full -ml-20 -mb-20 group-hover:scale-125 transition-transform duration-700"></div>
-              
-              <div className="relative z-10">
-                {/* Icono */}
-                <svg className="w-10 h-10 mb-6 text-gray-400 group-hover:text-brand-500 transition-all duration-300 group-hover:scale-110 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                
-                {/* Título */}
-                <div className="flex items-center gap-3 mb-4">
-                  <h3 className="text-2xl font-bold text-gray-900">{t('home.missionVision.missionTitle')}</h3>
-                  <div className="flex-1 h-px bg-linear-to-r from-brand-300 to-transparent"></div>
+              <div className="relative z-10 text-center max-w-2xl mx-auto">
+                <div className="inline-flex items-center gap-2 bg-brand-500/20 text-brand-300 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  {t('home.ctaSection.guest.badge')}
                 </div>
-                
-                {/* Contenido */}
-                <p className="text-gray-700 text-base leading-snug mb-4">
-                  {t('home.missionVision.missionText')}
-                </p>
-                
-                {/* Puntos clave de la misión */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className="text-gray-600">{t('home.missionVision.missionPoint1')}</span>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">{t('home.ctaSection.guest.title')}</h2>
+                <p className="text-gray-300 text-base sm:text-lg mb-8 leading-relaxed">{t('home.ctaSection.guest.subtitle')}</p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <button
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    className="w-full sm:w-auto px-8 py-3.5 bg-brand-500 hover:bg-brand-400 text-white font-bold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-brand-500/25 flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    {t('home.ctaSection.guest.clientBtn')}
+                  </button>
+                  <button
+                    onClick={() => navigate('/unete')}
+                    className="w-full sm:w-auto px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/20 transition-all duration-300 flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    {t('home.ctaSection.guest.providerBtn')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* CTA para Clientes */}
+          {isAuthenticated && viewRole === 'client' && (
+            <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-emerald-50 via-white to-brand-50 p-8 sm:p-10 border border-emerald-100">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100/40 rounded-full -mr-32 -mt-32"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-100/30 rounded-full -ml-24 -mb-24"></div>
+
+              <div className="relative z-10 flex flex-col lg:flex-row items-center gap-8">
+                <div className="flex-1 text-center lg:text-left">
+                  <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium mb-4">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {t('home.ctaSection.client.badge')}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-3">{t('home.ctaSection.client.title')}</h2>
+                  <p className="text-gray-600 text-base sm:text-lg mb-6 leading-relaxed">{t('home.ctaSection.client.subtitle')}</p>
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <button
+                      onClick={() => navigate('/mis-solicitudes')}
+                      className="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25 flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
-                    </div>
-                    <span className="text-gray-600">{t('home.missionVision.missionPoint2')}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      {t('home.ctaSection.client.requestsBtn')}
+                    </button>
+                    <button
+                      onClick={() => navigate('/reservas')}
+                      className="w-full sm:w-auto px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-200 transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                    </div>
-                    <span className="text-gray-600">{t('home.missionVision.missionPoint3')}</span>
+                      {t('home.ctaSection.client.bookingsBtn')}
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Card de Visión */}
-            <div className="group relative bg-linear-to-br from-accent-50 via-accent-50/30 to-brand-50/30 rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden border border-accent-100/50">
-              {/* Decoraciones de fondo */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-accent-200/20 rounded-full -mr-32 -mt-32 group-hover:scale-125 transition-transform duration-700"></div>
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-brand-200/20 rounded-full -ml-20 -mb-20 group-hover:scale-125 transition-transform duration-700"></div>
-              
-              <div className="relative z-10">
-                {/* Icono */}
-                <svg className="w-10 h-10 mb-6 text-gray-400 group-hover:text-accent-500 transition-all duration-300 group-hover:scale-110 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                
-                {/* Título */}
-                <div className="flex items-center gap-3 mb-4">
-                  <h3 className="text-2xl font-bold text-gray-900">{t('home.missionVision.visionTitle')}</h3>
-                  <div className="flex-1 h-px bg-linear-to-r from-accent-300 to-transparent"></div>
+          {/* CTA para Proveedores */}
+          {isAuthenticated && viewRole === 'provider' && (
+            <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-50 via-white to-accent-50 p-8 sm:p-10 border border-brand-100">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-100/40 rounded-full -mr-32 -mt-32"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent-100/30 rounded-full -ml-24 -mb-24"></div>
+
+              <div className="relative z-10 flex flex-col lg:flex-row items-center gap-8">
+                <div className="flex-1 text-center lg:text-left">
+                  <div className="inline-flex items-center gap-2 bg-brand-100 text-brand-700 px-3 py-1 rounded-full text-sm font-medium mb-4">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                    {t('home.ctaSection.provider.badge')}
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-3">{t('home.ctaSection.provider.title')}</h2>
+                  <p className="text-gray-600 text-base sm:text-lg mb-6 leading-relaxed">{t('home.ctaSection.provider.subtitle')}</p>
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <button
+                      onClick={() => navigate('/empleos')}
+                      className="w-full sm:w-auto px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-brand-500/25 flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      {t('home.ctaSection.provider.jobsBtn')}
+                    </button>
+                    <button
+                      onClick={() => navigate('/portafolio')}
+                      className="w-full sm:w-auto px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-200 transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {t('home.ctaSection.provider.portfolioBtn')}
+                    </button>
+                  </div>
                 </div>
-                
-                {/* Contenido */}
-                <p className="text-gray-700 text-base leading-snug mb-4">
-                  {t('home.missionVision.visionText')}
-                </p>
-                
-                {/* Puntos clave de la visión */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-accent-100 rounded-full flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                {/* Quick links */}
+                <div className="grid grid-cols-1 gap-2 shrink-0 w-full lg:w-auto">
+                  <button onClick={() => navigate('/perfil')} className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-gray-100 hover:border-brand-200 hover:shadow-sm transition-all text-left">
+                    <div className="w-8 h-8 bg-brand-50 rounded-lg flex items-center justify-center shrink-0">
+                      <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
-                    <span className="text-gray-600">{t('home.missionVision.visionPoint1')}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-accent-100 rounded-full flex items-center justify-center shrink-0">
+                    <div>
+                      <p className="text-sm font-semibold">{t('home.ctaSection.provider.profileLink')}</p>
+                      <p className="text-xs text-gray-500">{t('home.ctaSection.provider.profileDesc')}</p>
+                    </div>
+                  </button>
+                  <button onClick={() => navigate('/calendario')} className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-gray-100 hover:border-brand-200 hover:shadow-sm transition-all text-left">
+                    <div className="w-8 h-8 bg-accent-50 rounded-lg flex items-center justify-center shrink-0">
                       <svg className="w-4 h-4 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <span className="text-gray-600">{t('home.missionVision.visionPoint2')}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-accent-100 rounded-full flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+                    <div>
+                      <p className="text-sm font-semibold">{t('home.ctaSection.provider.calendarLink')}</p>
+                      <p className="text-xs text-gray-500">{t('home.ctaSection.provider.calendarDesc')}</p>
                     </div>
-                    <span className="text-gray-600">{t('home.missionVision.visionPoint3')}</span>
-                  </div>
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Nuestros Valores - Fila de 4 cards pequeñas */}
-          <div className="mb-8">
-            <h3 className="text-xl font-bold text-gray-900 text-center mb-6">{t('home.missionVision.valuesTitle')}</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {/* Valor 1 - Confianza */}
-              <div className="group bg-white rounded-xl p-5 transition-all duration-300 border border-transparent hover:border-emerald-200 text-center">
-                <svg className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:scale-110 transition-all duration-300 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                <h4 className="font-semibold text-gray-900 mb-1">{t('home.missionVision.value1Title')}</h4>
-                <p className="text-sm text-gray-500">{t('home.missionVision.value1Desc')}</p>
-              </div>
-
-              {/* Valor 2 - Excelencia */}
-              <div className="group bg-white rounded-xl p-5 transition-all duration-300 border border-transparent hover:border-accent-200 text-center">
-                <svg className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:scale-110 transition-all duration-300 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-                <h4 className="font-semibold text-gray-900 mb-1">{t('home.missionVision.value2Title')}</h4>
-                <p className="text-sm text-gray-500">{t('home.missionVision.value2Desc')}</p>
-              </div>
-
-              {/* Valor 3 - Transparencia */}
-              <div className="group bg-white rounded-xl p-5 transition-all duration-300 border border-transparent hover:border-brand-200 text-center">
-                <svg className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:scale-110 transition-all duration-300 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                <h4 className="font-semibold text-gray-900 mb-1">{t('home.missionVision.value3Title')}</h4>
-                <p className="text-sm text-gray-500">{t('home.missionVision.value3Desc')}</p>
-              </div>
-
-              {/* Valor 4 - Innovación */}
-              <div className="group bg-white rounded-xl p-5 transition-all duration-300 border border-transparent hover:border-dark-200 text-center">
-                <svg className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:scale-110 transition-all duration-300 drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-                <h4 className="font-semibold text-gray-900 mb-1">{t('home.missionVision.value4Title')}</h4>
-                <p className="text-sm text-gray-500">{t('home.missionVision.value4Desc')}</p>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -1254,6 +1279,7 @@ useEffect(() => {
                         onSelect={handleProviderSelect}
                         onViewPortfolio={handleViewPortfolio}
                         selectedCategory={selectedCategory}
+                        autoOpenProfile={autoOpenProviderId === provider._id}
                       />
                     ))}
                 </div>

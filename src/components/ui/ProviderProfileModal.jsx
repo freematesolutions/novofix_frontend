@@ -965,6 +965,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
         isOpen={showGuestConversion}
         onClose={() => setShowGuestConversion(false)}
         provider={provider}
+        selectedCategory={selectedCategory}
         onConversionComplete={() => {
           // Después de registrarse/login exitoso, abrir el wizard de solicitud
           setShowGuestConversion(false);

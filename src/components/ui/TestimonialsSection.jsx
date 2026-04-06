@@ -1018,7 +1018,17 @@ const WorkPhotoGallery = ({ photos, onImageClick, onViewProfile }) => {
                   
                   {/* Info del proveedor */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-xs font-semibold truncate">{photo.providerName}</p>
+                    {photo.providerId && onViewProfile ? (
+                      <button
+                        onClick={(e) => handleProfileClick(photo, e)}
+                        className="text-white text-xs font-semibold truncate block max-w-full text-left hover:text-brand-300 transition-colors cursor-pointer"
+                        title={t('testimonials.viewProfile', 'Ver perfil')}
+                      >
+                        {photo.providerName}
+                      </button>
+                    ) : (
+                      <p className="text-white text-xs font-semibold truncate">{photo.providerName}</p>
+                    )}
                     <div className="flex items-center gap-1">
                       <StarRating rating={photo.rating || 5} size="xs" />
                       <span className="text-white/70 text-xs truncate">{t(`home.categories.${photo.category}`, photo.category)}</span>
@@ -1219,6 +1229,9 @@ function TestimonialsSection() {
                 />
               )}
 
+              {/* Before/After de trabajos completados */}
+              <BeforeAfterGallery onViewProfile={handleViewProfile} />
+
               {/* Work Photos Gallery - Sección independiente con espaciado propio */}
               <div id="gallery-section" className="pt-14 scroll-mt-20">
                 <WorkPhotoGallery 
@@ -1227,9 +1240,6 @@ function TestimonialsSection() {
                   onViewProfile={handleViewProfile}
                 />
               </div>
-
-              {/* Before/After de trabajos completados */}
-              <BeforeAfterGallery onViewProfile={handleViewProfile} />
             </>
           )}
 

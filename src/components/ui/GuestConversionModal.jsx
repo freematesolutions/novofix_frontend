@@ -103,7 +103,8 @@ function GuestConversionModal({
   isOpen, 
   onClose, 
   provider, 
-  onConversionComplete 
+  onConversionComplete,
+  selectedCategory = null 
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -362,10 +363,13 @@ function GuestConversionModal({
 
       if (result.pending) {
         // Guardar el proveedor pendiente para después de la verificación
+        // Usamos localStorage (no sessionStorage) para que persista si el usuario
+        // abre el link de verificación en una nueva pestaña
         try {
-          sessionStorage.setItem('pending_provider_contact', JSON.stringify({
+          localStorage.setItem('pending_provider_contact', JSON.stringify({
             providerId: provider?._id,
-            providerName: provider?.providerProfile?.businessName || provider?.profile?.firstName
+            providerName: provider?.providerProfile?.businessName || provider?.profile?.firstName,
+            category: selectedCategory || provider?.providerProfile?.services?.[0]?.category || null
           }));
         } catch { /* intentionally empty */ }
         
@@ -1051,7 +1055,8 @@ GuestConversionModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   provider: PropTypes.object,
-  onConversionComplete: PropTypes.func
+  onConversionComplete: PropTypes.func,
+  selectedCategory: PropTypes.string
 };
 
 export default GuestConversionModal;

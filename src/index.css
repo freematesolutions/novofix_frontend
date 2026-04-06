@@ -586,22 +586,35 @@ body { margin: 0; color: #2D2D2D; }
    FLOATING NAV (HOME)
    ============================================ */
 
-.floating-nav {
-	background: transparent !important;
-	border: 0 !important;
-	box-shadow: none !important;
-	padding: 0 !important;
-	backdrop-filter: none !important;
-	-webkit-backdrop-filter: none !important;
+/* Desktop: vertical pill container on the right */
+.floating-nav-desktop {
+	background: rgba(255, 255, 255, 0.45) !important;
+	border: 1px solid rgba(0, 0, 0, 0.05) !important;
+	border-radius: 1.25rem !important;
+	padding: 0.4rem !important;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
+	backdrop-filter: blur(16px) saturate(1.2) !important;
+	-webkit-backdrop-filter: blur(16px) saturate(1.2) !important;
+}
+
+/* Mobile: horizontal pill bar at the bottom */
+.floating-nav-mobile {
+	background: rgba(255, 255, 255, 0.55) !important;
+	border: 1px solid rgba(0, 0, 0, 0.06) !important;
+	border-radius: 1.25rem !important;
+	padding: 0.35rem 0.5rem !important;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+	backdrop-filter: blur(18px) saturate(1.3) !important;
+	-webkit-backdrop-filter: blur(18px) saturate(1.3) !important;
 }
 
 .floating-nav-btn {
 	position: relative;
-	background: rgba(255, 255, 255, 0.08);
-	border: 1px solid rgba(255, 255, 255, 0.18);
-	backdrop-filter: blur(16px);
-	-webkit-backdrop-filter: blur(16px);
-	box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+	background: rgba(255, 255, 255, 0.55);
+	border: 1px solid rgba(0, 0, 0, 0.06);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 	transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, color 0.25s ease;
 }
 
@@ -611,23 +624,23 @@ body { margin: 0; color: #2D2D2D; }
 
 .floating-nav-btn--idle:hover {
 	color: #008080;
-	background: rgba(0, 128, 128, 0.12);
-	box-shadow: 0 12px 30px rgba(0, 128, 128, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-	transform: translateY(-1px) scale(1.03);
+	background: rgba(0, 128, 128, 0.10);
+	box-shadow: 0 2px 8px rgba(0, 128, 128, 0.18);
+	transform: translateY(-1px) scale(1.06);
 }
 
 .floating-nav-btn--active {
 	color: #ffffff;
-	background: linear-gradient(135deg, rgba(0, 128, 128, 0.95), rgba(0, 107, 107, 0.9));
-	border-color: rgba(255, 255, 255, 0.35);
-	box-shadow: 0 14px 36px rgba(0, 128, 128, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.45);
-	transform: translateY(-1px) scale(1.06);
+	background: linear-gradient(135deg, #0dae9c, #008080);
+	border-color: rgba(255, 255, 255, 0.3);
+	box-shadow: 0 4px 14px rgba(0, 128, 128, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+	transform: translateY(-1px) scale(1.08);
 }
 
 @media (hover: none) and (pointer: coarse) {
-	.floating-nav-btn {
-		backdrop-filter: blur(18px);
-		-webkit-backdrop-filter: blur(18px);
+	.floating-nav-mobile {
+		backdrop-filter: blur(24px) saturate(1.6) !important;
+		-webkit-backdrop-filter: blur(24px) saturate(1.6) !important;
 	}
 }
 

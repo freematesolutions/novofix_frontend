@@ -293,7 +293,17 @@ function BeforeAfterGallery({ onViewProfile }) {
 
                       {/* Nombre y categoría */}
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm truncate">{pair.providerName}</p>
+                        {pair.providerId && onViewProfile ? (
+                          <button
+                            onClick={() => onViewProfile(pair.providerId, pair)}
+                            className="font-semibold text-sm truncate block max-w-full text-left hover:text-brand-500 transition-colors cursor-pointer"
+                            title={t('testimonials.beforeAfter.viewProfile')}
+                          >
+                            {pair.providerName}
+                          </button>
+                        ) : (
+                          <p className="font-semibold text-gray-900 text-sm truncate">{pair.providerName}</p>
+                        )}
                         <p className="text-xs text-gray-500 truncate">{t(`home.categories.${pair.category}`, pair.category)}</p>
                       </div>
 

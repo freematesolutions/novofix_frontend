@@ -90,6 +90,8 @@ function RegisterClient() {
   const emailCheckTimeoutRef = useRef(null);
   
   const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
 
   // Validación de disponibilidad de email con debounce
   useEffect(() => {
@@ -232,6 +234,12 @@ function RegisterClient() {
     if (Object.keys(errs).length) {
       setTouched({ firstName: true, lastName: true, email: true, password: true });
       toast.warning(t('auth.validation.checkFormFields'));
+      setLocalLoading(false);
+      return;
+    }
+
+    if (!acceptTerms || !acceptPrivacy) {
+      toast.warning(t('auth.termsRequired'));
       setLocalLoading(false);
       return;
     }
@@ -503,6 +511,7 @@ function RegisterClient() {
 
               <Button 
                 loading={localLoading} 
+                disabled={!acceptTerms || !acceptPrivacy}
                 className="w-full py-3 text-base font-semibold rounded-xl bg-linear-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-dark-900 transition-all shadow-lg shadow-accent-500/25"
               >
                 {localLoading ? (
@@ -517,6 +526,52 @@ function RegisterClient() {
                   </span>
                 )}
               </Button>
+
+              {/* Términos y Privacidad checkboxes */}
+              <div className="space-y-2.5 pt-1">
+                <div className="flex items-start gap-2.5">
+                  <input
+                    type="checkbox"
+                    id="client-acceptTerms"
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
+                  />
+                  <label htmlFor="client-acceptTerms" className="text-sm text-gray-600">
+                    {t('auth.acceptTerms')}{' '}
+                    <Link 
+                      to="/terminos?from=registrarse" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand-600 hover:text-brand-700 underline"
+                    >
+                      {t('auth.acceptTermsLink')}
+                    </Link>
+                    {' '}<span className="text-red-500">*</span>
+                  </label>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <input
+                    type="checkbox"
+                    id="client-acceptPrivacy"
+                    checked={acceptPrivacy}
+                    onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
+                  />
+                  <label htmlFor="client-acceptPrivacy" className="text-sm text-gray-600">
+                    {t('auth.acceptPrivacy')}{' '}
+                    <Link 
+                      to="/privacidad?from=registrarse" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand-600 hover:text-brand-700 underline"
+                    >
+                      {t('auth.acceptPrivacyLink')}
+                    </Link>
+                    {' '}<span className="text-red-500">*</span>
+                  </label>
+                </div>
+              </div>
             </form>
 
             <div className="relative my-5">
@@ -551,13 +606,7 @@ function RegisterClient() {
             </Link>
           </div>
 
-          <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
-            <p className="text-center text-xs text-gray-500">
-              {t('auth.termsAgree')}{' '}
-              <a href="/terminos" className="text-brand-600 hover:underline">{t('footer.terms')}</a> {t('common.and')}{' '}
-              <a href="/privacidad" className="text-brand-600 hover:underline">{t('footer.privacy')}</a>
-            </p>
-          </div>
+
         </div>
       </div>
     </div>

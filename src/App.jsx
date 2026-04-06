@@ -43,6 +43,10 @@ const AdminRequests = lazy(() => import('./pages/admin/Requests.jsx'));
 const AdminBookings = lazy(() => import('./pages/admin/AdminBookings.jsx'));
 const AdminReports = lazy(() => import('./pages/admin/Reports.jsx'));
 const AdminAlerts = lazy(() => import('./pages/admin/AdminAlerts.jsx'));
+// Legal & info pages
+const TermsOfService = lazy(() => import('./pages/shared/TermsOfService.jsx'));
+const PrivacyPolicy = lazy(() => import('./pages/shared/PrivacyPolicy.jsx'));
+const AboutUs = lazy(() => import('./pages/shared/AboutUs.jsx'));
 
 function App() {
   const { pendingVerification, user } = useAuth();
@@ -94,6 +98,10 @@ function App() {
           <Route path="/notificaciones" element={<Notifications />} />
           <Route path="/payment/:intentId" element={<Payment />} />
           <Route path="/verificar-email" element={<VerifyEmail />} />
+          {/* Legal & info pages */}
+          <Route path="/terminos" element={<TermsOfService />} />
+          <Route path="/privacidad" element={<PrivacyPolicy />} />
+          <Route path="/sobre-nosotros" element={<AboutUs />} />
           {/* Admin */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/usuarios" element={<AdminUsers />} />

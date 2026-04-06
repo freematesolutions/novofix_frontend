@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import ProviderProfileModal from './ProviderProfileModal.jsx';
@@ -35,7 +35,7 @@ const StarRating = ({ rating, size = 'sm', dataNavSection }) => {
   );
 };
 
-function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = null }) {
+function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = null, autoOpenProfile = false }) {
   const { t } = useTranslation();
   const [showImageZoom, setShowImageZoom] = useState(false);
   const [blockCardClicks, setBlockCardClicks] = useState(false);
@@ -45,6 +45,15 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
   const [showRequestWizard, setShowRequestWizard] = useState(false);
   const [showGuestConversion, setShowGuestConversion] = useState(false);
   const [showPortfolioGallery, setShowPortfolioGallery] = useState(false);
+
+  // Auto-open profile when redirected after email verification
+  useEffect(() => {
+    if (autoOpenProfile) {
+      // Small delay to let rendering settle
+      const timer = setTimeout(() => setShowProfile('about'), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [autoOpenProfile]);
   
   // Función helper para generar thumbnail URL de videos de Cloudinary
   const getVideoThumbnailUrl = (videoUrl) => {
@@ -406,6 +415,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
         isOpen={showGuestConversion}
         onClose={() => setShowGuestConversion(false)}
         provider={provider}
+        selectedCategory={selectedCategory}
         onConversionComplete={() => {
           // Después de registrarse/login exitoso, abrir el wizard de solicitud
           setShowGuestConversion(false);
@@ -429,7 +439,9 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
 ProviderCard.propTypes = {
   provider: PropTypes.object.isRequired,
   onSelect: PropTypes.func,
-  onViewPortfolio: PropTypes.func
+  onViewPortfolio: PropTypes.func,
+  selectedCategory: PropTypes.string,
+  autoOpenProfile: PropTypes.bool
 };
 
 export default ProviderCard;
