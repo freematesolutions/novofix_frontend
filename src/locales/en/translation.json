@@ -137,6 +137,7 @@
     "scrollLeft": "Scroll menu left",
     "scrollRight": "Scroll menu right",
     "notifications": "Notifications",
+    "chatMessages": "Chat messages",
     "mainMenu": "Main menu",
     "modeLocked": "Mode manually locked",
     "locked": "Locked",
@@ -2927,6 +2928,7 @@
     "providerProfile": {
       "professional": "Professional",
       "onlyClientsCanRequest": "Only clients can send requests",
+      "inquiry": "Message",
       "jobs": "jobs",
       "sendRequest": "Request Estimate",
       "estimate": "Quote",
@@ -2971,6 +2973,7 @@
     "providerCard": {
       "professional": "Professional",
       "onlyClientsCanRequest": "Only clients can send requests",
+      "inquiry": "Message",
       "viewReviews": "View reviews",
       "enlargeImage": "Enlarge image",
       "reviewsCount": "{{count}} reviews",
@@ -2985,6 +2988,15 @@
       "noDescription": "No description available",
       "specializingIn": "{{name}} specializing in {{service}}",
       "portfolioWork": "Portfolio work"
+    },
+    "inquiryChat": {
+      "professional": "Professional",
+      "subtitle": "Direct inquiry",
+      "close": "Close",
+      "loading": "Starting conversation...",
+      "errorTitle": "Connection error",
+      "errorCreating": "Could not start the conversation. Please try again.",
+      "requestEstimate": "Request Estimate"
     },
     "starRating": {
       "ariaLabel": "{{value}} of {{max}} stars"
@@ -3824,7 +3836,10 @@
       "proposalStarted": "💬 Conversation started about the proposal of {{formattedAmount}}. You can negotiate terms and resolve questions here.",
       "proposalStartedNoAmount": "💬 Conversation started about the proposal. You can negotiate terms and resolve questions here.",
       "bookingStarted": "💬 Chat started for the service. You can coordinate details here.",
-      "infoRequestStarted": "📋 {{providerName}} needs more information about your request before sending you a proposal."
+      "infoRequestStarted": "📋 {{providerName}} needs more information about your request before sending you a proposal.",
+      "inquiryStarted": "💬 {{clientName}} has started an inquiry with {{providerName}}.",
+      "chatAccepted": "✅ The professional has accepted the conversation.",
+      "chatDeclined": "❌ The professional has declined the conversation."
     },
     "noMessages": "No messages yet",
     "startConversation": "Send the first message to start the conversation",
@@ -3873,7 +3888,19 @@
     "pdfView": "View",
     "pdfDownload": "Download",
     "pdfOpenNewTab": "Open in new tab",
-    "pdfFallbackLink": "Can't see the document? Click here to open it"
+    "pdfFallbackLink": "Can't see the document? Click here to open it",
+    "pendingInquiry": "A client wants to start a conversation with you",
+    "pendingInquiryHint": "Accept to continue the conversation or decline if you're not interested",
+    "decline": "Decline",
+    "acceptInquiry": "Accept",
+    "acceptedSuccess": "Conversation accepted",
+    "acceptError": "Error accepting the conversation",
+    "declinedSuccess": "Conversation declined",
+    "declineError": "Error declining the conversation",
+    "typeBooking": "Booking",
+    "typeEstimate": "Estimate",
+    "typeInfoRequest": "Inquiry",
+    "typeInquiry": "Direct message"
   },
   "invoice": {
     "title": "Generate Invoice",
@@ -4145,6 +4172,14 @@
     "contact": {
       "title": "Contact",
       "content": "For questions about these terms, you can contact us through the platform or by sending an email to support@novofix.com."
+    },
+    "disclaimerClient": {
+      "title": "Client Disclaimer",
+      "content": "NovoFix operates as an independent marketplace to connect clients and professionals. While we promote transparency, NovoFix does not guarantee or continuously verify the licenses, insurance, or state certifications of professionals. Clients are advised to validate relevant credentials before any engagement."
+    },
+    "disclaimerProvider": {
+      "title": "Provider Disclaimer",
+      "content": "NovoFix is an intermediation platform. By registering, the professional declares that they hold the current licenses, insurance, and permits required by Florida law to carry out their activity. The professional acts as an independent contractor and NovoFix assumes no responsibility for tax obligations, labor liabilities, or damages arising from the provision of their services."
     }
   },
   "privacyPage": {

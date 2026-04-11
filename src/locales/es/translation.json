@@ -326,7 +326,10 @@
       "proposalStarted": "💬 Conversación iniciada sobre la propuesta de {{formattedAmount}}. Pueden negociar términos y resolver dudas aquí.",
       "proposalStartedNoAmount": "💬 Conversación iniciada sobre la propuesta. Pueden negociar términos y resolver dudas aquí.",
       "bookingStarted": "💬 Chat iniciado para el servicio. Pueden coordinar detalles aquí.",
-      "infoRequestStarted": "📋 {{providerName}} necesita más información sobre tu solicitud antes de enviarte una propuesta."
+      "infoRequestStarted": "📋 {{providerName}} necesita más información sobre tu solicitud antes de enviarte una propuesta.",
+      "inquiryStarted": "💬 {{clientName}} ha iniciado una consulta con {{providerName}}.",
+      "chatAccepted": "✅ El profesional ha aceptado la conversación.",
+      "chatDeclined": "❌ El profesional ha declinado la conversación."
     },
     "noMessages": "Sin mensajes aún",
     "startConversation": "Envía el primer mensaje para iniciar la conversación",
@@ -375,7 +378,19 @@
     "pdfView": "Ver",
     "pdfDownload": "Descargar",
     "pdfOpenNewTab": "Abrir en nueva pestaña",
-    "pdfFallbackLink": "¿No se ve el documento? Haz clic aquí para abrirlo"
+    "pdfFallbackLink": "¿No se ve el documento? Haz clic aquí para abrirlo",
+    "pendingInquiry": "Un cliente desea iniciar una conversación contigo",
+    "pendingInquiryHint": "Acepta para continuar la conversación o declina si no estás interesado",
+    "decline": "Declinar",
+    "acceptInquiry": "Aceptar",
+    "acceptedSuccess": "Conversación aceptada",
+    "acceptError": "Error al aceptar la conversación",
+    "declinedSuccess": "Conversación declinada",
+    "declineError": "Error al declinar la conversación",
+    "typeBooking": "Reserva",
+    "typeEstimate": "Estimado",
+    "typeInfoRequest": "Consulta",
+    "typeInquiry": "Mensaje directo"
   },
   "invoice": {
     "title": "Generar Factura",
@@ -659,6 +674,7 @@
     "scrollLeft": "Desplazar menú a la izquierda",
     "scrollRight": "Desplazar menú a la derecha",
     "notifications": "Notificaciones",
+    "chatMessages": "Mensajes de chat",
     "mainMenu": "Menú principal",
     "modeLocked": "Modo fijado manualmente",
     "locked": "Fijado",
@@ -3015,6 +3031,7 @@
     "providerProfile": {
       "professional": "Profesional",
       "onlyClientsCanRequest": "Solo los clientes pueden enviar solicitudes",
+      "inquiry": "Mensaje",
       "jobs": "trabajos",
       "sendRequest": "Solicitar Estimado",
       "estimate": "Cotización",
@@ -3059,6 +3076,7 @@
     "providerCard": {
       "professional": "Profesional",
       "onlyClientsCanRequest": "Solo los clientes pueden enviar solicitudes",
+      "inquiry": "Mensaje",
       "viewReviews": "Ver reseñas",
       "enlargeImage": "Ampliar imagen",
       "reviewsCount": "{{count}} reseñas",
@@ -3073,6 +3091,15 @@
       "noDescription": "Sin descripción disponible",
       "specializingIn": "{{name}} especializado en {{service}}",
       "portfolioWork": "Trabajo del portafolio"
+    },
+    "inquiryChat": {
+      "professional": "Profesional",
+      "subtitle": "Consulta directa",
+      "close": "Cerrar",
+      "loading": "Iniciando conversación...",
+      "errorTitle": "Error de conexión",
+      "errorCreating": "No se pudo iniciar la conversación. Inténtalo de nuevo.",
+      "requestEstimate": "Solicitar Estimado"
     },
     "starRating": {
       "ariaLabel": "{{value}} de {{max}} estrellas"
@@ -4149,6 +4176,14 @@
     "contact": {
       "title": "Contacto",
       "content": "Para preguntas sobre estos términos, puedes contactarnos a través de la plataforma o enviando un correo a soporte@novofix.com."
+    },
+    "disclaimerClient": {
+      "title": "Disclaimer del Cliente",
+      "content": "NovoFix funciona como un mercado independiente para conectar clientes y profesionales. Aunque promovemos la transparencia, NovoFix no garantiza ni verifica de forma continua las licencias, seguros o certificaciones estatales de los profesionales. Se recomienda al Cliente validar las credenciales pertinentes antes de cualquier contratación."
+    },
+    "disclaimerProvider": {
+      "title": "Disclaimer del Profesional",
+      "content": "NovoFix es una plataforma de intermediación. Al registrarse, el profesional declara que cuenta con las licencias, seguros y permisos vigentes requeridos por la ley de Florida para ejercer su actividad. El profesional actúa como contratista independiente y NovoFix no asume responsabilidad por obligaciones fiscales, laborales o daños derivados de la prestación de sus servicios."
     }
   },
   "privacyPage": {

@@ -22,9 +22,10 @@ export default function Inbox() {
   const [proposals, setProposals] = useState([]);
 
   // Chat state - simplified, ChatRoom handles internal messaging
+  // Now works with consolidated conversations (grouped by participant pair)
   const [chats, setChats] = useState([]);
   const [chatError, setChatError] = useState('');
-  const [selectedChat, setSelectedChat] = useState(null);
+  const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [typingUsers, setTypingUsers] = useState({});
   const socketRef = useRef(null);
   
@@ -33,23 +34,40 @@ export default function Inbox() {
   const [negotiationChat, setNegotiationChat] = useState(null);
   const [negotiationProposal, setNegotiationProposal] = useState(null);
   const [loadingNegotiationChat, setLoadingNegotiationChat] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('all');
-
 
   useEffect(()=>{ clearError?.(); }, [clearError]);
 
   // Leer chatId de query params y seleccionarlo automáticamente cuando los chats estén cargados
+  // Soporta ?chat=<conversationId> y también ?chat=<chatId> (legacy: busca la conversación que lo contiene)
   useEffect(() => {
     const chatFromUrl = searchParams.get('chat');
-    if (chatFromUrl && chats.length > 0) {
-      const chatToSelect = chats.find(c => (c._id || c.id) === chatFromUrl);
-      if (chatToSelect && (!selectedChat || (selectedChat._id || selectedChat.id) !== chatFromUrl)) {
-        setSelectedChat(chatToSelect);
-        // Limpiar el param de la URL
-        setSearchParams({}, { replace: true });
-      }
+    if (!chatFromUrl || chatFromUrl === selectedConversationId) return;
+
+    // Intentar como conversationId directo
+    const directMatch = chats.find(c => (c._id || c.conversationId) === chatFromUrl);
+    if (directMatch) {
+      setSelectedConversationId(chatFromUrl);
+      setSearchParams({}, { replace: true });
+      return;
     }
-  }, [searchParams, chats, selectedChat, setSearchParams]);
+
+    // Buscar la conversación que contiene este chatId en relatedChats
+    const parentConv = chats.find(c =>
+      c.relatedChats?.some(rc => rc._id === chatFromUrl)
+    );
+    if (parentConv) {
+      setSelectedConversationId(parentConv._id || parentConv.conversationId);
+      setSearchParams({}, { replace: true });
+      return;
+    }
+
+    // Si los chats ya cargaron y no hay match, establecer como selected directamente
+    if (chats.length > 0) {
+      setSelectedConversationId(chatFromUrl);
+      setSearchParams({}, { replace: true });
+    }
+    // Si chats.length === 0, mantener el param en URL para reintentar cuando carguen
+  }, [searchParams, selectedConversationId, setSearchParams, chats]);
 
   const load = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -92,14 +110,19 @@ export default function Inbox() {
     socketRef.current = s;
     if (!s) return;
 
-    // Update chat list when new messages arrive
+    // Update chat list when new messages arrive (consolidated)
     const offNew = socketOn('new_message', (payload) => {
       const cid = payload?.chatId || payload?.chat?._id;
       const msg = payload?.message || payload;
       if (!cid || !msg) return;
       setChats((prev) => {
         const copy = Array.from(prev || []);
-        const idx = copy.findIndex(c => (c._id || c.id) === cid);
+        // Buscar la conversación que contiene este chatId
+        const idx = copy.findIndex(c =>
+          c.relatedChats?.some(rc => rc._id === cid) ||
+          c.primaryChatId === cid ||
+          (c._id || c.conversationId) === cid
+        );
         if (idx >= 0) {
           const updated = { ...copy[idx], lastMessage: msg, metadata: { ...(copy[idx]?.metadata || {}), lastActivity: new Date().toISOString() } };
           copy.splice(idx, 1);
@@ -129,16 +152,23 @@ export default function Inbox() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      try { if (selectedChat?._id) socketEmit('leave_chat', { chatId: selectedChat._id }); } catch { /* ignore */ }
+      try {
+        const conv = chats.find(c => (c._id || c.conversationId) === selectedConversationId);
+        if (conv?.relatedChats) {
+          conv.relatedChats.forEach(rc => socketEmit('leave_chat', { chatId: rc._id }));
+        } else if (conv?.primaryChatId) {
+          socketEmit('leave_chat', { chatId: conv.primaryChatId });
+        }
+      } catch { /* ignore */ }
     };
-  }, [selectedChat]);
+  }, [selectedConversationId, chats]);
 
   // Handler for new messages from ChatRoom - update chat list
   const handleNewMessage = useCallback((msg) => {
-    if (!selectedChat?._id || !msg) return;
+    if (!selectedConversationId || !msg) return;
     setChats((prev) => {
       const copy = Array.from(prev || []);
-      const idx = copy.findIndex(c => (c._id || c.id) === selectedChat._id);
+      const idx = copy.findIndex(c => (c._id || c.conversationId) === selectedConversationId);
       if (idx >= 0) {
         const updated = { ...copy[idx], lastMessage: msg, metadata: { ...(copy[idx]?.metadata || {}), lastActivity: new Date().toISOString() } };
         copy.splice(idx, 1);
@@ -146,63 +176,30 @@ export default function Inbox() {
       }
       return copy;
     });
-  }, [selectedChat]);
+  }, [selectedConversationId]);
 
   useEffect(() => { if (viewRole === 'provider') loadChats(); }, [viewRole, loadChats]);
 
-  // Chat type configuration (same types as client Messages)
-  const chatTypeConfig = useMemo(() => ({
-    booking: {
-      label: t('provider.inbox.typeBooking', 'Reservas'),
-      icon: '📅',
-      color: 'text-brand-600 bg-brand-50 border-brand-200',
-      dot: 'bg-brand-500'
-    },
-    proposal_negotiation: {
-      label: t('provider.inbox.typeEstimate', 'Estimados'),
-      icon: '💰',
-      color: 'text-brand-600 bg-brand-50 border-brand-200',
-      dot: 'bg-brand-500'
-    },
-    info_request: {
-      label: t('provider.inbox.typeInquiry', 'Consultas'),
-      icon: '💬',
-      color: 'text-accent-600 bg-accent-50 border-accent-200',
-      dot: 'bg-accent-500'
-    },
-    inquiry: {
-      label: t('provider.inbox.typeInquiry', 'Consultas'),
-      icon: '💬',
-      color: 'text-accent-600 bg-accent-50 border-accent-200',
-      dot: 'bg-accent-500'
-    }
-  }), [t]);
+  // ── Computed values from selectedConversationId ──
+  const selectedChat = useMemo(() => {
+    return chats.find(c => (c._id || c.conversationId) === selectedConversationId);
+  }, [chats, selectedConversationId]);
 
-  // Filter tabs with counts
-  const filterTabs = useMemo(() => {
-    const counts = { all: chats.length, booking: 0, estimate: 0, inquiry: 0 };
-    chats.forEach(c => {
-      const type = c.chatType;
-      if (type === 'booking') counts.booking++;
-      else if (type === 'proposal_negotiation') counts.estimate++;
-      else if (type === 'info_request' || type === 'inquiry') counts.inquiry++;
-    });
-    return [
-      { key: 'all', label: t('provider.inbox.filterAll', 'Todos'), count: counts.all },
-      { key: 'booking', label: t('provider.inbox.filterBookings', 'Reservas'), count: counts.booking, icon: '📅' },
-      { key: 'estimate', label: t('provider.inbox.filterEstimates', 'Estimados'), count: counts.estimate, icon: '💰' },
-      { key: 'inquiry', label: t('provider.inbox.filterInquiries', 'Consultas'), count: counts.inquiry, icon: '💬' }
-    ];
-  }, [chats, t]);
+  // Determinar el participantId (el otro usuario) para cargar mensajes consolidados
+  const participantId = useMemo(() => {
+    if (!selectedChat) return null;
+    const myId = user?.id || user?._id;
+    const clientId = String(selectedChat.participants?.client?._id || selectedChat.participants?.client || '');
+    const providerId = String(selectedChat.participants?.provider?._id || selectedChat.participants?.provider || '');
+    // Para el proveedor, el participante es el cliente
+    return String(myId) === providerId ? clientId : providerId;
+  }, [selectedChat, user]);
 
-  // Filtered chats based on active filter
-  const filteredChats = useMemo(() => {
-    if (activeFilter === 'all') return chats;
-    if (activeFilter === 'booking') return chats.filter(c => c.chatType === 'booking');
-    if (activeFilter === 'estimate') return chats.filter(c => c.chatType === 'proposal_negotiation');
-    if (activeFilter === 'inquiry') return chats.filter(c => c.chatType === 'info_request' || c.chatType === 'inquiry');
-    return chats;
-  }, [chats, activeFilter]);
+  // El chatId primario para enviar mensajes
+  const primaryChatId = useMemo(() => {
+    if (!selectedChat) return null;
+    return selectedChat.primaryChatId || selectedChat.relatedChats?.[0]?._id;
+  }, [selectedChat]);
 
   // ── Early returns (AFTER all hooks) ──
   if (!isAuthenticated) {
@@ -219,9 +216,9 @@ export default function Inbox() {
   }
 
   // Non-hook helpers (these are plain functions, safe after early returns)
-  const selectChat = (chat) => {
-    if (!chat) return;
-    setSelectedChat(chat);
+  const handleSelectChat = (conversationId) => {
+    if (!conversationId) return;
+    setSelectedConversationId(conversationId);
   };
 
   // Abrir chat de negociación con el cliente (para propuestas enviadas)
@@ -423,56 +420,29 @@ export default function Inbox() {
               <span className="font-semibold text-gray-900">{t('provider.inbox.conversations')}</span>
               <span className="text-sm text-gray-500 ml-auto">{chats.length}</span>
             </div>
-            {/* Filter tabs */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-              {filterTabs.map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveFilter(tab.key)}
-                  className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    activeFilter === tab.key
-                      ? 'bg-linear-to-r from-brand-500 to-brand-700 text-white shadow-md shadow-brand-500/20'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-brand-300 hover:text-brand-600'
-                  }`}
-                >
-                  {tab.icon && <span>{tab.icon}</span>}
-                  {tab.label}
-                  {tab.count > 0 && (
-                    <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full ${
-                      activeFilter === tab.key
-                        ? 'bg-white/25 text-white'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
           </div>
           {chatError && <div className="p-3 text-sm text-red-600 bg-red-50">{chatError}</div>}
           <div className="max-h-100 overflow-auto">
-            {filteredChats.length > 0 ? filteredChats.map((c) => {
-              const id = c._id || c.id;
+            {chats.length > 0 ? chats.map((c) => {
+              const id = c._id || c.conversationId || c.id;
               const contentObj = c.lastMessage?.content;
               const last = typeof contentObj === 'string' 
                 ? contentObj 
                 : (contentObj?.text || (contentObj?.attachments?.length ? `📎 ${t('provider.inbox.attachment')}` : ''));
-              const isActive = selectedChat && (selectedChat._id || selectedChat.id) === id;
+              const isActive = selectedConversationId === id;
               const name = getParticipantName(c);
               const initial = name[0]?.toUpperCase() || 'C';
               const unread = c?.unreadCount?.provider || 0;
               const lastTime = c.metadata?.lastActivity || c.updatedAt;
-              const typeConf = chatTypeConfig[c.chatType] || chatTypeConfig.booking;
               return (
                 <button 
                   key={id} 
-                  onClick={() => selectChat(c)} 
+                  onClick={() => handleSelectChat(id)} 
                   className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-all ${isActive ? 'bg-brand-50/50 border-l-3 border-l-brand-500' : ''}`}
                 >
                   <div className="flex items-start gap-3">
-                    {/* Avatar with type dot */}
-                    <div className="relative shrink-0">
+                    {/* Avatar */}
+                    <div className="shrink-0">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-semibold text-white ${
                         isActive 
                           ? 'bg-linear-to-br from-brand-500 to-brand-700' 
@@ -480,9 +450,6 @@ export default function Inbox() {
                       }`}>
                         {initial}
                       </div>
-                      <span className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center text-[8px] ${typeConf.dot}`}
-                        title={typeConf.label}
-                      />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
@@ -495,11 +462,6 @@ export default function Inbox() {
                           </span>
                         )}
                       </div>
-                      {/* Chat type badge */}
-                      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border mt-0.5 ${typeConf.color}`}>
-                        <span>{typeConf.icon}</span>
-                        {typeConf.label}
-                      </span>
                       <p className={`text-sm truncate mt-0.5 ${unread > 0 ? 'text-gray-700 font-medium' : 'text-gray-500'}`}>
                         {last || t('provider.inbox.noMessages')}
                       </p>
@@ -517,22 +479,7 @@ export default function Inbox() {
                   </div>
                 </button>
               );
-            }) : chats.length > 0 && filteredChats.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 px-4">
-                <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-3">
-                  <svg className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                  </svg>
-                </div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">{t('provider.inbox.noChatsInFilter', 'Sin conversaciones en esta categoría')}</h4>
-                <button
-                  onClick={() => setActiveFilter('all')}
-                  className="text-xs text-brand-600 hover:text-brand-700 font-medium mt-1"
-                >
-                  {t('provider.inbox.showAll', 'Ver todas')}
-                </button>
-              </div>
-            ) : (
+            }) : (
               <div className="flex flex-col items-center justify-center py-12 px-4">
                 <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
                   <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
@@ -545,7 +492,7 @@ export default function Inbox() {
         
         {/* Chat Area - Using ChatRoom component */}
         <div className="lg:col-span-2">
-          {!selectedChat ? (
+          {!selectedConversationId || !selectedChat ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-125 flex flex-col items-center justify-center p-8">
               <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-brand-100 to-brand-200 flex items-center justify-center mb-4">
                 <svg className="w-10 h-10 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
@@ -555,7 +502,7 @@ export default function Inbox() {
             </div>
           ) : (
             <ChatRoom
-              chatId={selectedChat._id}
+              chatId={primaryChatId}
               chat={selectedChat}
               currentUserId={user?.id || user?._id}
               onNewMessage={handleNewMessage}
@@ -564,7 +511,9 @@ export default function Inbox() {
               maxHeight="400px"
               showHeader={true}
               userRole="provider"
-              onClose={() => setSelectedChat(null)}
+              participantId={participantId}
+              relatedChats={selectedChat?.relatedChats}
+              onClose={() => setSelectedConversationId(null)}
             />
           )}
         </div>

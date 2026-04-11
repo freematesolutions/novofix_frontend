@@ -349,7 +349,8 @@
   .animate-scroll-indicator,
   .animate-bounce-slow,
   .animate-pulse-glow,
-  .animate-bell-ring {
+  .animate-bell-ring,
+  .animate-chat-wiggle {
     animation: none;
   }
 }

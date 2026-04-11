@@ -23,11 +23,10 @@ export default function Messages() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Chat state
+  // Chat state — now works with consolidated conversations (grouped by participant pair)
   const [chats, setChats] = useState([]);
-  const [selectedChatId, setSelectedChatId] = useState(null);
+  const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [unreadCounts, setUnreadCounts] = useState({});
-  const [activeFilter, setActiveFilter] = useState('all');
   
   // Estado para aceptar/rechazar propuesta desde el chat
   const [isAcceptingProposal, setIsAcceptingProposal] = useState(false);
@@ -38,14 +37,38 @@ export default function Messages() {
   useEffect(() => { clearError?.(); }, [clearError]);
 
   // Leer chatId de query params y seleccionarlo automáticamente
+  // Soporta ?chat=<conversationId> y también ?chat=<chatId> (legacy: busca la conversación que lo contiene)
   useEffect(() => {
     const chatFromUrl = searchParams.get('chat');
-    if (chatFromUrl && chatFromUrl !== selectedChatId) {
-      setSelectedChatId(chatFromUrl);
-      // Limpiar el param de la URL para evitar reseleccionar
+    if (!chatFromUrl || chatFromUrl === selectedConversationId) return;
+
+    // Intentar primero como conversationId directo
+    const directMatch = chats.find(c => (c._id || c.conversationId) === chatFromUrl);
+    if (directMatch) {
+      setSelectedConversationId(chatFromUrl);
+      setSearchParams({}, { replace: true });
+      return;
+    }
+
+    // Buscar la conversación que contiene este chatId en sus relatedChats
+    const parentConv = chats.find(c => 
+      c.relatedChats?.some(rc => rc._id === chatFromUrl)
+    );
+    if (parentConv) {
+      setSelectedConversationId(parentConv._id || parentConv.conversationId);
+      setSearchParams({}, { replace: true });
+      return;
+    }
+
+    // Si los chats ya cargaron y no hay match, limpiar el param
+    // Si aún no cargaron (chats.length === 0 y loading), mantener para reintentar
+    if (chats.length > 0) {
+      // Chats cargados pero no hay match - establecer como selected para que ChatRoom intente cargarlo directamente
+      setSelectedConversationId(chatFromUrl);
       setSearchParams({}, { replace: true });
     }
-  }, [searchParams, selectedChatId, setSearchParams]);
+    // Si chats.length === 0, mantener el param en URL; el efecto se re-ejecutará cuando chats cambie
+  }, [searchParams, selectedConversationId, setSearchParams, chats]);
 
   // Redirigir si no está autenticado
   useEffect(() => {
@@ -54,7 +77,7 @@ export default function Messages() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Cargar lista de chats del cliente
+  // Cargar lista de chats del cliente (ahora agrupados por par de participantes)
   const loadChats = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoading(true);
@@ -64,11 +87,11 @@ export default function Messages() {
       const list = getArray(data, [['data', 'chats'], ['chats']]);
       setChats(Array.isArray(list) ? list : []);
       
-      // Extraer unread counts
+      // Extraer unread counts por conversación
       const counts = {};
-      (list || []).forEach(chat => {
-        const id = chat._id || chat.id;
-        counts[id] = chat.unreadCount?.client || 0;
+      (list || []).forEach(conv => {
+        const id = conv._id || conv.conversationId;
+        counts[id] = conv.unreadCount?.client || 0;
       });
       setUnreadCounts(counts);
     } catch (err) {
@@ -91,7 +114,7 @@ export default function Messages() {
     const socket = getSocket();
     if (!socket) return;
 
-    // Nuevo mensaje - actualizar chat en la lista
+    // Nuevo mensaje - actualizar conversación en la lista
     const offNewMessage = socketOn('new_message', (payload) => {
       const chatId = payload?.chatId || payload?.chat?._id;
       const msg = payload?.message || payload;
@@ -99,7 +122,12 @@ export default function Messages() {
 
       setChats(prev => {
         const copy = [...prev];
-        const idx = copy.findIndex(c => (c._id || c.id) === chatId);
+        // Buscar la conversación que contiene este chatId
+        const idx = copy.findIndex(c => 
+          c.relatedChats?.some(rc => rc._id === chatId) ||
+          c.primaryChatId === chatId ||
+          (c._id || c.conversationId) === chatId
+        );
         if (idx >= 0) {
           const updated = {
             ...copy[idx],
@@ -115,13 +143,23 @@ export default function Messages() {
         return copy;
       });
 
-      // Incrementar unread si no es el chat seleccionado
-      if (selectedChatId !== chatId) {
-        setUnreadCounts(prev => ({
-          ...prev,
-          [chatId]: (prev[chatId] || 0) + 1
-        }));
-      }
+      // Incrementar unread si no es la conversación seleccionada
+      setChats(prev => {
+        const parentConv = prev.find(c => 
+          c.relatedChats?.some(rc => rc._id === chatId) ||
+          c.primaryChatId === chatId
+        );
+        if (parentConv) {
+          const convId = parentConv._id || parentConv.conversationId;
+          if (selectedConversationId !== convId) {
+            setUnreadCounts(counts => ({
+              ...counts,
+              [convId]: (counts[convId] || 0) + 1
+            }));
+          }
+        }
+        return prev;
+      });
     });
 
     // Chat creado
@@ -137,30 +175,56 @@ export default function Messages() {
         offChatCreated?.();
       } catch { /* ignore */ }
     };
-  }, [viewRole, selectedChatId]);
+  }, [viewRole, selectedConversationId]);
 
-  // Seleccionar chat
-  const handleSelectChat = useCallback((chatId) => {
-    setSelectedChatId(chatId);
+  // Seleccionar conversación
+  const handleSelectChat = useCallback((conversationId) => {
+    setSelectedConversationId(conversationId);
     // Resetear unread count
-    setUnreadCounts(prev => ({ ...prev, [chatId]: 0 }));
+    setUnreadCounts(prev => ({ ...prev, [conversationId]: 0 }));
     
-    // Emitir al socket que entramos al chat
-    socketEmit('join_chat', { chatId });
-  }, []);
+    // Emitir al socket que entramos a todos los chats de esta conversación
+    const conv = chats.find(c => (c._id || c.conversationId) === conversationId);
+    if (conv?.relatedChats) {
+      conv.relatedChats.forEach(rc => socketEmit('join_chat', { chatId: rc._id }));
+    } else if (conv?.primaryChatId) {
+      socketEmit('join_chat', { chatId: conv.primaryChatId });
+    }
+  }, [chats]);
 
   // Volver a la lista de chats (mobile)
   const handleBackToList = useCallback(() => {
-    if (selectedChatId) {
-      socketEmit('leave_chat', { chatId: selectedChatId });
+    if (selectedConversationId) {
+      const conv = chats.find(c => (c._id || c.conversationId) === selectedConversationId);
+      if (conv?.relatedChats) {
+        conv.relatedChats.forEach(rc => socketEmit('leave_chat', { chatId: rc._id }));
+      } else if (conv?.primaryChatId) {
+        socketEmit('leave_chat', { chatId: conv.primaryChatId });
+      }
     }
-    setSelectedChatId(null);
-  }, [selectedChatId]);
+    setSelectedConversationId(null);
+  }, [selectedConversationId, chats]);
 
-  // Chat info para el componente ChatRoom
+  // Conversación seleccionada
   const selectedChat = useMemo(() => {
-    return chats.find(c => (c._id || c.id) === selectedChatId);
-  }, [chats, selectedChatId]);
+    return chats.find(c => (c._id || c.conversationId) === selectedConversationId);
+  }, [chats, selectedConversationId]);
+
+  // Determinar el participantId (el otro usuario) para cargar mensajes consolidados
+  const participantId = useMemo(() => {
+    if (!selectedChat) return null;
+    const myId = user?.id || user?._id;
+    const clientId = String(selectedChat.participants?.client?._id || selectedChat.participants?.client || '');
+    const providerId = String(selectedChat.participants?.provider?._id || selectedChat.participants?.provider || '');
+    // El participante es el otro (para cliente, será el proveedor)
+    return String(myId) === clientId ? providerId : clientId;
+  }, [selectedChat, user]);
+
+  // El chatId primario para enviar mensajes (el chat más reciente de la conversación)
+  const primaryChatId = useMemo(() => {
+    if (!selectedChat) return null;
+    return selectedChat.primaryChatId || selectedChat.relatedChats?.[0]?._id;
+  }, [selectedChat]);
 
   // Extraer información de propuesta del chat seleccionado (si tiene una asociada)
   const proposalInfo = useMemo(() => {
@@ -194,8 +258,8 @@ export default function Messages() {
       
       // Actualizar el chat local para reflejar el cambio
       setChats(prev => prev.map(chat => {
-        const id = chat._id || chat.id;
-        if (id === selectedChatId && chat.proposal) {
+        const id = chat._id || chat.conversationId;
+        if (id === selectedConversationId && chat.proposal) {
           return {
             ...chat,
             proposal: {
@@ -215,7 +279,7 @@ export default function Messages() {
     } finally {
       setIsAcceptingProposal(false);
     }
-  }, [selectedChatId, isAcceptingProposal, loadChats, t]);
+  }, [selectedConversationId, isAcceptingProposal, loadChats, t]);
 
   // Rechazar propuesta desde el chat
   const handleRejectProposal = useCallback(async (proposalId) => {
@@ -228,8 +292,8 @@ export default function Messages() {
       
       // Actualizar el chat local
       setChats(prev => prev.map(chat => {
-        const id = chat._id || chat.id;
-        if (id === selectedChatId && chat.proposal) {
+        const id = chat._id || chat.conversationId;
+        if (id === selectedConversationId && chat.proposal) {
           return {
             ...chat,
             proposal: {
@@ -249,61 +313,7 @@ export default function Messages() {
     } finally {
       setIsAcceptingProposal(false);
     }
-  }, [selectedChatId, isAcceptingProposal, loadChats, t]);
-
-  // Chat type configuration
-  const chatTypeConfig = useMemo(() => ({
-    booking: {
-      label: t('client.messages.typeBooking', 'Reservas'),
-      icon: '📅',
-      color: 'text-brand-600 bg-brand-50 border-brand-200',
-      dot: 'bg-brand-500'
-    },
-    proposal_negotiation: {
-      label: t('client.messages.typeEstimate', 'Estimados'),
-      icon: '💰',
-      color: 'text-brand-600 bg-brand-50 border-brand-200',
-      dot: 'bg-brand-500'
-    },
-    info_request: {
-      label: t('client.messages.typeInquiry', 'Consultas'),
-      icon: '💬',
-      color: 'text-accent-600 bg-accent-50 border-accent-200',
-      dot: 'bg-accent-500'
-    },
-    inquiry: {
-      label: t('client.messages.typeInquiry', 'Consultas'),
-      icon: '💬',
-      color: 'text-accent-600 bg-accent-50 border-accent-200',
-      dot: 'bg-accent-500'
-    }
-  }), [t]);
-
-  // Filter tabs
-  const filterTabs = useMemo(() => {
-    const counts = { all: chats.length, booking: 0, estimate: 0, inquiry: 0 };
-    chats.forEach(c => {
-      const type = c.chatType;
-      if (type === 'booking') counts.booking++;
-      else if (type === 'proposal_negotiation') counts.estimate++;
-      else if (type === 'info_request' || type === 'inquiry') counts.inquiry++;
-    });
-    return [
-      { key: 'all', label: t('client.messages.filterAll', 'Todos'), count: counts.all },
-      { key: 'booking', label: t('client.messages.filterBookings', 'Reservas'), count: counts.booking, icon: '📅' },
-      { key: 'estimate', label: t('client.messages.filterEstimates', 'Estimados'), count: counts.estimate, icon: '💰' },
-      { key: 'inquiry', label: t('client.messages.filterInquiries', 'Consultas'), count: counts.inquiry, icon: '💬' }
-    ];
-  }, [chats, t]);
-
-  // Filtered chats based on active filter
-  const filteredChats = useMemo(() => {
-    if (activeFilter === 'all') return chats;
-    if (activeFilter === 'booking') return chats.filter(c => c.chatType === 'booking');
-    if (activeFilter === 'estimate') return chats.filter(c => c.chatType === 'proposal_negotiation');
-    if (activeFilter === 'inquiry') return chats.filter(c => c.chatType === 'info_request' || c.chatType === 'inquiry');
-    return chats;
-  }, [chats, activeFilter]);
+  }, [selectedConversationId, isAcceptingProposal, loadChats, t]);
 
   // Nombre del otro participante
   const getParticipantName = (chat) => {
@@ -362,7 +372,7 @@ export default function Messages() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chat List - Hidden on mobile when chat is selected */}
         <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden ${
-          selectedChatId ? 'hidden lg:block' : 'block'
+          selectedConversationId ? 'hidden lg:block' : 'block'
         }`}>
           {/* Header */}
           <div className="p-4 border-b border-gray-100 bg-linear-to-r from-brand-50/50 to-brand-100/30">
@@ -375,42 +385,16 @@ export default function Messages() {
               <span className="font-semibold text-gray-900">{t('client.messages.conversations')}</span>
               <span className="text-sm text-gray-500 ml-auto">{chats.length}</span>
             </div>
-            {/* Filter tabs */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-              {filterTabs.map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveFilter(tab.key)}
-                  className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    activeFilter === tab.key
-                      ? 'bg-linear-to-r from-brand-500 to-brand-700 text-white shadow-md shadow-brand-500/20'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-brand-300 hover:text-brand-600'
-                  }`}
-                >
-                  {tab.icon && <span>{tab.icon}</span>}
-                  {tab.label}
-                  {tab.count > 0 && (
-                    <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full ${
-                      activeFilter === tab.key
-                        ? 'bg-white/25 text-white'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Chat Items */}
           <div className="max-h-125 overflow-auto">
             {loading ? (
               <ChatListSkeleton count={4} />
-            ) : filteredChats.length > 0 ? (
-              filteredChats.map((chat) => {
-                const id = chat._id || chat.id;
-                const isActive = selectedChatId === id;
+            ) : chats.length > 0 ? (
+              chats.map((chat) => {
+                const id = chat._id || chat.conversationId;
+                const isActive = selectedConversationId === id;
                 const unread = unreadCounts[id] || 0;
                 // Extraer texto del mensaje - content puede ser string u objeto {text, attachments}
                 const contentObj = chat.lastMessage?.content;
@@ -420,7 +404,6 @@ export default function Messages() {
                 const name = getParticipantName(chat);
                 const initial = name[0]?.toUpperCase() || 'P';
                 const lastTime = chat.metadata?.lastActivity || chat.updatedAt;
-                const typeConf = chatTypeConfig[chat.chatType] || chatTypeConfig.booking;
 
                 return (
                   <button
@@ -432,7 +415,7 @@ export default function Messages() {
                   >
                     <div className="flex items-start gap-3">
                       {/* Avatar */}
-                      <div className="relative shrink-0">
+                      <div className="shrink-0">
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-semibold text-white ${
                           isActive 
                             ? 'bg-linear-to-br from-brand-500 to-brand-700' 
@@ -440,11 +423,6 @@ export default function Messages() {
                         }`}>
                           {initial}
                         </div>
-                        {/* Chat type dot indicator */}
-                        <span className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center text-[8px] ${typeConf.dot}`}
-                          title={typeConf.label}
-                        >
-                        </span>
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -460,11 +438,6 @@ export default function Messages() {
                             </span>
                           )}
                         </div>
-                        {/* Chat type badge */}
-                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border mt-0.5 ${typeConf.color}`}>
-                          <span>{typeConf.icon}</span>
-                          {typeConf.label}
-                        </span>
                         <p className={`text-sm truncate mt-0.5 ${
                           unread > 0 ? 'text-gray-700 font-medium' : 'text-gray-500'
                         }`}>
@@ -485,22 +458,6 @@ export default function Messages() {
                   </button>
                 );
               })
-            ) : chats.length > 0 && filteredChats.length === 0 ? (
-              /* No results for active filter but chats exist */
-              <div className="flex flex-col items-center justify-center py-10 px-4">
-                <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-3">
-                  <svg className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                  </svg>
-                </div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">{t('client.messages.noChatsInFilter', 'Sin conversaciones en esta categoría')}</h4>
-                <button
-                  onClick={() => setActiveFilter('all')}
-                  className="text-xs text-brand-600 hover:text-brand-700 font-medium mt-1"
-                >
-                  {t('client.messages.showAll', 'Ver todas')}
-                </button>
-              </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4">
                 <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center mb-4">
@@ -519,9 +476,9 @@ export default function Messages() {
 
         {/* Chat Area */}
         <div className={`lg:col-span-2 ${
-          selectedChatId ? 'block' : 'hidden lg:block'
+          selectedConversationId ? 'block' : 'hidden lg:block'
         }`}>
-          {selectedChatId ? (
+          {selectedConversationId ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               {/* Mobile back button */}
               <div className="lg:hidden flex items-center gap-3 p-3 border-b border-gray-100 bg-gray-50">
@@ -538,14 +495,17 @@ export default function Messages() {
                 </span>
               </div>
 
-              {/* ChatRoom Component */}
+              {/* ChatRoom Component — uses consolidated conversation endpoint */}
               <ChatRoom
-                chatId={selectedChatId}
+                chatId={primaryChatId}
                 chat={selectedChat}
                 currentUserId={user?.id || user?._id}
                 className="h-125 lg:h-150"
                 showHeader={true}
                 onChatError={(err) => setError(err)}
+                // Conversación unificada: cargar mensajes de todos los chats con este participante
+                participantId={participantId}
+                relatedChats={selectedChat?.relatedChats}
                 // Props para aceptar/rechazar propuesta desde el chat
                 proposalInfo={proposalInfo}
                 onAcceptProposal={handleAcceptProposal}

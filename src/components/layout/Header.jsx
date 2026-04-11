@@ -821,10 +821,10 @@ function Header() {
             to="/mensajes"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>}
-            label={t('header.requests')}
+            label={t('header.messages')}
             showLabel={isMobile}
             badge={(() => {
-              const visible = getVisibleCount('provider.proposalsActive', Number(counters?.provider?.proposalsActive||0));
+              const visible = getVisibleCount('provider.chatsUnread', Number(counters?.provider?.chatsUnread||0));
               return visible > 0 && (
                 <span className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/30">
                   {visible > 99 ? '99+' : visible}
@@ -1579,24 +1579,46 @@ function Header() {
             </div>
           )}
 
-          {/* Mobile bell (always visible for authenticated users on small screens) */}
-          {isAuthenticated && (
-            <div className="relative md:hidden shrink-0 ml-auto" ref={notifToggleRef}>
-              <button
-                type="button"
-                aria-label={t('header.notifications')}
-                className={`inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl border bg-white hover:bg-gray-50 shadow-sm hover:shadow-md text-gray-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} border-gray-200 hover:border-brand-300 transition-all duration-300 hover:scale-105 ${unreadCount > 0 ? 'ring-2 ring-brand-400/30' : ''}`}
-                onClick={() => setNotifOpen(v => !v)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`h-5 w-5 ${unreadCount > 0 ? 'animate-bell-ring text-brand-600' : ''}`}>
-                  <path d="M12 2a6 6 0 00-6 6v2.586l-.707.707A1 1 0 005 13h14a1 1 0 00.707-1.707L19 10.586V8a6 6 0 00-6-6zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                </svg>
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30 animate-pulse-badge">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </button>
+          {/* Mobile chat indicator + bell (always visible for authenticated users on small screens) */}
+          {isAuthenticated && (() => {
+            const chatUnread = Number(counters?.client?.chatsUnread || 0) + Number(counters?.provider?.chatsUnread || 0);
+            const messagesPath = viewRole === 'provider' ? '/mensajes' : '/mis-mensajes';
+            return (
+              <div className="flex items-center gap-1.5 md:hidden shrink-0 ml-auto">
+                {/* Chat messages indicator */}
+                <button
+                  type="button"
+                  aria-label={t('header.chatMessages')}
+                  className={`relative inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl border bg-white hover:bg-gray-50 shadow-sm hover:shadow-md text-gray-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} border-gray-200 hover:border-brand-300 transition-all duration-300 hover:scale-105 ${chatUnread > 0 ? 'ring-2 ring-brand-400/30' : ''}`}
+                  onClick={() => { navigate(messagesPath); closeMenu(); }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`h-5 w-5 ${chatUnread > 0 ? 'animate-chat-wiggle text-brand-600' : ''}`}>
+                    <path d="M4.913 2.658c2.075-.27 4.19-.408 6.337-.408 2.147 0 4.262.139 6.337.408 1.922.25 3.291 1.861 3.405 3.727a4.403 4.403 0 00-1.032-.211 50.89 50.89 0 00-8.42 0c-2.358.196-4.04 2.19-4.04 4.434v4.286a4.47 4.47 0 002.433 3.984L7.28 21.53A.75.75 0 016 21v-4.03a48.527 48.527 0 01-1.087-.128C2.905 16.58 1.5 14.833 1.5 12.862V6.638c0-1.97 1.405-3.718 3.413-3.979z" />
+                    <path d="M15.75 7.5c-1.376 0-2.739.057-4.086.169C10.124 7.797 9 9.103 9 10.609v4.285c0 1.507 1.128 2.814 2.67 2.94 1.243.102 2.5.157 3.768.165l2.782 2.781a.75.75 0 001.28-.53v-2.39l.33-.026c1.542-.125 2.67-1.433 2.67-2.94v-4.286c0-1.505-1.125-2.811-2.664-2.94A49.392 49.392 0 0015.75 7.5z" />
+                  </svg>
+                  {chatUnread > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                      {chatUnread > 99 ? '99+' : chatUnread}
+                    </span>
+                  )}
+                </button>
+                {/* Bell notifications */}
+                <div className="relative" ref={notifToggleRef}>
+                  <button
+                    type="button"
+                    aria-label={t('header.notifications')}
+                    className={`inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl border bg-white hover:bg-gray-50 shadow-sm hover:shadow-md text-gray-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} border-gray-200 hover:border-brand-300 transition-all duration-300 hover:scale-105 ${unreadCount > 0 ? 'ring-2 ring-brand-400/30' : ''}`}
+                    onClick={() => setNotifOpen(v => !v)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`h-5 w-5 ${unreadCount > 0 ? 'animate-bell-ring text-brand-600' : ''}`}>
+                      <path d="M12 2a6 6 0 00-6 6v2.586l-.707.707A1 1 0 005 13h14a1 1 0 00.707-1.707L19 10.586V8a6 6 0 00-6-6zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                    </svg>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </button>
               {notifOpen && (
                 <div ref={notifMenuRef} className={`absolute right-0 mt-3 w-80 max-w-[95vw] rounded-2xl border bg-white/95 backdrop-blur-xl shadow-2xl py-2 z-50 ${accent.border200} ring-1 ring-black/5 animate-slide-down`} role="menu" aria-label={t('header.notifications')}>
                   <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100">
@@ -1666,7 +1688,9 @@ function Header() {
                 </div>
               )}
             </div>
-          )}
+              </div>
+            );
+          })()}
 
           {!isAuthenticated && role === 'guest' ? (
             <div className="ml-auto flex items-center gap-2 shrink-0 md:hidden">
@@ -1785,6 +1809,32 @@ function Header() {
                     )}
                   </div>
                 )}
+
+                {/* Chat messages indicator (desktop) */}
+                {(() => {
+                  const chatUnread = Number(counters?.client?.chatsUnread || 0) + Number(counters?.provider?.chatsUnread || 0);
+                  const messagesPath = viewRole === 'provider' ? '/mensajes' : '/mis-mensajes';
+                  return (
+                    <div className="relative ml-2">
+                      <button
+                        type="button"
+                        aria-label={t('header.chatMessages')}
+                        className={`group inline-flex items-center justify-center w-10 h-10 rounded-xl border bg-white hover:bg-gray-50 shadow-sm hover:shadow-md text-gray-600 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-1 ${accent.ring500} border-gray-200 hover:border-brand-300 transition-all duration-300 hover:scale-105 ${chatUnread > 0 ? 'ring-2 ring-brand-400/30' : ''}`}
+                        onClick={() => navigate(messagesPath)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${chatUnread > 0 ? 'animate-chat-wiggle text-brand-600' : ''}`}>
+                          <path d="M4.913 2.658c2.075-.27 4.19-.408 6.337-.408 2.147 0 4.262.139 6.337.408 1.922.25 3.291 1.861 3.405 3.727a4.403 4.403 0 00-1.032-.211 50.89 50.89 0 00-8.42 0c-2.358.196-4.04 2.19-4.04 4.434v4.286a4.47 4.47 0 002.433 3.984L7.28 21.53A.75.75 0 016 21v-4.03a48.527 48.527 0 01-1.087-.128C2.905 16.58 1.5 14.833 1.5 12.862V6.638c0-1.97 1.405-3.718 3.413-3.979z" />
+                          <path d="M15.75 7.5c-1.376 0-2.739.057-4.086.169C10.124 7.797 9 9.103 9 10.609v4.285c0 1.507 1.128 2.814 2.67 2.94 1.243.102 2.5.157 3.768.165l2.782 2.781a.75.75 0 001.28-.53v-2.39l.33-.026c1.542-.125 2.67-1.433 2.67-2.94v-4.286c0-1.505-1.125-2.811-2.664-2.94A49.392 49.392 0 0015.75 7.5z" />
+                        </svg>
+                        {chatUnread > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center text-[10px] leading-none font-bold px-2 py-1 rounded-full bg-linear-to-r from-brand-500 to-brand-600 text-white min-w-5 shadow-lg shadow-brand-500/40 ring-2 ring-white/30 animate-pulse-badge">
+                            {chatUnread > 99 ? '99+' : chatUnread}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })()}
 
                 {/* Bell notifications (all roles) */}
                 <div className="relative ml-2">

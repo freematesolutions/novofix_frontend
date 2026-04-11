@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import useModalHistory from '@/utils/useModalHistory.js';
 import RequestWizardModal from './RequestWizardModal.jsx';
+import InquiryChatModal from './InquiryChatModal.jsx';
 import GuestConversionModal from './GuestConversionModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { useToast } from './Toast.jsx';
@@ -127,10 +128,11 @@ const TABS = [
 function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedCategory = null, readOnly = false }) {
   const closeModal = useModalHistory(isOpen, onClose, 'provider-profile');
   const { t } = useTranslation();
-  const { isAuthenticated, viewRole } = useAuth();
+  const { isAuthenticated, viewRole, user } = useAuth();
   const toast = useToast();
   const [activeTab, setActiveTab] = useState(initialTab || 'about');
   const [showRequestWizard, setShowRequestWizard] = useState(false);
+  const [showInquiryChat, setShowInquiryChat] = useState(false);
   const [showGuestConversion, setShowGuestConversion] = useState(false);
   const [selectedPortfolioItem, setSelectedPortfolioItem] = useState(null);
   const [portfolioIndex, setPortfolioIndex] = useState(0);
@@ -326,6 +328,21 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
     setShowRequestWizard(true);
   };
 
+  // Handle inquiry chat
+  const handleInquiry = () => {
+    // Si no está autenticado, mostrar modal de conversión guest
+    if (!isAuthenticated) {
+      setShowGuestConversion(true);
+      return;
+    }
+    // Si está autenticado pero no es cliente, mostrar mensaje
+    if (viewRole !== 'client') {
+      toast.warning(t('ui.providerProfile.onlyClientsCanRequest'));
+      return;
+    }
+    setShowInquiryChat(true);
+  };
+
   // Portfolio navigation
   const handlePortfolioNav = (direction) => {
     const newIndex = direction === 'next' 
@@ -423,10 +440,19 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
             {!readOnly && (
               <div className="hidden md:flex items-center gap-2 shrink-0">
                 <button
+                  onClick={handleInquiry}
+                  className="flex items-center gap-1.5 bg-white/20 text-white border border-white/40 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-all"
+                >
+                  <Icons.Message className="w-4 h-4" />
+                  {t('ui.providerProfile.inquiry')}
+                </button>
+                <button
                   onClick={handleMessage}
                   className="flex items-center gap-1.5 bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-all shadow"
                 >
-                  <Icons.Message className="w-4 h-4" />
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                   {t('ui.providerProfile.sendRequest')}
                 </button>
               </div>
@@ -514,10 +540,19 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                   {!readOnly && (
                     <div className="flex flex-col gap-2">
                       <button
+                        onClick={handleInquiry}
+                        className="flex items-center justify-center gap-2 border border-brand-300 text-brand-600 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-brand-50 transition-all"
+                      >
+                        <Icons.Message className="w-4 h-4" />
+                        {t('ui.providerProfile.inquiry')}
+                      </button>
+                      <button
                         onClick={handleMessage}
                         className="flex items-center justify-center gap-2 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow"
                       >
-                        <Icons.Message className="w-4 h-4" />
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
                         {t('ui.providerProfile.sendRequest')}
                       </button>
                     </div>
@@ -881,12 +916,21 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
         {/* Mobile Action Bar */}
         {!readOnly && (
-          <div className="sm:hidden sticky bottom-0 bg-white border-t p-4 flex gap-3">
+          <div className="sm:hidden sticky bottom-0 bg-white border-t p-3 flex gap-2">
+            <button
+              onClick={handleInquiry}
+              className="flex-1 flex items-center justify-center gap-2 border border-brand-400 text-brand-600 px-3 py-3 rounded-xl font-semibold text-sm"
+            >
+              <Icons.Message className="w-4 h-4" />
+              {t('ui.providerProfile.inquiry')}
+            </button>
             <button
               onClick={handleMessage}
-              className="flex-1 flex items-center justify-center gap-2 bg-brand-600 text-white px-4 py-3 rounded-xl font-semibold"
+              className="flex-1 flex items-center justify-center gap-2 bg-brand-600 text-white px-3 py-3 rounded-xl font-semibold text-sm"
             >
-              <Icons.Message className="w-5 h-5" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
               {t('ui.providerProfile.sendRequest')}
             </button>
           </div>
@@ -971,6 +1015,15 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
           setShowGuestConversion(false);
           setShowRequestWizard(true);
         }}
+      />
+
+      {/* Inquiry Chat Modal */}
+      <InquiryChatModal
+        isOpen={showInquiryChat}
+        onClose={() => setShowInquiryChat(false)}
+        provider={provider}
+        currentUserId={user?._id || user?.id}
+        selectedCategory={selectedCategory}
       />
     </>
   );

@@ -7,6 +7,7 @@ import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketCli
 import { compressImage } from '@/utils/fileCompression.js';
 import { useTranslation } from 'react-i18next';
 import PdfCanvasViewer from '@/components/ui/PdfCanvasViewer.jsx';
+import { useToast } from '@/components/ui/Toast.jsx';
 
 /**
  * ChatRoom Component - Componente de chat en tiempo real reutilizable
@@ -599,10 +600,14 @@ function ChatRoom({
   isAcceptingProposal = false, // Estado de carga
   userRole = null, // 'client' o 'provider'
   onClose = null, // Callback para cerrar el chat (usado en panel de provider)
-  onEditRequest = null // Callback para editar solicitud (abre modal wizard)
+  onEditRequest = null, // Callback para editar solicitud (abre modal wizard)
+  // Props para conversación consolidada (múltiples chats entre mismos participantes)
+  participantId = null, // ID del otro participante para cargar mensajes consolidados
+  relatedChats = null // Array de chats relacionados [{_id, chatType, providerAccepted, ...}]
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const toast = useToast();
   
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -674,82 +679,85 @@ function ChatRoom({
     return chat?.participants?.client?.profile?.firstName || t('chat.user');
   }, [chat, currentUserId, t]);
 
-  // Load messages
+  // Load messages — uses consolidated endpoint when participantId is provided
   const loadMessages = useCallback(async () => {
-    if (!chatId) return;
+    if (!chatId && !participantId) return;
     
     setLoading(true);
     isInitialLoadRef.current = true; // Reset para nuevo chat
     lastMessageCountRef.current = 0;
-    console.log(`📥 Loading messages for chat: ${chatId}`);
+    
     try {
-      const { data } = await api.get(`/chats/${chatId}/messages?limit=100`);
-      const msgs = data?.data?.messages || data?.messages || [];
-      console.log(`📬 Loaded ${msgs.length} messages for chat: ${chatId}`, msgs);
+      let msgs;
+      if (participantId) {
+        // Conversación consolidada: cargar mensajes de todos los chats con este participante
+        console.log(`📥 Loading consolidated messages for participant: ${participantId}`);
+        const { data } = await api.get(`/chats/conversation/${participantId}/messages?limit=100`);
+        msgs = data?.data?.messages || data?.messages || [];
+        console.log(`📬 Loaded ${msgs.length} consolidated messages`);
+      } else {
+        // Chat individual (InquiryChatModal y otros)
+        console.log(`📥 Loading messages for chat: ${chatId}`);
+        const { data } = await api.get(`/chats/${chatId}/messages?limit=100`);
+        msgs = data?.data?.messages || data?.messages || [];
+        console.log(`📬 Loaded ${msgs.length} messages for chat: ${chatId}`);
+      }
       setMessages(Array.isArray(msgs) ? msgs : []);
     } catch (err) {
       console.error('Error loading messages:', err);
     } finally {
       setLoading(false);
     }
-  }, [chatId]);
+  }, [chatId, participantId]);
 
   useEffect(() => {
     loadMessages();
   }, [loadMessages]);
 
-  // WebSocket setup
+  // WebSocket setup — joins all related chat rooms in consolidated mode
   useEffect(() => {
     const socket = getSocket();
     socketRef.current = socket;
-    if (!socket || !chatId) {
-      console.log('🔌 ChatRoom: Cannot setup WebSocket:', { hasSocket: !!socket, chatId });
+    if (!socket || (!chatId && !relatedChats?.length)) {
+      console.log('🔌 ChatRoom: Cannot setup WebSocket:', { hasSocket: !!socket, chatId, relatedChats: relatedChats?.length });
       return;
     }
 
-    console.log('🔌 ChatRoom WebSocket status:', { 
-      connected: socket.connected, 
-      socketId: socket.id,
-      chatId,
-      currentUserId
-    });
-
-    // Normalizar chatId a string para comparaciones consistentes
-    const normalizedChatId = String(chatId);
+    // En modo consolidado, unirse a TODOS los chats relacionados
+    // En modo simple, solo al chatId proporcionado
+    const chatIdsToJoin = relatedChats?.length 
+      ? relatedChats.map(rc => String(rc._id))
+      : [String(chatId)];
     
-    console.log(`🔌 Joining chat room: ${normalizedChatId}`);
-    // Join chat room
-    socketEmit('join_chat', { chatId: normalizedChatId });
+    const chatIdsSet = new Set(chatIdsToJoin);
+    
+    console.log('🔌 ChatRoom WebSocket joining rooms:', [...chatIdsSet]);
+    chatIdsToJoin.forEach(id => socketEmit('join_chat', { chatId: id }));
     
     // Si el socket no está conectado aún, unirse cuando se conecte
     const onReconnect = () => {
-      console.log('🔌 Socket reconnected, rejoining chat room:', normalizedChatId);
-      socketEmit('join_chat', { chatId: normalizedChatId });
+      console.log('🔌 Socket reconnected, rejoining chat rooms');
+      chatIdsToJoin.forEach(id => socketEmit('join_chat', { chatId: id }));
     };
     const offReconnect = socketOn('connect', onReconnect);
 
-    // Listen for new messages
+    // Listen for new messages — accept from ANY related chat
     const offNewMessage = socketOn('new_message', (payload) => {
-      console.log('📨 Received new_message event:', payload);
-      // El chatId puede venir como ObjectId o string, normalizar a string
       const msgChatId = String(payload?.chatId || payload?.chat?._id || payload?.chat || '');
       
-      console.log('📨 Comparing chatIds:', { msgChatId, normalizedChatId, match: msgChatId === normalizedChatId });
-      
-      if (!msgChatId || msgChatId !== normalizedChatId) {
-        console.log(`📨 Message for different chat (${msgChatId}), ignoring`);
+      // Aceptar mensaje si pertenece a cualquiera de los chats de esta conversación
+      if (!msgChatId || !chatIdsSet.has(msgChatId)) {
         return;
       }
       
       const msg = payload?.message || payload;
-      // Asegurar que el mensaje tenga createdAt para mostrar fecha correctamente
       const msgWithDate = {
         ...msg,
-        createdAt: msg.createdAt || msg.metadata?.timestamp || new Date().toISOString()
+        createdAt: msg.createdAt || msg.metadata?.timestamp || new Date().toISOString(),
+        // Preservar chatType del payload si viene (útil para dividers)
+        chatType: msg.chatType || payload?.chatType
       };
-      console.log('📨 Adding message to chat:', msgWithDate);
       setMessages(prev => {
-        // Avoid duplicates
         if (prev.some(m => m._id === msgWithDate._id)) return prev;
         return [...prev, msgWithDate];
       });
@@ -758,21 +766,21 @@ function ChatRoom({
 
     // Listen for message sent confirmation
     const offSent = socketOn('message_sent', (payload) => {
-      if (String(payload?.chatId || '') !== normalizedChatId) return;
+      if (!chatIdsSet.has(String(payload?.chatId || ''))) return;
       // Update local message status
       setMessages(prev => prev.map(m => 
         m.localId === payload.localId ? { ...m, ...payload, status: 'sent' } : m
       ));
     });
 
-    // Typing indicators
+    // Typing indicators — accept from any related chat
     const offTyping = socketOn('user_typing', ({ userId, userName, chatId: typingChatId }) => {
-      if (String(typingChatId || '') !== normalizedChatId || userId === currentUserId) return;
+      if (!chatIdsSet.has(String(typingChatId || '')) || userId === currentUserId) return;
       setTypingUsers(prev => ({ ...prev, [userId]: { userName, ts: Date.now() } }));
     });
 
     const offStoppedTyping = socketOn('user_stopped_typing', ({ userId, chatId: typingChatId }) => {
-      if (String(typingChatId || '') !== normalizedChatId) return;
+      if (!chatIdsSet.has(String(typingChatId || ''))) return;
       setTypingUsers(prev => {
         const next = { ...prev };
         delete next[userId];
@@ -782,7 +790,7 @@ function ChatRoom({
 
     // Listen for reaction updates from other users
     const offReaction = socketOn('message_reaction', ({ chatId: reactionChatId, messageId, reactions }) => {
-      if (String(reactionChatId || '') !== normalizedChatId) return;
+      if (!chatIdsSet.has(String(reactionChatId || ''))) return;
       setMessages(prev => prev.map(m => 
         m._id === messageId ? { ...m, reactions } : m
       ));
@@ -790,7 +798,7 @@ function ChatRoom({
 
     return () => {
       try {
-        socketEmit('leave_chat', { chatId });
+        chatIdsToJoin.forEach(id => socketEmit('leave_chat', { chatId: id }));
         offNewMessage?.();
         offSent?.();
         offTyping?.();
@@ -799,7 +807,7 @@ function ChatRoom({
         offReconnect?.();
       } catch { /* ignore */ }
     };
-  }, [chatId, currentUserId, onNewMessage]);
+  }, [chatId, currentUserId, onNewMessage, relatedChats]);
 
   // Auto-scroll to bottom - solo cuando corresponde
   useEffect(() => {
@@ -936,7 +944,7 @@ function ChatRoom({
       _id: localId,
       localId,
       chat: chatId,
-      sender: currentUserId,
+      sender: { _id: String(currentUserId), id: String(currentUserId) },
       content: { text },
       type: 'text',
       status: 'sending',
@@ -1193,24 +1201,52 @@ function ChatRoom({
     }
   }, [sendMessage]);
 
-  // Group messages by date
+  // Chat type labels for context dividers
+  const chatTypeLabels = useMemo(() => ({
+    booking: { label: t('chat.typeBooking', 'Reserva'), icon: '📅' },
+    proposal_negotiation: { label: t('chat.typeEstimate', 'Estimado'), icon: '💰' },
+    info_request: { label: t('chat.typeInfoRequest', 'Consulta'), icon: '💬' },
+    inquiry: { label: t('chat.typeInquiry', 'Mensaje directo'), icon: '✉️' }
+  }), [t]);
+
+  // Group messages by date and chatType context dividers
   const groupedMessages = useMemo(() => {
     const groups = [];
     let currentDate = null;
+    let currentChatType = null;
+    // Only show chatType dividers if we have messages from multiple types
+    const hasMultipleTypes = participantId && new Set(messages.map(m => m.chatType).filter(Boolean)).size > 1;
 
     messages.forEach(msg => {
       const msgDate = new Date(msg.createdAt || msg.metadata?.timestamp).toDateString();
       
       if (msgDate !== currentDate) {
         currentDate = msgDate;
+        currentChatType = null; // Reset chatType tracker on new date
         groups.push({ type: 'date', date: msg.createdAt || msg.metadata?.timestamp });
+      }
+      
+      // Insert chatType context divider when type changes (only in consolidated mode)
+      if (hasMultipleTypes && msg.chatType && msg.chatType !== currentChatType) {
+        currentChatType = msg.chatType;
+        const typeConf = chatTypeLabels[msg.chatType] || chatTypeLabels.booking;
+        groups.push({ type: 'chatTypeDivider', chatType: msg.chatType, label: typeConf.label, icon: typeConf.icon });
       }
       
       groups.push({ type: 'message', ...msg });
     });
 
     return groups;
-  }, [messages]);
+  }, [messages, participantId, chatTypeLabels]);
+
+  // Determine if there are pending inquiry/info_request chats that need accept/decline
+  const pendingAcceptChat = useMemo(() => {
+    if (userRole !== 'provider' || !relatedChats?.length) return null;
+    return relatedChats.find(rc => 
+      (rc.chatType === 'inquiry' || rc.chatType === 'info_request') && 
+      rc.providerAccepted === 'pending'
+    ) || null;
+  }, [userRole, relatedChats]);
 
   const typingList = Object.values(typingUsers);
 
@@ -1295,6 +1331,65 @@ function ChatRoom({
         </div>
       )}
 
+      {/* Panel de aceptar/rechazar consulta — Solo para proveedores con chats pendientes */}
+      {pendingAcceptChat && (
+        <div className="px-4 py-3 border-b border-gray-100 bg-linear-to-br from-amber-50 via-amber-50/50 to-orange-50/30">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/25">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  {t('chat.pendingInquiry', 'Un cliente desea iniciar una conversación contigo')}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {t('chat.pendingInquiryHint', 'Acepta para continuar la conversación o declina si no estás interesado')}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                onClick={async () => {
+                  try {
+                    await api.patch(`/chats/${pendingAcceptChat._id}/decline`);
+                    toast.info(t('chat.declinedSuccess', 'Conversación declinada'));
+                    loadMessages();
+                    // Recargar para actualizar estado
+                    window.dispatchEvent(new CustomEvent('notifications:updated'));
+                  } catch {
+                    toast.error(t('chat.declineError', 'Error al declinar la conversación'));
+                  }
+                }}
+                className="flex-1 sm:flex-initial px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all"
+              >
+                {t('chat.decline', 'Declinar')}
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await api.patch(`/chats/${pendingAcceptChat._id}/accept`);
+                    toast.success(t('chat.acceptedSuccess', 'Conversación aceptada'));
+                    loadMessages();
+                    window.dispatchEvent(new CustomEvent('notifications:updated'));
+                  } catch {
+                    toast.error(t('chat.acceptError', 'Error al aceptar la conversación'));
+                  }
+                }}
+                className="flex-1 sm:flex-initial px-4 py-2.5 text-sm font-semibold text-white bg-linear-to-r from-brand-500 to-brand-600 rounded-xl shadow-lg shadow-brand-500/25 hover:from-brand-600 hover:to-brand-700 transition-all flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                {t('chat.acceptInquiry', 'Aceptar')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Messages area */}
       <div 
         ref={containerRef}
@@ -1320,16 +1415,27 @@ function ChatRoom({
                 return <DateSeparator key={`date-${idx}`} date={item.date} />;
               }
               
+              if (item.type === 'chatTypeDivider') {
+                return (
+                  <div key={`type-${idx}`} className="flex items-center justify-center my-3">
+                    <span className="px-3 py-1 bg-brand-50 border border-brand-100 rounded-full text-xs text-brand-600 font-medium flex items-center gap-1.5">
+                      <span>{item.icon}</span>
+                      {item.label}
+                    </span>
+                  </div>
+                );
+              }
+              
               // Normalizar IDs a string para comparación consistente
               // El sender puede ser: string, ObjectId, o objeto con _id o id
+              const rawSender = item?.sender;
               const senderId = String(
-                item?.sender?._id || 
-                item?.sender?.id || 
-                (typeof item?.sender === 'string' ? item.sender : '') ||
-                ''
-              );
-              const currentId = String(currentUserId || '');
-              const isMine = senderId && currentId && senderId === currentId;
+                (typeof rawSender === 'object' && rawSender !== null)
+                  ? (rawSender._id || rawSender.id || '')
+                  : (typeof rawSender === 'string' ? rawSender : '')
+              ).trim();
+              const currentId = String(currentUserId || '').trim();
+              const isMine = !!(senderId && currentId && senderId === currentId);
               
               // Debug desactivado para evitar logs infinitos
               // console.log('🔍 Message alignment check:', { messageId: item._id, senderId, currentId, isMine });
@@ -1759,7 +1865,13 @@ ChatRoom.propTypes = {
   isAcceptingProposal: PropTypes.bool,
   userRole: PropTypes.string,
   onClose: PropTypes.func,
-  onEditRequest: PropTypes.func
+  onEditRequest: PropTypes.func,
+  participantId: PropTypes.string,
+  relatedChats: PropTypes.arrayOf(PropTypes.shape({
+    _id: PropTypes.string,
+    chatType: PropTypes.string,
+    providerAccepted: PropTypes.string
+  }))
 };
 
 export default memo(ChatRoom);
