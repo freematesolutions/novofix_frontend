@@ -3,6 +3,7 @@ import { Suspense, lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import Header from './components/layout/Header.jsx';
 import Footer from './components/layout/Footer.jsx';
+import MobileBottomNav from './components/layout/MobileBottomNav.jsx';
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx';
 import { PageSkeleton } from './components/ui/SkeletonLoader.jsx';
 import VerifyEmail from './pages/auth/VerifyEmail.jsx';
@@ -57,10 +58,9 @@ function App() {
   const isVerifyRoute = location.pathname.startsWith('/verificar-email');
   const hideHeader = isVerifyRoute && (pendingVerification || (user && user.emailVerified !== true));
 
-  // Scroll to top on route change (standard SPA behavior)
-  // The browser back button works natively with BrowserRouter — no custom
-  // popstate handler is needed. React Router maintains the history stack
-  // correctly, so pressing back always returns to the previous route.
+  // Add bottom padding on mobile when bottom-nav is visible (authenticated non-admin, non-hidden routes)
+  const isHiddenRoute = ['/login','/registrarse','/unete','/registro-proveedor','/verificar-email','/olvide-contrasena','/restablecer-contrasena'].some(r => location.pathname.startsWith(r));
+  const showBottomNav = user && !isHiddenRoute;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -68,7 +68,7 @@ function App() {
       <a href="#main-content" className="skip-link">{t('common.skipToContent')}</a>
       {!hideHeader && <Header />}
       <ErrorBoundary>
-      <main id="main-content" role="main" tabIndex="-1" className="flex-1 container mx-auto px-4 py-6">
+      <main id="main-content" role="main" tabIndex="-1" className={`flex-1 container mx-auto px-4 py-6${showBottomNav ? ' pb-24 md:pb-6' : ''}`}>
         <Suspense fallback={<PageSkeleton />}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -114,6 +114,7 @@ function App() {
         </Suspense>
       </main>
       </ErrorBoundary>
+      <MobileBottomNav />
       <Footer />
     </div>
   );

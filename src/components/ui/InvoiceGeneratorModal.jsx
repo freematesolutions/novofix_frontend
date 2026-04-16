@@ -380,11 +380,20 @@ export default function InvoiceGeneratorModal({
     const amountMin = proposal?.pricing?.amountMin;
     const amountMax = proposal?.pricing?.amountMax;
 
+    const proposalCurrency = proposal?.pricing?.currency || 'USD';
+    const rangeLabel = isRange && amountMin != null && amountMax != null
+      ? ` (${t('invoice.estimatedRange', { min: fmtCurrency(amountMin, proposalCurrency), max: fmtCurrency(amountMax, proposalCurrency) })})`
+      : '';
+
+    // When pricing is a range, 'amount' is an internal average for commission — never show it.
+    // Default to amountMax (the upper bound the client accepted); the provider can adjust.
+    const effectivePrice = (isRange && amountMax) ? Number(amountMax) : amount;
+
     const initialItems = [{
-      description: serviceTitle,
+      description: `${serviceTitle}${rangeLabel}`,
       qty: 1,
-      unitPrice: isRange ? ((amountMin || 0) + (amountMax || 0)) / 2 : amount,
-      total: isRange ? ((amountMin || 0) + (amountMax || 0)) / 2 : amount
+      unitPrice: effectivePrice,
+      total: effectivePrice
     }];
 
     // If proposal has pricing breakdown, add sub-items

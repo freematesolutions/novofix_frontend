@@ -344,13 +344,26 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+/* Pulso sutil para botón Omitir en wizard */
+@keyframes subtlePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 191, 0, 0);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(255, 191, 0, 0.15);
+    transform: scale(1.03);
+  }
+}
+
 /* Reducir animaciones si el usuario lo prefiere */
 @media (prefers-reduced-motion: reduce) {
   .animate-scroll-indicator,
   .animate-bounce-slow,
   .animate-pulse-glow,
   .animate-bell-ring,
-  .animate-chat-wiggle {
+  .animate-chat-wiggle,
+  [class*="animate-\[subtlePulse"] {
     animation: none;
   }
 }

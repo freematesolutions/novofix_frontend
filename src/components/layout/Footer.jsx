@@ -3,10 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 
 function Footer() {
-  const { role, viewRole } = useAuth();
+  const { role, viewRole, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
   const r = role === 'guest' ? 'guest' : viewRole;
+
+  // Check if MobileBottomNav would be visible (same logic as MobileBottomNav)
+  const isHiddenRoute = ['/login','/registrarse','/unete','/registro-proveedor','/verificar-email','/olvide-contrasena','/restablecer-contrasena'].some(rt => location.pathname.startsWith(rt));
+  const hasBottomNav = isAuthenticated && role !== 'guest' && viewRole !== 'admin' && !isHiddenRoute;
   const accent = (() => {
     switch (r) {
       case 'provider':
@@ -20,7 +24,7 @@ function Footer() {
     }
   })();
   return (
-    <footer className={`border-t bg-dark-800 ${accent.border}`} role="contentinfo">
+    <footer className={`border-t bg-dark-800 ${accent.border}${hasBottomNav ? ' pb-16 md:pb-0' : ''}`} role="contentinfo">
       <div className="container mx-auto px-4 py-6 text-sm text-gray-400 flex flex-col md:flex-row gap-2 md:gap-0 items-center justify-between">
         <div className="flex items-center gap-2">
           <p>&copy; {new Date().getFullYear()}</p>

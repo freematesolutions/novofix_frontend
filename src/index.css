@@ -660,6 +660,293 @@ body { margin: 0; color: #2D2D2D; }
 	}
 }
 
+/* ============================================
+   MOBILE BOTTOM NAV (Global)
+   ============================================ */
+
+/* Outer wrapper — bulletproof fixed positioning */
+.mobile-bottom-nav-wrapper {
+	position: fixed !important;
+	bottom: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+	z-index: 9990 !important;
+	-webkit-transform: translateZ(0);
+	transform: translateZ(0);
+	/* Prevent browser from resizing on scroll (mobile address bar) */
+	height: auto !important;
+	min-height: 0 !important;
+	max-height: none !important;
+	overflow: visible !important;
+	-webkit-overflow-scrolling: auto;
+}
+@media (min-width: 768px) {
+	.mobile-bottom-nav-wrapper { display: none !important; }
+}
+
+/* Inner visual bar */
+.mobile-bottom-nav {
+	background: rgba(255, 255, 255, 0.92);
+	border-top: 1px solid rgba(0, 0, 0, 0.06);
+	backdrop-filter: blur(20px) saturate(1.4);
+	-webkit-backdrop-filter: blur(20px) saturate(1.4);
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+	/* Stable height — never shrink */
+	min-height: 56px;
+	flex-shrink: 0;
+}
+
+.mobile-bottom-nav-inner {
+	display: flex;
+	align-items: stretch;
+	justify-content: space-around;
+	max-width: 480px;
+	margin: 0 auto;
+	padding: 6px 4px 4px;
+}
+
+.mobile-bottom-nav-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+	padding: 4px 2px 6px;
+	border-radius: 12px;
+	min-width: 56px;
+	flex: 1;
+	position: relative;
+	transition: all 0.25s ease;
+	text-decoration: none;
+}
+
+.mobile-bottom-nav-item--idle {
+	color: #9ca3af;
+}
+
+.mobile-bottom-nav-item--idle:active {
+	transform: scale(0.92);
+	background: rgba(0, 128, 128, 0.06);
+}
+
+.mobile-bottom-nav-item--active {
+	color: #008080;
+}
+
+.mobile-bottom-nav-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 30px;
+	border-radius: 14px;
+	transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mobile-bottom-nav-icon--active {
+	background: linear-gradient(135deg, rgba(0, 128, 128, 0.15), rgba(13, 174, 156, 0.12));
+	transform: scale(1.08);
+}
+
+.mobile-bottom-nav-label {
+	font-size: 10px;
+	line-height: 1;
+	font-weight: 500;
+	letter-spacing: 0.01em;
+	transition: color 0.25s ease;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 64px;
+	text-align: center;
+}
+
+.mobile-bottom-nav-label--active {
+	font-weight: 700;
+	color: #008080;
+}
+
+.mobile-bottom-nav-indicator {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 20px;
+	height: 3px;
+	border-radius: 0 0 4px 4px;
+	background: linear-gradient(90deg, #0dae9c, #008080);
+	animation: bottomnav-indicator-in 0.3s ease forwards;
+}
+
+@keyframes bottomnav-indicator-in {
+	from { width: 0; opacity: 0; }
+	to   { width: 20px; opacity: 1; }
+}
+
+/* Safe-area aware bottom padding for pages when bottom nav is visible */
+@media (max-width: 767px) {
+	.has-bottom-nav {
+		padding-bottom: 72px !important;
+	}
+}
+
+@media (hover: none) and (pointer: coarse) {
+	.mobile-bottom-nav {
+		backdrop-filter: blur(28px) saturate(1.8);
+		-webkit-backdrop-filter: blur(28px) saturate(1.8);
+	}
+}
+
+/* ── "More" flyout panel ── */
+.mobile-more-panel {
+	background: rgba(255, 255, 255, 0.92);
+	backdrop-filter: blur(24px) saturate(1.4);
+	-webkit-backdrop-filter: blur(24px) saturate(1.4);
+	border-top: 1px solid rgba(0, 0, 0, 0.06);
+	border-radius: 20px 20px 0 0;
+	padding: 20px 16px 12px;
+	animation: more-panel-slide-up 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes more-panel-slide-up {
+	from { transform: translateY(100%); opacity: 0; }
+	to   { transform: translateY(0); opacity: 1; }
+}
+
+.mobile-more-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 6px;
+}
+
+.mobile-more-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	padding: 12px 4px 10px;
+	border-radius: 16px;
+	transition: all 0.2s ease;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+}
+
+.mobile-more-item:active {
+	transform: scale(0.93);
+	background: rgba(0, 128, 128, 0.06);
+}
+
+.mobile-more-item--active {
+	background: rgba(0, 128, 128, 0.08);
+}
+
+.mobile-more-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 14px;
+	background: rgba(243, 244, 246, 0.8);
+	color: #6b7280;
+	transition: all 0.25s ease;
+}
+
+.mobile-more-icon--active {
+	background: linear-gradient(135deg, rgba(0, 128, 128, 0.15), rgba(13, 174, 156, 0.12));
+	color: #008080;
+}
+
+.mobile-more-label {
+	font-size: 11px;
+	font-weight: 500;
+	color: #6b7280;
+	text-align: center;
+	line-height: 1.2;
+}
+
+.mobile-more-label--active {
+	font-weight: 700;
+	color: #008080;
+}
+
+/* Action items (role switch, become pro) — accent styling */
+.mobile-more-item--action {
+	background: rgba(0, 128, 128, 0.04);
+	border: 1px dashed rgba(0, 128, 128, 0.25);
+}
+.mobile-more-item--action:active {
+	background: rgba(0, 128, 128, 0.1);
+}
+.mobile-more-icon--action {
+	background: linear-gradient(135deg, rgba(0, 128, 128, 0.12), rgba(13, 174, 156, 0.10));
+	color: #008080;
+}
+.mobile-more-label--action {
+	color: #008080;
+	font-weight: 600;
+}
+
+/* Mode indicator header inside More panel */
+.mobile-more-mode-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 12px;
+	padding: 0 4px;
+}
+.mobile-more-mode-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #008080;
+	box-shadow: 0 0 6px rgba(0, 128, 128, 0.4);
+	flex-shrink: 0;
+}
+.mobile-more-mode-label {
+	font-size: 12px;
+	font-weight: 700;
+	color: #008080;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+/* Divider before action items */
+.mobile-more-divider {
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent);
+	margin: 8px 0;
+}
+
+/* Action button (role switch) — full-width pill */
+.mobile-more-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 0 4px;
+}
+.mobile-more-action-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	width: 100%;
+	padding: 10px 16px;
+	border-radius: 12px;
+	border: 1px dashed rgba(0, 128, 128, 0.3);
+	background: rgba(0, 128, 128, 0.04);
+	color: #008080;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+.mobile-more-action-btn:active {
+	transform: scale(0.97);
+	background: rgba(0, 128, 128, 0.1);
+}
+
 /* Navigation link styles */
 .nav-link,
 .nav-link-tooltip {

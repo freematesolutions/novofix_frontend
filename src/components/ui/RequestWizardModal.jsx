@@ -107,6 +107,11 @@ const Icons = {
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
     </svg>
+  ),
+  SkipForward: ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 5l8 7-8 7V5zm10 0l8 7-8 7V5z" />
+    </svg>
   )
 };
 
@@ -848,8 +853,8 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
           amount: Number(formData.budgetAmount),
           currency: formData.currency
         } : undefined,
-        photos: formData.photos,
-        videos: formData.videos,
+        photos: formData.photos.filter(p => !p.isLocal).map(({ url, cloudinaryId, caption }) => ({ url, cloudinaryId: cloudinaryId || '', caption: caption || '' })),
+        videos: formData.videos.filter(v => !v.isLocal).map(({ url, cloudinaryId, caption }) => ({ url, cloudinaryId: cloudinaryId || '', caption: caption || '' })),
         visibility: 'auto',
         targetProviders: provider ? [provider._id] : undefined
       };
@@ -1244,24 +1249,27 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-5">
                     {/* Photos upload */}
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Icons.Photo className="w-5 h-5 text-brand-600" />
-                        <label className="text-sm font-semibold text-gray-700">{t('ui.requestWizard.photos')}</label>
-                        <span className="text-xs text-gray-400">({t('ui.requestWizard.optional')})</span>
+                    <div className="bg-gray-50 rounded-xl p-3 sm:p-4 flex flex-col">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <Icons.Photo className="w-4 h-4 sm:w-5 sm:h-5 text-brand-600 shrink-0" />
+                        <label className="text-xs sm:text-sm font-semibold text-gray-700 truncate">{t('ui.requestWizard.photos')}</label>
+                        <span className="text-[10px] sm:text-xs text-gray-400 shrink-0">({t('ui.requestWizard.optional')})</span>
                       </div>
                       
                       <label className={`
-                        flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors
+                        flex-1 flex flex-col items-center justify-center p-4 sm:p-6 min-h-[140px] sm:min-h-40 border-2 border-dashed rounded-xl cursor-pointer transition-colors
                         ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-gray-300 hover:border-brand-400 hover:bg-brand-50/50'}
                       `}>
-                        <Icons.Upload className="w-8 h-8 text-gray-400 mb-2" />
-                        <span className="text-sm text-gray-600 text-center">
+                        <Icons.Upload className="w-6 h-6 sm:w-8 sm:h-8 text-brand-500 mb-1.5 sm:mb-2" />
+                        <span className="text-sm sm:text-base font-bold text-brand-700 text-center mb-0.5 sm:mb-1">
+                          📸 {t('ui.requestWizard.showPhotosOfProblem')}
+                        </span>
+                        <span className="text-xs sm:text-sm text-gray-600 text-center">
                           {t('ui.requestWizard.clickOrDragImages')}
                         </span>
-                        <span className="text-xs text-gray-400 mt-1">JPG, PNG, GIF, WebP</span>
+                        <span className="text-[10px] sm:text-xs text-gray-400 mt-1">JPG, PNG, GIF, WebP</span>
                         <input
                           type="file"
                           multiple
@@ -1302,22 +1310,25 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                     </div>
 
                     {/* Videos upload */}
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Icons.Video className="w-5 h-5 text-pink-600" />
-                        <label className="text-sm font-semibold text-gray-700">{t('ui.requestWizard.videos')}</label>
-                        <span className="text-xs text-gray-400">({t('ui.requestWizard.maxSize', { size: '200MB' })})</span>
+                    <div className="bg-gray-50 rounded-xl p-3 sm:p-4 flex flex-col">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <Icons.Video className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600 shrink-0" />
+                        <label className="text-xs sm:text-sm font-semibold text-gray-700 truncate">{t('ui.requestWizard.videos')}</label>
+                        <span className="text-[10px] sm:text-xs text-gray-400 shrink-0">({t('ui.requestWizard.maxSize', { size: '200MB' })})</span>
                       </div>
                       
                       <label className={`
-                        flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors
+                        flex-1 flex flex-col items-center justify-center p-4 sm:p-6 min-h-[140px] sm:min-h-40 border-2 border-dashed rounded-xl cursor-pointer transition-colors
                         ${uploadingMedia ? 'opacity-50 cursor-not-allowed' : 'border-gray-300 hover:border-pink-400 hover:bg-pink-50/50'}
                       `}>
-                        <Icons.Upload className="w-8 h-8 text-gray-400 mb-2" />
-                        <span className="text-sm text-gray-600 text-center">
+                        <Icons.Upload className="w-6 h-6 sm:w-8 sm:h-8 text-pink-500 mb-1.5 sm:mb-2" />
+                        <span className="text-sm sm:text-base font-bold text-pink-700 text-center mb-0.5 sm:mb-1">
+                          🎬 {t('ui.requestWizard.showVideoOfProblem')}
+                        </span>
+                        <span className="text-xs sm:text-sm text-gray-600 text-center">
                           {t('ui.requestWizard.clickOrDragVideos')}
                         </span>
-                        <span className="text-xs text-gray-400 mt-1">MP4, MOV, AVI, WebM</span>
+                        <span className="text-[10px] sm:text-xs text-gray-400 mt-1">MP4, MOV, AVI, WebM</span>
                         <input
                           type="file"
                           multiple
@@ -1837,14 +1848,35 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
               <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 {/* Botón Omitir - visible en pasos opcionales (Media, Ubicación, Fecha) */}
                 {(currentStep === 1 || currentStep === 2 || currentStep === 3) && (
-                  <button
-                    type="button"
-                    onClick={handleSkipStep}
-                    className="flex items-center gap-1 px-2 sm:px-4 py-2 sm:py-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl font-medium transition-all text-xs sm:text-sm"
-                  >
-                    <span>{t('ui.requestWizard.skip')}</span>
-                    <Icons.ChevronRight className="w-4 h-4" />
-                  </button>
+                  <div className="relative group">
+                    <button
+                      type="button"
+                      onClick={handleSkipStep}
+                      className="
+                        relative flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5
+                        border-2 border-dashed border-accent-400 hover:border-accent-500
+                        text-accent-700 hover:text-accent-800
+                        bg-accent-50/60 hover:bg-accent-100
+                        rounded-xl font-semibold transition-all text-xs sm:text-sm
+                        hover:shadow-md hover:shadow-accent-200/50
+                        animate-[subtlePulse_3s_ease-in-out_infinite]
+                      "
+                    >
+                      <Icons.SkipForward className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span>{t('ui.requestWizard.skip')}</span>
+                    </button>
+                    {/* Tooltip hint */}
+                    <div className="
+                      absolute bottom-full right-0 mb-2 px-3 py-1.5
+                      bg-dark-800 text-white text-[11px] sm:text-xs rounded-lg
+                      whitespace-nowrap shadow-lg
+                      opacity-0 group-hover:opacity-100 transition-opacity duration-200
+                      pointer-events-none z-50
+                    ">
+                      {t('ui.requestWizard.skipHint')}
+                      <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-dark-800" />
+                    </div>
+                  </div>
                 )}
                 <button
                   type="button"

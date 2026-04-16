@@ -11,8 +11,8 @@ const isMobileOrTablet = () => {
   if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return true;
   // iPad with desktop-class Safari (iPadOS 13+)
   if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) return true;
-  // Fallback: narrow viewport
-  if (typeof window !== 'undefined' && window.innerWidth <= 1024) return true;
+  // Fallback: narrow viewport (768px matches typical tablet breakpoint)
+  if (typeof window !== 'undefined' && window.innerWidth <= 768) return true;
   return false;
 };
 

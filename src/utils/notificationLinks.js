@@ -11,9 +11,16 @@ export function getNotificationActionUrl(n) {
 
   let raw = n?.data?.actionUrl;
 
+  // Special case: INVOICE_RECEIVED should always deep-link to the invoice viewer
+  // even when actionUrl is already set (server stores a generic '/reservas' as actionUrl)
+  const type = (n.type || '').toUpperCase();
+  if (type === 'INVOICE_RECEIVED') {
+    const bookingId = n?.data?.bookingId;
+    raw = bookingId ? `/reservas?openInvoice=${bookingId}` : '/reservas';
+  }
+
   // If actionUrl is missing or just points to the notifications page itself, infer from type
   if (!raw || raw === '/notificaciones') {
-    const type = (n.type || '').toUpperCase();
 
     if (
       [
@@ -28,7 +35,6 @@ export function getNotificationActionUrl(n) {
         'REVIEW_RESPONSE_UPDATED',
         'REVIEW_RESPONSE_REMOVED',
         'PROPOSAL_ACCEPTED',
-        'INVOICE_RECEIVED',
         'INVOICE_VIEWED',
       ].includes(type)
     ) {

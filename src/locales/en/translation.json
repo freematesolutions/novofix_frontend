@@ -155,7 +155,12 @@
     "closeNotification": "Close notification",
     "mobileMenu": "Mobile main menu",
     "searchIn": "Search in {{category}}",
-    "searchServices": "Search services"
+    "searchServices": "Search services",
+    "changePhoto": "Change photo",
+    "uploadingPhoto": "Uploading photo...",
+    "photoUpdated": "Profile photo updated",
+    "photoUploadError": "Error uploading photo",
+    "clickToChangePhoto": "Click to change profile photo"
   },
   "home": {
     "nav": {
@@ -529,6 +534,12 @@
       "acceptedSuccess": "Proposal accepted! Your contract has been confirmed",
       "acceptError": "Error accepting proposal",
       "alreadyProcessed": "This proposal has already been processed",
+      "processedStatus": {
+        "accepted": "Proposal accepted ✅",
+        "rejected": "Proposal rejected",
+        "expired": "Proposal expired",
+        "cancelled": "Proposal cancelled"
+      },
       "rejected": "Proposal rejected",
       "yourRequest": "Your request",
       "photo": "Photo",
@@ -1488,7 +1499,8 @@
         "inProgress": "In progress",
         "completed": "Completed",
         "cancelled": "Cancelled",
-        "serviceCompleted": "Service hired"
+        "serviceCompleted": "Service hired",
+        "serviceFinished": "Service completed"
       },
       "filters": {
         "status": "Status",
@@ -1496,7 +1508,7 @@
         "from": "From",
         "to": "To",
         "search": "Search",
-        "searchPlaceholder": "Search by title, client or provider...",
+        "searchPlaceholder": "Search by title, client or professional...",
         "clear": "Clear filters"
       },
       "loading": "Loading contracts...",
@@ -1523,14 +1535,14 @@
         "rangeHint": "Final amount is determined upon service completion"
       },
       "participants": {
-        "provider": "Provider",
+        "provider": "Professional",
         "client": "Client"
       },
       "review": {
         "serviceReview": "Service review",
         "inModeration": "In moderation",
         "moderationNote": "This review is being checked by our team",
-        "providerResponse": "Provider response",
+        "providerResponse": "Professional's response",
         "edited": "edited",
         "noClientReview": "The client hasn't left a review yet",
         "willAppearHere": "When they leave a review it will appear here",
@@ -1584,6 +1596,7 @@
         "statusUpdated": "Status updated",
         "serviceConfirmed": "Service confirmed"
       },
+      "invoiceNotReady": "The invoice is not yet available for this contract",
       "errors": {
         "loadFailed": "Could not load contracts",
         "chatError": "Failed to open chat",
@@ -2852,8 +2865,8 @@
         "problemsHint": "What do you need for your project?",
         "description": "Description",
         "descriptionHint": "Describe what service you need",
-        "media": "Visualization",
-        "photosVideos": "Visualization",
+        "media": "Details",
+        "photosVideos": "Details",
         "mediaHint": "Add photos or videos of the work",
         "location": "Location",
         "locationHint": "Where will the service be performed?",
@@ -2882,6 +2895,8 @@
       "optional": "optional",
       "clickOrDragImages": "Click or drag images here",
       "clickOrDragVideos": "Click or drag videos here",
+      "showPhotosOfProblem": "Show photos of the problem",
+      "showVideoOfProblem": "Show a short video of the problem",
       "photoAlt": "Photo {{number}}",
       "uploading": "Uploading...",
       "maxSize": "max {{size}}",
@@ -2891,6 +2906,7 @@
       "canEditAddress": "You can edit the address if needed",
       "stepOptional": "This step is optional. You can continue without completing it.",
       "skip": "Skip",
+      "skipHint": "Not required, you can skip this step",
       "add": "Add",
       "locationOptionalTitle": "This service can be remote",
       "locationOptionalDesc": "Location is optional. You can skip this step or add it later.",
@@ -3959,6 +3975,9 @@
     "transportation": "Transportation",
     "openNewTab": "Open in new tab",
     "pdfNotAvailable": "The PDF for this invoice is not available",
+    "pdfLoadError": "Could not load the document",
+    "retry": "Retry",
+    "openExternal": "Open in external viewer",
     "pdfFallbackLink": "Can't see the document? Click here to open it",
     "viewedBadge": "Viewed",
     "viewedAt": "Viewed on {{date}}",
@@ -3967,7 +3986,8 @@
     "pdfRenderError": "Could not render the document",
     "prevPage": "Previous page",
     "nextPage": "Next page",
-    "pageOf": "{{current}} / {{total}}"
+    "pageOf": "{{current}} / {{total}}",
+    "estimatedRange": "Estimated range: {{min}} – {{max}}"
   },
   "upload": {
     "defaultMessage": "Uploading file...",
@@ -4073,6 +4093,16 @@
       "REVIEW_RESPONSE_REMOVED": {
         "title": "Response removed",
         "message": "The professional has removed their response to your review."
+      },
+      "NEW_CLIENT_REVIEW": {
+        "title": "You received a rating ⭐",
+        "message": "{{providerName}} has rated your experience as a client.",
+        "messageDefault": "You have received a rating from a professional."
+      },
+      "REVIEW_NUDGE": {
+        "title": "⭐ How was your experience?",
+        "message": "How was the service with {{providerName}}? Your feedback helps others.",
+        "messageDefault": "Your service was completed. Tell us about your experience!"
       },
       "REVIEW_FLAGGED": {
         "title": "Review reported",

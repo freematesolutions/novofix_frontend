@@ -405,52 +405,75 @@ export default function ClientRequestProposals() {
                   )}
                 </div>
                 
-                {/* Card footer with actions */}
+                {/* Card footer with actions or status badge */}
                 <div className="px-5 sm:px-6 py-4 bg-gray-50/50 border-t border-gray-100">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      onClick={() => accept(p._id)}
-                      disabled={accepting === p._id}
-                      className="group/btn relative flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-brand-500 to-brand-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden"
-                    >
-                      <span className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></span>
-                      <span className="relative flex items-center gap-2">
-                        {accepting === p._id ? (
-                          <Spinner size="sm" className="text-white" />
+                  {/* Only show action buttons if proposal is still actionable (sent/viewed) */}
+                  {(p.status === 'sent' || p.status === 'viewed' || !p.status) ? (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={() => accept(p._id)}
+                        disabled={accepting === p._id}
+                        className="group/btn relative flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-brand-500 to-brand-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden"
+                      >
+                        <span className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></span>
+                        <span className="relative flex items-center gap-2">
+                          {accepting === p._id ? (
+                            <Spinner size="sm" className="text-white" />
+                          ) : (
+                            <HiCheckCircle className="w-5 h-5" />
+                          )}
+                          {accepting === p._id ? t('client.proposals.accepting') : t('client.proposals.accept')}
+                        </span>
+                      </button>
+                      
+                      <button
+                        onClick={() => reject(p._id)}
+                        disabled={rejecting === p._id}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 font-medium rounded-xl hover:bg-red-100 transition-colors disabled:opacity-50"
+                      >
+                        {rejecting === p._id ? (
+                          <Spinner size="sm" className="text-red-600" />
                         ) : (
-                          <HiCheckCircle className="w-5 h-5" />
+                          <HiX className="w-5 h-5" />
                         )}
-                        {accepting === p._id ? t('client.proposals.accepting') : t('client.proposals.accept')}
+                        {t('client.proposals.reject')}
+                      </button>
+                      
+                      <button
+                        onClick={() => openNegotiationChat(p)}
+                        disabled={loadingChat && activeProposal?._id === p._id}
+                        title={t('client.proposals.negotiateTooltip')}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-brand-50 text-brand-600 font-medium rounded-xl hover:bg-brand-100 transition-colors disabled:opacity-50"
+                      >
+                        {loadingChat && activeProposal?._id === p._id ? (
+                          <Spinner size="sm" className="text-brand-600" />
+                        ) : (
+                          <HiChat className="w-5 h-5" />
+                        )}
+                        {t('client.proposals.negotiate')}
+                      </button>
+                    </div>
+                  ) : (
+                    /* Proposal already processed — show informative status badge */
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold ${
+                        p.status === 'accepted'
+                          ? 'bg-green-50 text-green-700 border border-green-200'
+                          : p.status === 'rejected'
+                            ? 'bg-red-50 text-red-600 border border-red-200'
+                            : 'bg-gray-100 text-gray-600 border border-gray-200'
+                      }`}>
+                        {p.status === 'accepted' ? (
+                          <HiCheckCircle className="w-5 h-5" />
+                        ) : p.status === 'rejected' ? (
+                          <HiX className="w-5 h-5" />
+                        ) : (
+                          <HiClock className="w-5 h-5" />
+                        )}
+                        {t(`client.proposals.processedStatus.${p.status}`, t('client.proposals.alreadyProcessed'))}
                       </span>
-                    </button>
-                    
-                    <button
-                      onClick={() => reject(p._id)}
-                      disabled={rejecting === p._id}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 font-medium rounded-xl hover:bg-red-100 transition-colors disabled:opacity-50"
-                    >
-                      {rejecting === p._id ? (
-                        <Spinner size="sm" className="text-red-600" />
-                      ) : (
-                        <HiX className="w-5 h-5" />
-                      )}
-                      {t('client.proposals.reject')}
-                    </button>
-                    
-                    <button
-                      onClick={() => openNegotiationChat(p)}
-                      disabled={loadingChat && activeProposal?._id === p._id}
-                      title={t('client.proposals.negotiateTooltip')}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-brand-50 text-brand-600 font-medium rounded-xl hover:bg-brand-100 transition-colors disabled:opacity-50"
-                    >
-                      {loadingChat && activeProposal?._id === p._id ? (
-                        <Spinner size="sm" className="text-brand-600" />
-                      ) : (
-                        <HiChat className="w-5 h-5" />
-                      )}
-                      {t('client.proposals.negotiate')}
-                    </button>
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -526,17 +549,19 @@ export default function ClientRequestProposals() {
               >
                 {t('common.close')}
               </button>
-              <button
-                onClick={() => {
-                  closeChatModal();
-                  if (activeProposal) accept(activeProposal._id);
-                }}
-                disabled={accepting === activeProposal?._id}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-brand-500 to-brand-600 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
-              >
-                <HiCheckCircle className="w-4 h-4" />
-                {t('client.proposals.chatModal.acceptProposal')}
-              </button>
+              {(activeProposal?.status === 'sent' || activeProposal?.status === 'viewed' || !activeProposal?.status) && (
+                <button
+                  onClick={() => {
+                    closeChatModal();
+                    if (activeProposal) accept(activeProposal._id);
+                  }}
+                  disabled={accepting === activeProposal?._id}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-brand-500 to-brand-600 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                >
+                  <HiCheckCircle className="w-4 h-4" />
+                  {t('client.proposals.chatModal.acceptProposal')}
+                </button>
+              )}
             </div>
           </div>
         </Modal>

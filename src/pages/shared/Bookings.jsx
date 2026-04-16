@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient';
 import Alert from '@/components/ui/Alert.jsx';
@@ -50,7 +50,12 @@ export default function Bookings() {
   const currentLang = useCurrentLanguage(); // Hook reactivo al cambio de idioma
   const { viewRole, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const toast = useToast();
+
+  // Auto-open invoice from notification deep-link (?openInvoice=bookingId)
+  const openInvoiceParam = searchParams.get('openInvoice');
+  const openInvoiceTriedRef = useRef(null); // tracks which bookingId was already auto-opened
 
   // Derived role flags (must be declared before any hooks that reference them)
   const isProvider = viewRole === 'provider';
@@ -132,19 +137,35 @@ export default function Bookings() {
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [invoiceBooking, setInvoiceBooking] = useState(null);
   // PDF viewer for sent invoices (read-only)
-  const [invoicePdfViewer, setInvoicePdfViewer] = useState({ open: false, url: '', name: '', invoiceNumber: '', total: '', currency: '', blobUrl: '' });
+  const [invoicePdfViewer, setInvoicePdfViewer] = useState({ open: false, url: '', name: '', invoiceNumber: '', total: '', currency: '', blobUrl: '', error: false });
+  const invoiceAbortRef = useRef(null);
 
   // Fetch the PDF via server proxy for fast native rendering (avoids Cloudinary 401)
   const openInvoicePdf = useCallback(async (invoiceData) => {
-    // Show overlay immediately with loading state
-    setInvoicePdfViewer({ ...invoiceData, open: true, blobUrl: '' });
+    // Abort any previous in-flight request
+    invoiceAbortRef.current?.abort();
+    const controller = new AbortController();
+    invoiceAbortRef.current = controller;
 
-    if (!invoiceData.bookingId) return;
+    // Show overlay immediately with loading state
+    setInvoicePdfViewer({ ...invoiceData, open: true, blobUrl: '', error: false });
+
+    // If no bookingId, go straight to Google Docs fallback or error
+    if (!invoiceData.bookingId) {
+      if (invoiceData.url) {
+        const fallbackUrl = `https://docs.google.com/gview?url=${encodeURIComponent(invoiceData.url)}&embedded=true`;
+        setInvoicePdfViewer(prev => prev.open ? { ...prev, blobUrl: fallbackUrl } : prev);
+      } else {
+        setInvoicePdfViewer(prev => prev.open ? { ...prev, error: true } : prev);
+      }
+      return;
+    }
     try {
       // Use the api client (axios) which has the correct baseURL for both dev & production
       const resp = await api.get(`/bookings/${invoiceData.bookingId}/invoice-pdf`, {
         responseType: 'blob',
-        timeout: 30000
+        timeout: 30000,
+        signal: controller.signal
       });
       const blob = resp.data;
       if (!blob || blob.size < 100) throw new Error('Empty response');
@@ -157,11 +178,14 @@ export default function Bookings() {
         api.post(`/bookings/${invoiceData.bookingId}/invoice-viewed`).catch(() => {});
       }
     } catch (err) {
+      if (controller.signal.aborted) return; // User closed the modal
       console.warn('Server proxy PDF fetch failed:', err);
       // Ultimate fallback: try Google Docs Viewer with the original URL
       if (invoiceData.url) {
         const fallbackUrl = `https://docs.google.com/gview?url=${encodeURIComponent(invoiceData.url)}&embedded=true`;
         setInvoicePdfViewer(prev => prev.open ? { ...prev, blobUrl: fallbackUrl } : prev);
+      } else {
+        setInvoicePdfViewer(prev => prev.open ? { ...prev, error: true } : prev);
       }
       // Still mark as viewed even if PDF render fails (client clicked "View Invoice")
       if (isClient && invoiceData.bookingId) {
@@ -401,6 +425,37 @@ export default function Bookings() {
   }, []);
 
   useEffect(()=>{ if (isAuthenticated && (isProvider || isClient)) load(); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [isAuthenticated, isProvider, isClient, statusFilter, page]);
+
+  // Auto-open invoice PDF when navigating from a notification deep-link
+  useEffect(() => {
+    if (!openInvoiceParam || loading || bookings.length === 0) return;
+    // Skip if we already processed this exact bookingId (prevents double-open)
+    if (openInvoiceTriedRef.current === openInvoiceParam) return;
+    openInvoiceTriedRef.current = openInvoiceParam;
+
+    const target = bookings.find(b => String(b._id) === openInvoiceParam);
+    if (target?.invoice?.sentAt) {
+      // Open the invoice PDF viewer directly (no setTimeout — avoids cleanup race)
+      openInvoicePdf({
+        bookingId: target._id,
+        url: target.invoice.pdfUrl || '',
+        name: `Invoice_${target.invoice.invoiceNumber || ''}.pdf`,
+        invoiceNumber: target.invoice.invoiceNumber || '',
+        total: target.invoice.total != null ? fmtCurrency(target.invoice.total, target.invoice.currency || 'USD') : '',
+        currency: target.invoice.currency || 'USD'
+      });
+    } else if (target && !target.invoice?.sentAt) {
+      toast.info(t('shared.bookings.invoiceNotReady'));
+    }
+
+    // Clean the query param from URL silently (replaceState avoids React re-render
+    // which would trigger effect cleanup and cancel any pending work)
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('openInvoice');
+      window.history.replaceState({}, '', url.pathname + (url.search || ''));
+    } catch { /* ignore */ }
+  }, [openInvoiceParam, loading, bookings]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filtrado local por fecha y texto
   const filtered = useMemo(() => {
@@ -1187,7 +1242,11 @@ export default function Bookings() {
                       <div className="flex items-center gap-2 mt-2">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${currentStatus.bg} ${currentStatus.text} ${currentStatus.border} border`}>
                           <span>{currentStatus.icon}</span>
-                          {b.status === 'completed' ? t('shared.bookings.status.serviceCompleted') : t(currentStatus.labelKey)}
+                          {b.status === 'completed'
+                            ? (b.invoice?.sentAt
+                              ? t('shared.bookings.status.serviceFinished')
+                              : t('shared.bookings.status.serviceCompleted'))
+                            : t(currentStatus.labelKey)}
                         </span>
                       </div>
                     </div>
@@ -2689,8 +2748,9 @@ export default function Bookings() {
               {/* Close */}
               <button
                 onClick={() => {
+                  invoiceAbortRef.current?.abort();
                   if (invoicePdfViewer.blobUrl && invoicePdfViewer.blobUrl.startsWith('blob:')) URL.revokeObjectURL(invoicePdfViewer.blobUrl);
-                  setInvoicePdfViewer({ open: false, url: '', name: '', invoiceNumber: '', total: '', currency: '', blobUrl: '' });
+                  setInvoicePdfViewer({ open: false, url: '', name: '', invoiceNumber: '', total: '', currency: '', blobUrl: '', error: false });
                 }}
                 className="p-2 rounded-lg bg-white/10 hover:bg-red-500/80 text-white/80 hover:text-white transition-colors"
               >
@@ -2702,7 +2762,31 @@ export default function Bookings() {
           </div>
           {/* PDF embed (native browser rendering via blob URL for speed) */}
           <div className="flex-1 relative bg-gray-800">
-            {invoicePdfViewer.blobUrl ? (
+            {invoicePdfViewer.error ? (
+              /* Error state with retry */
+              <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
+                <svg className="w-14 h-14 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <p className="text-sm text-center px-6">{t('invoice.pdfLoadError', 'No se pudo cargar el documento')}</p>
+                <button
+                  onClick={() => openInvoicePdf({ url: invoicePdfViewer.url, name: invoicePdfViewer.name, invoiceNumber: invoicePdfViewer.invoiceNumber, total: invoicePdfViewer.total, currency: invoicePdfViewer.currency, bookingId: invoicePdfViewer.bookingId })}
+                  className="px-4 py-2 rounded-lg bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium transition-colors"
+                >
+                  {t('invoice.retry', 'Reintentar')}
+                </button>
+                {invoicePdfViewer.url && (
+                  <a
+                    href={`https://docs.google.com/gview?url=${encodeURIComponent(invoicePdfViewer.url)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm underline text-accent-400 hover:text-accent-300"
+                  >
+                    {t('invoice.openExternal', 'Abrir en visor externo')}
+                  </a>
+                )}
+              </div>
+            ) : invoicePdfViewer.blobUrl ? (
               <PdfCanvasViewer
                 src={invoicePdfViewer.blobUrl}
                 title={invoicePdfViewer.name}
@@ -2710,18 +2794,11 @@ export default function Bookings() {
                 style={{ minHeight: '400px' }}
                 accentColor="teal"
               />
-            ) : invoicePdfViewer.url ? (
+            ) : (
               /* Loading state while blob is being fetched */
               <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
                 <div className="w-10 h-10 border-3 border-white/20 border-t-accent-400 rounded-full animate-spin" />
                 <p className="text-sm">{t('invoice.viewTitle')}...</p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
-                <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <p className="text-sm">{t('invoice.pdfNotAvailable')}</p>
               </div>
             )}
           </div>

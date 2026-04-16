@@ -449,6 +449,9 @@
     "transportation": "Transporte",
     "openNewTab": "Abrir en nueva pestaña",
     "pdfNotAvailable": "El PDF de esta factura no está disponible",
+    "pdfLoadError": "No se pudo cargar el documento",
+    "retry": "Reintentar",
+    "openExternal": "Abrir en visor externo",
     "pdfFallbackLink": "¿No se ve el documento? Haz clic aquí para abrirlo",
     "viewedBadge": "Vista",
     "viewedAt": "Vista el {{date}}",
@@ -457,7 +460,8 @@
     "pdfRenderError": "No se pudo renderizar el documento",
     "prevPage": "Página anterior",
     "nextPage": "Página siguiente",
-    "pageOf": "{{current}} / {{total}}"
+    "pageOf": "{{current}} / {{total}}",
+    "estimatedRange": "Rango estimado: {{min}} – {{max}}"
   },
   "upload": {
     "defaultMessage": "Subiendo archivo...",
@@ -563,6 +567,16 @@
       "REVIEW_RESPONSE_REMOVED": {
         "title": "Respuesta eliminada",
         "message": "El profesional ha eliminado su respuesta a tu reseña."
+      },
+      "NEW_CLIENT_REVIEW": {
+        "title": "Has recibido una valoración ⭐",
+        "message": "{{providerName}} ha valorado tu experiencia como cliente.",
+        "messageDefault": "Has recibido una valoración de un profesional."
+      },
+      "REVIEW_NUDGE": {
+        "title": "⭐ ¿Cómo fue tu experiencia?",
+        "message": "¿Qué tal fue el servicio con {{providerName}}? Tu opinión ayuda a otros.",
+        "messageDefault": "Tu servicio se completó. ¡Cuéntanos tu experiencia!"
       },
       "REVIEW_FLAGGED": {
         "title": "Reseña reportada",
@@ -692,7 +706,12 @@
     "closeNotification": "Cerrar notificación",
     "mobileMenu": "Menú principal móvil",
     "searchIn": "Buscar en {{category}}",
-    "searchServices": "Buscar servicios"
+    "searchServices": "Buscar servicios",
+    "changePhoto": "Cambiar foto",
+    "uploadingPhoto": "Subiendo foto...",
+    "photoUpdated": "Foto de perfil actualizada",
+    "photoUploadError": "Error al subir la foto",
+    "clickToChangePhoto": "Clic para cambiar foto de perfil"
   },
   "home": {
     "nav": {
@@ -1168,6 +1187,12 @@
       "acceptError": "Error al aceptar la propuesta",
       "acceptedSuccess": "¡Propuesta aceptada! Tu contrato ha sido confirmado",
       "alreadyProcessed": "Esta propuesta ya fue procesada",
+      "processedStatus": {
+        "accepted": "Propuesta aceptada ✅",
+        "rejected": "Propuesta rechazada",
+        "expired": "Propuesta expirada",
+        "cancelled": "Propuesta cancelada"
+      },
       "chatModal": {
         "acceptProposal": "Aceptar propuesta",
         "tip": "Negocia detalles antes de aceptar",
@@ -1591,7 +1616,8 @@
         "inProgress": "En progreso",
         "completed": "Completado",
         "cancelled": "Cancelado",
-        "serviceCompleted": "Servicio contratado"
+        "serviceCompleted": "Servicio contratado",
+        "serviceFinished": "Servicio completado"
       },
       "filters": {
         "status": "Estado",
@@ -1599,7 +1625,7 @@
         "from": "Desde",
         "to": "Hasta",
         "search": "Buscar",
-        "searchPlaceholder": "Buscar por título, cliente o proveedor...",
+        "searchPlaceholder": "Buscar por título, cliente o profesional...",
         "clear": "Limpiar filtros"
       },
       "loading": "Cargando contratos...",
@@ -1626,14 +1652,14 @@
         "rangeHint": "El monto final se define al completar el servicio"
       },
       "participants": {
-        "provider": "Proveedor",
+        "provider": "Profesional",
         "client": "Cliente"
       },
       "review": {
         "serviceReview": "Reseña del servicio",
         "inModeration": "En moderación",
         "moderationNote": "Esta reseña está siendo revisada por nuestro equipo",
-        "providerResponse": "Respuesta del proveedor",
+        "providerResponse": "Respuesta del profesional",
         "edited": "editada",
         "noClientReview": "El cliente aún no ha dejado una reseña",
         "willAppearHere": "Cuando deje una reseña aparecerá aquí",
@@ -1687,6 +1713,7 @@
         "statusUpdated": "Estado actualizado",
         "serviceConfirmed": "Servicio confirmado"
       },
+      "invoiceNotReady": "La factura aún no está disponible para este contrato",
       "errors": {
         "loadFailed": "No se pudieron cargar los contratos",
         "chatError": "Error al abrir el chat",
@@ -1696,7 +1723,7 @@
         "evidenceUploadFailed": "Error al subir resultados",
         "reviewFailed": "Error al enviar reseña",
         "clientReviewFailed": "Error al enviar calificación del cliente",
-        "roleRequired": "Debes iniciar sesión como cliente o proveedor",
+        "roleRequired": "Debes iniciar sesión como cliente o profesional",
         "updateFailed": "No se pudo actualizar",
         "updateStatusError": "Error al actualizar estado",
         "confirmFailed": "No se pudo confirmar",
@@ -1827,7 +1854,7 @@
   },
   "ui": {
     "reviewForm": {
-      "defaultProvider": "el proveedor",
+      "defaultProvider": "el profesional",
       "title": "Comparte tu experiencia",
       "subtitle": "Cuéntanos cómo fue tu experiencia con {{provider}}",
       "howWasExperience": "¿Cómo fue tu experiencia?",
@@ -2955,8 +2982,8 @@
         "problemsHint": "¿Qué necesitas para tu proyecto?",
         "description": "Descripción",
         "descriptionHint": "Describe qué servicio necesitas",
-        "media": "Visualización",
-        "photosVideos": "Visualización",
+        "media": "Detalles",
+        "photosVideos": "Detalles",
         "mediaHint": "Agrega fotos o videos del trabajo",
         "location": "Ubicación",
         "locationHint": "¿Dónde se realizará el servicio?",
@@ -2985,6 +3012,8 @@
       "optional": "opcional",
       "clickOrDragImages": "Haz clic o arrastra imágenes aquí",
       "clickOrDragVideos": "Haz clic o arrastra videos aquí",
+      "showPhotosOfProblem": "Muestra fotos del problema",
+      "showVideoOfProblem": "Muestra video corto del problema",
       "photoAlt": "Foto {{number}}",
       "uploading": "Subiendo...",
       "maxSize": "máx {{size}}",
@@ -2994,6 +3023,7 @@
       "canEditAddress": "Puedes editar la dirección si es necesario",
       "stepOptional": "Este paso es opcional. Puedes continuar sin completarlo.",
       "skip": "Omitir",
+      "skipHint": "No es obligatorio, puedes saltar este paso",
       "add": "Agregar",
       "locationOptionalTitle": "Este servicio puede ser remoto",
       "locationOptionalDesc": "La ubicación es opcional. Puedes omitir este paso o agregarlo después.",

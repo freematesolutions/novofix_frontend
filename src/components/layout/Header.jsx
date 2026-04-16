@@ -7,7 +7,8 @@ import Button from '@/components/ui/Button.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import SearchBar from '@/components/ui/SearchBar.jsx';
 import api from '@/state/apiClient.js';
-// import { useTranslation } from 'react-i18next';
+import imageCompression from 'browser-image-compression';
+import { HiCamera } from 'react-icons/hi';
 
 // Componente para items de notificación en el dropdown con soporte para expandir mensajes largos
 // import { useTranslation } from 'react-i18next';
@@ -153,7 +154,7 @@ function NotificationDropdownItem({ notification: n, index, onMarkRead, onNaviga
 }
 function Header() {
   const { t, i18n } = useTranslation();
-  const { user, role, roles, viewRole, isAuthenticated, changeViewRole, startRoleSwitch, clearViewRoleLock, logout, pendingVerification } = useAuth();
+  const { user, role, roles, viewRole, isAuthenticated, changeViewRole, startRoleSwitch, clearViewRoleLock, logout, pendingVerification, setAuthState } = useAuth();
   const navigate = useNavigate();
 
   // Move all hooks to the top, before any return
@@ -205,6 +206,85 @@ function Header() {
     onSearch: null,
     onBack: null
   });
+
+  // Estado para actualización de avatar desde el header
+  const [uploadingHeaderAvatar, setUploadingHeaderAvatar] = useState(false);
+  const [headerAvatarProgress, setHeaderAvatarProgress] = useState(0);
+  const headerAvatarInputRef = useRef(null);
+
+  // Función para manejar cambio de avatar desde el header
+  const handleHeaderAvatarChange = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Limpiar el input para permitir re-seleccionar el mismo archivo
+    e.target.value = '';
+
+    if (!file.type.startsWith('image/')) {
+      toast.error(t('account.profile.onlyImagesAllowed'));
+      return;
+    }
+
+    setUploadingHeaderAvatar(true);
+    setHeaderAvatarProgress(5);
+
+    try {
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 800,
+        useWebWorker: true,
+        fileType: file.type,
+        onProgress: (p) => setHeaderAvatarProgress(5 + Math.floor(p * 0.25))
+      };
+      const compressedFile = await imageCompression(file, options);
+      setHeaderAvatarProgress(30);
+
+      const fd = new FormData();
+      fd.append('avatar', compressedFile, file.name);
+      const { data } = await api.post('/uploads/avatar', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000,
+        onUploadProgress: (ev) => {
+          const pct = Math.round((ev.loaded * 100) / ev.total);
+          setHeaderAvatarProgress(30 + Math.floor(pct * 0.6));
+        }
+      });
+
+      setHeaderAvatarProgress(95);
+      const avatarUrl = data?.data?.avatar?.url;
+      const cloudinaryId = data?.data?.avatar?.cloudinaryId;
+
+      if (avatarUrl) {
+        await api.put('/auth/profile', {
+          profile: {
+            firstName: user?.profile?.firstName || '',
+            lastName: user?.profile?.lastName || '',
+            phone: user?.profile?.phone || '',
+            avatar: avatarUrl,
+            avatarCloudinaryId: cloudinaryId
+          }
+        });
+        // Refrescar datos del usuario en el contexto global
+        try {
+          const { data: meData } = await api.get('/auth/me');
+          if (meData?.success && meData?.data?.user && setAuthState) {
+            setAuthState(meData.data.user);
+          }
+        } catch { /* ignore */ }
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+          window.dispatchEvent(new Event('auth:refresh'));
+        }
+        toast.success(t('header.photoUpdated'));
+        setHeaderAvatarProgress(100);
+        setTimeout(() => setHeaderAvatarProgress(0), 1000);
+      }
+    } catch (err) {
+      console.error('Header avatar upload error:', err);
+      toast.error(err?.response?.data?.message || t('header.photoUploadError'));
+      setHeaderAvatarProgress(0);
+    } finally {
+      setUploadingHeaderAvatar(false);
+    }
+  }, [user, toast, t, setAuthState]);
 
   // Estado para animación de placeholder del SearchBar
   const [searchNeedsAnimation, setSearchNeedsAnimation] = useState(false);
@@ -1242,6 +1322,7 @@ function Header() {
           type: payload?.type,
           title: payload?.title || 'Notificación',
           message: payload?.message,
+          data: payload?.data || {},
           createdAt: payload?.timestamp || new Date().toISOString(),
           read: false
         };
@@ -1928,6 +2009,15 @@ function Header() {
                 
 
                 <div className="relative min-w-0 shrink">
+                {/* Input oculto para cambio de avatar desde el header */}
+                <input
+                  ref={headerAvatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleHeaderAvatarChange}
+                  disabled={uploadingHeaderAvatar}
+                />
                 <button
                   type="button"
                   onClick={()=>setAccountOpen((v)=>!v)}
@@ -1936,15 +2026,40 @@ function Header() {
                   aria-expanded={accountOpen}
                   aria-label={t('header.accountMenu', { name: firstName || email || 'Account' })}
                 >
-                  {/* Avatar o iniciales con ring mejorado */}
-                  <div className={`relative w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-offset-1 transition-all duration-300 group-hover:ring-offset-2 ${viewRole === 'provider' ? 'ring-brand-400 bg-linear-to-br from-brand-100 to-brand-50' : viewRole === 'client' ? 'ring-brand-400 bg-linear-to-br from-brand-100 to-brand-50' : viewRole === 'admin' ? 'ring-dark-400 bg-linear-to-br from-dark-100 to-dark-50' : 'ring-gray-300 bg-linear-to-br from-gray-100 to-gray-50'}`}>
-                    {user?.profile?.avatar ? (
-                      <img src={user.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  {/* Avatar o iniciales con overlay de cámara al hover */}
+                  <div
+                    className={`relative w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-offset-1 transition-all duration-300 group-hover:ring-offset-2 cursor-pointer ${viewRole === 'provider' ? 'ring-brand-400 bg-linear-to-br from-brand-100 to-brand-50' : viewRole === 'client' ? 'ring-brand-400 bg-linear-to-br from-brand-100 to-brand-50' : viewRole === 'admin' ? 'ring-dark-400 bg-linear-to-br from-dark-100 to-dark-50' : 'ring-gray-300 bg-linear-to-br from-gray-100 to-gray-50'}`}
+                    onClick={(e) => { e.stopPropagation(); headerAvatarInputRef.current?.click(); }}
+                    title={t('header.clickToChangePhoto')}
+                    role="button"
+                    tabIndex={-1}
+                    aria-label={t('header.clickToChangePhoto')}
+                  >
+                    {uploadingHeaderAvatar ? (
+                      <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
+                        <svg className="w-4 h-4 text-white animate-spin" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        {headerAvatarProgress > 0 && headerAvatarProgress < 100 && (
+                          <span className="text-[8px] text-white font-bold mt-0.5">{headerAvatarProgress}%</span>
+                        )}
+                      </div>
                     ) : (
-                      <span className={`text-sm font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-brand-700' : viewRole === 'admin' ? 'text-dark-700' : 'text-gray-600'}`}>{initials}</span>
+                      <>
+                        {user?.profile?.avatar ? (
+                          <img src={user.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className={`text-sm font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-brand-700' : viewRole === 'admin' ? 'text-dark-700' : 'text-gray-600'}`}>{initials}</span>
+                        )}
+                        {/* Camera overlay on hover */}
+                        <div className="absolute inset-0 bg-black/0 hover:bg-black/50 flex items-center justify-center transition-all duration-200 opacity-0 hover:opacity-100 rounded-xl">
+                          <HiCamera className="w-4 h-4 text-white" />
+                        </div>
+                        {/* Online indicator */}
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full ring-2 ring-white"></div>
+                      </>
                     )}
-                    {/* Online indicator */}
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full ring-2 ring-white"></div>
                   </div>
                   {/* Nombre completo truncado en pantallas grandes */}
                   <div className="hidden lg:flex flex-col items-start min-w-0 overflow-hidden">
@@ -1972,11 +2087,36 @@ function Header() {
                     {/* Header del menú con info del usuario mejorado */}
                     <div className={`px-4 py-4 bg-linear-to-br ${viewRole === 'provider' ? 'from-brand-50 to-brand-100/50' : viewRole === 'client' ? 'from-brand-50 to-brand-100/50' : viewRole === 'admin' ? 'from-dark-50 to-dark-100/50' : 'from-gray-50 to-gray-100/50'}`}>
                       <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-white shadow-lg ${viewRole === 'provider' ? 'bg-brand-100' : viewRole === 'client' ? 'bg-brand-100' : viewRole === 'admin' ? 'bg-dark-100' : 'bg-gray-100'}`}>
-                          {user?.profile?.avatar ? (
-                            <img src={user.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                        {/* Avatar con overlay de cámara clickeable */}
+                        <div
+                          className={`relative w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-white shadow-lg cursor-pointer group/avatar ${viewRole === 'provider' ? 'bg-brand-100' : viewRole === 'client' ? 'bg-brand-100' : viewRole === 'admin' ? 'bg-dark-100' : 'bg-gray-100'}`}
+                          onClick={() => headerAvatarInputRef.current?.click()}
+                          title={t('header.clickToChangePhoto')}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); headerAvatarInputRef.current?.click(); } }}
+                          aria-label={t('header.clickToChangePhoto')}
+                        >
+                          {uploadingHeaderAvatar ? (
+                            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
+                              <svg className="w-5 h-5 text-white animate-spin" viewBox="0 0 24 24" fill="none">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                              </svg>
+                              {headerAvatarProgress > 0 && <span className="text-[9px] text-white font-bold mt-0.5">{headerAvatarProgress}%</span>}
+                            </div>
                           ) : (
-                            <span className={`text-lg font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-brand-700' : viewRole === 'admin' ? 'text-dark-700' : 'text-gray-600'}`}>{initials}</span>
+                            <>
+                              {user?.profile?.avatar ? (
+                                <img src={user.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className={`text-lg font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-brand-700' : viewRole === 'admin' ? 'text-dark-700' : 'text-gray-600'}`}>{initials}</span>
+                              )}
+                              {/* Camera overlay */}
+                              <div className="absolute inset-0 bg-black/0 group-hover/avatar:bg-black/50 flex items-center justify-center transition-all duration-200 opacity-0 group-hover/avatar:opacity-100">
+                                <HiCamera className="w-5 h-5 text-white" />
+                              </div>
+                            </>
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -2103,15 +2243,39 @@ function Header() {
           {isAuthenticated && role !== 'guest' && (
             <div className={`pb-4 mb-3 border-b border-gray-200 -mx-4 px-4 overflow-hidden bg-linear-to-br ${viewRole === 'provider' ? 'from-brand-50/50 to-transparent' : viewRole === 'client' ? 'from-brand-50/50 to-transparent' : viewRole === 'admin' ? 'from-gray-100/50 to-transparent' : 'from-gray-50 to-transparent'}`}>
               <div className="flex items-center gap-3 min-w-0">
-                {/* Avatar mejorado */}
-                <div className={`relative w-14 h-14 rounded-2xl bg-gray-200 overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-offset-2 shadow-lg ${viewRole === 'provider' ? 'ring-brand-400' : viewRole === 'client' ? 'ring-brand-400' : viewRole === 'admin' ? 'ring-dark-400' : 'ring-gray-300'}`}>
-                  {user?.profile?.avatar ? (
-                    <img src={user.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                {/* Avatar mejorado con overlay de cámara */}
+                <div
+                  className={`relative w-14 h-14 rounded-2xl bg-gray-200 overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-offset-2 shadow-lg cursor-pointer group/mavatar ${viewRole === 'provider' ? 'ring-brand-400' : viewRole === 'client' ? 'ring-brand-400' : viewRole === 'admin' ? 'ring-dark-400' : 'ring-gray-300'}`}
+                  onClick={() => headerAvatarInputRef.current?.click()}
+                  title={t('header.clickToChangePhoto')}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); headerAvatarInputRef.current?.click(); } }}
+                  aria-label={t('header.clickToChangePhoto')}
+                >
+                  {uploadingHeaderAvatar ? (
+                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
+                      <svg className="w-6 h-6 text-white animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      {headerAvatarProgress > 0 && <span className="text-[10px] text-white font-bold mt-0.5">{headerAvatarProgress}%</span>}
+                    </div>
                   ) : (
-                    <span className={`text-lg font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-brand-700' : viewRole === 'admin' ? 'text-dark-700' : 'text-gray-600'}`}>{initials}</span>
+                    <>
+                      {user?.profile?.avatar ? (
+                        <img src={user.profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className={`text-lg font-bold ${viewRole === 'provider' ? 'text-brand-700' : viewRole === 'client' ? 'text-brand-700' : viewRole === 'admin' ? 'text-dark-700' : 'text-gray-600'}`}>{initials}</span>
+                      )}
+                      {/* Camera overlay */}
+                      <div className="absolute inset-0 bg-black/0 group-hover/mavatar:bg-black/50 flex items-center justify-center transition-all duration-200 opacity-0 group-hover/mavatar:opacity-100 rounded-2xl">
+                        <HiCamera className="w-6 h-6 text-white" />
+                      </div>
+                      {/* Online indicator */}
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full ring-2 ring-white"></div>
+                    </>
                   )}
-                  {/* Online indicator */}
-                  <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full ring-2 ring-white"></div>
                 </div>
                 
                 {/* User info */}
@@ -2120,8 +2284,15 @@ function Header() {
                     {firstName && lastName ? `${firstName} ${lastName}` : firstName || email || 'Usuario'}
                   </div>
                   <div className="text-xs text-gray-500 truncate">{email}</div>
-                  
-                  {/* Role badge mejorado */}
+                  {/* Hint to change photo */}
+                  <button
+                    type="button"
+                    onClick={() => headerAvatarInputRef.current?.click()}
+                    className="flex items-center gap-1 mt-1 text-[11px] text-brand-600 hover:text-brand-700 font-medium transition-colors"
+                  >
+                    <HiCamera className="w-3 h-3" />
+                    {uploadingHeaderAvatar ? t('header.uploadingPhoto') : t('header.changePhoto')}
+                  </button>
                   <div className="flex items-center gap-2 mt-2">
                     {(() => {
                       let lockedRole = '';
