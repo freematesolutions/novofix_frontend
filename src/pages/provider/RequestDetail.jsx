@@ -159,7 +159,6 @@ export default function RequestDetail() {
     } else {
       if (!form.amount || Number(form.amount) <= 0) errs.amount = t('provider.requestDetail.amountRequired');
     }
-    if (!form.message || form.message.trim().length < 10) errs.message = t('provider.requestDetail.messageRequired');
     // estimatedHours opcional pero si se provee debe ser > 0
     if (form.estimatedHours && Number(form.estimatedHours) <= 0) errs.estimatedHours = t('provider.requestDetail.hoursError');
     setFormErrors(errs);
@@ -1050,6 +1049,7 @@ export default function RequestDetail() {
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                       <HiBadgeCheck className="w-4 h-4 text-gray-400" />
                       {t('provider.requestDetail.messageLabel')}
+                      <span className="text-xs font-normal text-gray-400 ml-1">({t('provider.requestDetail.messageOptional')})</span>
                     </label>
                     <textarea 
                       rows={5} 
@@ -1058,14 +1058,8 @@ export default function RequestDetail() {
                       value={form.message} 
                       onChange={(e) => setForm(f => ({ ...f, message: e.target.value }))}
                     ></textarea>
-                    {formErrors.message && (
-                      <p className="flex items-center gap-1.5 text-sm text-red-600">
-                        <HiExclamation className="w-4 h-4" />
-                        {formErrors.message}
-                      </p>
-                    )}
-                    <p className="text-xs text-gray-500">
-                      {form.message.length}/10 {t('provider.requestDetail.minChars')}
+                    <p className="text-xs text-gray-400">
+                      {t('provider.requestDetail.messageOptionalHint')}
                     </p>
                   </div>
 

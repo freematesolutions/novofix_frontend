@@ -2082,7 +2082,7 @@ function Header() {
                   <div
                     ref={accountMenuRef}
                     role="menu"
-                    className={`absolute right-0 mt-3 w-72 rounded-2xl border bg-white/95 backdrop-blur-xl shadow-2xl py-0 z-50 ${accent.border200} ring-1 ring-black/5 overflow-hidden animate-slide-down`}
+                    className={`absolute right-0 mt-3 w-72 rounded-2xl border bg-white/95 backdrop-blur-xl shadow-2xl py-0 z-50 ${accent.border200} ring-1 ring-black/5 overflow-hidden animate-slide-down max-h-[calc(100vh-5rem)] overflow-y-auto`}
                   >
                     {/* Header del menú con info del usuario mejorado */}
                     <div className={`px-4 py-4 bg-linear-to-br ${viewRole === 'provider' ? 'from-brand-50 to-brand-100/50' : viewRole === 'client' ? 'from-brand-50 to-brand-100/50' : viewRole === 'admin' ? 'from-dark-50 to-dark-100/50' : 'from-gray-50 to-gray-100/50'}`}>
@@ -2233,7 +2233,7 @@ function Header() {
         inert={!open}
         className={
           `md:hidden border-t bg-white/98 backdrop-blur-xl overflow-y-auto overflow-x-hidden transition-all duration-300 ease-out border-gray-200 ` +
-          (open ? 'max-h-[calc(100vh-4rem)] opacity-100 translate-y-0 shadow-xl' : 'max-h-0 opacity-0 -translate-y-4 pointer-events-none')
+          (open ? 'max-h-[calc(100vh-4rem)] opacity-100 translate-y-0 shadow-xl pb-20' : 'max-h-0 opacity-0 -translate-y-4 pointer-events-none')
         }
       >
   <div className="w-full px-4 py-4 flex flex-col gap-3 text-sm min-w-0">
@@ -2284,15 +2284,6 @@ function Header() {
                     {firstName && lastName ? `${firstName} ${lastName}` : firstName || email || 'Usuario'}
                   </div>
                   <div className="text-xs text-gray-500 truncate">{email}</div>
-                  {/* Hint to change photo */}
-                  <button
-                    type="button"
-                    onClick={() => headerAvatarInputRef.current?.click()}
-                    className="flex items-center gap-1 mt-1 text-[11px] text-brand-600 hover:text-brand-700 font-medium transition-colors"
-                  >
-                    <HiCamera className="w-3 h-3" />
-                    {uploadingHeaderAvatar ? t('header.uploadingPhoto') : t('header.changePhoto')}
-                  </button>
                   <div className="flex items-center gap-2 mt-2">
                     {(() => {
                       let lockedRole = '';
