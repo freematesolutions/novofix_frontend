@@ -355,7 +355,7 @@ export default function Profile() {
       <div className="max-w-4xl mx-auto px-2 sm:px-6 lg:px-8 -mt-10 relative z-10 pb-8">
         {/* Tabs con diseño premium */}
         <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 mb-6">
-          <div className="flex flex-wrap items-center border-b border-gray-100 p-1.5 gap-1 bg-gray-50/50">
+          <div className="flex flex-nowrap items-center border-b border-gray-100 p-1.5 gap-1 bg-gray-50/50 overflow-x-auto">
             <button
               type="button"
               className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 text-sm font-semibold rounded-xl transition-all duration-300 ${

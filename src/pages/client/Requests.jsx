@@ -434,7 +434,7 @@ export default function ClientRequests() {
                       {/* Información principal */}
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900 truncate">
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 line-clamp-2">
                             {(() => {
                               const cat = r.basicInfo?.category;
                               const catLabel = cat ? t(`home.categories.${cat}`, cat) : '';
@@ -494,7 +494,7 @@ export default function ClientRequests() {
                       </div>
 
                       {/* Acciones — Layout: fila primaria + menú overflow */}
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0 w-full lg:w-auto">
                         {/* Botón Ver propuestas - CTA primario */}
                         {(r.metadata?.proposalCount > 0 || (Array.isArray(r.proposals) && r.proposals.length > 0)) && (
                           <button

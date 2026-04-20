@@ -3267,7 +3267,7 @@
         "portfolio": "Portafolio"
       },
       "providerConfig": {
-        "title": "Configuración del proveedor",
+        "title": "Configuración del profesional",
         "description": "Configura tu perfil profesional para atraer más clientes"
       },
       "portfolioSection": {
@@ -3329,7 +3329,19 @@
       "uploadBtn": "Subir {{count}} archivo(s)",
       "currentPortfolio": "Portfolio actual ({{count}} elementos)",
       "emptyPortfolio": "Aún no has agregado elementos a tu portfolio",
-      "delete": "Eliminar"
+      "delete": "Eliminar",
+      "reelSelectionTitle": "¿Mostrar en Reels?",
+      "reelSelectionSubtitle": "Toca el botón de cada video para decidir si aparecerá en la sección Reels de inicio",
+      "markAsReel": "Marcar como Reel",
+      "reelActive": "✓ Es un Reel",
+      "uploadVideos": "Subir {{count}} video(s)",
+      "cancelUpload": "Cancelar",
+      "markedAsReel": "Video marcado como Reel",
+      "unmarkedAsReel": "Video desmarcado como Reel",
+      "reelToggleError": "Error al cambiar estado de Reel",
+      "clickToMarkReel": "Clic para marcar como Reel",
+      "clickToUnmarkReel": "Clic para desmarcar como Reel",
+      "reelHint": "Al subir videos podrás elegir cuáles mostrar como Reels en la página de inicio"
     }
   },
   "admin": {
@@ -3734,8 +3746,8 @@
   },
   "provider": {
     "jobs": {
-      "title": "Trabajos disponibles",
-      "subtitle": "Encuentra trabajos que coincidan con tus servicios",
+      "title": "Proyectos disponibles",
+      "subtitle": "Encuentra proyectos que coincidan con tus servicios",
       "noRequests": "No hay solicitudes disponibles",
       "noRequestsDescription": "Cuando haya solicitudes que coincidan con tus servicios, aparecerán aquí",
       "requestsService": "solicita un servicio",
@@ -3751,7 +3763,7 @@
       "loading": "Cargando trabajos...",
       "chatOpenError": "Error al abrir el chat",
       "proposalNotFound": "Propuesta no encontrada",
-      "noJobs": "No hay trabajos disponibles",
+      "noJobs": "No hay proyectos disponibles",
       "noJobsDescription": "Cuando haya solicitudes en tu zona, aparecerán aquí",
       "sendProposal": "Enviar estimado",
       "viewDetails": "Ver detalles"

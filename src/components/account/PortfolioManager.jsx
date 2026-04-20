@@ -15,6 +15,8 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
   const [error, setError] = useState('');
   const [dragOverImages, setDragOverImages] = useState(false);
   const [dragOverVideos, setDragOverVideos] = useState(false);
+  // Pending videos awaiting reel selection before upload
+  const [pendingVideos, setPendingVideos] = useState([]); // [{ file, isReel, previewUrl }]
   const [uploadProgress, setUploadProgress] = useState({
     show: false,
     progress: 0,
@@ -60,8 +62,39 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
       return;
     }
 
-    // Subir directamente sin paso de preview
-    await uploadFiles(validation.validFiles);
+    // If videos are selected, show preview step for reel selection
+    const videoFiles = validation.validFiles.filter(f => f.type.startsWith('video/'));
+    const imageFiles = validation.validFiles.filter(f => f.type.startsWith('image/'));
+
+    // Upload images immediately
+    if (imageFiles.length > 0) {
+      await uploadFiles(imageFiles);
+    }
+
+    // Videos go to pending state for reel selection
+    if (videoFiles.length > 0) {
+      const pending = videoFiles.map(file => ({
+        file,
+        isReel: false,
+        previewUrl: URL.createObjectURL(file)
+      }));
+      setPendingVideos(prev => [...prev, ...pending]);
+    }
+  };
+
+  const confirmPendingVideos = async () => {
+    if (pendingVideos.length === 0) return;
+    const files = pendingVideos.map(v => v.file);
+    const reelFlags = pendingVideos.map(v => v.isReel);
+    // Clean up object URLs
+    pendingVideos.forEach(v => URL.revokeObjectURL(v.previewUrl));
+    setPendingVideos([]);
+    await uploadFiles(files, reelFlags);
+  };
+
+  const cancelPendingVideos = () => {
+    pendingVideos.forEach(v => URL.revokeObjectURL(v.previewUrl));
+    setPendingVideos([]);
   };
 
   const handleDrop = (e, type) => {
@@ -85,7 +118,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
     else setDragOverVideos(false);
   };
 
-  const uploadFiles = async (filesToUpload) => {
+  const uploadFiles = async (filesToUpload, reelFlags = null) => {
     if (filesToUpload.length === 0) return;
 
     setUploading(true);
@@ -209,6 +242,17 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
 
       const uploadedItems = uploadRes.data.data.portfolio;
 
+      // Apply reel flags if provided (for videos)
+      if (reelFlags && reelFlags.length > 0) {
+        let videoIdx = 0;
+        uploadedItems.forEach(item => {
+          if (item.type === 'video' && videoIdx < reelFlags.length) {
+            item.isReel = reelFlags[videoIdx];
+            videoIdx++;
+          }
+        });
+      }
+
       // 3. Guardar en el perfil del proveedor
       setUploadProgress(prev => ({
         ...prev,
@@ -266,6 +310,20 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
     }
   };
 
+  const handleToggleReel = async (itemId, currentIsReel) => {
+    try {
+      const res = await api.patch(`/auth/portfolio/${itemId}/reel`, { isReel: !currentIsReel });
+      if (res.data.success) {
+        toast.success(!currentIsReel 
+          ? t('account.portfolioManager.markedAsReel') 
+          : t('account.portfolioManager.unmarkedAsReel'));
+        if (onUpdate) onUpdate();
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || t('account.portfolioManager.reelToggleError'));
+    }
+  };
+
   const handleDelete = async (itemId) => {
     if (!confirm(t('account.portfolioManager.confirmDelete'))) return;
 
@@ -311,7 +369,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
 
           <div className="grid md:grid-cols-2 gap-4">
             {/* Photos drop zone */}
-            <div className="bg-gray-50 rounded-xl p-4">
+            <div className="bg-gray-50 rounded-xl p-4 flex flex-col">
               <div className="flex items-center gap-2 mb-3">
                 <svg className="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 <span className="text-sm font-semibold text-gray-700">{t('provider.portfolio.photos')}</span>
@@ -319,7 +377,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
               
               <label
                 className={`
-                  flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors
+                  flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors flex-1
                   ${uploading ? 'opacity-50 cursor-not-allowed' 
                     : dragOverImages ? 'border-brand-500 bg-brand-50' 
                     : 'border-gray-300 hover:border-brand-400 hover:bg-brand-50/50'}
@@ -348,7 +406,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
             </div>
 
             {/* Videos drop zone */}
-            <div className="bg-gray-50 rounded-xl p-4">
+            <div className="bg-gray-50 rounded-xl p-4 flex flex-col">
               <div className="flex items-center gap-2 mb-3">
                 <svg className="w-5 h-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                 <span className="text-sm font-semibold text-gray-700">{t('provider.portfolio.videos')}</span>
@@ -357,7 +415,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
               
               <label
                 className={`
-                  flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors
+                  flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors flex-1
                   ${uploading ? 'opacity-50 cursor-not-allowed' 
                     : dragOverVideos ? 'border-pink-500 bg-pink-50' 
                     : 'border-gray-300 hover:border-pink-400 hover:bg-pink-50/50'}
@@ -373,6 +431,10 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
                   {uploading ? t('account.portfolioManager.uploading') : t('ui.requestWizard.clickOrDragVideos')}
                 </span>
                 <span className="text-xs text-gray-400 mt-1">MP4, MOV, AVI, WebM</span>
+                {/* Reel hint inside drop zone */}
+                <span className="flex items-center gap-1.5 mt-2 text-[11px] text-pink-600 leading-snug">
+                  <span>🎬</span> {t('account.portfolioManager.reelHint')}
+                </span>
                 <input
                   type="file"
                   multiple
@@ -387,8 +449,8 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
           </div>
 
           {/* Categoría — siempre visible para asignar antes de subir */}
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            <label className="text-sm font-medium text-gray-600">
               {t('account.portfolioManager.categoryOptional')}
             </label>
             <select
@@ -405,6 +467,82 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
           </div>
         </div>
       </div>
+
+      {/* Pending videos - Reel selection preview */}
+      {pendingVideos.length > 0 && (
+        <div className="rounded-2xl border-2 border-pink-200 bg-linear-to-br from-pink-50 via-purple-50 to-indigo-50 p-4 sm:p-5 space-y-4 animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-gray-800">{t('account.portfolioManager.reelSelectionTitle')}</h4>
+              <p className="text-xs text-gray-500">{t('account.portfolioManager.reelSelectionSubtitle')}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {pendingVideos.map((item, idx) => (
+              <div key={idx} className="relative group rounded-xl overflow-hidden bg-black aspect-9/16 max-h-52">
+                <video src={item.previewUrl} className="w-full h-full object-cover" preload="metadata" muted />
+                {/* Reel toggle overlay */}
+                <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
+                <div className="absolute bottom-0 inset-x-0 p-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setPendingVideos(prev => prev.map((v, i) => i === idx ? { ...v, isReel: !v.isReel } : v))}
+                    className={`w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${
+                      item.isReel
+                        ? 'bg-linear-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/30 scale-[1.02]'
+                        : 'bg-white/20 backdrop-blur-sm text-white/90 hover:bg-white/30 border border-white/20'
+                    }`}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                    </svg>
+                    {item.isReel ? t('account.portfolioManager.reelActive') : t('account.portfolioManager.markAsReel')}
+                  </button>
+                </div>
+                {/* Reel indicator badge */}
+                {item.isReel && (
+                  <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-linear-to-r from-pink-500 to-purple-600 text-[10px] font-bold text-white shadow-lg">
+                    REEL
+                  </div>
+                )}
+                {/* Remove button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    URL.revokeObjectURL(item.previewUrl);
+                    setPendingVideos(prev => prev.filter((_, i) => i !== idx));
+                  }}
+                  className="absolute top-2 left-2 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={confirmPendingVideos}
+              disabled={uploading}
+              className="flex-1 sm:flex-none px-5 py-2.5 bg-linear-to-r from-pink-500 to-purple-600 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-pink-500/25 transition-all disabled:opacity-50"
+            >
+              {t('account.portfolioManager.uploadVideos', { count: pendingVideos.length })}
+            </button>
+            <button
+              type="button"
+              onClick={cancelPendingVideos}
+              className="px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              {t('account.portfolioManager.cancelUpload')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Portfolio actual */}
       <div>
@@ -441,6 +579,21 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
                         <svg className="w-3.5 h-3.5 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
                       </div>
                     </div>
+                  )}
+
+                  {/* Reel badge + toggle for videos */}
+                  {item.type === 'video' && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleToggleReel(item._id, item.isReel); }}
+                      className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
+                        item.isReel
+                          ? 'bg-linear-to-r from-pink-500 to-purple-600 text-white shadow-sm'
+                          : 'bg-black/50 text-white/70 hover:bg-black/70'
+                      }`}
+                      title={item.isReel ? t('account.portfolioManager.clickToUnmarkReel') : t('account.portfolioManager.clickToMarkReel')}
+                    >
+                      {item.isReel ? '🎬 REEL' : 'REEL?'}
+                    </button>
                   )}
                   
                   {/* Delete button overlay */}

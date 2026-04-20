@@ -850,9 +850,9 @@
   },
   "provider": {
     "jobs": {
-      "title": "Available jobs",
-      "subtitle": "Find jobs that match your services",
-      "noJobs": "No jobs available",
+      "title": "Available projects",
+      "subtitle": "Find projects that match your services",
+      "noJobs": "No projects available",
       "noJobsDescription": "When there are requests in your area, they will appear here",
       "noRequests": "No requests available",
       "noRequestsDescription": "When there are requests that match your services, they will appear here",
@@ -3152,7 +3152,7 @@
         "portfolio": "Portfolio"
       },
       "providerConfig": {
-        "title": "Provider settings",
+        "title": "Professional settings",
         "description": "Configure your professional profile to attract more clients"
       },
       "portfolioSection": {
@@ -3214,7 +3214,19 @@
       "uploadBtn": "Upload {{count}} file(s)",
       "currentPortfolio": "Current portfolio ({{count}} items)",
       "emptyPortfolio": "You haven't added any portfolio items yet",
-      "delete": "Delete"
+      "delete": "Delete",
+      "reelSelectionTitle": "Show in Reels?",
+      "reelSelectionSubtitle": "Tap the button on each video to decide if it will appear in the home Reels section",
+      "markAsReel": "Mark as Reel",
+      "reelActive": "✓ It's a Reel",
+      "uploadVideos": "Upload {{count}} video(s)",
+      "cancelUpload": "Cancel",
+      "markedAsReel": "Video marked as Reel",
+      "unmarkedAsReel": "Video unmarked as Reel",
+      "reelToggleError": "Failed to toggle Reel status",
+      "clickToMarkReel": "Click to mark as Reel",
+      "clickToUnmarkReel": "Click to unmark as Reel",
+      "reelHint": "When uploading videos you'll be able to choose which ones to feature as Reels on the home page"
     }
   },
   "admin": {

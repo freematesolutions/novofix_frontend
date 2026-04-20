@@ -372,11 +372,7 @@ export default function Plan() {
                   className={`relative bg-white rounded-2xl flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${
                     isActive
                       ? `ring-2 ${ring(p.name)} shadow-md`
-                      : isPopular
-                        ? 'ring-2 ring-brand-400/50 shadow-md'
-                        : isElite
-                          ? 'ring-1 ring-amber-300/40 shadow-sm'
-                          : 'ring-1 ring-gray-200 shadow-sm'
+                      : 'ring-1 ring-brand-300/50 shadow-sm'
                   }`}
                 >
                   {/* ── Top Badge ── */}
