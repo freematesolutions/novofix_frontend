@@ -128,7 +128,7 @@ function Login() {
       toast.success(t('toast.loginSuccess'));
       const r = String(result.user?.role || '').toLowerCase();
       if (r === 'admin') navigate('/admin');
-      else if (r === 'provider') navigate('/empleos');
+      else if (r === 'provider') navigate('/calendario');
       else navigate('/');
     } else {
       toast.error(t('toast.loginError'));

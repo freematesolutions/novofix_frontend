@@ -177,7 +177,8 @@ function MobileBottomNav() {
 
   if (viewRole === 'provider') {
     primaryItems = [
-      { to: '/empleos', icon: IconJobs, label: t('header.jobs'), end: true },
+      { to: '/calendario', icon: IconCalendar, label: t('header.calendar'), end: true },
+      { to: '/empleos', icon: IconJobs, label: t('header.jobs') },
       { to: '/mensajes', icon: IconMessages, label: t('header.messages') },
       { to: '/reservas', icon: IconContracts, label: t('header.bookings') },
       { to: '/perfil', icon: IconProfile, label: t('header.myProfile') },
@@ -186,7 +187,6 @@ function MobileBottomNav() {
       { to: '/portafolio', icon: IconPortfolio, label: t('header.portfolio') },
       { to: '/servicios', icon: IconServices, label: t('header.services') },
       { to: '/plan', icon: IconPlan, label: t('header.plan') },
-      { to: '/calendario', icon: IconCalendar, label: t('header.calendar') },
       { to: '/referidos', icon: IconReferrals, label: t('header.referrals') },
       { to: '/resenas', icon: IconReviews, label: t('header.myReviews') },
     ];

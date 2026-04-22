@@ -24,9 +24,9 @@ function RegisterProvider() {
   useEffect(() => {
     if (!isAuthenticated) return;
     
-    // Si ya es proveedor, redirigir a empleos
+    // Si ya es proveedor, redirigir al calendario
     if (roles?.includes('provider') || role === 'provider') {
-      navigate('/empleos', { replace: true });
+      navigate('/calendario', { replace: true });
       return;
     }
     

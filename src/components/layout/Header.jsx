@@ -791,7 +791,7 @@ function Header() {
                 })()}
               />
               <NavLinkWithTooltip
-                to="/empleos"
+                to="/calendario"
                 onClick={closeMenu}
                 icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -882,8 +882,15 @@ function Header() {
       {(isAuthenticated && viewRole === 'provider') && (
         <>
           <NavLinkWithTooltip
-            to="/empleos"
+            to="/calendario"
             end
+            onClick={closeMenu}
+            icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+            label={t('header.calendar')}
+            showLabel={isMobile}
+          />
+          <NavLinkWithTooltip
+            to="/empleos"
             onClick={closeMenu}
             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
             label={t('header.jobs')}
@@ -955,13 +962,6 @@ function Header() {
                 </span>
               );
             })()}
-          />
-          <NavLinkWithTooltip
-            to="/calendario"
-            onClick={closeMenu}
-            icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
-            label={t('header.calendar')}
-            showLabel={isMobile}
           />
           <NavLinkWithTooltip
             to="/referidos"
@@ -1079,7 +1079,7 @@ function Header() {
     // 2. Navegar a la nueva ruta
     if (target === 'provider') {
       if (pathRole === 'client' || pathRole === '' || pathRole === 'admin') {
-        navigate('/empleos', { replace: true });
+        navigate('/calendario', { replace: true });
       }
     } else if (target === 'client') {
       navigate('/mis-solicitudes', { replace: true });
@@ -1550,11 +1550,11 @@ function Header() {
       <div className="relative container mx-auto px-2 sm:px-4 lg:px-6 min-h-14 sm:min-h-16 py-2 flex items-center justify-between gap-2 sm:gap-4">
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <Link 
-            to={isAuthenticated && viewRole === 'admin' ? '/admin' : isAuthenticated && viewRole === 'provider' ? '/empleos' : '/'} 
+            to={isAuthenticated && viewRole === 'admin' ? '/admin' : isAuthenticated && viewRole === 'provider' ? '/calendario' : '/'} 
             state={isAuthenticated && (viewRole === 'provider' || viewRole === 'admin') ? undefined : { resetHome: true }}
             onClick={(e) => {
               // Determinar la ruta objetivo según el rol
-              const targetPath = isAuthenticated && viewRole === 'admin' ? '/admin' : isAuthenticated && viewRole === 'provider' ? '/empleos' : '/';
+              const targetPath = isAuthenticated && viewRole === 'admin' ? '/admin' : isAuthenticated && viewRole === 'provider' ? '/calendario' : '/';
               
               // Si estamos en la página de inicio SIN parámetros de búsqueda, solo hacer scroll al top
               // Si hay query params (como ?category=...), permitir la navegación completa para resetear

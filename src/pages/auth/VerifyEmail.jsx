@@ -118,7 +118,7 @@ const VerifyEmail = () => {
       if (userRoles.includes('admin')) {
         redirectPath = '/admin/users';
       } else if (userRoles.includes('provider')) {
-        redirectPath = '/empleos';
+        redirectPath = '/calendario';
       } else if (userRoles.includes('client')) {
         // Verificar si hay un proveedor pendiente de contactar (flujo guest → registro → verificación)
         // Leemos de localStorage porque el link de verificación puede abrirse en nueva pestaña

@@ -39,6 +39,8 @@ export function getNotificationActionUrl(n) {
       ].includes(type)
     ) {
       raw = '/reservas';
+    } else if (['NEW_BOOKING_SCHEDULED', 'BOOKING_REMINDER'].includes(type)) {
+      raw = '/calendario';
     } else if (['PAYMENT_REQUIRED', 'PAYMENT_RECEIVED'].includes(type)) {
       raw = '/pagos';
     } else if (type === 'NEW_PROPOSAL') {
