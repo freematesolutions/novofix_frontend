@@ -568,6 +568,6 @@ export default function Inbox() {
           </button>
         </div>
       </Modal>
-    </main>
+    </div>
   );
 }
