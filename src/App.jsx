@@ -68,7 +68,14 @@ function App() {
       <a href="#main-content" className="skip-link">{t('common.skipToContent')}</a>
       {!hideHeader && <Header />}
       <ErrorBoundary>
-      <main id="main-content" role="main" tabIndex="-1" className={`flex-1 container mx-auto px-4 py-6${showBottomNav ? ' pb-24 md:pb-6' : ''}`}>
+      {/*
+        Main wrapper: intentionally WITHOUT `container mx-auto px-4 py-6`.
+        Each page manages its own max-width and horizontal padding so that
+        mobile layouts aren't double-padded (outer 16px + inner 16px = 32px
+        of wasted horizontal space). Hero/gradient pages can now render
+        edge-to-edge on mobile for a more modern, premium feel.
+      */}
+      <main id="main-content" role="main" tabIndex="-1" className={`flex-1 w-full${showBottomNav ? ' pb-24 md:pb-0' : ''}`}>
         <Suspense fallback={<PageSkeleton />}>
         <Routes>
           <Route path="/" element={<Home />} />

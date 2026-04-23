@@ -317,7 +317,7 @@ export default function ClientRequests() {
         <div className="absolute top-1/2 -left-40 w-80 h-80 bg-brand-200/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="relative max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
         {/* Header Premium */}
         <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 p-6 sm:p-8 text-white relative">
           {/* Decoración del header */}

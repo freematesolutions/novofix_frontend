@@ -737,6 +737,28 @@ export default function Bookings() {
     }
   };
 
+  // Eliminar una evidencia individual (solo proveedor dueño)
+  const handleDeleteEvidence = async (bookingId, type, itemId) => {
+    if (!isProvider) return;
+    if (!itemId) return;
+    if (!confirm(t('shared.bookings.evidence.confirmDelete'))) return;
+    // Optimistic UI: quitar del estado antes de la respuesta
+    const prevSnapshot = bookings;
+    setBookings(prev => prev.map(b => {
+      if (String(b._id) !== String(bookingId)) return b;
+      const list = (b.serviceEvidence?.[type] || []).filter(it => String(it._id) !== String(itemId));
+      return { ...b, serviceEvidence: { ...b.serviceEvidence, [type]: list } };
+    }));
+    try {
+      await api.delete(`/bookings/${bookingId}/evidence/${type}/${itemId}`);
+      toast.success(t('shared.bookings.evidence.deleted'));
+    } catch (err) {
+      // Rollback si falla
+      setBookings(prevSnapshot);
+      toast.error(err?.response?.data?.message || t('shared.bookings.evidence.deleteFailed'));
+    }
+  };
+
   const handleOverallChange = (value) => {
     setReviewOverall(value);
     setReviewCats(buildCategoryMap(value));
@@ -996,7 +1018,7 @@ export default function Bookings() {
         <div className="absolute top-1/2 -left-40 w-80 h-80 bg-brand-200/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="relative max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
         {/* Encabezado Premium con esquinas redondeadas - diferenciado por rol */}
         <div
           className={`overflow-hidden rounded-2xl ${isProvider ? 'bg-linear-to-br from-dark-700 via-dark-800 to-dark-900' : isClient ? 'bg-linear-to-br from-dark-700 via-dark-800 to-dark-900' : 'bg-linear-to-br from-gray-600 via-gray-700 to-gray-800'} p-6 sm:p-8 text-white relative`}
@@ -1309,28 +1331,51 @@ export default function Bookings() {
                             <div className="flex flex-wrap gap-2">
                               {items.slice(0,6).map((ev, idx)=>{
                                 const url = ev.url;
+                                const itemId = ev._id;
+                                const deleteBtn = isProvider && itemId ? (
+                                  <button
+                                    type="button"
+                                    onClick={(e)=> { e.preventDefault(); e.stopPropagation(); handleDeleteEvidence(b._id, section, itemId); }}
+                                    title={t('shared.bookings.evidence.delete')}
+                                    aria-label={t('shared.bookings.evidence.delete')}
+                                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-md opacity-80 sm:opacity-0 group-hover/thumb:opacity-100 focus:opacity-100 transition-opacity z-10"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                ) : null;
                                 if (isMediaImage(url)) {
                                   const imageItems = items.filter(it=> isMediaImage(it.url)).map(it=> ({ url: it.url, kind: 'image' }));
                                   const imageIndex = imageItems.findIndex(it=> it.url === url);
                                   return (
-                                    <button type="button" key={idx} onClick={()=> openLightbox(imageItems, imageIndex)} className="group/thumb w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 bg-gray-50 transition-all hover:scale-105 hover:shadow-lg">
-                                      <img src={url} alt={ev.description || 'evidencia'} className="w-full h-full object-cover"/>
-                                    </button>
+                                    <div key={idx} className="relative group/thumb">
+                                      <button type="button" onClick={()=> openLightbox(imageItems, imageIndex)} className="w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 bg-gray-50 transition-all hover:scale-105 hover:shadow-lg block">
+                                        <img src={url} alt={ev.description || 'evidencia'} className="w-full h-full object-cover"/>
+                                      </button>
+                                      {deleteBtn}
+                                    </div>
                                   );
                                 }
                                 if (isMediaVideo(url)) {
                                   const videoItems = items.filter(it=> isMediaVideo(it.url)).map(it=> ({ url: it.url, kind: 'video' }));
                                   const videoIndex = videoItems.findIndex(it=> it.url === url);
                                   return (
-                                    <button type="button" key={idx} onClick={()=> openLightbox(videoItems, videoIndex)} className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-200 hover:border-brand-300 bg-linear-to-br from-gray-800 to-gray-900 text-white text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
-                                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                    </button>
+                                    <div key={idx} className="relative group/thumb">
+                                      <button type="button" onClick={()=> openLightbox(videoItems, videoIndex)} className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-200 hover:border-brand-300 bg-linear-to-br from-gray-800 to-gray-900 text-white text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                      </button>
+                                      {deleteBtn}
+                                    </div>
                                   );
                                 }
                                 return (
-                                  <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 bg-gray-50 text-gray-500 text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                  </a>
+                                  <div key={idx} className="relative group/thumb">
+                                    <a href={url} target="_blank" rel="noopener noreferrer" className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 bg-gray-50 text-gray-500 text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
+                                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    </a>
+                                    {deleteBtn}
+                                  </div>
                                 );
                               })}
                               {items.length > 6 && (
@@ -1747,24 +1792,44 @@ export default function Bookings() {
       )}
 
       {/* Modal evidencia - Versión mejorada con previews y progreso */}
-      <Modal open={evidenceOpen} onClose={()=> !evidenceLoading && setEvidenceOpen(false)} title={t('shared.bookings.modal.evidenceTitle')} size="lg">
-        <div className="space-y-5">
+      <Modal
+        open={evidenceOpen}
+        onClose={()=> !evidenceLoading && setEvidenceOpen(false)}
+        title={t('shared.bookings.modal.evidenceTitle')}
+        size="lg"
+        actions={(
+          <>
+            <button
+              onClick={()=> setEvidenceOpen(false)}
+              disabled={evidenceLoading}
+              className="w-full xs:w-auto px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all disabled:opacity-50"
+            >
+              {t('shared.bookings.modal.cancel')}
+            </button>
+            <button
+              onClick={handleUploadEvidence}
+              disabled={evidenceLoading || evidenceFiles.length === 0}
+              className="w-full xs:w-auto px-5 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-semibold shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+            >
+              {evidenceLoading ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                  {t('shared.bookings.modal.uploading')}
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                  {t('shared.bookings.modal.upload')}
+                </>
+              )}
+            </button>
+          </>
+        )}
+      >
+        <div className="space-y-4">
           {/* Indicador de progreso */}
           <UploadProgress {...evidenceProgress} />
-          
-          {/* Header decorativo */}
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-linear-to-r from-brand-50 via-brand-50 to-brand-50 border border-brand-100/50">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-linear-to-br from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/25">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900">{t('shared.bookings.modal.documentWork')}</h4>
-              <p className="text-sm text-gray-500">{t('shared.bookings.modal.evidenceSubtitle')}</p>
-            </div>
-          </div>
-          
+
           {/* Tipo de evidencia */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
@@ -1843,43 +1908,43 @@ export default function Bookings() {
             })()
           )}
           
-          {/* Zona de upload drag & drop */}
-          <div className="space-y-3">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              {t('shared.bookings.modal.filesLabel')}
-            </label>
-            
-            {/* Área de drop con estilo mejorado */}
-            <div className="relative">
-              <input 
-                id="evidence-file-input"
-                type="file" 
-                multiple 
-                accept="image/*,video/*" 
-                onChange={handleEvidenceFileSelect}
-                disabled={evidenceLoading}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
-              />
-              <div className={`flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed transition-all ${
-                evidencePreviews.length > 0 
-                  ? 'border-brand-300 bg-brand-50/30' 
-                  : 'border-gray-300 bg-gray-50 hover:border-brand-400 hover:bg-brand-50/30'
-              }`}>
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-brand-400 to-brand-500 text-white mb-4 shadow-lg shadow-brand-500/25">
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-gray-700 mb-1">
-                  {evidencePreviews.length > 0 
+          {/* Zona de upload drag & drop — compacta */}
+          <div className="relative">
+            <input
+              id="evidence-file-input"
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              onChange={handleEvidenceFileSelect}
+              disabled={evidenceLoading}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+            />
+            <div className={`flex items-center gap-3 p-3 sm:p-4 rounded-xl border-2 border-dashed transition-all ${
+              evidencePreviews.length > 0
+                ? 'border-brand-300 bg-brand-50/40'
+                : 'border-gray-300 bg-gray-50 hover:border-brand-400 hover:bg-brand-50/30'
+            }`}>
+              {/* Icono compacto */}
+              <div className="shrink-0 flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-linear-to-br from-brand-400 to-brand-500 text-white shadow-md shadow-brand-500/20">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+              {/* Texto principal + hint en una sola columna */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 leading-tight">
+                  {evidencePreviews.length > 0
                     ? t('shared.bookings.modal.filesSelected', { count: evidencePreviews.length })
                     : t('shared.bookings.modal.dragDropFiles')}
                 </p>
-                <p className="text-xs text-gray-500">{t('shared.bookings.modal.acceptedFormats')}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5 leading-snug line-clamp-1" title={t('shared.bookings.modal.dropzoneInfo')}>
+                  {t('shared.bookings.modal.dropzoneInfo')}
+                </p>
               </div>
+              {/* Badge de formatos */}
+              <span className="hidden sm:inline-flex shrink-0 text-[10px] font-medium text-brand-700 bg-brand-100/70 px-2 py-1 rounded-md">
+                JPG · PNG · MP4 · MOV
+              </span>
             </div>
           </div>
           
@@ -1967,34 +2032,6 @@ export default function Bookings() {
               </div>
             </div>
           )}
-          
-          {/* Acciones */}
-          <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-            <button 
-              onClick={()=> setEvidenceOpen(false)} 
-              disabled={evidenceLoading}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all disabled:opacity-50"
-            >
-              {t('shared.bookings.modal.cancel')}
-            </button>
-            <button 
-              onClick={handleUploadEvidence} 
-              disabled={evidenceLoading || evidenceFiles.length === 0}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-medium shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {evidenceLoading ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                  {t('shared.bookings.modal.uploading')}
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                  {evidenceFiles.length > 0 ? t('shared.bookings.modal.uploadFiles', { count: evidenceFiles.length }) : t('shared.bookings.modal.uploadEvidence')}
-                </>
-              )}
-            </button>
-          </div>
         </div>
       </Modal>
 

@@ -160,7 +160,7 @@ export default function EditRequest() {
 
   if (loadingRequest) {
     return (
-      <div className="max-w-2xl mx-auto py-8">
+      <div className="max-w-2xl mx-auto px-3 sm:px-6 py-8">
         <DetailSkeleton />
       </div>
     );
@@ -168,7 +168,7 @@ export default function EditRequest() {
 
   if (!request) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6 p-4">
+      <div className="max-w-2xl mx-auto space-y-6 p-3 sm:p-4">
         <Alert type="error">{error || t('client.editRequest.notFound', 'Solicitud no encontrada')}</Alert>
         <Button variant="secondary" onClick={() => navigate('/mis-solicitudes')}>
           {t('client.proposals.backToRequests', 'Volver a solicitudes')}
@@ -182,7 +182,7 @@ export default function EditRequest() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/30">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="max-w-2xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-6">
         {/* Indicador de progreso */}
         <UploadProgress {...uploadProgress} />
 

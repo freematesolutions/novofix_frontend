@@ -45,7 +45,7 @@ export default function AdminDashboard() {
   if (role !== 'admin') return <Alert type="warning">{t('admin.dashboard.adminOnly')}</Alert>;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8 px-3 sm:px-6 py-4 sm:py-6">
       {/* Header Section */}
       <div className="overflow-hidden bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 rounded-2xl p-8 text-white relative">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>

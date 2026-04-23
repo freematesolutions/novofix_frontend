@@ -231,7 +231,7 @@ export default function Plan() {
   useEffect(() => { if (!isAuthenticated) navigate('/', { replace: true }); }, [isAuthenticated, navigate]);
   if (!isAuthenticated || isRoleSwitching) return null;
   if (viewRole !== 'provider') {
-    return <div className="max-w-xl mx-auto"><Alert type="warning">{t('provider.plan.providerOnly')}</Alert></div>;
+    return <div className="max-w-xl mx-auto px-3 sm:px-6 py-4 sm:py-6"><Alert type="warning">{t('provider.plan.providerOnly')}</Alert></div>;
   }
 
   const currentPlanName = status?.plan?.name || status?.subscription?.plan || 'free';
@@ -247,7 +247,7 @@ export default function Plan() {
   /*  RENDER                                     */
   /* ════════════════════════════════════════════ */
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-10">
+    <div className="max-w-5xl mx-auto space-y-6 px-3 sm:px-6 pt-4 sm:pt-6 pb-10">
 
       {/* ─────────── HERO HEADER ─────────── */}
       <div className="relative overflow-hidden bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 rounded-2xl px-6 py-8 sm:px-8 sm:py-10 text-white">

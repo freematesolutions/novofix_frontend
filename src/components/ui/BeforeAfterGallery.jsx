@@ -19,6 +19,8 @@ function BeforeAfterGallery({ onViewProfile }) {
   const [sliderPositions, setSliderPositions] = useState({});
   // Active image index per card for multi-image navigation
   const [activeImageIndex, setActiveImageIndex] = useState({});
+  // Preload-in-flight flag per card to avoid duplicate clicks while the next pair loads
+  const [navLoadingPairs, setNavLoadingPairs] = useState({});
 
   useEffect(() => {
     const fetchPairs = async () => {
@@ -82,13 +84,44 @@ function BeforeAfterGallery({ onViewProfile }) {
   }, []);
 
   // Navigate between image pairs within a card (circular)
-  const navigatePairImage = useCallback((pairId, direction, totalSlides) => {
-    setActiveImageIndex(prev => {
-      const current = prev[pairId] || 0;
+  // Preloads BOTH the next before+after images in parallel and only commits
+  // the index change once both are decoded, guaranteeing a synchronized pair swap.
+  const navigatePairImage = useCallback((pairId, direction, totalSlides, beforeImages, afterImages) => {
+    if (totalSlides <= 1) return;
+    setNavLoadingPairs(prev => {
+      if (prev[pairId]) return prev; // already preloading, ignore
+      const current = activeImageIndex[pairId] || 0;
       const next = (current + direction + totalSlides) % totalSlides;
-      return { ...prev, [pairId]: next };
+      const nextBefore = beforeImages[next]?.url;
+      const nextAfter = afterImages[next]?.url;
+
+      const preload = (src) => new Promise((resolve) => {
+        if (!src) return resolve();
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+        img.src = src;
+        // Some browsers support decode() for deterministic readiness
+        if (typeof img.decode === 'function') {
+          img.decode().then(resolve).catch(() => resolve());
+        }
+      });
+
+      Promise.all([preload(nextBefore), preload(nextAfter)]).then(() => {
+        // Commit atomically once BOTH pair images are in cache
+        setActiveImageIndex(p => ({ ...p, [pairId]: next }));
+        // Reset slider to 50% so the transition feels clean
+        setSliderPositions(p => ({ ...p, [pairId]: 50 }));
+        setNavLoadingPairs(p => {
+          const n = { ...p };
+          delete n[pairId];
+          return n;
+        });
+      });
+
+      return { ...prev, [pairId]: true };
     });
-  }, []);
+  }, [activeImageIndex]);
 
   if (loading) {
     return (
@@ -245,8 +278,9 @@ function BeforeAfterGallery({ onViewProfile }) {
                         <button
                           onMouseDown={(e) => e.stopPropagation()}
                           onTouchStart={(e) => e.stopPropagation()}
-                          onClick={() => navigatePairImage(pair.id, -1, totalSlides)}
-                          className="absolute left-2 bottom-3 z-20 w-8 h-8 bg-black/50 hover:bg-black/70 active:bg-black/80 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"
+                          onClick={() => navigatePairImage(pair.id, -1, totalSlides, beforeImages, afterImages)}
+                          disabled={!!navLoadingPairs[pair.id]}
+                          className="absolute left-2 bottom-3 z-20 w-8 h-8 bg-black/50 hover:bg-black/70 active:bg-black/80 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-60 disabled:cursor-wait"
                           aria-label={t('common.previous')}
                         >
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -263,14 +297,25 @@ function BeforeAfterGallery({ onViewProfile }) {
                         <button
                           onMouseDown={(e) => e.stopPropagation()}
                           onTouchStart={(e) => e.stopPropagation()}
-                          onClick={() => navigatePairImage(pair.id, 1, totalSlides)}
-                          className="absolute right-2 bottom-3 z-20 w-8 h-8 bg-black/50 hover:bg-black/70 active:bg-black/80 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors"
+                          onClick={() => navigatePairImage(pair.id, 1, totalSlides, beforeImages, afterImages)}
+                          disabled={!!navLoadingPairs[pair.id]}
+                          className="absolute right-2 bottom-3 z-20 w-8 h-8 bg-black/50 hover:bg-black/70 active:bg-black/80 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-60 disabled:cursor-wait"
                           aria-label={t('common.next')}
                         >
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                           </svg>
                         </button>
+
+                        {/* Loading overlay while next pair is being preloaded */}
+                        {navLoadingPairs[pair.id] && (
+                          <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/20 backdrop-blur-[1px] pointer-events-none">
+                            <svg className="w-6 h-6 text-white animate-spin drop-shadow" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>

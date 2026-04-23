@@ -142,14 +142,14 @@ export default function Services() {
 
   if (viewRole !== 'provider') {
     return (
-      <div className="max-w-xl mx-auto">
+      <div className="max-w-xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
         <Alert type="warning">{t('provider.services.providerOnly')}</Alert>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 p-4 sm:p-6">
+    <div className="max-w-5xl mx-auto space-y-6 p-3 sm:p-6">
       {/* Premium Header */}
       <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 p-6 sm:p-8 text-white relative">
         {/* Decorative elements (non-interactive) */}

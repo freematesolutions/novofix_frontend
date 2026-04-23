@@ -7,7 +7,7 @@ import { SERVICE_CATEGORIES } from '@/utils/categories.js';
 import { compressImages, validateFiles } from '@/utils/fileCompression.js';
 import UploadProgress from '@/components/ui/UploadProgress.jsx';
 
-export default function PortfolioManager({ initialPortfolio = [], onUpdate, activeFilter = 'all' }) {
+export default function PortfolioManager({ initialPortfolio = [], onUpdate, onItemDeleted, activeFilter = 'all' }) {
   const { t } = useTranslation();
   const toast = useToast();
   const [uploading, setUploading] = useState(false);
@@ -331,8 +331,13 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
       const res = await api.delete(`/auth/portfolio/${itemId}`);
       if (res.data.success) {
         toast.success(t('account.portfolioManager.itemDeleted'));
-        
-        // Notificar al componente padre para refrescar datos
+
+        // Actualización optimista: quitar inmediatamente del estado del padre
+        if (onItemDeleted) {
+          onItemDeleted(itemId);
+        }
+
+        // Notificar al componente padre para refrescar datos en segundo plano
         if (onUpdate) {
           onUpdate();
         }
@@ -408,7 +413,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
             {/* Videos drop zone */}
             <div className="bg-gray-50 rounded-xl p-4 flex flex-col">
               <div className="flex items-center gap-2 mb-3">
-                <svg className="w-5 h-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                <svg className="w-5 h-5 text-brand-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                 <span className="text-sm font-semibold text-gray-700">{t('provider.portfolio.videos')}</span>
                 <span className="text-xs text-gray-400">({t('account.portfolioManager.maxVideoSize')})</span>
               </div>
@@ -417,8 +422,8 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
                 className={`
                   flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors flex-1
                   ${uploading ? 'opacity-50 cursor-not-allowed' 
-                    : dragOverVideos ? 'border-pink-500 bg-pink-50' 
-                    : 'border-gray-300 hover:border-pink-400 hover:bg-pink-50/50'}
+                    : dragOverVideos ? 'border-brand-500 bg-brand-50' 
+                    : 'border-gray-300 hover:border-brand-400 hover:bg-brand-50/50'}
                 `}
                 onDrop={(e) => handleDrop(e, 'videos')}
                 onDragOver={(e) => handleDragOver(e, 'videos')}
@@ -432,7 +437,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
                 </span>
                 <span className="text-xs text-gray-400 mt-1">MP4, MOV, AVI, WebM</span>
                 {/* Reel hint inside drop zone */}
-                <span className="flex items-center gap-1.5 mt-2 text-[11px] text-pink-600 leading-snug">
+                <span className="flex items-center gap-1.5 mt-2 text-[11px] text-brand-700 leading-snug">
                   <span>🎬</span> {t('account.portfolioManager.reelHint')}
                 </span>
                 <input
@@ -470,9 +475,9 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
 
       {/* Pending videos - Reel selection preview */}
       {pendingVideos.length > 0 && (
-        <div className="rounded-2xl border-2 border-pink-200 bg-linear-to-br from-pink-50 via-purple-50 to-indigo-50 p-4 sm:p-5 space-y-4 animate-in fade-in">
+        <div className="rounded-2xl border-2 border-brand-200 bg-linear-to-br from-brand-50 via-brand-100/60 to-accent-50 p-4 sm:p-5 space-y-4 animate-in fade-in">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-brand-500 to-brand-700 flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
             </div>
             <div>
@@ -493,7 +498,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
                     onClick={() => setPendingVideos(prev => prev.map((v, i) => i === idx ? { ...v, isReel: !v.isReel } : v))}
                     className={`w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${
                       item.isReel
-                        ? 'bg-linear-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/30 scale-[1.02]'
+                        ? 'bg-linear-to-r from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-500/30 scale-[1.02]'
                         : 'bg-white/20 backdrop-blur-sm text-white/90 hover:bg-white/30 border border-white/20'
                     }`}
                   >
@@ -505,7 +510,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
                 </div>
                 {/* Reel indicator badge */}
                 {item.isReel && (
-                  <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-linear-to-r from-pink-500 to-purple-600 text-[10px] font-bold text-white shadow-lg">
+                  <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-linear-to-r from-brand-500 to-brand-700 text-[10px] font-bold text-white shadow-lg">
                     REEL
                   </div>
                 )}
@@ -529,7 +534,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
               type="button"
               onClick={confirmPendingVideos}
               disabled={uploading}
-              className="flex-1 sm:flex-none px-5 py-2.5 bg-linear-to-r from-pink-500 to-purple-600 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-pink-500/25 transition-all disabled:opacity-50"
+              className="flex-1 sm:flex-none px-5 py-2.5 bg-linear-to-r from-brand-500 to-brand-700 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-brand-500/25 transition-all disabled:opacity-50"
             >
               {t('account.portfolioManager.uploadVideos', { count: pendingVideos.length })}
             </button>
@@ -587,7 +592,7 @@ export default function PortfolioManager({ initialPortfolio = [], onUpdate, acti
                       onClick={(e) => { e.stopPropagation(); handleToggleReel(item._id, item.isReel); }}
                       className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
                         item.isReel
-                          ? 'bg-linear-to-r from-pink-500 to-purple-600 text-white shadow-sm'
+                          ? 'bg-linear-to-r from-brand-500 to-brand-700 text-white shadow-sm'
                           : 'bg-black/50 text-white/70 hover:bg-black/70'
                       }`}
                       title={item.isReel ? t('account.portfolioManager.clickToUnmarkReel') : t('account.portfolioManager.clickToMarkReel')}

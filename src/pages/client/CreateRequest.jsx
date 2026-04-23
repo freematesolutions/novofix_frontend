@@ -279,7 +279,7 @@ export default function CreateRequest() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 px-3 sm:px-6 py-4 sm:py-6">
       {/* Indicador de progreso */}
       <UploadProgress {...uploadProgress} />
 

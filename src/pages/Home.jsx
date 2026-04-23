@@ -522,7 +522,15 @@ useEffect(() => {
   };
 
   return (
-    <main className="space-y-12 w-full">
+    <div className="w-full overflow-x-hidden">
+      {/*
+        Centering wrapper for all content sections.
+        - Hero below uses matching negative margins (-mx-3 sm:-mx-4 lg:-mx-6) to
+          intentionally bleed edge-to-edge on every breakpoint while the rest of
+          the page stays nicely centered within max-w-7xl on large screens and
+          gets proper horizontal breathing room on mobile.
+      */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 space-y-12 w-full py-4 sm:py-6">
       {/* Navegación flotante creativa - Solo visible al hacer scroll */}
       {!searchResults && !selectedCategory && showFloatingNav && (
         <nav className="fixed right-4 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-2 floating-nav floating-nav-desktop">
@@ -652,7 +660,7 @@ useEffect(() => {
           {/* Ajustada para acomodar las tarjetas de imagen más grandes del carrusel */}
           <div 
             id="hero-section"
-            className="relative overflow-hidden rounded-none sm:rounded-t-2xl min-h-[420px] sm:min-h-[500px] md:min-h-[560px] lg:min-h-[580px] xl:min-h-[660px] 2xl:min-h-[740px] scroll-mt-20 -mx-4 sm:-mx-1"
+            className="relative overflow-hidden rounded-none sm:rounded-t-2xl min-h-[420px] sm:min-h-[500px] md:min-h-[560px] lg:min-h-[580px] xl:min-h-[660px] 2xl:min-h-[740px] scroll-mt-20 -mx-3 sm:-mx-4 lg:-mx-6"
           >
             {/* Fondo degradado sólido de marca */}
             <div className="absolute inset-0">
@@ -1289,7 +1297,8 @@ useEffect(() => {
       )}
 
 
-    </main>
+      </div>
+    </div>
   );
 }
 

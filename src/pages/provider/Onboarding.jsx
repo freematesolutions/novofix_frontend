@@ -14,7 +14,7 @@ export default function Onboarding() {
 
   if (!isAuthenticated) {
     return (
-      <div className="max-w-xl mx-auto space-y-3">
+      <div className="max-w-xl mx-auto space-y-3 px-3 sm:px-6 py-4 sm:py-6">
         <Alert type="warning">{t('auth.onboarding.loginRequired')}</Alert>
         <div className="text-sm text-gray-700">
           <Link to="/login" className="text-brand-700 hover:text-brand-800 underline">{t('auth.onboarding.loginLink')}</Link> {t('auth.onboarding.or')}

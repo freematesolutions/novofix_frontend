@@ -50,14 +50,14 @@ export default function Portfolio() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto p-4 sm:p-6">
+      <div className="max-w-6xl mx-auto p-3 sm:p-6">
         <PageSkeleton />
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 p-4 sm:p-6">
+    <div className="max-w-6xl mx-auto space-y-6 p-3 sm:p-6">
       {/* Premium Header */}
       <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 p-6 sm:p-8 text-white relative">
         {/* Decorative elements (non-interactive) */}
@@ -123,7 +123,12 @@ export default function Portfolio() {
 
       {/* Portfolio Manager */}
       <div id="portfolio-gallery" className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <PortfolioManager initialPortfolio={portfolio} onUpdate={fetchPortfolio} activeFilter={activeFilter} />
+        <PortfolioManager
+          initialPortfolio={portfolio}
+          onUpdate={fetchPortfolio}
+          onItemDeleted={(itemId) => setPortfolio((prev) => prev.filter((it) => it._id !== itemId))}
+          activeFilter={activeFilter}
+        />
       </div>
 
       {/* Tips Section */}

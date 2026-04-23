@@ -55,7 +55,7 @@ export default function MyReviews() {
 
   if (viewRole !== 'client') {
     return (
-      <div className="max-w-xl mx-auto py-8">
+      <div className="max-w-xl mx-auto px-3 sm:px-6 py-8">
         <Alert type="warning">{t('client.myReviews.clientOnly')}</Alert>
       </div>
     );
@@ -68,7 +68,7 @@ export default function MyReviews() {
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-brand-200/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="relative max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
         {/* Header */}
         <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 p-6 sm:p-8 text-white relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>

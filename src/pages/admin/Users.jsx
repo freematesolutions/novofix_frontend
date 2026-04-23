@@ -133,9 +133,9 @@ export default function AdminUsers() {
   if (role !== 'admin') return <Alert type="warning">{t('admin.users.adminOnly')}</Alert>;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8 px-3 sm:px-6 py-4 sm:py-6">
       {/* Header Section */}
-      <div className="relative overflow-hidden bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 rounded-2xl p-8 text-white">
+      <div className="relative overflow-hidden bg-linear-to-br from-dark-700 via-dark-800 to-dark-900 rounded-2xl p-5 sm:p-8 text-white">
         <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
         <div className="absolute bottom-0 left-0 w-56 h-56 bg-brand-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4"></div>
         <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">

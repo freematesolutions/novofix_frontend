@@ -50,7 +50,7 @@ function PaymentInner({ amount, currency }) {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-brand-50/30 py-8 px-4">
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-lg mx-auto px-3 sm:px-6 py-4 sm:py-6">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-brand-500 to-brand-600 rounded-2xl shadow-lg shadow-brand-500/30 mb-4">

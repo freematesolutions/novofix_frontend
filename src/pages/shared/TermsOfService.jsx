@@ -38,7 +38,7 @@ function TermsOfService() {
   ];
 
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4">
+    <div className="max-w-3xl mx-auto py-6 sm:py-8 px-3 sm:px-4">
       {/* Breadcrumb */}
       <nav className="mb-6 text-sm text-gray-500">
         <Link to="/" className="hover:text-brand-500 transition-colors">{t('common.home')}</Link>

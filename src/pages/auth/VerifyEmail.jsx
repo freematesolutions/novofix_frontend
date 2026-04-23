@@ -227,32 +227,19 @@ const VerifyEmail = () => {
         )}
 
         <p className="text-gray-600 mb-6 text-base sm:text-lg">
-          {isDemoMode 
-            ? t('auth.verifyEmailPage.descriptionDemo')
-            : t('auth.verifyEmailPage.descriptionReal')
-          }
+          {t('auth.verifyEmailPage.descriptionReal')}
         </p>
 
-        {/* Bloque de verificación MODO DEMO */}
+        {/* Botón de verificación (mismo funcionamiento, sin indicadores de modo demo) */}
         {isDemoMode && verificationUrl && status === 'idle' && (
-          <div className="mb-6 p-4 bg-linear-to-r from-accent-50 to-accent-50 border-2 border-accent-200 rounded-xl">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-2xl">🎯</span>
-              <h3 className="text-lg font-bold text-accent-800">{t('auth.verifyEmailPage.demoMode')}</h3>
-            </div>
-            <p className="text-sm text-accent-700 mb-4">
-              {t('auth.verifyEmailPage.demoDescription')}
-            </p>
-            <a 
+          <div className="mb-6">
+            <a
               href={verificationUrl}
-              className="inline-flex items-center justify-center gap-2 w-full bg-linear-to-r from-accent-500 to-accent-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-accent-600 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="inline-flex items-center justify-center gap-2 w-full bg-linear-to-r from-brand-500 to-brand-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-brand-600 hover:to-brand-700 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <Icons.Check className="w-5 h-5" />
               {t('auth.verifyEmailPage.verifyAccount')}
             </a>
-            <p className="text-xs text-accent-600 mt-3 italic">
-              {t('auth.verifyEmailPage.demoHint')}
-            </p>
           </div>
         )}
 

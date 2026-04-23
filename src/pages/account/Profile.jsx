@@ -11,7 +11,7 @@ import PortfolioManager from '@/components/account/PortfolioManager.jsx';
 import imageCompression from 'browser-image-compression';
 import { 
   HiUser, HiCamera, HiPhone, HiBadgeCheck, HiCog, HiBriefcase, 
-  HiPhotograph, HiCurrencyDollar, HiCollection, HiSparkles,
+  HiPhotograph, HiSparkles,
   HiShieldCheck, HiUserCircle, HiSave, HiCheckCircle, HiStar
 } from 'react-icons/hi';
 
@@ -243,7 +243,7 @@ export default function Profile() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50/30 -mx-4 -mt-6 -mb-6">
+    <div className="min-h-screen bg-gray-50/30 w-full">
       {/* Hero Header con gradiente premium - se extiende de borde a borde */}
       <div className={`relative bg-linear-to-br ${accent.gradient}`}>
         {/* Elementos decorativos animados */}
@@ -257,7 +257,7 @@ export default function Profile() {
           }}></div>
         </div>
         
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 sm:pt-10 sm:pb-20">
+        <div className="relative max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 pt-6 pb-14 sm:pt-10 sm:pb-20">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
             {/* Avatar con efectos premium */}
             <div className="relative group flex flex-col items-center justify-center sm:block">
@@ -378,24 +378,6 @@ export default function Profile() {
                 {t('account.profile.tabs.provider')}
               </button>
             )}
-            <div className="w-full sm:w-auto sm:ml-auto flex items-center gap-2 sm:gap-3 px-1.5 sm:px-0 sm:pr-2 py-1 sm:py-0 overflow-x-auto">
-              {hasProvider && viewRole === 'provider' && (
-                <>
-                  <a href="/servicios" className={`flex items-center gap-1.5 text-sm font-medium whitespace-nowrap ${accent.text} hover:underline`}>
-                    <HiCollection className="w-4 h-4 shrink-0" />
-                    {t('account.profile.links.services')}
-                  </a>
-                  <a href="/plan" className={`flex items-center gap-1.5 text-sm font-medium whitespace-nowrap ${accent.text} hover:underline`}>
-                    <HiCurrencyDollar className="w-4 h-4 shrink-0" />
-                    {t('account.profile.links.plan')}
-                  </a>
-                </>
-              )}
-              <a href="/notificaciones" className={`flex items-center gap-1.5 text-sm font-medium whitespace-nowrap ${accent.text} hover:underline`}>
-                <HiCog className="w-4 h-4 shrink-0" />
-                {t('account.profile.links.preferences')}
-              </a>
-            </div>
           </div>
 
           {/* Panel: Datos personales */}

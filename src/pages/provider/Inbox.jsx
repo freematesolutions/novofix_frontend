@@ -257,7 +257,7 @@ export default function Inbox() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto space-y-6 p-4 sm:p-6">
+    <div className="max-w-7xl mx-auto space-y-6 p-3 sm:p-6">
       {/* Premium Header */}
       <div className="overflow-hidden rounded-2xl bg-linear-to-br from-dark-700 via-dark-800 to-brand-800 p-6 sm:p-8 text-white relative">
         {/* Decorative elements (non-interactive) */}

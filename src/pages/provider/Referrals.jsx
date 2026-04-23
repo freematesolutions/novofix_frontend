@@ -124,7 +124,7 @@ export default function Referrals() {
 
   if (viewRole !== 'provider') {
     return (
-      <div className="max-w-xl mx-auto">
+      <div className="max-w-xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
         <Alert type="warning">{t('provider.referrals.providerOnly')}</Alert>
       </div>
     );
@@ -134,7 +134,7 @@ export default function Referrals() {
   const canEarnMore = data.earnedDays < data.maxDays;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8 px-3 sm:px-6 py-4 sm:py-6">
       {/* Urgency Banner — Programa Promocional */}
       {data.programActive && (
         <div className="bg-linear-to-r from-accent-500 via-accent-400 to-accent-500 rounded-2xl p-4 text-dark-900 flex items-center gap-3 shadow-lg shadow-accent-500/25 animate-pulse-subtle">

@@ -1646,7 +1646,11 @@
         "title": "Resultados",
         "before": "Antes",
         "during": "Durante",
-        "after": "Después"
+        "after": "Después",
+        "delete": "Eliminar",
+        "confirmDelete": "¿Eliminar esta evidencia? Esta acción no se puede deshacer.",
+        "deleted": "Evidencia eliminada",
+        "deleteFailed": "No se pudo eliminar la evidencia"
       },
       "pricing": {
         "totalAmount": "Monto total",
@@ -1760,8 +1764,10 @@
         "descriptionPlaceholder": "Descripción opcional...",
         "cancel": "Cancelar",
         "uploading": "Subiendo...",
+        "upload": "Subir",
         "uploadFiles": "Subir {{count}} archivo(s)",
         "uploadEvidence": "Subir resultados",
+        "dropzoneInfo": "Documenta tu trabajo: sube fotos o videos del antes y después",
         "reviewTitle": "Dejar Reseña",
         "shareExperience": "Comparte tu experiencia",
         "helpOthers": "Tu opinión ayuda a otros usuarios",
@@ -4358,7 +4364,7 @@
     "intro": "NovoFix nació de una idea simple pero poderosa: hacer que encontrar profesionales de confianza sea tan fácil como enviar un mensaje. Conectamos a clientes con los mejores profesionales de servicios del hogar y comercio en tu zona.",
     "mission": {
       "title": "Nuestra Misión",
-      "content": "Democratizar el acceso a servicios profesionales de calidad, creando un ecosistema donde clientes encuentren soluciones rápidas y confiables, y donde los profesionales puedan crecer y prosperar mostrando su mejor trabajo."
+      "content": "El acceso a servicios profesionales de calidad, creando un ecosistema donde clientes encuentren soluciones rápidas y confiables, y donde los profesionales puedan crecer y prosperar mostrando su mejor trabajo."
     },
     "vision": {
       "title": "Nuestra Visión",
