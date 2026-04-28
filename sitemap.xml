@@ -1,1 +1,247 @@
-{"success":false,"message":"Can't find /seo/sitemap.xml on this server!"}
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/sobre-nosotros</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/sobre-nosotros?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/sobre-nosotros?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/sobre-nosotros"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/unete</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/unete?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/unete?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/unete"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/terminos</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/terminos?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/terminos?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/terminos"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/privacidad</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/privacidad?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/privacidad?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/privacidad"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/reparaciones</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/reparaciones?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/reparaciones?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/reparaciones"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/plomeria</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/plomeria?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/plomeria?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/plomeria"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/electricidad</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/electricidad?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/electricidad?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/electricidad"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/climatizacion</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/climatizacion?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/climatizacion?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/climatizacion"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/cerrajeria</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/cerrajeria?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/cerrajeria?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/cerrajeria"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/mantenimiento</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/mantenimiento?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/mantenimiento?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/mantenimiento"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/control-de-plagas</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/control-de-plagas?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/control-de-plagas?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/control-de-plagas"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/limpieza</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/limpieza?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/limpieza?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/limpieza"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/pintura</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/pintura?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/pintura?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/pintura"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/gabinetes</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/gabinetes?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/gabinetes?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/gabinetes"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/pisos</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/pisos?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/pisos?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/pisos"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/cocina</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/cocina?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/cocina?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/cocina"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/remodelacion</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/remodelacion?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/remodelacion?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/remodelacion"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/jardineria</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/jardineria?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/jardineria?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/jardineria"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/piscinas</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/piscinas?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/piscinas?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/piscinas"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/techado</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/techado?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/techado?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/techado"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/cercas</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/cercas?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/cercas?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/cercas"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/pergolas</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/pergolas?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/pergolas?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/pergolas"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/ventanas</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/ventanas?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/ventanas?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/ventanas"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/construccion</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/construccion?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/construccion?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/construccion"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/mudanzas</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/mudanzas?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/mudanzas?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/mudanzas"/>
+  </url>
+  <url>
+    <loc>https://novofixfrontendprod.vercel.app/categorias/seguridad</loc>
+    <lastmod>2026-04-28T22:15:36.733Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://novofixfrontendprod.vercel.app/categorias/seguridad?lng=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://novofixfrontendprod.vercel.app/categorias/seguridad?lng=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://novofixfrontendprod.vercel.app/categorias/seguridad"/>
+  </url>
+</urlset>
