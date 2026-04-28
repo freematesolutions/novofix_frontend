@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- Favicons & PWA -->
+    <link rel="icon" type="image/svg+xml" href="/novofix-logo.svg" />
+    <link rel="apple-touch-icon" href="/novofix-logo.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- Default SEO (overridden at runtime by react-helmet-async per route) -->
+    <title>NovoFix · Profesionales de confianza para tu hogar y comercio</title>
+    <meta name="description" content="NovoFix conecta clientes con profesionales verificados de servicios para el hogar y comercio. Encuentra plomeros, electricistas, pintores y más, cerca de ti." />
+    <meta name="robots" content="index,follow" />
+
+    <!-- Open Graph defaults (overridden per route) -->
+    <meta property="og:site_name" content="NovoFix" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="NovoFix · Profesionales de confianza" />
+    <meta property="og:description" content="Encuentra profesionales verificados para tu hogar y comercio." />
+    <meta property="og:image" content="/og-default.jpg" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <!-- Twitter Card defaults -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="NovoFix" />
+    <meta name="twitter:description" content="Profesionales verificados a un mensaje de distancia." />
+    <meta name="twitter:image" content="/og-default.jpg" />
+
+    <!-- Performance: preconnect / dns-prefetch -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+    <link rel="dns-prefetch" href="https://images.unsplash.com">
+    <link rel="dns-prefetch" href="https://res.cloudinary.com">
+    <!-- LCP hint: primera imagen visible del carrusel principal en Home -->
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1581783898377-1c85bf937427?auto=format&fit=crop&w=1200&h=800&q=80" fetchpriority="high">
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script type="module" crossorigin src="/assets/index-7ssTr-o2.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/leaflet-DNr_Xw6l.js">
+    <link rel="modulepreload" crossorigin href="/assets/stripe-BEvmLvzo.js">
+    <link rel="modulepreload" crossorigin href="/assets/pdf-94C1tCio.js">
+    <link rel="modulepreload" crossorigin href="/assets/socket-CA1CrNgP.js">
+    <link rel="stylesheet" crossorigin href="/assets/leaflet-Dgihpmma.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-CBDy8nV9.css">
+  </head>
+  <body class="bg-white text-body font-sans">
+    <div id="root"></div>
+    <!-- Audio para notificaciones de chat (servido como archivo estático para no inflar el HTML) -->
+    <audio id="notification-sound" preload="none">
+      <source src="/sounds/notification.wav" type="audio/wav" />
+    </audio>
+  </body>
+</html>
