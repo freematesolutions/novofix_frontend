@@ -1,0 +1,22 @@
+{
+  "name": "NovoFix · Profesionales de confianza",
+  "short_name": "NovoFix",
+  "description": "Conecta con profesionales verificados de servicios para el hogar y comercio cerca de ti.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["business", "lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "/novofix-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

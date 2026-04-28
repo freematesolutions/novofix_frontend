@@ -87,4 +87,34 @@ function getCategoryDescription(category) {
   return descriptions[category] || '';
 }
 
+/**
+ * Convierte un nombre de categoría en un slug URL-safe (sin tildes, minúsculas,
+ * separado por guiones). Es DETERMINISTA y reversible vía findCategoryBySlug.
+ * Usado por las landings SEO `/categorias/:slug` y por el sitemap del backend
+ * (la implementación gemela vive en `server/src/config/categories.js`).
+ *
+ * Ejemplos:
+ *   'Plomería'         → 'plomeria'
+ *   'Control de Plagas'→ 'control-de-plagas'
+ *   'Pérgolas'         → 'pergolas'
+ */
+export function slugifyCategory(name) {
+  return String(name || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * Busca la categoría canónica a partir de un slug producido por slugifyCategory.
+ * Devuelve `null` si no hay coincidencia (la página debe mostrar 404 SEO-friendly).
+ */
+export function findCategoryBySlug(slug) {
+  if (!slug) return null;
+  const target = String(slug).toLowerCase();
+  return SERVICE_CATEGORIES.find((c) => slugifyCategory(c) === target) || null;
+}
+
 export default SERVICE_CATEGORIES;

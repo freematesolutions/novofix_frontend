@@ -15,6 +15,7 @@ import { SearchResultSkeleton, FeaturedProviderSkeleton } from '@/components/ui/
 // (Este useEffect debe ir dentro del componente Home, no aquí)
 import { CATEGORY_IMAGES, FALLBACK_IMAGE } from '@/utils/categoryImages.js';
 import { SERVICE_CATEGORIES_WITH_DESCRIPTION } from '@/utils/categories.js';
+import { Seo, SITE_URL, SITE_NAME, buildLocalBusinessSchema } from '@/components/seo';
 
 // Secciones de la página para la navegación flotante
 const HOME_SECTIONS = [
@@ -521,8 +522,59 @@ useEffect(() => {
     // console.log('Provider portfolio viewed');
   };
 
+  // Structured data for the Home page: Organization + WebSite (with sitelinks SearchAction).
+  // Phase 8 additions: LocalBusiness anchors the geographic market (Miami, FL by default)
+  // and a FAQPage surfaces top user questions in SERP rich results.
+  const homeFaqEntries = useMemo(() => {
+    const items = t('seo.home.faq', { returnObjects: true });
+    return Array.isArray(items) ? items.filter((f) => f && f.q && f.a) : [];
+  }, [t]);
+
+  const homeJsonLd = [
+    buildLocalBusinessSchema(),
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: `${SITE_URL}/novofix-logo.svg`,
+      sameAs: [],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: SITE_NAME,
+      url: SITE_URL,
+      inLanguage: ['es', 'en'],
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: `${SITE_URL}/?q={search_term_string}`,
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    homeFaqEntries.length
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: homeFaqEntries.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        }
+      : null,
+  ].filter(Boolean);
+
   return (
     <div className="w-full overflow-x-hidden">
+      <Seo
+        titleKey="seo.home.title"
+        descriptionKey="seo.home.description"
+        keywords={t('seo.home.keywords')}
+        canonicalPath="/"
+        type="website"
+        jsonLd={homeJsonLd}
+      />
       {/*
         Centering wrapper for all content sections.
         - Hero below uses matching negative margins (-mx-3 sm:-mx-4 lg:-mx-6) to
@@ -887,7 +939,7 @@ useEffect(() => {
               }}
             >
               <div className="flex gap-6 min-w-max">
-                {sortedCategoriesForCards.map((service) => (
+                {sortedCategoriesForCards.map((service, index) => (
                   <div
                     key={service.instanceId}
                     className={`w-[340px] sm:w-[380px] lg:w-[420px] shrink-0${service.hasProviders ? ' service-card-with-providers' : ''}`}
@@ -901,6 +953,7 @@ useEffect(() => {
                       providerCount={service.providerCount}
                       onClick={handleCategoryClick}
                       disabled={!service.hasProviders}
+                      priority={index === 0}
                     />
                   </div>
                 ))}
@@ -1224,6 +1277,44 @@ useEffect(() => {
             </div>
           )}
         </div>
+      )}
+
+      {/* FAQ section (Phase 8) — visible body copy that mirrors the FAQPage
+          JSON-LD emitted in <Seo />. Renders only on the default home view
+          (no active search/category) so it does not interfere with results. */}
+      {searchResults === null && !selectedCategory && homeFaqEntries.length > 0 && (
+        <section
+          aria-label={t('seo.home.faqHeading')}
+          className="mt-10 mb-4 max-w-3xl mx-auto px-2 sm:px-0"
+        >
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 text-center">
+            {t('seo.home.faqHeading')}
+          </h2>
+          <ul className="space-y-3">
+            {homeFaqEntries.map((f, i) => (
+              <li key={i}>
+                <details className="group rounded-2xl border border-gray-200 bg-white open:border-brand-300 open:shadow-sm transition">
+                  <summary className="cursor-pointer list-none p-4 sm:p-5 flex items-start justify-between gap-3">
+                    <span className="font-medium text-gray-900">{f.q}</span>
+                    <svg
+                      aria-hidden="true"
+                      className="h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </summary>
+                  <p className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-1 text-gray-700 leading-relaxed">
+                    {f.a}
+                  </p>
+                </details>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {/* Vista de proveedores por categoría */}

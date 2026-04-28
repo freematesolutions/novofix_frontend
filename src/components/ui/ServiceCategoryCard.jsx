@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CATEGORY_IMAGES, FALLBACK_IMAGE } from '@/utils/categoryImages.js';
+import { slugifyCategory } from '@/utils/categories.js';
 
 
-function ServiceCategoryCard({ category, translatedName, translatedDescription, onClick, providerCount, disabled = false }) {
+function ServiceCategoryCard({ category, translatedName, translatedDescription, onClick, providerCount, disabled = false, priority = false }) {
   const { t } = useTranslation();
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -54,6 +56,9 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
           }}
           className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
           loading="eager"
+          fetchPriority={priority ? 'high' : 'low'}
+          decoding="async"
+          sizes="(max-width: 640px) 340px, (max-width: 1024px) 380px, 420px"
         />
         
         {/* Overlay gradient oscuro */}
@@ -112,6 +117,22 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
           {translatedDescription}
         </p>
 
+        {/* Deep-link semántico a la landing pública de la categoría.
+            Visible y crawlable (anchor real con href). Detenemos la
+            propagación para preservar el flujo existente de la tarjeta
+            (click → modal de proveedores). */}
+        <Link
+          to={`/categorias/${slugifyCategory(category)}`}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-brand-600 hover:text-brand-700 hover:underline self-start mb-2"
+          aria-label={t('home.viewCategoryLanding', { category: translatedName })}
+        >
+          {t('home.viewCategoryLandingShort')}
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M9 7h8v8" />
+          </svg>
+        </Link>
+
         {/* Botón de acción */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <span className={`font-semibold text-sm transition-colors ${
@@ -160,7 +181,8 @@ ServiceCategoryCard.propTypes = {
   translatedDescription: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
   providerCount: PropTypes.number,
-  disabled: PropTypes.bool
+  disabled: PropTypes.bool,
+  priority: PropTypes.bool
 };
 
 export default ServiceCategoryCard;

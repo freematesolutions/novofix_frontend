@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
+import Breadcrumbs from '@/components/seo/Breadcrumbs.jsx';
 
 function TermsOfService() {
   const { t } = useTranslation();
@@ -39,12 +40,15 @@ function TermsOfService() {
 
   return (
     <div className="max-w-3xl mx-auto py-6 sm:py-8 px-3 sm:px-4">
-      {/* Breadcrumb */}
-      <nav className="mb-6 text-sm text-gray-500">
-        <Link to="/" className="hover:text-brand-500 transition-colors">{t('common.home')}</Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-700 font-medium">{t('termsPage.title')}</span>
-      </nav>
+      {/* Breadcrumb (SEO + a11y). BreadcrumbList JSON-LD emitted by <RouteSeo />. */}
+      <Breadcrumbs
+        className="mb-6"
+        items={[
+          { labelKey: 'seo.breadcrumbs.home', path: '/' },
+          { labelKey: 'seo.breadcrumbs.legal', path: '/terminos' },
+          { labelKey: 'seo.breadcrumbs.terms', path: '/terminos' },
+        ]}
+      />
 
       {/* Header */}
       <div className="mb-10">

@@ -339,6 +339,8 @@
       "Seguridad": "Guaranteed protection"
     },
     "viewProfessionals": "View professionals",
+    "viewCategoryLanding": "View public {{category}} landing",
+    "viewCategoryLandingShort": "View landing",
     "comingSoon": "Coming soon",
     "comingSoonAvailable": "Available soon",
     "carousel": {
@@ -3877,6 +3879,8 @@
   "footer": {
     "tagline": "Professional Services Instantly",
     "description": "We connect clients with the best professionals in your area",
+    "popularCategories": "Popular categories",
+    "categoriesAriaLabel": "Popular categories",
     "services": "Services",
     "company": "Company",
     "support": "Support",
@@ -4388,6 +4392,127 @@
     "story": {
       "title": "Our Story",
       "content": "NovoFix emerged from the frustration of looking for a good plumber, electrician, or painter and not knowing who to turn to. We knew there were thousands of talented professionals, but there was no easy and reliable way to find them.\n\nThat's how NovoFix was born: a platform that combines modern technology with human warmth. Since our launch, we've connected hundreds of clients with verified professionals, facilitating thousands of successfully completed services.\n\nToday, we continue to grow with the same passion as day one, constantly improving our platform to offer the best possible experience to our community."
+    }
+  },
+  "seo": {
+    "siteName": "NovoFix",
+    "defaultTitle": "NovoFix · Home services in Miami, FL · Certified professionals",
+    "defaultDescription": "NovoFix connects customers with certified home-service professionals in Miami, FL. Handyman, plumbers, 24/7 residential electricians, AC technicians and more. Free online quotes and verified pros.",
+    "home": {
+      "title": "Home services in Miami · Certified professionals with free quotes",
+      "description": "Hire certified pros in Miami, FL: handyman, plumbers, 24/7 residential electricians, AC technicians and home remodeling. Connect with verified local contractors and get a free online quote.",
+      "keywords": "home services Miami, handyman near me, hire certified professionals, AC technicians Miami, 24/7 residential electricians, Florida contractor directory, home repairs Miami, NEC code electrical installations, preventive residential maintenance, free online quote, verified professionals, guaranteed technical services, residential electrical panel calculation, connect with local contractors, home remodeling Miami",
+      "faqHeading": "Frequently asked questions",
+      "faq": [
+        {
+          "q": "What home services does NovoFix offer in Miami?",
+          "a": "NovoFix connects you with certified professionals in Miami, FL for handyman, plumbing, residential electrical work (including 24/7 emergencies and NEC code compliance), AC technicians, home remodeling, preventive maintenance and more. We cover Miami-Dade, Broward and Palm Beach."
+        },
+        {
+          "q": "Are the professionals verified and certified?",
+          "a": "Yes. We validate identity, contact information and experience for each professional. Technical services such as electrical and AC are performed by certified pros with guaranteed services."
+        },
+        {
+          "q": "How does the free online quote work?",
+          "a": "You post your request describing the job (photos optional). Within minutes you'll receive proposals from local pros with price, ETA and reviews. Compare and pick the best fit at no upfront cost."
+        },
+        {
+          "q": "Do you offer 24/7 residential electricians?",
+          "a": "Yes. Miami electricians are available 24/7 for emergencies: power outages, tripping panels, NEC-compliant installations and residential electrical panel sizing."
+        },
+        {
+          "q": "Can I connect with local contractors for a remodel?",
+          "a": "Absolutely. NovoFix works as a Florida contractor directory with experience in Miami home remodeling: kitchens, bathrooms, floors, paint and additions. Get comparable quotes with no commitment."
+        }
+      ]
+    },
+    "breadcrumbs": {
+      "ariaLabel": "Breadcrumb",
+      "home": "Home",
+      "about": "About us",
+      "legal": "Legal",
+      "terms": "Terms of service",
+      "privacy": "Privacy policy",
+      "joinProvider": "Join as a professional",
+      "categories": "Categories",
+      "providers": "Professionals"
+    },
+    "routes": {
+      "about": {
+        "title": "About us",
+        "description": "Discover NovoFix's story, mission and values: the platform that connects customers with verified professionals for home and business services."
+      },
+      "terms": {
+        "title": "Terms of service",
+        "description": "Read NovoFix's terms of service before hiring or offering services on our platform."
+      },
+      "privacy": {
+        "title": "Privacy policy",
+        "description": "How we protect and process your personal data at NovoFix. Transparency and compliance every step of the way."
+      },
+      "joinProvider": {
+        "title": "Join NovoFix as a professional",
+        "description": "Grow your business by receiving requests from verified customers. Sign up free, showcase your portfolio and start earning today."
+      },
+      "login": { "title": "Sign in", "description": "Access your NovoFix account." },
+      "registerClient": { "title": "Create your account", "description": "Sign up free and start hiring verified professionals." },
+      "forgotPassword": { "title": "Recover password", "description": "Recover access to your NovoFix account." },
+      "resetPassword": { "title": "Reset password", "description": "Reset the password of your NovoFix account." },
+      "verifyEmail": { "title": "Verify email", "description": "Confirm your email to activate your NovoFix account." },
+      "onboarding": { "title": "Provider onboarding", "description": "Complete your profile to start receiving requests." },
+      "services": { "title": "My services", "description": "Manage the services you offer on NovoFix." },
+      "jobs": { "title": "Available jobs", "description": "Browse customer requests and send your proposals." },
+      "jobDetail": { "title": "Request detail", "description": "Review the request details and send a proposal." },
+      "inbox": { "title": "Inbox", "description": "Chat with your customers in real time." },
+      "portfolio": { "title": "My portfolio", "description": "Manage the visual portfolio of your completed work." },
+      "providerReviews": { "title": "My reviews", "description": "Check and reply to your customers' reviews." },
+      "calendar": { "title": "My calendar", "description": "Manage your availability and bookings." },
+      "referrals": { "title": "Referral program", "description": "Invite other professionals and earn rewards." },
+      "plan": { "title": "My plan", "description": "Check and manage your subscription." },
+      "profile": { "title": "My profile", "description": "Edit your personal and account information." },
+      "createRequest": { "title": "New request", "description": "Create a new request and get quotes in minutes." },
+      "requestProposals": { "title": "Received proposals", "description": "Review and compare the proposals you have received." },
+      "myRequests": { "title": "My requests", "description": "Manage all your active and past requests." },
+      "clientMessages": { "title": "My messages", "description": "Chat with the professionals sending you proposals." },
+      "myReviews": { "title": "My reviews", "description": "See the reviews you have left for professionals." },
+      "bookings": { "title": "My bookings", "description": "See your booked services." },
+      "notifications": { "title": "Notifications", "description": "Notification center of your account." },
+      "payment": { "title": "Payment", "description": "Processing your payment securely." },
+      "adminDashboard": { "title": "Admin dashboard", "description": "Administrative control panel." },
+      "adminUsers": { "title": "Manage users", "description": "User management." },
+      "adminModeration": { "title": "Moderation", "description": "Content moderation queue." },
+      "adminAlerts": { "title": "Alerts", "description": "Administrative alerts center." },
+      "adminRequests": { "title": "Requests", "description": "Requests administration." },
+      "adminBookings": { "title": "Bookings", "description": "Bookings administration." },
+      "adminReports": { "title": "Reports", "description": "Reports and metrics." },
+      "categoryLanding": {
+        "title": "{{category}} professionals near you",
+        "description": "Find and hire verified {{category}} professionals on NovoFix. Compare quotes, read real reviews and get it done today.",
+        "heading": "{{category}} professionals",
+        "providersHeading": "Top professionals",
+        "reviewsLabel": "reviews",
+        "empty": "No professionals in this category in your area yet. Create a request and we'll notify you as soon as one is available.",
+        "ctaCreateRequest": "Request this service",
+        "ctaJoinProvider": "Are you a pro? Join us",
+        "notFoundTitle": "Category not found",
+        "notFoundDescription": "The category you're trying to open doesn't exist or has been renamed.",
+        "faqHeading": "Frequently asked questions"
+      },
+      "providerProfile": {
+        "title": "{{name}} · {{category}} on NovoFix",
+        "fallbackName": "NovoFix Professional",
+        "genericCategory": "home services",
+        "fallbackDescription": "Meet {{name}}, a verified professional on NovoFix. See their services, portfolio and reviews.",
+        "loading": "Loading professional profile…",
+        "notFoundTitle": "Profile not found",
+        "notFoundDescription": "This profile is no longer available or the link is invalid.",
+        "aboutHeading": "About me",
+        "servicesHeading": "Services I offer",
+        "portfolioHeading": "Portfolio",
+        "reviewsHeading": "Recent reviews",
+        "ctaHeading": "Want to work with {{name}}?",
+        "ctaSubtitle": "Create a free request and get a quote within minutes."
+      }
     }
   }
 }

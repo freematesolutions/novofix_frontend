@@ -254,6 +254,8 @@
   "footer": {
     "tagline": "Servicios Profesionales al Instante",
     "description": "Conectamos clientes con los mejores profesionales de tu zona",
+    "popularCategories": "Categorías populares",
+    "categoriesAriaLabel": "Categorías populares",
     "services": "Servicios",
     "company": "Empresa",
     "support": "Soporte",
@@ -890,6 +892,8 @@
       "Seguridad": "Protección garantizada"
     },
     "viewProfessionals": "Ver profesionales",
+    "viewCategoryLanding": "Ver landing pública de {{category}}",
+    "viewCategoryLandingShort": "Ver landing",
     "comingSoon": "Próximamente",
     "comingSoonAvailable": "Próximamente disponible",
     "carousel": {
@@ -4392,6 +4396,127 @@
     "story": {
       "title": "Nuestra Historia",
       "content": "NovoFix surgió de la frustración de buscar un buen plomero, electricista o pintor y no saber a quién recurrir. Sabíamos que había miles de profesionales talentosos, pero no existía una forma fácil y confiable de encontrarlos.\n\nAsí nació NovoFix: una plataforma que combina tecnología moderna con la cercanía humana. Desde nuestro lanzamiento, hemos conectado a cientos de clientes con profesionales verificados, facilitando miles de servicios completados exitosamente.\n\nHoy, seguimos creciendo con la misma pasión del primer día, mejorando constantemente nuestra plataforma para ofrecer la mejor experiencia posible a nuestra comunidad."
+    }
+  },
+  "seo": {
+    "siteName": "NovoFix",
+    "defaultTitle": "NovoFix · Servicios para el hogar en Miami, FL · Profesionales certificados",
+    "defaultDescription": "NovoFix conecta clientes con profesionales certificados de servicios para el hogar en Miami, FL. Handyman, plomeros, electricistas residenciales 24 horas, técnicos de aire acondicionado y más. Presupuesto gratis online y profesionales verificados.",
+    "home": {
+      "title": "Servicios para el hogar en Miami · Profesionales certificados con presupuesto gratis",
+      "description": "Contrata profesionales certificados en Miami, FL: handyman, plomeros, electricistas residenciales 24 horas, técnicos de aire acondicionado y remodelación de casas. Conecta con contratistas locales verificados y recibe presupuesto gratis online.",
+      "keywords": "servicios para el hogar en Miami, handyman near me, contratar profesionales certificados, técnicos de aire acondicionado en Miami, electricistas residenciales 24 horas, directorio de profesionales en Florida, reparaciones del hogar en Miami, instalaciones eléctricas código NEC, mantenimiento preventivo residencial, presupuesto gratis online, profesionales verificados, servicios técnicos garantizados, cálculo de panel eléctrico para viviendas, conectar con contratistas locales, remodelación de casas en Miami",
+      "faqHeading": "Preguntas frecuentes",
+      "faq": [
+        {
+          "q": "¿Qué servicios para el hogar ofrece NovoFix en Miami?",
+          "a": "NovoFix conecta con profesionales certificados en Miami, FL para handyman, plomería, electricidad residencial (incluyendo emergencias 24 horas y cumplimiento del código NEC), técnicos de aire acondicionado, remodelación de casas, mantenimiento preventivo y más. Cubrimos Miami-Dade, Broward y Palm Beach."
+        },
+        {
+          "q": "¿Los profesionales están verificados y certificados?",
+          "a": "Sí. Validamos identidad, contacto y experiencia de cada profesional. Los servicios técnicos como electricidad y aire acondicionado son ejecutados por profesionales certificados con servicios garantizados."
+        },
+        {
+          "q": "¿Cómo funciona el presupuesto gratis online?",
+          "a": "Publicás tu solicitud describiendo el trabajo (puedes adjuntar fotos). En minutos recibísm propuestas de profesionales locales con precio, tiempo estimado y reseñas. Comparás y eligís sin costo inicial."
+        },
+        {
+          "q": "¿Atienden electricistas residenciales 24 horas?",
+          "a": "Sí. Hay electricistas en Miami disponibles para emergencias 24/7: cortes de energía, paneles que disparan, instalaciones bajo código NEC y cálculo de panel eléctrico para viviendas."
+        },
+        {
+          "q": "¿Puedo conectar con contratistas locales para una remodelación?",
+          "a": "Sí. NovoFix funciona como directorio de profesionales en Florida con experiencia en remodelación de casas en Miami: cocinas, baños, pisos, pintura y ampliaciones. Recibís presupuestos comparables sin compromiso."
+        }
+      ]
+    },
+    "breadcrumbs": {
+      "ariaLabel": "Ruta de navegación",
+      "home": "Inicio",
+      "about": "Sobre nosotros",
+      "legal": "Legal",
+      "terms": "Términos y condiciones",
+      "privacy": "Política de privacidad",
+      "joinProvider": "Únete como profesional",
+      "categories": "Categorías",
+      "providers": "Profesionales"
+    },
+    "routes": {
+      "about": {
+        "title": "Sobre nosotros",
+        "description": "Conoce la historia, misión y valores de NovoFix: la plataforma que conecta a clientes con profesionales verificados de servicios para el hogar y comercio."
+      },
+      "terms": {
+        "title": "Términos y condiciones",
+        "description": "Lee los términos y condiciones de uso de NovoFix antes de contratar o ofrecer servicios en nuestra plataforma."
+      },
+      "privacy": {
+        "title": "Política de privacidad",
+        "description": "Así protegemos y tratamos tus datos personales en NovoFix. Transparencia y cumplimiento normativo en cada paso."
+      },
+      "joinProvider": {
+        "title": "Únete como profesional a NovoFix",
+        "description": "Crece tu negocio recibiendo solicitudes de clientes verificados. Regístrate gratis, muestra tu portafolio y empieza a generar ingresos hoy."
+      },
+      "login": { "title": "Iniciar sesión", "description": "Accede a tu cuenta de NovoFix." },
+      "registerClient": { "title": "Crea tu cuenta", "description": "Regístrate gratis y empieza a contratar profesionales verificados." },
+      "forgotPassword": { "title": "Recuperar contraseña", "description": "Recupera el acceso a tu cuenta de NovoFix." },
+      "resetPassword": { "title": "Restablecer contraseña", "description": "Restablece la contraseña de tu cuenta de NovoFix." },
+      "verifyEmail": { "title": "Verificar correo electrónico", "description": "Confirma tu correo para activar tu cuenta de NovoFix." },
+      "onboarding": { "title": "Onboarding de profesional", "description": "Completa tu perfil para empezar a recibir solicitudes." },
+      "services": { "title": "Mis servicios", "description": "Gestiona los servicios que ofreces en NovoFix." },
+      "jobs": { "title": "Empleos disponibles", "description": "Explora solicitudes de clientes y envía tus propuestas." },
+      "jobDetail": { "title": "Detalle de la solicitud", "description": "Revisa los detalles de la solicitud y envía una propuesta." },
+      "inbox": { "title": "Bandeja de mensajes", "description": "Conversa con tus clientes en tiempo real." },
+      "portfolio": { "title": "Mi portafolio", "description": "Gestiona el portafolio visual de tus trabajos realizados." },
+      "providerReviews": { "title": "Mis reseñas", "description": "Consulta y responde a las reseñas de tus clientes." },
+      "calendar": { "title": "Mi calendario", "description": "Gestiona tu disponibilidad y reservas." },
+      "referrals": { "title": "Programa de referidos", "description": "Invita a otros profesionales y gana recompensas." },
+      "plan": { "title": "Mi plan", "description": "Consulta y administra tu suscripción." },
+      "profile": { "title": "Mi perfil", "description": "Edita tu información personal y de la cuenta." },
+      "createRequest": { "title": "Nueva solicitud", "description": "Crea una nueva solicitud y recibe presupuestos en minutos." },
+      "requestProposals": { "title": "Propuestas recibidas", "description": "Revisa y compara las propuestas que has recibido." },
+      "myRequests": { "title": "Mis solicitudes", "description": "Gestiona todas tus solicitudes activas y pasadas." },
+      "clientMessages": { "title": "Mis mensajes", "description": "Conversa con los profesionales que te envían propuestas." },
+      "myReviews": { "title": "Mis reseñas", "description": "Consulta las reseñas que has dejado a profesionales." },
+      "bookings": { "title": "Mis reservas", "description": "Consulta tus servicios contratados." },
+      "notifications": { "title": "Notificaciones", "description": "Centro de notificaciones de tu cuenta." },
+      "payment": { "title": "Pago", "description": "Procesando tu pago de forma segura." },
+      "adminDashboard": { "title": "Panel de administración", "description": "Panel de control administrativo." },
+      "adminUsers": { "title": "Administrar usuarios", "description": "Gestión de usuarios." },
+      "adminModeration": { "title": "Moderación", "description": "Cola de moderación de contenidos." },
+      "adminAlerts": { "title": "Alertas", "description": "Centro de alertas administrativas." },
+      "adminRequests": { "title": "Solicitudes", "description": "Administración de solicitudes." },
+      "adminBookings": { "title": "Reservas", "description": "Administración de reservas." },
+      "adminReports": { "title": "Reportes", "description": "Reportes y métricas." },
+      "categoryLanding": {
+        "title": "Profesionales de {{category}} cerca de ti",
+        "description": "Encuentra y contrata profesionales de {{category}} verificados en NovoFix. Compara presupuestos, lee reseñas reales y resuelve hoy mismo.",
+        "heading": "Profesionales de {{category}}",
+        "providersHeading": "Profesionales destacados",
+        "reviewsLabel": "reseñas",
+        "empty": "Aún no hay profesionales de esta categoría en tu zona. Crea tu solicitud y te avisaremos en cuanto haya alguno disponible.",
+        "ctaCreateRequest": "Solicitar este servicio",
+        "ctaJoinProvider": "¿Eres profesional? Únete",
+        "notFoundTitle": "Categoría no encontrada",
+        "notFoundDescription": "La categoría que intentas abrir no existe o ha sido renombrada.",
+        "faqHeading": "Preguntas frecuentes"
+      },
+      "providerProfile": {
+        "title": "{{name}} · {{category}} en NovoFix",
+        "fallbackName": "Profesional de NovoFix",
+        "genericCategory": "servicios para el hogar",
+        "fallbackDescription": "Conoce a {{name}}, profesional verificado en NovoFix. Revisa sus servicios, portafolio y reseñas.",
+        "loading": "Cargando perfil profesional…",
+        "notFoundTitle": "Perfil no encontrado",
+        "notFoundDescription": "Este perfil ya no está disponible o el enlace es incorrecto.",
+        "aboutHeading": "Sobre mí",
+        "servicesHeading": "Servicios que ofrezco",
+        "portfolioHeading": "Portafolio",
+        "reviewsHeading": "Reseñas recientes",
+        "ctaHeading": "¿Quieres trabajar con {{name}}?",
+        "ctaSubtitle": "Crea una solicitud gratuita y recibe un presupuesto en minutos."
+      }
     }
   }
 }

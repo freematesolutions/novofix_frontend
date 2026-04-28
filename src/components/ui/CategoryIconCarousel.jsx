@@ -26,13 +26,40 @@ function CategoryIconCarousel({
   rotationInterval: _rotationInterval = 2800 // eslint-disable-line no-unused-vars
 }) {
   const { t } = useTranslation();
-  // Usar ref para tracking de imágenes cargadas (evita re-renders por cada imagen)
+  // Mantener visible el carrusel desde el primer frame: las <img> ya tienen su
+  // propio fade-in nativo y el cache HTTP se calienta con el preload masivo
+  // que corre en paralelo (ver useEffect más abajo) sin bloquear el render.
+  const allImagesReady = true;
   const loadedImagesRef = useRef({});
-  const [allImagesReady, setAllImagesReady] = useState(false);
   // Estado para mostrar tooltip de tarjeta inhabilitada al tocar en móvil
   const [tappedDisabledCard, setTappedDisabledCard] = useState(null);
   const containerRef = useRef(null);
   const cardRefsMap = useRef(new Map());
+
+  // ─── Warm-up del cache HTTP en paralelo ────────────────────────────
+  // No gatea la visibilidad del carrusel (fix UX: antes esperaba 22 imágenes
+  // antes de mostrar nada). Beneficio colateral: ServiceCategoryCard,
+  // BeforeAfterGallery y FeaturedProviderCard encuentran las imágenes ya
+  // cacheadas y evitan spinners de transición.
+  useEffect(() => {
+    let cancelled = false;
+    const requestIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+    const cancelIdle = window.cancelIdleCallback || clearTimeout;
+    // Diferimos al primer idle para no competir con LCP / hidratación.
+    const handle = requestIdle(() => {
+      if (cancelled) return;
+      categories.forEach((service) => {
+        if (loadedImagesRef.current[service.category]) return;
+        const url = CATEGORY_IMAGES[service.category] || FALLBACK_IMAGE;
+        const img = new Image();
+        img.decoding = 'async';
+        img.onload = () => { loadedImagesRef.current[service.category] = true; };
+        img.onerror = () => { loadedImagesRef.current[service.category] = true; };
+        img.src = url;
+      });
+    });
+    return () => { cancelled = true; cancelIdle(handle); };
+  }, [categories]);
 
   // Offset continuo — solo ref para la animación
   const animationFrameRef = useRef(null);
@@ -51,72 +78,6 @@ function CategoryIconCarousel({
   // Auto-pause
   const autoPauseTimeoutRef = useRef(null);
   const autoPausedUntilRef = useRef(0);
-
-  // ─── Precargar TODAS las imágenes en paralelo (sin lotes) ──────────
-  // Con timeout de seguridad: si las imágenes no cargan en 4s, mostrar igual
-  useEffect(() => {
-    let cancelled = false;
-
-    // Timeout de seguridad — mostrar carrusel aunque no todas las imágenes carguen
-    const safetyTimeout = setTimeout(() => {
-      if (!cancelled) setAllImagesReady(true);
-    }, 4000);
-
-    const preloadAll = () => {
-      const promises = categories.map((service) => {
-        // Si ya fue cargada antes, no volver a cargar
-        if (loadedImagesRef.current[service.category]) return Promise.resolve();
-
-        return new Promise((resolve) => {
-          const url = CATEGORY_IMAGES[service.category] || FALLBACK_IMAGE;
-          const img = new Image();
-          // Timeout individual por imagen (3s)
-          const imgTimeout = setTimeout(() => {
-            if (!cancelled) loadedImagesRef.current[service.category] = true;
-            resolve();
-          }, 3000);
-          img.onload = () => {
-            clearTimeout(imgTimeout);
-            if (!cancelled) loadedImagesRef.current[service.category] = true;
-            resolve();
-          };
-          img.onerror = () => {
-            clearTimeout(imgTimeout);
-            if (url !== FALLBACK_IMAGE) {
-              const fallback = new Image();
-              fallback.onload = () => {
-                if (!cancelled) loadedImagesRef.current[service.category] = true;
-                resolve();
-              };
-              fallback.onerror = () => {
-                if (!cancelled) loadedImagesRef.current[service.category] = true;
-                resolve();
-              };
-              fallback.src = FALLBACK_IMAGE;
-            } else {
-              if (!cancelled) loadedImagesRef.current[service.category] = true;
-              resolve();
-            }
-          };
-          img.src = url;
-        });
-      });
-
-      Promise.all(promises).then(() => {
-        clearTimeout(safetyTimeout);
-        if (!cancelled) setAllImagesReady(true);
-      });
-    };
-
-    preloadAll();
-
-    return () => {
-      cancelled = true;
-      clearTimeout(safetyTimeout);
-    };
-  }, [categories]);
-
-
 
   // ─── Espaciado responsive — card width + margen para separación visible ──
   // Card width = clamp(110px, 22vw, 240px)
@@ -402,7 +363,7 @@ function CategoryIconCarousel({
   useEffect(() => {
     const id = requestAnimationFrame(() => applyPositionsToDOM(offsetRef.current));
     return () => cancelAnimationFrame(id);
-  }, [categories, applyPositionsToDOM, allImagesReady]);
+  }, [categories, applyPositionsToDOM]);
 
   // ─── Render ───────────────────────────────────────────────────────
   if (categories.length === 0) return null;
@@ -442,6 +403,13 @@ function CategoryIconCarousel({
         {categories.map((service, index) => {
           const imageUrl = CATEGORY_IMAGES[service.category] || FALLBACK_IMAGE;
           const isDisabled = service.hasProviders === false;
+          // Heurística simple para fetchPriority basada en el índice prop
+          // (currentIndex). Las cards no-prioritarias siguen siendo eager pero
+          // con prioridad baja, así el browser carga primero las del centro
+          // sin nunca dejar a ninguna sin disparar.
+          const circularDelta = Math.abs(index - currentIndex);
+          const circularDistance = Math.min(circularDelta, categories.length - circularDelta);
+          const isPriorityImage = circularDistance <= 1;
 
           return (
             <div
@@ -502,8 +470,9 @@ function CategoryIconCarousel({
                   src={imageUrl}
                   alt={service.translatedName}
                   loading="eager"
-                  fetchPriority="high"
+                  fetchPriority={isPriorityImage ? 'high' : 'low'}
                   decoding="async"
+                  sizes="(max-width: 640px) 130px, (max-width: 1024px) 180px, 280px"
                   onError={(e) => {
                     if (e.target.src !== FALLBACK_IMAGE) e.target.src = FALLBACK_IMAGE;
                   }}

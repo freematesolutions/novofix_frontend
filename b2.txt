@@ -1,0 +1,1 @@
+{"success":true,"message":"Server is running smoothly","timestamp":"2026-04-28T20:17:23.768Z","environment":"production","uptime":1139.332607386,"memory":{"rss":131260416,"heapTotal":55812096,"heapUsed":54229720,"external":22715916,"arrayBuffers":18908751}}

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
+import Breadcrumbs from '@/components/seo/Breadcrumbs.jsx';
 
 function AboutUs() {
   const { t } = useTranslation();
@@ -57,12 +58,15 @@ function AboutUs() {
 
   return (
     <div className="max-w-3xl mx-auto py-6 sm:py-8 px-3 sm:px-4">
-      {/* Breadcrumb */}
-      <nav className="mb-6 text-sm text-gray-500">
-        <Link to="/" className="hover:text-brand-500 transition-colors">{t('common.home')}</Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-700 font-medium">{t('aboutPage.title')}</span>
-      </nav>
+      {/* Breadcrumb (SEO + a11y). Visual styling matches project palette;
+          BreadcrumbList JSON-LD is auto-emitted by <RouteSeo /> in App.jsx. */}
+      <Breadcrumbs
+        className="mb-6"
+        items={[
+          { labelKey: 'seo.breadcrumbs.home', path: '/' },
+          { labelKey: 'seo.breadcrumbs.about', path: '/sobre-nosotros' },
+        ]}
+      />
 
       {/* Header */}
       <div className="mb-10 text-center">

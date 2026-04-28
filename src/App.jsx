@@ -6,6 +6,7 @@ import Footer from './components/layout/Footer.jsx';
 import MobileBottomNav from './components/layout/MobileBottomNav.jsx';
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx';
 import { PageSkeleton } from './components/ui/SkeletonLoader.jsx';
+import RouteSeo from './components/seo/RouteSeo.jsx';
 import VerifyEmail from './pages/auth/VerifyEmail.jsx';
 import { useAuth } from './state/AuthContext.jsx';
 import { useLocation } from 'react-router-dom';
@@ -48,6 +49,9 @@ const AdminAlerts = lazy(() => import('./pages/admin/AdminAlerts.jsx'));
 const TermsOfService = lazy(() => import('./pages/shared/TermsOfService.jsx'));
 const PrivacyPolicy = lazy(() => import('./pages/shared/PrivacyPolicy.jsx'));
 const AboutUs = lazy(() => import('./pages/shared/AboutUs.jsx'));
+// Public SEO landings (Phase 6) — additive, do not affect existing flows
+const CategoryLanding = lazy(() => import('./pages/shared/CategoryLanding.jsx'));
+const ProviderPublicProfile = lazy(() => import('./pages/shared/ProviderPublicProfile.jsx'));
 
 function App() {
   const { pendingVerification, user } = useAuth();
@@ -66,6 +70,9 @@ function App() {
     <div className="min-h-screen flex flex-col">
       {/* Skip link for keyboard users */}
       <a href="#main-content" className="skip-link">{t('common.skipToContent')}</a>
+      {/* Per-route SEO defaults (title, description, OG, canonical, hreflang, robots, BreadcrumbList JSON-LD).
+          Pages may render their own <Seo /> to override with dynamic data. */}
+      <RouteSeo />
       {!hideHeader && <Header />}
       <ErrorBoundary>
       {/*
@@ -109,6 +116,9 @@ function App() {
           <Route path="/terminos" element={<TermsOfService />} />
           <Route path="/privacidad" element={<PrivacyPolicy />} />
           <Route path="/sobre-nosotros" element={<AboutUs />} />
+          {/* Public SEO landings (Phase 6) */}
+          <Route path="/categorias/:slug" element={<CategoryLanding />} />
+          <Route path="/profesional/:id" element={<ProviderPublicProfile />} />
           {/* Admin */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/usuarios" element={<AdminUsers />} />
