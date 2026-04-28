@@ -44,7 +44,23 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import sirv from 'sirv';
-import puppeteer from 'puppeteer';
+
+// Pick the correct Puppeteer flavor for the host:
+//  · Local dev / generic CI  → use the full `puppeteer` package (bundles its own Chromium).
+//  · Serverless (Vercel/AWS) → use `puppeteer-core` + `@sparticuz/chromium`, which
+//    ships a Brotli-packed Chromium with all required .so libraries already bundled
+//    (libnss3, libnspr4, fonts, etc.). The system Chromium that `puppeteer` downloads
+//    cannot run on Vercel because the build sandbox lacks those shared libraries.
+const IS_SERVERLESS = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+let puppeteer;
+let serverlessChromium = null;
+if (IS_SERVERLESS) {
+  puppeteer = (await import('puppeteer-core')).default;
+  serverlessChromium = (await import('@sparticuz/chromium')).default;
+} else {
+  puppeteer = (await import('puppeteer')).default;
+}
 
 // ─── Configuration ─────────────────────────────────────────────────────────
 
@@ -227,18 +243,26 @@ async function main() {
   const baseUrl = `http://127.0.0.1:${PORT}`;
   logOk(`static server listening at ${baseUrl}`);
 
-  // 2) Launch headless Chromium
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-    ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-  });
-  logOk('headless Chromium launched');
+  // 2) Launch headless Chromium (uses @sparticuz/chromium on Vercel, system on local)
+  const launchOptions = serverlessChromium
+    ? {
+        args: serverlessChromium.args,
+        defaultViewport: serverlessChromium.defaultViewport,
+        executablePath: await serverlessChromium.executablePath(),
+        headless: true,
+      }
+    : {
+        headless: 'new',
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+        ],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      };
+  const browser = await puppeteer.launch(launchOptions);
+  logOk(`headless Chromium launched (${serverlessChromium ? 'serverless' : 'local'})`);
 
   // Order routes so that "/" is rendered LAST. This is critical because the
   // SPA fallback served by sirv is dist/index.html — overwriting it before
