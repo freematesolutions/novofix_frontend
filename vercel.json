@@ -4,11 +4,11 @@
   "rewrites": [
     {
       "source": "/sitemap.xml",
-      "destination": "https://novofix-backend-dev.onrender.com/seo/sitemap.xml"
+      "destination": "https://novofix-backend-prod.onrender.com/seo/sitemap.xml"
     },
     {
       "source": "/robots.txt",
-      "destination": "https://novofix-backend-dev.onrender.com/seo/robots.txt"
+      "destination": "https://novofix-backend-prod.onrender.com/seo/robots.txt"
     },
     {
       "source": "/(.*)",
