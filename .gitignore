@@ -48,3 +48,17 @@ Desktop.ini
 
 # Misc
 *.tgz
+
+# SEO verification scratch files (curl downloads, ignore)
+dev-robots.txt
+dev-sitemap.xml
+dev-home.html
+prod-robots.txt
+prod-sitemap.xml
+prod-home.html
+frontend.html
+sitemap.xml
+robots.txt
+backend-root.txt
+b?.txt
+sitemap-backend.xml
