@@ -77,7 +77,16 @@ function Footer() {
           </span>
           <span className="hidden sm:inline">- {t('footer.tagline')}</span>
         </div>
-        <nav className="flex items-center gap-4" role="navigation" aria-label={t('footer.ariaLabel', 'Enlaces del pie')}>
+        <nav className="flex items-center gap-4 flex-wrap" role="navigation" aria-label={t('footer.ariaLabel', 'Enlaces del pie')}>
+          {isAuthenticated && (
+            <Link
+              to="/notificaciones#preferences"
+              className={`${accent.text} ${accent.hover} transition-colors`}
+              title={t('footer.notificationPreferencesTitle', 'Gestionar notificaciones por email')}
+            >
+              {t('footer.notificationPreferences', 'Preferencias de notificación')}
+            </Link>
+          )}
           <Link to={`/terminos?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.terms')}</Link>
           <Link to={`/privacidad?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.privacy')}</Link>
           <Link to={`/sobre-nosotros?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.aboutUs')}</Link>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient.js';
 import { getNotificationActionUrl } from '@/utils/notificationLinks.js';
@@ -107,6 +107,19 @@ export default function Notifications() {
 
   useEffect(()=>{ load(); }, [load]);
   useEffect(()=>{ loadPrefs(); }, [loadPrefs]);
+
+  // Auto-scroll al panel de preferencias si la URL incluye #preferences o ?tab=preferences
+  const location = useLocation();
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const wantsPrefs = location.hash === '#preferences' || params.get('tab') === 'preferences';
+    if (!wantsPrefs) return;
+    const el = document.getElementById('preferences');
+    if (el) {
+      // pequeño delay para asegurar render del bloque
+      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    }
+  }, [location.hash, location.search]);
 
   useEffect(() => {
     const handler = () => load();
@@ -329,7 +342,7 @@ export default function Notifications() {
         </div>
 
         {/* Preferencias de notificación */}
-        <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 overflow-hidden">
+        <div id="preferences" className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 overflow-hidden scroll-mt-24">
           <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 bg-gray-50/50">
             <div className="p-2 bg-brand-100 rounded-lg">
               <HiCog className="w-5 h-5 text-brand-600" />
