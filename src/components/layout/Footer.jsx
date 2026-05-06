@@ -77,10 +77,20 @@ function Footer() {
           </span>
           <span className="hidden sm:inline">- {t('footer.tagline')}</span>
         </div>
-        <nav className="flex items-center gap-4" role="navigation" aria-label={t('footer.ariaLabel', 'Enlaces del pie')}>
-          <Link to={`/terminos?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.terms')}</Link>
-          <Link to={`/privacidad?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.privacy')}</Link>
-          <Link to={`/sobre-nosotros?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors`}>{t('footer.aboutUs')}</Link>
+        <nav className="flex items-center gap-x-4 gap-y-2 flex-wrap justify-center md:justify-end w-full md:w-auto" role="navigation" aria-label={t('footer.ariaLabel', 'Enlaces del pie')}>
+          {isAuthenticated && (
+            <Link
+              to="/notificaciones#preferences"
+              className={`${accent.text} ${accent.hover} transition-colors whitespace-nowrap`}
+              title={t('footer.notificationPreferencesTitle', 'Gestionar notificaciones por email')}
+            >
+              <span className="sm:hidden">{t('footer.notificationPreferencesShort', 'Notificaciones')}</span>
+              <span className="hidden sm:inline">{t('footer.notificationPreferences', 'Preferencias de notificación')}</span>
+            </Link>
+          )}
+          <Link to={`/terminos?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors whitespace-nowrap`}>{t('footer.terms')}</Link>
+          <Link to={`/privacidad?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors whitespace-nowrap`}>{t('footer.privacy')}</Link>
+          <Link to={`/sobre-nosotros?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors whitespace-nowrap`}>{t('footer.aboutUs')}</Link>
         </nav>
       </div>
     </footer>

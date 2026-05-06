@@ -147,9 +147,18 @@ const VerifyEmail = () => {
       }, 1500);
     } catch (err) {
       setStatus('error');
-      setMessage(err.response?.data?.message || t('auth.verifyEmailPage.verifyError'));
+      const code = err.response?.data?.code;
+      let msg;
+      if (code === 'TOKEN_EXPIRED') {
+        msg = t('auth.verifyEmailPage.tokenExpired');
+      } else if (code === 'TOKEN_INVALID') {
+        msg = t('auth.verifyEmailPage.tokenInvalid');
+      } else {
+        msg = err.response?.data?.message || t('auth.verifyEmailPage.verifyError');
+      }
+      setMessage(msg);
     }
-  }, [token, navigate, setAuthState, clearPendingVerification]);
+  }, [token, navigate, setAuthState, clearPendingVerification, t]);
 
   const handleResend = async () => {
     if (!email || countdown > 0) return;
@@ -164,7 +173,14 @@ const VerifyEmail = () => {
       // Iniciar countdown de 60 segundos
       setCountdown(60);
     } catch (err) {
-      setMessage(err.response?.data?.message || t('auth.verifyEmailPage.resendError'));
+      const code = err.response?.data?.code;
+      let msg;
+      if (code === 'RATE_LIMITED' || err.response?.status === 429) {
+        msg = t('auth.verifyEmailPage.rateLimited');
+      } else {
+        msg = err.response?.data?.message || t('auth.verifyEmailPage.resendError');
+      }
+      setMessage(msg);
     } finally {
       setResending(false);
     }

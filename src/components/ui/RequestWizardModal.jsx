@@ -828,6 +828,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
 
     setLoading(true);
     let data;
+    let payload;
     try {
       // Generate description from selected problems + additional details
       const generatedDescription = generateAutoDescription();
@@ -839,7 +840,7 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
                                formData.coordinates?.lat && 
                                formData.coordinates?.lng;
       
-      const payload = {
+      payload = {
         title: isEditMode ? (formData.title || autoTitle) : autoTitle,
         description: isEditMode ? (formData.additionalDetails || generatedDescription) : generatedDescription,
         category: formData.category,
@@ -890,9 +891,15 @@ function RequestWizardModal({ provider, isOpen, onClose, initialCategory = null,
         toast.warning(t('client.createRequest.duplicateWarning'));
         return;
       } else {
+        const serverErrors = err?.response?.data?.errors;
         console.error(`Error ${isEditMode ? 'updating' : 'creating'} request:`, err);
-        const msg = err?.response?.data?.message || (isEditMode ? t('ui.requestWizard.updateError') : t('ui.requestWizard.createError'));
-        toast.error(msg);
+        console.error('🔴 Server validation errors:', serverErrors);
+        console.error('🔴 Payload sent:', payload);
+        const baseMsg = err?.response?.data?.message || (isEditMode ? t('ui.requestWizard.updateError') : t('ui.requestWizard.createError'));
+        const detail = Array.isArray(serverErrors) && serverErrors.length
+          ? `${baseMsg}: ${serverErrors.slice(0, 3).join(' | ')}`
+          : baseMsg;
+        toast.error(detail);
         return;
       }
     } finally {
