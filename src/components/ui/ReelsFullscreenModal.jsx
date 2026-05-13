@@ -119,6 +119,9 @@ const FullscreenReelSlide = ({ reel, isActive, onViewProfile, t }) => {
         loop
         muted={isMuted}
         playsInline
+        // crossOrigin: mitiga ERR_CACHE_OPERATION_NOT_SUPPORTED en Chrome
+        // al hacer range requests sobre el MP4 servido por Cloudinary.
+        crossOrigin="anonymous"
         preload="auto"
         onError={() => {
           // Fallback: si falla la URL optimizada, intentar con la original
