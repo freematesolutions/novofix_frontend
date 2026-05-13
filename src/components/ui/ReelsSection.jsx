@@ -188,6 +188,9 @@ const ReelCard = ({ reel, isActive, isNearby, onViewProfile, onOpenFullscreen, i
           loop
           muted={isMuted}
           playsInline
+          // crossOrigin: mitiga ERR_CACHE_OPERATION_NOT_SUPPORTED en Chrome
+          // al hacer range requests sobre el MP4 servido por Cloudinary.
+          crossOrigin="anonymous"
           preload={isActive ? 'auto' : 'metadata'}
           onCanPlay={() => setVideoReady(true)}
           onLoadedData={() => setVideoReady(true)}
