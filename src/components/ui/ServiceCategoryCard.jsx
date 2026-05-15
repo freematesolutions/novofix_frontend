@@ -2,7 +2,12 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CATEGORY_IMAGES, FALLBACK_IMAGE } from '@/utils/categoryImages.js';
+import {
+  CATEGORY_IMAGES,
+  FALLBACK_IMAGE,
+  buildSrcSet,
+  CATEGORY_CARD_SIZES,
+} from '@/utils/categoryImages.js';
 import { slugifyCategory } from '@/utils/categories.js';
 
 
@@ -44,6 +49,8 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
         )}
         <img
           src={imageError ? FALLBACK_IMAGE : imageUrl}
+          srcSet={imageError ? undefined : buildSrcSet(category)}
+          sizes={CATEGORY_CARD_SIZES}
           alt={category}
           onLoad={() => setImageLoaded(true)}
           onError={() => {
@@ -55,10 +62,12 @@ function ServiceCategoryCard({ category, translatedName, translatedDescription, 
             }
           }}
           className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-          loading="eager"
+          // Solo las primeras tarjetas (priority) cargan eager; el resto se difiere
+          // hasta que entran en viewport. Esto reduce drásticamente las descargas
+          // paralelas en el primer paint del Home (22 categorías → 3 inmediatas).
+          loading={priority ? 'eager' : 'lazy'}
           fetchPriority={priority ? 'high' : 'low'}
           decoding="async"
-          sizes="(max-width: 640px) 340px, (max-width: 1024px) 380px, 420px"
         />
         
         {/* Overlay gradient oscuro */}
