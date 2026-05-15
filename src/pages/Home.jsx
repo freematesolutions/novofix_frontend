@@ -953,7 +953,7 @@ useEffect(() => {
                       providerCount={service.providerCount}
                       onClick={handleCategoryClick}
                       disabled={!service.hasProviders}
-                      priority={index === 0}
+                      priority={index < 3}
                     />
                   </div>
                 ))}

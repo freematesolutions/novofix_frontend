@@ -4240,6 +4240,16 @@
         "message": "{{clientName}} has updated the details of the request \"{{requestTitle}}\". Review the changes.",
         "messageDefault": "A client has updated a service request. Review the new details."
       },
+      "INVOICE_RECEIVED": {
+        "title": "Invoice received 📄",
+        "message": "{{providerName}} has sent you an invoice for ${{amount}}.",
+        "messageDefault": "You received an invoice from a professional."
+      },
+      "INVOICE_VIEWED": {
+        "title": "Invoice viewed 👁️",
+        "message": "{{clientName}} has viewed your invoice{{invoiceNumber}}.",
+        "messageDefault": "The client has viewed your invoice."
+      },
       "SUBSCRIPTION_ACTIVATED": {
         "title": "Subscription activated! 🎉",
         "message": "Your {{planName}} plan has been activated successfully. Enjoy all its benefits!"
