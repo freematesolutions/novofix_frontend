@@ -1,11 +1,57 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import api from '@/state/apiClient.js';
 import ImageZoomModal from './ImageZoomModal.jsx';
 import ProviderProfileModal from './ProviderProfileModal.jsx';
-import BeforeAfterGallery from './BeforeAfterGallery.jsx';
+// BeforeAfterGallery se carga en su propio chunk y se monta solo cuando la
+// sección entra (o está cerca de entrar) en el viewport. Reduce el JS
+// inicial de Home y evita la carga de /guest/before-after en pantallas que
+// nunca lo verán (móviles que no hacen scroll hasta el fondo).
+const BeforeAfterGallery = lazy(() => import('./BeforeAfterGallery.jsx'));
 import { TestimonialSkeleton, ProfileOverlaySkeleton } from './SkeletonLoader.jsx';
+
+/**
+ * Renderiza children sólo cuando el placeholder entra en el viewport
+ * (con un margen anticipado para precargar el chunk antes de que sea visible).
+ */
+function LazyOnVisible({ children, rootMargin = '300px', minHeight = 320 }) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (visible) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setVisible(true);
+      return;
+    }
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [visible, rootMargin]);
+
+  return (
+    <div ref={ref} style={{ minHeight: visible ? undefined : minHeight }}>
+      {visible ? children : null}
+    </div>
+  );
+}
+
+LazyOnVisible.propTypes = {
+  children: PropTypes.node,
+  rootMargin: PropTypes.string,
+  minHeight: PropTypes.number,
+};
 
 // Star Rating Component
 const StarRating = ({ rating, size = 'sm' }) => {
@@ -1229,8 +1275,12 @@ function TestimonialsSection() {
                 />
               )}
 
-              {/* Before/After de trabajos completados */}
-              <BeforeAfterGallery onViewProfile={handleViewProfile} />
+              {/* Before/After de trabajos completados (lazy: chunk + datos solo cuando se acerca al viewport) */}
+              <LazyOnVisible minHeight={420}>
+                <Suspense fallback={null}>
+                  <BeforeAfterGallery onViewProfile={handleViewProfile} />
+                </Suspense>
+              </LazyOnVisible>
 
               {/* Work Photos Gallery - Sección independiente con espaciado propio */}
               <div id="gallery-section" className="pt-14 scroll-mt-20">
