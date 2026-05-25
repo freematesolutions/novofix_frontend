@@ -86,11 +86,33 @@ export default defineConfig(({ mode }) => {
           // keep React with the main entry guarantees correct evaluation
           // order.
           manualChunks(id) {
+            // Locale JSONs ship as their own chunk so editing translations
+            // does not bust the main app chunk (and vice-versa).
+            if (id.includes('/src/locales/')) return 'locales';
+
             if (!id.includes('node_modules')) return undefined;
+
+            // Heavy / rarely-changing third-party libs split into dedicated
+            // chunks so the browser can cache them independently.
             if (id.includes('pdfjs-dist') || id.includes('jspdf') || id.includes('html2canvas')) return 'pdf';
             if (id.includes('node_modules/leaflet')) return 'leaflet';
             if (id.includes('@stripe/stripe-js') || id.includes('@stripe/react-stripe-js')) return 'stripe';
             if (id.includes('socket.io-client') || id.includes('engine.io-client')) return 'socket';
+
+            // i18n stack — pulled in eagerly by i18n.js but unlikely to
+            // change with normal feature work.
+            if (
+              id.includes('node_modules/i18next') ||
+              id.includes('node_modules/react-i18next') ||
+              id.includes('node_modules/i18next-browser-languagedetector')
+            ) return 'i18n';
+
+            // SEO helpers (react-helmet-async) — pure JS, cacheable.
+            if (id.includes('node_modules/react-helmet-async')) return 'seo';
+
+            // Routing — medium size, mostly stable across releases.
+            if (id.includes('node_modules/react-router')) return 'router';
+
             return undefined;
           }
         }
