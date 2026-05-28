@@ -35,6 +35,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
     <link rel="dns-prefetch" href="https://images.unsplash.com">
+    <!-- Cloudinary sirve TODOS los reels e imágenes de portafolio en la Home.
+         preconnect (vs dns-prefetch) hace TLS+TCP por adelantado, ahorrando
+         100-300ms en la primera petición de imagen/video. crossorigin es
+         requerido porque los <img>/<video> de Cloudinary se sirven sin
+         credenciales (modo CORS anónimo). -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
     <link rel="dns-prefetch" href="https://res.cloudinary.com">
     <!-- LCP hint: primera imagen visible del carrusel principal en Home.
          imagesrcset permite al navegador elegir la variante adecuada al
