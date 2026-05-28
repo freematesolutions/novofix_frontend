@@ -191,6 +191,10 @@ const ReelCard = ({ reel, isActive, isNearby, onViewProfile, onOpenFullscreen, i
           // crossOrigin: mitiga ERR_CACHE_OPERATION_NOT_SUPPORTED en Chrome
           // al hacer range requests sobre el MP4 servido por Cloudinary.
           crossOrigin="anonymous"
+          // preload graduado:
+          //  - activo  → 'auto'     (descarga el primer fragmento, listo para play instantáneo)
+          //  - nearby  → 'metadata' (~50KB, prepara dimensiones para swipe rápido)
+          //  - resto   → no se monta (shouldMountVideo=false)
           preload={isActive ? 'auto' : 'metadata'}
           onCanPlay={() => setVideoReady(true)}
           onLoadedData={() => setVideoReady(true)}
