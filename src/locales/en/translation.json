@@ -3354,6 +3354,18 @@
       "noData": {
         "title": "No data available",
         "subtitle": "No information to display yet"
+      },
+      "quickActions": {
+        "title": "Quick access",
+        "subtitle": "Shortcuts to admin tools",
+        "cmsContents": "Editorial content",
+        "cmsFaq": "FAQ",
+        "moderation": "Moderation",
+        "alerts": "Alerts",
+        "users": "Users",
+        "providers": "Providers",
+        "requests": "Requests",
+        "bookings": "Bookings"
       }
     },
     "users": {
