@@ -91,6 +91,7 @@ function Footer() {
           <Link to={`/terminos?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors whitespace-nowrap`}>{t('footer.terms')}</Link>
           <Link to={`/privacidad?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors whitespace-nowrap`}>{t('footer.privacy')}</Link>
           <Link to={`/sobre-nosotros?from=${encodeURIComponent(location.pathname)}`} className={`${accent.text} ${accent.hover} transition-colors whitespace-nowrap`}>{t('footer.aboutUs')}</Link>
+          <Link to="/faq" className={`${accent.text} ${accent.hover} transition-colors whitespace-nowrap`}>{t('footer.faq', 'FAQ')}</Link>
         </nav>
       </div>
     </footer>

@@ -2,11 +2,17 @@ import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import Breadcrumbs from '@/components/seo/Breadcrumbs.jsx';
+import useCmsContent from '@/state/useCmsContent.js';
+import CmsRichContent from '@/components/cms/CmsRichContent.jsx';
 
 function TermsOfService() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const from = searchParams.get('from');
+
+  // CMS-managed content: si el admin publicó contenido propio, se renderiza
+  // en lugar de las claves i18n por defecto. Fallback transparente.
+  const { data: cms, isCmsContent } = useCmsContent('terms');
 
   // Determine back link destination and label based on origin
   const isRegistration = from === 'registro-proveedor' || from === 'registrarse';
@@ -58,26 +64,42 @@ function TermsOfService() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold">{t('termsPage.title')}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{(isCmsContent && cms?.title) || t('termsPage.title')}</h1>
         </div>
-        <p className="text-gray-500 text-sm">{t('termsPage.lastUpdated')}: {t('termsPage.updatedDate')}</p>
+        <p className="text-gray-500 text-sm">{t('termsPage.lastUpdated')}: {cms?.lastEditedAt ? new Date(cms.lastEditedAt).toLocaleDateString() : t('termsPage.updatedDate')}</p>
         <p className="mt-3 text-gray-600 leading-relaxed">{t('termsPage.intro')}</p>
       </div>
 
-      {/* Sections */}
-      <div className="space-y-8">
-        {sections.map((section, idx) => (
-          <section key={idx} className="group">
-            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-              <span className="text-brand-500 text-sm font-bold">{String(idx + 1).padStart(2, '0')}</span>
-              {section.title}
-            </h2>
-            <div className="text-gray-600 leading-relaxed whitespace-pre-line pl-7">
-              {section.content}
-            </div>
-          </section>
-        ))}
-      </div>
+      {/* Sections — CMS content takes precedence over i18n hardcoded sections. */}
+      {isCmsContent ? (
+        <div className="space-y-8">
+          {cms.sections.map((section, idx) => (
+            <section key={section.id || idx} className="group">
+              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <span className="text-brand-500 text-sm font-bold">{String(idx + 1).padStart(2, '0')}</span>
+                {section.label}
+              </h2>
+              <div className="pl-7">
+                <CmsRichContent html={section.bodyHtml} />
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {sections.map((section, idx) => (
+            <section key={idx} className="group">
+              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <span className="text-brand-500 text-sm font-bold">{String(idx + 1).padStart(2, '0')}</span>
+                {section.title}
+              </h2>
+              <div className="text-gray-600 leading-relaxed whitespace-pre-line pl-7">
+                {section.content}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
 
       {/* Disclaimers */}
       <div className="mt-10 space-y-6">

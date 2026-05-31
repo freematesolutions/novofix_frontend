@@ -2,11 +2,16 @@ import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import Breadcrumbs from '@/components/seo/Breadcrumbs.jsx';
+import useCmsContent from '@/state/useCmsContent.js';
+import CmsRichContent from '@/components/cms/CmsRichContent.jsx';
 
 function PrivacyPolicy() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const from = searchParams.get('from');
+
+  // CMS-managed content fallback transparente a i18n.
+  const { data: cms, isCmsContent } = useCmsContent('privacy');
 
   // Determine back link destination and label based on origin
   const isRegistration = from === 'registro-proveedor' || from === 'registrarse';
@@ -57,26 +62,40 @@ function PrivacyPolicy() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold">{t('privacyPage.title')}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{(isCmsContent && cms?.title) || t('privacyPage.title')}</h1>
         </div>
-        <p className="text-gray-500 text-sm">{t('privacyPage.lastUpdated')}: {t('privacyPage.updatedDate')}</p>
+        <p className="text-gray-500 text-sm">{t('privacyPage.lastUpdated')}: {cms?.lastEditedAt ? new Date(cms.lastEditedAt).toLocaleDateString() : t('privacyPage.updatedDate')}</p>
         <p className="mt-3 text-gray-600 leading-relaxed">{t('privacyPage.intro')}</p>
       </div>
 
-      {/* Sections */}
-      <div className="space-y-8">
-        {sections.map((section, idx) => (
-          <section key={idx} className="group">
-            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-              <span className="text-brand-500 text-sm font-bold">{String(idx + 1).padStart(2, '0')}</span>
-              {section.title}
-            </h2>
-            <div className="text-gray-600 leading-relaxed whitespace-pre-line pl-7">
-              {section.content}
-            </div>
-          </section>
-        ))}
-      </div>
+      {/* Sections — CMS toma precedencia sobre i18n. */}
+      {isCmsContent ? (
+        <div className="space-y-8">
+          {cms.sections.map((section, idx) => (
+            <section key={section.id || idx} className="group">
+              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <span className="text-brand-500 text-sm font-bold">{String(idx + 1).padStart(2, '0')}</span>
+                {section.label}
+              </h2>
+              <div className="pl-7"><CmsRichContent html={section.bodyHtml} /></div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {sections.map((section, idx) => (
+            <section key={idx} className="group">
+              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <span className="text-brand-500 text-sm font-bold">{String(idx + 1).padStart(2, '0')}</span>
+                {section.title}
+              </h2>
+              <div className="text-gray-600 leading-relaxed whitespace-pre-line pl-7">
+                {section.content}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
 
       {/* Back link */}
       <div className="mt-12 pt-6 border-t border-gray-200">

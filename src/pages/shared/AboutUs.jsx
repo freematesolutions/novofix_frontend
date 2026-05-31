@@ -2,11 +2,17 @@ import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import Breadcrumbs from '@/components/seo/Breadcrumbs.jsx';
+import useCmsContent from '@/state/useCmsContent.js';
+import CmsRichContent from '@/components/cms/CmsRichContent.jsx';
 
 function AboutUs() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const from = searchParams.get('from');
+
+  // Contenido editable opcional: si el admin lo publica, se anexa al final
+  // sin alterar la maquetación visual de la página ya existente.
+  const { data: cms, isCmsContent } = useCmsContent('about');
 
   const backTo = from ? decodeURIComponent(from) : '/';
   const backLabel = (from && decodeURIComponent(from) !== '/')
@@ -121,6 +127,23 @@ function AboutUs() {
         <h2 className="text-lg font-semibold mb-3">{t('aboutPage.story.title')}</h2>
         <p className="text-gray-600 leading-relaxed whitespace-pre-line">{t('aboutPage.story.content')}</p>
       </div>
+
+      {/* Contenido editorial extra desde el CMS (opcional) */}
+      {isCmsContent && cms?.sections?.length > 0 && (
+        <div className="mb-10 space-y-8">
+          {cms.title && cms.title !== t('aboutPage.title') && (
+            <h2 className="text-xl font-bold text-center">{cms.title}</h2>
+          )}
+          {cms.sections.map((section, idx) => (
+            <section key={section.id || idx}>
+              {section.label && (
+                <h3 className="text-lg font-semibold mb-3">{section.label}</h3>
+              )}
+              <CmsRichContent html={section.bodyHtml} />
+            </section>
+          ))}
+        </div>
+      )}
 
       {/* Back link */}
       <div className="mt-12 pt-6 border-t border-gray-200">

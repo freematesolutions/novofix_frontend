@@ -49,6 +49,10 @@ const AdminAlerts = lazy(() => import('./pages/admin/AdminAlerts.jsx'));
 const TermsOfService = lazy(() => import('./pages/shared/TermsOfService.jsx'));
 const PrivacyPolicy = lazy(() => import('./pages/shared/PrivacyPolicy.jsx'));
 const AboutUs = lazy(() => import('./pages/shared/AboutUs.jsx'));
+const Faq = lazy(() => import('./pages/shared/Faq.jsx'));
+const CmsContents = lazy(() => import('./pages/admin/CmsContents.jsx'));
+const CmsContentEditor = lazy(() => import('./pages/admin/CmsContentEditor.jsx'));
+const CmsFaqManager = lazy(() => import('./pages/admin/CmsFaqManager.jsx'));
 // Public SEO landings (Phase 6) — additive, do not affect existing flows
 const CategoryLanding = lazy(() => import('./pages/shared/CategoryLanding.jsx'));
 const ProviderPublicProfile = lazy(() => import('./pages/shared/ProviderPublicProfile.jsx'));
@@ -116,6 +120,7 @@ function App() {
           <Route path="/terminos" element={<TermsOfService />} />
           <Route path="/privacidad" element={<PrivacyPolicy />} />
           <Route path="/sobre-nosotros" element={<AboutUs />} />
+          <Route path="/faq" element={<Faq />} />
           {/* Public SEO landings (Phase 6) */}
           <Route path="/categorias/:slug" element={<CategoryLanding />} />
           <Route path="/profesional/:id" element={<ProviderPublicProfile />} />
@@ -127,6 +132,10 @@ function App() {
           <Route path="/admin/solicitudes" element={<AdminRequests />} />
           <Route path="/admin/reservas" element={<AdminBookings />} />
           <Route path="/admin/reportes" element={<AdminReports />} />
+          {/* CMS — contenidos editoriales y FAQ */}
+          <Route path="/admin/contenidos" element={<CmsContents />} />
+          <Route path="/admin/contenidos/:key" element={<CmsContentEditor />} />
+          <Route path="/admin/faq" element={<CmsFaqManager />} />
         </Routes>
         </Suspense>
       </main>

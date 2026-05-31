@@ -4532,5 +4532,97 @@
         "ctaSubtitle": "Create a free request and get a quote within minutes."
       }
     }
+  },
+  "faqPage": {
+    "title": "Frequently asked questions",
+    "intro": "We answer the most common questions about NovoFix. Can't find what you need? Get in touch.",
+    "breadcrumb": "FAQ",
+    "empty": "No questions published yet. Check back soon.",
+    "all": "All",
+    "categories": {
+      "general": "General",
+      "payment": "Payments",
+      "provider": "Professional",
+      "client": "Client"
+    },
+    "support": {
+      "title": "Still have doubts?",
+      "desc": "Our team replies within 24 hours.",
+      "cta": "Contact support"
+    }
+  },
+  "cmsAdmin": {
+    "loadError": "Could not load content.",
+    "contents": {
+      "title": "Editorial content",
+      "subtitle": "Edit public site copy without a redeploy.",
+      "lastEdited": "Last edited: {{date}}",
+      "version": "Version {{v}}",
+      "notPublished": "Not published yet",
+      "edit": "Edit",
+      "manageFaq": "Manage FAQ"
+    },
+    "keys": {
+      "terms": "Terms & Conditions",
+      "privacy": "Privacy Policy",
+      "about": "About Us",
+      "hero": "Home hero",
+      "contact": "Contact details"
+    },
+    "editor": {
+      "back": "Back",
+      "version": "v.{{v}}",
+      "lastPublished": "Last published: {{date}}",
+      "neverPublished": "Not published yet",
+      "titleField": "Title",
+      "titlePlaceholder": "Public page title",
+      "noSections": "No sections yet. Add the first one to begin.",
+      "addSection": "Add section",
+      "removeSection": "Remove section",
+      "sectionLabel": "Section label",
+      "markdownPlaceholder": "Write in Markdown… (## Heading, **bold**, [text](url), lists with -)",
+      "preview": "Preview",
+      "showPreview": "Show preview",
+      "hidePreview": "Hide preview",
+      "save": "Publish changes",
+      "saving": "Publishing…",
+      "saved": "Published successfully (v.{{v}}).",
+      "saveError": "Save failed. Please try again.",
+      "loadError": "Could not load the editor.",
+      "confirmRemoveSection": "Remove this section? The change applies on publish.",
+      "history": "History",
+      "rollback": "Restore",
+      "rollbackError": "Could not restore the version.",
+      "rolledBack": "Restored to v.{{v}}.",
+      "confirmRollback": "Restore version {{v}}? A new version with that content will be created.",
+      "sectionsCount": "sections",
+      "untitled": "(no title)"
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "subtitle": "Manage FAQ shown on /faq.",
+      "loadError": "Could not load questions.",
+      "saveError": "Could not save the question.",
+      "deleteError": "Could not delete the question.",
+      "created": "Question created.",
+      "updated": "Question updated.",
+      "deleted": "Question deleted.",
+      "confirmDelete": "Permanently delete this question?",
+      "newTitle": "New question",
+      "editingTitle": "Editing question",
+      "newButton": "New",
+      "cancel": "Cancel",
+      "category": "Category",
+      "order": "Order",
+      "active": "Active",
+      "inactive": "Inactive",
+      "question": "Question (ES / EN)",
+      "answer": "Answer",
+      "answerPlaceholder": "Supports basic Markdown.",
+      "create": "Create",
+      "listTitle": "Items",
+      "empty": "No questions yet.",
+      "previewAnswer": "Show answer (EN)"
+    }
   }
 }
