@@ -3404,6 +3404,18 @@
       "noData": {
         "title": "Sin datos disponibles",
         "subtitle": "Aún no hay información para mostrar"
+      },
+      "quickActions": {
+        "title": "Acceso rápido",
+        "subtitle": "Atajos a las herramientas de administración",
+        "cmsContents": "Contenidos editoriales",
+        "cmsFaq": "Preguntas frecuentes",
+        "moderation": "Moderación",
+        "alerts": "Alertas",
+        "users": "Usuarios",
+        "providers": "Proveedores",
+        "requests": "Solicitudes",
+        "bookings": "Contratos"
       }
     },
     "users": {

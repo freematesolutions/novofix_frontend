@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
 import { AdminSkeleton } from '@/components/ui/SkeletonLoader.jsx';
-import { HiChartBar, HiUsers, HiUserGroup, HiBriefcase, HiClipboardList, HiCalendar, HiShieldCheck, HiCurrencyDollar, HiTrendingUp, HiClock, HiCheckCircle, HiRefresh } from 'react-icons/hi';
+import { HiChartBar, HiUsers, HiUserGroup, HiBriefcase, HiClipboardList, HiCalendar, HiShieldCheck, HiCurrencyDollar, HiTrendingUp, HiClock, HiCheckCircle, HiRefresh, HiDocumentText, HiQuestionMarkCircle, HiBell, HiCog } from 'react-icons/hi';
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -121,6 +121,31 @@ export default function AdminDashboard() {
               gradient="from-dark-500 to-dark-700"
               highlight={data.overview?.pendingModeration > 0}
             />
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dark-500 to-dark-700 flex items-center justify-center">
+                  <HiCog className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">{t('admin.dashboard.quickActions.title')}</h2>
+                  <p className="text-sm text-gray-500">{t('admin.dashboard.quickActions.subtitle')}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <QuickAction to="/admin/contenidos" icon={<HiDocumentText className="w-5 h-5" />} label={t('admin.dashboard.quickActions.cmsContents')} gradient="from-brand-500 to-brand-600" />
+              <QuickAction to="/admin/faq" icon={<HiQuestionMarkCircle className="w-5 h-5" />} label={t('admin.dashboard.quickActions.cmsFaq')} gradient="from-brand-500 to-brand-600" />
+              <QuickAction to="/admin/moderacion" icon={<HiShieldCheck className="w-5 h-5" />} label={t('admin.dashboard.quickActions.moderation')} gradient="from-accent-500 to-accent-600" />
+              <QuickAction to="/admin/alertas" icon={<HiBell className="w-5 h-5" />} label={t('admin.dashboard.quickActions.alerts')} gradient="from-accent-500 to-accent-600" />
+              <QuickAction to="/admin/usuarios" icon={<HiUsers className="w-5 h-5" />} label={t('admin.dashboard.quickActions.users')} gradient="from-dark-500 to-dark-700" />
+              <QuickAction to="/admin/proveedores" icon={<HiBriefcase className="w-5 h-5" />} label={t('admin.dashboard.quickActions.providers')} gradient="from-dark-500 to-dark-700" />
+              <QuickAction to="/admin/solicitudes" icon={<HiClipboardList className="w-5 h-5" />} label={t('admin.dashboard.quickActions.requests')} gradient="from-dark-500 to-dark-700" />
+              <QuickAction to="/admin/reservas" icon={<HiCalendar className="w-5 h-5" />} label={t('admin.dashboard.quickActions.bookings')} gradient="from-dark-500 to-dark-700" />
+            </div>
           </div>
 
           {/* Revenue Section */}
@@ -288,4 +313,20 @@ function getStatusStyle(status) {
 function fmtCurrency(v) {
   if (!v && v !== 0) return '—';
   try { return Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v); } catch { return String(v); }
+}
+
+function QuickAction({ to, icon, label, gradient }) {
+  return (
+    <Link
+      to={to}
+      className="group flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-transparent hover:shadow-md transition-all bg-white"
+    >
+      <span className={`w-10 h-10 rounded-lg bg-linear-to-br ${gradient} flex items-center justify-center text-white shrink-0`}>
+        {icon}
+      </span>
+      <span className="text-sm font-medium text-gray-800 group-hover:text-gray-900 line-clamp-2">
+        {label}
+      </span>
+    </Link>
+  );
 }
