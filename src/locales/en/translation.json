@@ -3360,6 +3360,7 @@
         "subtitle": "Shortcuts to admin tools",
         "cmsContents": "Editorial content",
         "cmsFaq": "FAQ",
+        "cmsServiceCategories": "Service categories",
         "moderation": "Moderation",
         "alerts": "Alerts",
         "users": "Users",
@@ -4608,7 +4609,12 @@
       "rolledBack": "Restored to v.{{v}}.",
       "confirmRollback": "Restore version {{v}}? A new version with that content will be created.",
       "sectionsCount": "sections",
-      "untitled": "(no title)"
+      "untitled": "(no title)",
+      "resetFromDefaults": "Reimport template",
+      "resetHelp": "Reloads all original site sections. Your current version stays in history.",
+      "confirmReset": "Reimport the original template (ES + EN)? Current content will be moved to history and you can restore it later.",
+      "resetDone": "Template reimported: {{es}} sections in ES and {{en}} in EN.",
+      "resetError": "Could not reimport the template."
     },
     "faq": {
       "title": "Frequently asked questions",
@@ -4635,6 +4641,26 @@
       "listTitle": "Items",
       "empty": "No questions yet.",
       "previewAnswer": "Show answer (EN)"
+    },
+    "serviceCategories": {
+      "title": "Service categories",
+      "subtitle": "Rename the visible label and short description of each category without touching the canonical key.",
+      "warningTitle": "Important",
+      "warningBody": "Only edits what the user SEES (label + description). The canonical key (Reparaciones, Plomería, etc.) is tied to provider profiles, requests and SEO URLs and is not changed here. Leaving a field empty makes that category keep reading the original site text.",
+      "loadError": "Could not load categories.",
+      "saveError": "Could not save the category.",
+      "saved": "Category \"{{key}}\" saved.",
+      "resetError": "Could not reset the category.",
+      "resetDone": "Category \"{{key}}\" reset to original text.",
+      "confirmReset": "Remove the override for \"{{key}}\" and go back to original site text?",
+      "resetButton": "Reset",
+      "resetHelp": "Removes the override and goes back to the i18n text.",
+      "customized": "Customized",
+      "labelField": "Visible label",
+      "labelPlaceholder": "How it appears in cards, hero, breadcrumbs…",
+      "descriptionField": "Short description",
+      "descriptionPlaceholder": "Short phrase below the name.",
+      "searchPlaceholder": "Search category by canonical name…"
     }
   }
 }

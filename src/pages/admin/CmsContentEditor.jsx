@@ -138,6 +138,20 @@ export default function CmsContentEditor() {
     } finally { setSaving(false); }
   };
 
+  const doResetFromDefaults = async () => {
+    if (!confirm(t('cmsAdmin.editor.confirmReset'))) return;
+    setSaving(true); setError(''); setSuccess('');
+    try {
+      const { data } = await api.post(`/admin/cms/contents/${key}/reset-from-defaults`, { locale: 'both' });
+      const counts = data?.data?.sectionsCount || {};
+      setSuccess(t('cmsAdmin.editor.resetDone', { es: counts.es ?? 0, en: counts.en ?? 0 }));
+      invalidateCmsCache(key);
+      await load();
+    } catch (e) {
+      setError(e?.response?.data?.message || t('cmsAdmin.editor.resetError'));
+    } finally { setSaving(false); }
+  };
+
   const previewHtmls = useMemo(
     () => draft.sections.map((s) => previewMarkdownToHtml(s.bodyMarkdown)),
     [draft.sections]
@@ -283,7 +297,17 @@ export default function CmsContentEditor() {
         </div>
 
         {/* Acciones */}
-        <div className="mt-6 flex items-center justify-end gap-2 sticky bottom-2 bg-white/90 backdrop-blur p-2 rounded-lg">
+        <div className="mt-6 flex items-center justify-between gap-2 flex-wrap sticky bottom-2 bg-white/90 backdrop-blur p-2 rounded-lg">
+          <button
+            type="button"
+            onClick={doResetFromDefaults}
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 text-sm disabled:opacity-60 transition-colors"
+            title={t('cmsAdmin.editor.resetHelp')}
+          >
+            <HiRefresh className="w-4 h-4" />
+            {t('cmsAdmin.editor.resetFromDefaults')}
+          </button>
           <button
             onClick={save}
             disabled={saving}
