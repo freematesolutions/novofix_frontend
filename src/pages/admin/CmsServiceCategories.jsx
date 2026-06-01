@@ -11,30 +11,66 @@
 //   - URLs SEO ya indexadas (/categorias/plomeria, etc.)
 // Cambiarla rompería datos históricos y SEO.
 //
-// Lo que sí podemos cambiar de forma 100% segura: cómo se MUESTRA al usuario.
-// Eso es exactamente lo que esta página gestiona.
+// UX:
+//   - Inputs prellenados con el override existente o, si no hay, con el texto
+//     ORIGINAL del sitio (leído del JSON de i18n directo, NO del runtime de
+//     i18next porque ese ya tiene los overrides aplicados por
+//     useServiceCategoryLabels).
+//   - Cada input muestra "Original: …" como referencia inmutable.
+//   - Al guardar, los campos cuyo valor coincida EXACTAMENTE con el original
+//     se mandan como string vacío → el backend los trata como "sin override"
+//     → la categoría sigue usando el texto del i18n para ese campo/idioma.
+//   - Se permite editar SOLO un idioma o SOLO label/description: lo que no se
+//     toque, no se ensucia.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
 import { refreshServiceCategoryLabels } from '@/state/useServiceCategoryLabels.js';
+import esTranslation from '@/locales/es/translation.json';
+import enTranslation from '@/locales/en/translation.json';
 import { HiViewGrid, HiSave, HiRefresh, HiSearch, HiCheckCircle } from 'react-icons/hi';
+
+// Lee los textos ORIGINALES directamente del JSON empaquetado.
+// Usamos el JSON crudo en vez de t() porque al boot el hook
+// useServiceCategoryLabels ya pisa el bundle con los overrides — y aquí
+// necesitamos el valor inmutable de fábrica.
+const SOURCES = { es: esTranslation, en: enTranslation };
+function originalLabel(key, locale) {
+  return SOURCES[locale]?.home?.categories?.[key] || key;
+}
+function originalDescription(key, locale) {
+  return SOURCES[locale]?.home?.categoryDescriptions?.[key] || '';
+}
 
 export default function CmsServiceCategories() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { role, isAuthenticated } = useAuth();
 
-  const [items, setItems] = useState([]);   // [{ canonicalKey, label:{es,en}, description:{es,en}, hasOverride }]
-  const [edits, setEdits] = useState({});   // { canonicalKey: { label:{es,en}, description:{es,en} } }
+  const [items, setItems] = useState([]);
+  const [edits, setEdits] = useState({});
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [query, setQuery] = useState('');
+
+  // Memoizamos los originales por categoría (no cambian nunca).
+  const originals = useMemo(() => {
+    const map = {};
+    for (const it of items) {
+      const k = it.canonicalKey;
+      map[k] = {
+        label: { es: originalLabel(k, 'es'), en: originalLabel(k, 'en') },
+        description: { es: originalDescription(k, 'es'), en: originalDescription(k, 'en') }
+      };
+    }
+    return map;
+  }, [items]);
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -42,12 +78,19 @@ export default function CmsServiceCategories() {
       const { data } = await api.get('/admin/cms/service-categories');
       const list = data?.data?.items || [];
       setItems(list);
-      // Inicializar edits con los valores actuales (overrides o vacío para usar i18n).
+      // Prefill: override si existe; si no, texto original de fábrica.
       const initial = {};
       for (const it of list) {
-        initial[it.canonicalKey] = {
-          label: { es: it.label?.es || '', en: it.label?.en || '' },
-          description: { es: it.description?.es || '', en: it.description?.en || '' }
+        const k = it.canonicalKey;
+        initial[k] = {
+          label: {
+            es: it.label?.es || originalLabel(k, 'es'),
+            en: it.label?.en || originalLabel(k, 'en')
+          },
+          description: {
+            es: it.description?.es || originalDescription(k, 'es'),
+            en: it.description?.en || originalDescription(k, 'en')
+          }
         };
       }
       setEdits(initial);
@@ -69,12 +112,40 @@ export default function CmsServiceCategories() {
     }));
   };
 
+  // Si el valor coincide exactamente con el original → mandar vacío para que
+  // el backend lo trate como "no hay override" en ese campo/idioma.
+  const stripIfOriginal = (key, group, locale, value) => {
+    const orig = originals[key]?.[group]?.[locale] || '';
+    return (value || '').trim() === orig.trim() ? '' : value;
+  };
+
   const saveOne = async (key) => {
     setSavingKey(key); setError(''); setSuccess('');
     try {
-      const payload = edits[key];
-      await api.put(`/admin/cms/service-categories/${encodeURIComponent(key)}`, payload);
-      setSuccess(t('cmsAdmin.serviceCategories.saved', { key }));
+      const e = edits[key];
+      const payload = {
+        label: {
+          es: stripIfOriginal(key, 'label', 'es', e.label.es),
+          en: stripIfOriginal(key, 'label', 'en', e.label.en)
+        },
+        description: {
+          es: stripIfOriginal(key, 'description', 'es', e.description.es),
+          en: stripIfOriginal(key, 'description', 'en', e.description.en)
+        }
+      };
+      // Si TODO quedó vacío equivale a "no hay override" → borramos cualquier
+      // override previo en una sola operación.
+      const allEmpty =
+        !payload.label.es && !payload.label.en &&
+        !payload.description.es && !payload.description.en;
+
+      if (allEmpty) {
+        await api.delete(`/admin/cms/service-categories/${encodeURIComponent(key)}`);
+        setSuccess(t('cmsAdmin.serviceCategories.resetDone', { key }));
+      } else {
+        await api.put(`/admin/cms/service-categories/${encodeURIComponent(key)}`, payload);
+        setSuccess(t('cmsAdmin.serviceCategories.saved', { key }));
+      }
       refreshServiceCategoryLabels(i18n);
       await load();
     } catch (e) {
@@ -135,7 +206,7 @@ export default function CmsServiceCategories() {
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(ev) => setQuery(ev.target.value)}
           placeholder={t('cmsAdmin.serviceCategories.searchPlaceholder')}
           className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500"
         />
@@ -147,6 +218,7 @@ export default function CmsServiceCategories() {
         <div className="space-y-3">
           {filtered.map((it) => {
             const e = edits[it.canonicalKey] || { label: { es: '', en: '' }, description: { es: '', en: '' } };
+            const orig = originals[it.canonicalKey] || { label: { es: '', en: '' }, description: { es: '', en: '' } };
             const busy = savingKey === it.canonicalKey;
             return (
               <div key={it.canonicalKey} className="bg-white border border-gray-200 rounded-xl p-4">
@@ -191,24 +263,32 @@ export default function CmsServiceCategories() {
                   {['es', 'en'].map((loc) => (
                     <div key={loc} className="border border-gray-200 rounded-lg p-3 bg-gray-50/40">
                       <p className="text-xs font-bold uppercase tracking-wide text-brand-600 mb-2">{loc.toUpperCase()}</p>
+
                       <label className="block text-xs text-gray-600 mb-1">{t('cmsAdmin.serviceCategories.labelField')}</label>
                       <input
                         type="text"
                         value={e.label[loc]}
                         onChange={(ev) => updateField(it.canonicalKey, 'label', loc, ev.target.value)}
-                        placeholder={t('cmsAdmin.serviceCategories.labelPlaceholder')}
+                        placeholder={orig.label[loc]}
                         maxLength={200}
-                        className="w-full mb-2 rounded border border-gray-300 px-2 py-1.5 bg-white text-sm"
+                        className="w-full rounded border border-gray-300 px-2 py-1.5 bg-white text-sm"
                       />
+                      <p className="text-[11px] text-gray-400 mt-0.5 mb-2 truncate" title={orig.label[loc]}>
+                        {t('cmsAdmin.serviceCategories.originalHint', { value: orig.label[loc] })}
+                      </p>
+
                       <label className="block text-xs text-gray-600 mb-1">{t('cmsAdmin.serviceCategories.descriptionField')}</label>
                       <input
                         type="text"
                         value={e.description[loc]}
                         onChange={(ev) => updateField(it.canonicalKey, 'description', loc, ev.target.value)}
-                        placeholder={t('cmsAdmin.serviceCategories.descriptionPlaceholder')}
+                        placeholder={orig.description[loc]}
                         maxLength={200}
                         className="w-full rounded border border-gray-300 px-2 py-1.5 bg-white text-sm"
                       />
+                      <p className="text-[11px] text-gray-400 mt-0.5 truncate" title={orig.description[loc]}>
+                        {t('cmsAdmin.serviceCategories.originalHint', { value: orig.description[loc] || '—' })}
+                      </p>
                     </div>
                   ))}
                 </div>

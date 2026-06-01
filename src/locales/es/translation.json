@@ -4608,7 +4608,8 @@
       "resetHelp": "Vuelve a cargar todas las secciones originales del sitio. Tu versión actual queda guardada en el historial.",
       "confirmReset": "¿Reimportar la plantilla original (ES + EN)? El contenido actual quedará en el historial y podrás restaurarlo cuando quieras.",
       "resetDone": "Plantilla reimportada: {{es}} secciones en ES y {{en}} en EN.",
-      "resetError": "No se pudo reimportar la plantilla."
+      "resetError": "No se pudo reimportar la plantilla.",
+      "defaultsPrefilledNotice": "Plantilla precargada con el contenido original del sitio. Edita lo que necesites y haz clic en Publicar para guardarlo definitivamente."
     },
     "faq": {
       "title": "Preguntas frecuentes",
@@ -4654,7 +4655,8 @@
       "labelPlaceholder": "Cómo aparece en cards, hero, breadcrumbs…",
       "descriptionField": "Descripción corta",
       "descriptionPlaceholder": "Frase corta debajo del nombre.",
-      "searchPlaceholder": "Buscar categoría por nombre canónico…"
+      "searchPlaceholder": "Buscar categoría por nombre canónico…",
+      "originalHint": "Original: {{value}}"
     }
   }
 }

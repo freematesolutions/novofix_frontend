@@ -4614,7 +4614,8 @@
       "resetHelp": "Reloads all original site sections. Your current version stays in history.",
       "confirmReset": "Reimport the original template (ES + EN)? Current content will be moved to history and you can restore it later.",
       "resetDone": "Template reimported: {{es}} sections in ES and {{en}} in EN.",
-      "resetError": "Could not reimport the template."
+      "resetError": "Could not reimport the template.",
+      "defaultsPrefilledNotice": "Template prefilled with the original site content. Edit what you need and click Publish to save it permanently."
     },
     "faq": {
       "title": "Frequently asked questions",
@@ -4660,7 +4661,8 @@
       "labelPlaceholder": "How it appears in cards, hero, breadcrumbs…",
       "descriptionField": "Short description",
       "descriptionPlaceholder": "Short phrase below the name.",
-      "searchPlaceholder": "Search category by canonical name…"
+      "searchPlaceholder": "Search category by canonical name…",
+      "originalHint": "Original: {{value}}"
     }
   }
 }
