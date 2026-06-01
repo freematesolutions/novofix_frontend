@@ -3410,6 +3410,7 @@
         "subtitle": "Atajos a las herramientas de administración",
         "cmsContents": "Contenidos editoriales",
         "cmsFaq": "Preguntas frecuentes",
+        "cmsServiceCategories": "Categorías de servicio",
         "moderation": "Moderación",
         "alerts": "Alertas",
         "users": "Usuarios",
@@ -4602,7 +4603,12 @@
       "rolledBack": "Restaurado a v.{{v}}.",
       "confirmRollback": "¿Restaurar la versión {{v}}? Se creará una nueva versión con ese contenido.",
       "sectionsCount": "secciones",
-      "untitled": "(sin título)"
+      "untitled": "(sin título)",
+      "resetFromDefaults": "Reimportar plantilla",
+      "resetHelp": "Vuelve a cargar todas las secciones originales del sitio. Tu versión actual queda guardada en el historial.",
+      "confirmReset": "¿Reimportar la plantilla original (ES + EN)? El contenido actual quedará en el historial y podrás restaurarlo cuando quieras.",
+      "resetDone": "Plantilla reimportada: {{es}} secciones en ES y {{en}} en EN.",
+      "resetError": "No se pudo reimportar la plantilla."
     },
     "faq": {
       "title": "Preguntas frecuentes",
@@ -4629,6 +4635,26 @@
       "listTitle": "Listado",
       "empty": "No hay preguntas todavía.",
       "previewAnswer": "Ver respuesta (ES)"
+    },
+    "serviceCategories": {
+      "title": "Categorías de servicio",
+      "subtitle": "Renombra la etiqueta visible y la descripción corta de cada categoría sin tocar la clave canónica.",
+      "warningTitle": "Importante",
+      "warningBody": "Solo edita lo que el usuario VE (etiqueta + descripción). La clave canónica (Reparaciones, Plomería, etc.) está acoplada a perfiles, solicitudes y URLs SEO y no se modifica desde aquí. Dejar un campo vacío hace que esa categoría siga leyendo el texto original del sitio.",
+      "loadError": "No se pudieron cargar las categorías.",
+      "saveError": "No se pudo guardar la categoría.",
+      "saved": "Categoría \"{{key}}\" guardada.",
+      "resetError": "No se pudo restablecer la categoría.",
+      "resetDone": "Categoría \"{{key}}\" restablecida al texto original.",
+      "confirmReset": "¿Eliminar el override de \"{{key}}\" y volver al texto original del sitio?",
+      "resetButton": "Restablecer",
+      "resetHelp": "Elimina el override y vuelve a usar el texto del i18n.",
+      "customized": "Personalizada",
+      "labelField": "Etiqueta visible",
+      "labelPlaceholder": "Cómo aparece en cards, hero, breadcrumbs…",
+      "descriptionField": "Descripción corta",
+      "descriptionPlaceholder": "Frase corta debajo del nombre.",
+      "searchPlaceholder": "Buscar categoría por nombre canónico…"
     }
   }
 }

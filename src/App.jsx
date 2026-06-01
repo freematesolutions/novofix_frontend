@@ -10,6 +10,7 @@ import RouteSeo from './components/seo/RouteSeo.jsx';
 import VerifyEmail from './pages/auth/VerifyEmail.jsx';
 import { useAuth } from './state/AuthContext.jsx';
 import { useLocation } from 'react-router-dom';
+import useServiceCategoryLabels from './state/useServiceCategoryLabels.js';
 
 // Lazy-loaded pages for code-splitting
 const Home = lazy(() => import('./pages/Home.jsx'));
@@ -53,6 +54,7 @@ const Faq = lazy(() => import('./pages/shared/Faq.jsx'));
 const CmsContents = lazy(() => import('./pages/admin/CmsContents.jsx'));
 const CmsContentEditor = lazy(() => import('./pages/admin/CmsContentEditor.jsx'));
 const CmsFaqManager = lazy(() => import('./pages/admin/CmsFaqManager.jsx'));
+const CmsServiceCategories = lazy(() => import('./pages/admin/CmsServiceCategories.jsx'));
 // Public SEO landings (Phase 6) — additive, do not affect existing flows
 const CategoryLanding = lazy(() => import('./pages/shared/CategoryLanding.jsx'));
 const ProviderPublicProfile = lazy(() => import('./pages/shared/ProviderPublicProfile.jsx'));
@@ -61,6 +63,9 @@ function App() {
   const { pendingVerification, user } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
+  // Mergea overrides editoriales de categorías de servicio (labels/descripciones)
+  // dentro del namespace i18n por defecto. Es no-op si no hay overrides en BD.
+  useServiceCategoryLabels();
 
   // Ocultar header SOLO en /verificar-email si hay verificación pendiente o usuario no verificado
   const isVerifyRoute = location.pathname.startsWith('/verificar-email');
@@ -132,10 +137,11 @@ function App() {
           <Route path="/admin/solicitudes" element={<AdminRequests />} />
           <Route path="/admin/reservas" element={<AdminBookings />} />
           <Route path="/admin/reportes" element={<AdminReports />} />
-          {/* CMS — contenidos editoriales y FAQ */}
+          {/* CMS — contenidos editoriales, FAQ y categorías de servicio */}
           <Route path="/admin/contenidos" element={<CmsContents />} />
           <Route path="/admin/contenidos/:key" element={<CmsContentEditor />} />
           <Route path="/admin/faq" element={<CmsFaqManager />} />
+          <Route path="/admin/categorias-servicio" element={<CmsServiceCategories />} />
         </Routes>
         </Suspense>
       </main>
