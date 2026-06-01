@@ -16,6 +16,8 @@ import { SearchResultSkeleton, FeaturedProviderSkeleton } from '@/components/ui/
 import { CATEGORY_IMAGES, FALLBACK_IMAGE } from '@/utils/categoryImages.js';
 import { SERVICE_CATEGORIES_WITH_DESCRIPTION } from '@/utils/categories.js';
 import { Seo, SITE_URL, SITE_NAME, buildLocalBusinessSchema } from '@/components/seo';
+import useCmsContent from '@/state/useCmsContent.js';
+import useCmsFaq from '@/state/useCmsFaq.js';
 
 // Secciones de la página para la navegación flotante
 const HOME_SECTIONS = [
@@ -525,10 +527,37 @@ useEffect(() => {
   // Structured data for the Home page: Organization + WebSite (with sitelinks SearchAction).
   // Phase 8 additions: LocalBusiness anchors the geographic market (Miami, FL by default)
   // and a FAQPage surfaces top user questions in SERP rich results.
+
+  // Hero — admite override desde el CMS. Si en /admin/cms/contents/hero el
+  // admin define secciones con id `title1`/`title2`, esos textos pisan al
+  // i18n; si no hay override, sigue el copy de translation.json. Esto evita
+  // redeploy para cambiar el headline principal de la Home.
+  const { data: cmsHero, isCmsContent: hasCmsHero } = useCmsContent('hero');
+  const heroSections = hasCmsHero && Array.isArray(cmsHero?.sections) ? cmsHero.sections : [];
+  const findHeroSection = (id) => heroSections.find((s) => s.id === id)?.bodyHtml
+    ?.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const heroTitle1 = findHeroSection('title1') || t('home.title1');
+  const heroTitle2 = findHeroSection('title2') || t('home.title2');
+
+  // FAQ del Home — primero intenta leer de FaqItem (BBDD, editable por admin),
+  // y si está vacío cae al array hardcoded de i18n (seo.home.faq). Así el admin
+  // edita en /admin/cms/faq y se refleja en la Home + el JSON-LD para Google.
+  const { items: cmsFaqItems } = useCmsFaq({ category: 'general' });
   const homeFaqEntries = useMemo(() => {
+    if (Array.isArray(cmsFaqItems) && cmsFaqItems.length) {
+      // Convertimos los FaqItem (question + answerHtml) al shape { q, a } que
+      // ya consume la sección + el JSON-LD. Para JSON-LD usamos answerHtml
+      // sin tags (Google acepta texto plano y evita ruido en el schema).
+      return cmsFaqItems
+        .filter((it) => it.question && it.answerHtml)
+        .map((it) => ({
+          q: it.question,
+          a: it.answerHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+        }));
+    }
     const items = t('seo.home.faq', { returnObjects: true });
     return Array.isArray(items) ? items.filter((f) => f && f.q && f.a) : [];
-  }, [t]);
+  }, [cmsFaqItems, t]);
 
   const homeJsonLd = [
     buildLocalBusinessSchema(),
@@ -752,9 +781,9 @@ useEffect(() => {
                 {/* Título principal - texto blanco plano sin animación */}
                 <div className="text-center w-full pb-1 sm:pb-2">
                   <h1 className="text-2xl min-[480px]:text-3xl sm:text-4xl font-extrabold leading-tight drop-shadow-2xl" style={{ color: '#f0f0f0' }}>
-                    {t('home.title1')}{' '}
+                    {heroTitle1}{' '}
                     <span style={{ color: '#f0f0f0' }}>
-                      {t('home.title2')}
+                      {heroTitle2}
                     </span>
                   </h1>
                 </div>

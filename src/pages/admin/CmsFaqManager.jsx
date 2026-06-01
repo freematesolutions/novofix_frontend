@@ -13,7 +13,7 @@ import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
 import CmsRichContent from '@/components/cms/CmsRichContent.jsx';
 import { invalidateFaqCache } from '@/state/useCmsFaq.js';
-import { HiPlus, HiTrash, HiSave, HiQuestionMarkCircle, HiPencilAlt, HiX } from 'react-icons/hi';
+import { HiPlus, HiTrash, HiSave, HiQuestionMarkCircle, HiPencilAlt, HiX, HiRefresh } from 'react-icons/hi';
 
 const CATEGORIES = ['general', 'client', 'provider', 'payment', 'account'];
 
@@ -105,6 +105,27 @@ export default function CmsFaqManager() {
     } finally { setSaving(false); }
   };
 
+  // Reimporta los FAQs canónicos del sitio (los mismos textos que aparecen en
+  // la Home). Modo `replace` por defecto: borra todo lo existente y vuelve a
+  // sembrar. Útil cuando el seed inicial dejó dummies o se quiere empezar de
+  // cero alineado al copy oficial.
+  const resetFromDefaults = async () => {
+    if (!confirm(t('cmsAdmin.faq.confirmResetFromDefaults'))) return;
+    setSaving(true); setError(''); setSuccess('');
+    try {
+      const { data } = await api.post('/admin/cms/faq/reset-from-defaults', { mode: 'replace' });
+      const r = data?.data || {};
+      setSuccess(t('cmsAdmin.faq.resetFromDefaultsDone', {
+        removed: r.removed || 0,
+        created: r.created || 0
+      }));
+      invalidateFaqCache();
+      await load();
+    } catch (e) {
+      setError(e?.response?.data?.message || t('cmsAdmin.faq.resetFromDefaultsError'));
+    } finally { setSaving(false); }
+  };
+
   if (!isAuthenticated) return null;
   if (role !== 'admin') return <Alert type="warning">{t('admin.dashboard.adminOnly')}</Alert>;
 
@@ -126,6 +147,25 @@ export default function CmsFaqManager() {
 
       {error && <Alert type="error">{error}</Alert>}
       {success && <Alert type="success">{success}</Alert>}
+
+      {/* Acción global: reimportar plantilla del sitio.
+          Útil cuando la BBDD tiene dummies viejos y se quieren reemplazar por
+          las preguntas reales que aparecen en la Home. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
+        <div className="text-sm text-amber-900">
+          <p className="font-medium">{t('cmsAdmin.faq.resetFromDefaultsTitle')}</p>
+          <p className="text-amber-800/80">{t('cmsAdmin.faq.resetFromDefaultsHelp')}</p>
+        </div>
+        <button
+          type="button"
+          onClick={resetFromDefaults}
+          disabled={saving}
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm disabled:opacity-60"
+        >
+          <HiRefresh className="w-4 h-4" />
+          {t('cmsAdmin.faq.resetFromDefaultsButton')}
+        </button>
+      </div>
 
       {/* Formulario crear/editar */}
       <form onSubmit={submit} className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 space-y-4">

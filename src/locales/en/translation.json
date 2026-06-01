@@ -4641,7 +4641,13 @@
       "create": "Create",
       "listTitle": "Items",
       "empty": "No questions yet.",
-      "previewAnswer": "Show answer (EN)"
+      "previewAnswer": "Show answer (EN)",
+      "resetFromDefaultsTitle": "Reimport site FAQ",
+      "resetFromDefaultsHelp": "Replaces the entire current list with the canonical questions shown on the home page (the same ones Google indexes). Useful when there are old dummies or you want everything aligned with the official copy.",
+      "resetFromDefaultsButton": "Reimport template",
+      "confirmResetFromDefaults": "Delete ALL current questions and reimport the 5 canonical ones from the home? This action cannot be undone.",
+      "resetFromDefaultsDone": "Template reimported: {{removed}} removed, {{created}} created.",
+      "resetFromDefaultsError": "Could not reimport the FAQ template."
     },
     "serviceCategories": {
       "title": "Service categories",

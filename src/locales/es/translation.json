@@ -4635,7 +4635,13 @@
       "create": "Crear",
       "listTitle": "Listado",
       "empty": "No hay preguntas todavía.",
-      "previewAnswer": "Ver respuesta (ES)"
+      "previewAnswer": "Ver respuesta (ES)",
+      "resetFromDefaultsTitle": "Reimportar FAQ del sitio",
+      "resetFromDefaultsHelp": "Reemplaza toda la lista actual por las preguntas canónicas que aparecen en la página de inicio (las mismas que indexa Google). Útil cuando hay dummies viejos o quieres alinear todo al copy oficial.",
+      "resetFromDefaultsButton": "Reimportar plantilla",
+      "confirmResetFromDefaults": "¿Borrar TODAS las preguntas actuales y reimportar las 5 canónicas de la Home? Esta acción no se puede deshacer.",
+      "resetFromDefaultsDone": "Plantilla reimportada: {{removed}} eliminadas, {{created}} creadas.",
+      "resetFromDefaultsError": "No se pudo reimportar la plantilla de FAQ."
     },
     "serviceCategories": {
       "title": "Categorías de servicio",
