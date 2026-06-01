@@ -57,6 +57,9 @@ export default function CmsContentEditor() {
   const [success, setSuccess] = useState('');
   const [showPreview, setShowPreview] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
+  // True cuando el draft visible vino de la plantilla canónica (no del doc en BD).
+  // Sirve para mostrar el banner "Plantilla precargada — Publica para guardar".
+  const [usingDefaultsDraft, setUsingDefaultsDraft] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -71,16 +74,36 @@ export default function CmsContentEditor() {
   useEffect(() => { if (isAuthenticated && role === 'admin') load(); }, [isAuthenticated, role, load]);
   useEffect(() => { if (!isAuthenticated) navigate('/', { replace: true }); }, [isAuthenticated, navigate]);
 
-  // Reset draft al cambiar locale o cargar doc
+  // Reset draft al cambiar locale o cargar doc.
+  // Si el doc no tiene secciones reales (vacío o sólo un placeholder del seed
+  // antiguo), usamos la PLANTILLA canónica (defaults) como borrador inicial —
+  // sin persistir nada hasta que el admin haga "Publicar". Así el editor
+  // siempre muestra el contenido completo del sitio para editar encima.
   useEffect(() => {
     if (!doc) return;
     const src = doc.translations?.[locale] || { title: '', sections: [] };
-    setDraft({
-      title: src.title || '',
-      sections: (src.sections || []).map((s) => ({
-        id: s.id, label: s.label || '', bodyMarkdown: s.bodyMarkdown || ''
-      }))
-    });
+    const liveSections = Array.isArray(src.sections) ? src.sections : [];
+    const looksMinimal = liveSections.length < 2; // 0 ó 1 sección = casi vacío
+    const fallback = doc.defaults?.[locale];
+    const useFallback = looksMinimal && fallback && Array.isArray(fallback.sections) && fallback.sections.length > 0;
+
+    if (useFallback) {
+      setDraft({
+        title: src.title || fallback.title || '',
+        sections: fallback.sections.map((s) => ({
+          id: s.id, label: s.label || '', bodyMarkdown: s.bodyMarkdown || ''
+        }))
+      });
+      setUsingDefaultsDraft(true);
+    } else {
+      setDraft({
+        title: src.title || '',
+        sections: liveSections.map((s) => ({
+          id: s.id, label: s.label || '', bodyMarkdown: s.bodyMarkdown || ''
+        }))
+      });
+      setUsingDefaultsDraft(false);
+    }
     setSuccess('');
   }, [doc, locale]);
 
@@ -216,6 +239,9 @@ export default function CmsContentEditor() {
 
         {error && <div className="mt-4"><Alert type="error">{error}</Alert></div>}
         {success && <div className="mt-4"><Alert type="success">{success}</Alert></div>}
+        {usingDefaultsDraft && (
+          <div className="mt-4"><Alert type="info">{t('cmsAdmin.editor.defaultsPrefilledNotice')}</Alert></div>
+        )}
 
         {/* Título */}
         <div className="mt-5">
