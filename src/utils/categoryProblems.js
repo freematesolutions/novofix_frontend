@@ -58,6 +58,18 @@ export const CATEGORY_PROBLEMS = {
     { id: 'strangeNoise', icon: '🔊' },
     { id: 'other', icon: '➕' }
   ],
+  'Refrigeración': [
+    { id: 'fridgeRepair', icon: '❄️' },
+    { id: 'freezerRepair', icon: '🧊' },
+    { id: 'notCooling', icon: '🌡️' },
+    { id: 'noIce', icon: '🧊' },
+    { id: 'waterLeak', icon: '💧' },
+    { id: 'strangeNoise', icon: '🔊' },
+    { id: 'compressor', icon: '⚙️' },
+    { id: 'gasRecharge', icon: '💨' },
+    { id: 'commercialCooler', icon: '🏪' },
+    { id: 'other', icon: '➕' }
+  ],
   'Cerrajería': [
     { id: 'lockout', icon: '🔐' },
     { id: 'lockChange', icon: '🔒' },
@@ -70,16 +82,16 @@ export const CATEGORY_PROBLEMS = {
     { id: 'rekey', icon: '🔁' },
     { id: 'other', icon: '➕' }
   ],
-  'Mantenimiento': [
-    { id: 'preventive', icon: '🛡️' },
-    { id: 'repairs', icon: '🔧' },
-    { id: 'inspection', icon: '🔍' },
-    { id: 'gutterClean', icon: '🧹' },
-    { id: 'applianceCheck', icon: '📋' },
-    { id: 'hvacFilter', icon: '🌬️' },
-    { id: 'plumbingCheck', icon: '💧' },
-    { id: 'electricalCheck', icon: '⚡' },
-    { id: 'seasonalPrep', icon: '📆' },
+  'Garaje': [
+    { id: 'garageDoor', icon: '🚪' },
+    { id: 'doorOpener', icon: '⚙️' },
+    { id: 'doorRepair', icon: '🔧' },
+    { id: 'shelving', icon: '🗄️' },
+    { id: 'organization', icon: '📦' },
+    { id: 'epoxyFloor', icon: '🧱' },
+    { id: 'lighting', icon: '💡' },
+    { id: 'ventilation', icon: '🌬️' },
+    { id: 'generalRepairs', icon: '🛠️' },
     { id: 'other', icon: '➕' }
   ],
   'Control de Plagas': [
@@ -118,18 +130,6 @@ export const CATEGORY_PROBLEMS = {
     { id: 'decorative', icon: '✨' },
     { id: 'other', icon: '➕' }
   ],
-  'Gabinetes': [
-    { id: 'cabinetInstall', icon: '🗄️' },
-    { id: 'cabinetRepair', icon: '🔧' },
-    { id: 'kitchenCabinets', icon: '🍳' },
-    { id: 'bathroomCabinets', icon: '🚿' },
-    { id: 'closetBuild', icon: '👔' },
-    { id: 'customDesign', icon: '📐' },
-    { id: 'doorReplacement', icon: '🚪' },
-    { id: 'hardwareUpdate', icon: '🔩' },
-    { id: 'refinishing', icon: '✨' },
-    { id: 'other', icon: '➕' }
-  ],
   'Pisos': [
     { id: 'floorInstall', icon: '🧱' },
     { id: 'floorRepair', icon: '🔧' },
@@ -140,18 +140,6 @@ export const CATEGORY_PROBLEMS = {
     { id: 'polishing', icon: '✨' },
     { id: 'leveling', icon: '📐' },
     { id: 'groutRepair', icon: '🧰' },
-    { id: 'other', icon: '➕' }
-  ],
-  'Cocina': [
-    { id: 'applianceInstall', icon: '🍳' },
-    { id: 'applianceRepair', icon: '🔧' },
-    { id: 'countertops', icon: '🧱' },
-    { id: 'sinkFaucet', icon: '🚰' },
-    { id: 'backsplash', icon: '🎨' },
-    { id: 'lighting', icon: '💡' },
-    { id: 'ventilation', icon: '🌬️' },
-    { id: 'gasLine', icon: '🔥' },
-    { id: 'layout', icon: '📐' },
     { id: 'other', icon: '➕' }
   ],
   'Remodelación': [

@@ -59,7 +59,9 @@ function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState({});
-  const [remember, setRemember] = useState(false);
+  // Default: true. Mejora persistencia de sesión: access_token va a localStorage.
+  // Aunque sea false, la cookie httpOnly refresh_token (90 días) permite re-hidratar sesión al reabrir.
+  const [remember, setRemember] = useState(true);
   const [errors, setErrors] = useState({});
 
   // Simple client-side email suggestions for common domains

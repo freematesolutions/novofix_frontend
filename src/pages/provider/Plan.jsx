@@ -493,8 +493,8 @@ export default function Plan() {
         </div>
       )}
 
-      {/* ─────────── REFERRAL SECTION ─────────── */}
-      {!loading && status && (
+      {/* ─────────── REFERRAL SECTION (oculto Req 9 — mantener código para reactivar) ─────────── */}
+      {false && !loading && status && (
         <div className="bg-linear-to-r from-brand-50/60 to-accent-50/40 rounded-2xl border border-brand-100/60 p-5 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex items-center gap-3 shrink-0">

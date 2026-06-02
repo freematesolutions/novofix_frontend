@@ -58,13 +58,19 @@ export const CATEGORY_ICONS = {
       <path d="M36 24V30" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   ),
-  'Mantenimiento': (
+  'Garaje': (
     <svg className="w-12 h-12" viewBox="0 0 64 64" fill="none">
-      <circle cx="32" cy="32" r="16" stroke="currentColor" strokeWidth="2.5"/>
-      <circle cx="32" cy="32" r="8" stroke="currentColor" strokeWidth="2"/>
-      <circle cx="32" cy="32" r="3" fill="currentColor"/>
-      <path d="M32 16V10M32 54V48M16 32H10M54 32H48M20 20L16 16M44 44L48 48M44 20L48 16M20 44L16 48" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-      <path d="M50 10L54 14L48 20L44 16L50 10Z" fill="currentColor" opacity="0.7"/>
+      {/* Tejado */}
+      <path d="M8 24L32 8L56 24" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Estructura del garaje */}
+      <rect x="12" y="24" width="40" height="32" rx="2" fill="currentColor" opacity="0.9"/>
+      {/* Puerta de garaje seccional */}
+      <rect x="16" y="28" width="32" height="24" rx="1" fill="white" opacity="0.18"/>
+      <path d="M16 34H48M16 40H48M16 46H48" stroke="white" strokeWidth="1.5" opacity="0.55"/>
+      {/* Manija */}
+      <circle cx="32" cy="50" r="1.5" fill="white" opacity="0.85"/>
+      {/* Suelo */}
+      <path d="M10 56H54" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   ),
   'Control de Plagas': (
@@ -104,25 +110,27 @@ export const CATEGORY_ICONS = {
       <path d="M18 28C18 28 16 32 16 34C16 36 17 37 18 37C19 37 20 36 20 34C20 32 18 28 18 28Z" fill="currentColor" opacity="0.7"/>
     </svg>
   ),
-  'Gabinetes': (
+  'Refrigeración': (
     <svg className="w-12 h-12" viewBox="0 0 64 64" fill="none">
-      {/* Gabinete con puertas */}
-      <rect x="10" y="10" width="44" height="44" rx="3" fill="currentColor" opacity="0.9"/>
-      <rect x="12" y="12" width="40" height="40" rx="2" stroke="white" strokeWidth="1" opacity="0.2"/>
-      {/* División central */}
-      <path d="M32 12V52" stroke="white" strokeWidth="1.5" opacity="0.3"/>
-      {/* División horizontal */}
-      <path d="M12 32H52" stroke="white" strokeWidth="1.5" opacity="0.3"/>
-      {/* Tiradores */}
-      <circle cx="28" cy="22" r="1.5" fill="white" opacity="0.6"/>
-      <circle cx="36" cy="22" r="1.5" fill="white" opacity="0.6"/>
-      <circle cx="28" cy="42" r="1.5" fill="white" opacity="0.6"/>
-      <circle cx="36" cy="42" r="1.5" fill="white" opacity="0.6"/>
-      {/* Detalle de moldura */}
-      <rect x="14" y="14" width="16" height="16" rx="1" stroke="white" strokeWidth="0.5" opacity="0.15"/>
-      <rect x="34" y="14" width="16" height="16" rx="1" stroke="white" strokeWidth="0.5" opacity="0.15"/>
-      <rect x="14" y="34" width="16" height="16" rx="1" stroke="white" strokeWidth="0.5" opacity="0.15"/>
-      <rect x="34" y="34" width="16" height="16" rx="1" stroke="white" strokeWidth="0.5" opacity="0.15"/>
+      {/* Cuerpo del refrigerador */}
+      <rect x="16" y="6" width="32" height="52" rx="4" fill="currentColor" opacity="0.95"/>
+      <rect x="18" y="8" width="28" height="48" rx="3" stroke="white" strokeWidth="1" opacity="0.2"/>
+      {/* División congelador / refrigerador */}
+      <path d="M16 24H48" stroke="white" strokeWidth="2" opacity="0.45"/>
+      {/* Manijas */}
+      <rect x="22" y="12" width="2.5" height="8" rx="1" fill="white" opacity="0.7"/>
+      <rect x="22" y="30" width="2.5" height="14" rx="1" fill="white" opacity="0.7"/>
+      {/* Detalle de panel */}
+      <circle cx="42" cy="15" r="1.2" fill="white" opacity="0.7"/>
+      {/* Copo de nieve */}
+      <g stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.85">
+        <path d="M32 32V46"/>
+        <path d="M26 35L38 43"/>
+        <path d="M38 35L26 43"/>
+      </g>
+      {/* Vapor frío */}
+      <path d="M10 14C10 14 8 18 10 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+      <path d="M54 14C54 14 56 18 54 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
     </svg>
   ),
   'Pisos': (
@@ -138,26 +146,6 @@ export const CATEGORY_ICONS = {
       <path d="M10 8L14 12L10 16" fill="currentColor"/>
       <rect x="24" y="18" width="16" height="6" rx="1" fill="currentColor" opacity="0.6"/>
       <path d="M40 20H48" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
-    </svg>
-  ),
-  'Cocina': (
-    <svg className="w-12 h-12" viewBox="0 0 64 64" fill="none">
-      {/* Estufa/cocina */}
-      <rect x="10" y="24" width="44" height="30" rx="3" fill="currentColor" opacity="0.9"/>
-      <rect x="12" y="26" width="40" height="26" rx="2" stroke="white" strokeWidth="1" opacity="0.2"/>
-      {/* Quemadores */}
-      <circle cx="22" cy="16" r="5" stroke="currentColor" strokeWidth="2"/>
-      <circle cx="22" cy="16" r="2" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
-      <circle cx="42" cy="16" r="5" stroke="currentColor" strokeWidth="2"/>
-      <circle cx="42" cy="16" r="2" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
-      {/* Horno */}
-      <rect x="16" y="34" width="32" height="16" rx="2" stroke="white" strokeWidth="1.5" opacity="0.4"/>
-      <path d="M20 42H44" stroke="white" strokeWidth="1" opacity="0.3"/>
-      {/* Tirador del horno */}
-      <path d="M28 32H36" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
-      {/* Vapor */}
-      <path d="M30 8C30 8 31 4 32 8" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.4"/>
-      <path d="M34 6C34 6 35 2 36 6" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.3"/>
     </svg>
   ),
   'Remodelación': (
@@ -315,14 +303,13 @@ export const CATEGORY_COLORS = {
   'Plomería': 'from-blue-500 to-cyan-500',
   'Electricidad': 'from-yellow-500 to-amber-500',
   'Climatización': 'from-sky-500 to-cyan-500',
+  'Refrigeración': 'from-cyan-600 to-blue-700',
   'Cerrajería': 'from-gray-600 to-slate-600',
-  'Mantenimiento': 'from-green-600 to-emerald-600',
+  'Garaje': 'from-slate-700 to-zinc-600',
   'Control de Plagas': 'from-lime-500 to-green-600',
   'Limpieza': 'from-cyan-500 to-blue-500',
   'Pintura': 'from-purple-500 to-pink-500',
-  'Gabinetes': 'from-amber-600 to-orange-600',
   'Pisos': 'from-teal-500 to-emerald-500',
-  'Cocina': 'from-red-500 to-orange-500',
   'Remodelación': 'from-indigo-500 to-blue-600',
   'Jardinería': 'from-green-500 to-lime-500',
   'Piscinas': 'from-blue-400 to-cyan-400',

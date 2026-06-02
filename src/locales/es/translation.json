@@ -41,9 +41,9 @@
     "goHome": "Ir al inicio",
     "seeMoreContent": "Ver más contenido",
     "backToHomeAria": "Volver a inicio",
-    "provider": "Proveedor",
-    "providerSingular": "proveedor",
-    "providerPlural": "proveedores",
+    "provider": "Profesional",
+    "providerSingular": "profesional",
+    "providerPlural": "profesionales",
     "myAccount": "Mi cuenta",
     "miles": "millas",
     "saving": "Guardando...",
@@ -243,13 +243,13 @@
     },
     "errors": {
       "emailNotVerified": "Debes verificar tu correo electrónico para acceder.",
-      "existingClientAccount": "Ya existe una cuenta de cliente con este correo. Inicia sesión con ese correo y vuelve a intentar para activar el modo proveedor.",
-      "upgradeError": "No se pudo completar el upgrade a proveedor",
+      "existingClientAccount": "Ya existe una cuenta de cliente con este correo. Inicia sesión con ese correo y vuelve a intentar para activar el modo profesional.",
+      "upgradeError": "No se pudo completar el upgrade a profesional",
       "loginError": "Error al iniciar sesión",
       "registerError": "Error al registrarse"
     },
     "onboarding": {
-      "loginRequired": "Debes iniciar sesión para continuar con el registro de proveedor.",
+      "loginRequired": "Debes iniciar sesión para continuar con el registro de profesional.",
       "loginLink": "Inicia sesión",
       "or": "o",
       "registerLink": "regístrate como profesional",
@@ -309,7 +309,7 @@
     "verifyEmailSent": "Email de verificación enviado",
     "verifyEmailPending": "Por favor verifica tu email para activar tu cuenta",
     "passwordResetSent": "Instrucciones enviadas a tu correo",
-    "welcomeProvider": "¡Bienvenido! Te has registrado como proveedor",
+    "welcomeProvider": "¡Bienvenido! Te has registrado como profesional",
     "welcomeClient": "¡Bienvenido! Te has registrado como cliente",
     "tryAgain": "Por favor intenta de nuevo",
     "planUpdated": "Plan actualizado correctamente",
@@ -350,7 +350,7 @@
     "sendMessage": "Enviar mensaje",
     "writeMessage": "Escribe un mensaje...",
     "proposalPending": "Propuesta pendiente de {{provider}}",
-    "provider": "proveedor",
+    "provider": "profesional",
     "acceptProposal": "Aceptar propuesta",
     "reject": "Rechazar",
     "accepting": "Aceptando...",
@@ -367,6 +367,9 @@
       "updateRequest": "Actualizar solicitud"
     },
     "user": "Usuario",
+    "unnamedChat": "Conversación",
+    "unnamedClient": "Cliente",
+    "unnamedProvider": "Profesional",
     "compressingFile": "Comprimiendo {{name}}...",
     "uploadingVideo": "Subiendo video {{current}}/{{total}} (puede tardar)...",
     "uploadingFile": "Subiendo archivo {{current}}/{{total}}...",
@@ -513,7 +516,7 @@
     "types": {
       "WELCOME_PROVIDER": {
         "title": "¡Bienvenido a la plataforma! 🎉",
-        "message": "Gracias por unirte, {{name}}. Configura tu perfil de proveedor y empieza a recibir solicitudes."
+        "message": "Gracias por unirte, {{name}}. Configura tu perfil de profesional y empieza a recibir solicitudes."
       },
       "WELCOME_CLIENT": {
         "title": "¡Bienvenido a la plataforma! 🎉",
@@ -816,7 +819,8 @@
       "viewPortfolio": "Ver portafolio",
       "featuredReview": "Reseña destacada",
       "completedJobs": "trabajos completados",
-      "responseRate": "tasa de respuesta"
+      "responseRate": "tasa de respuesta",
+      "selfBadge": "Eres tú"
     },
     "reels": {
       "title": "Reels de Profesionales",
@@ -856,14 +860,13 @@
       "Plomería": "Plomería",
       "Electricidad": "Electricidad",
       "Climatización": "HVAC",
+      "Refrigeración": "Refrigeración",
       "Cerrajería": "Cerrajería",
-      "Mantenimiento": "Mantenimiento",
+      "Garaje": "Garaje",
       "Control de Plagas": "Control de Plagas",
       "Limpieza": "Limpieza",
       "Pintura": "Pintura",
-      "Gabinetes": "Gabinetes",
       "Pisos": "Pisos",
-      "Cocina": "Cocina",
       "Remodelación": "Remodelación",
       "Jardinería": "Jardinería",
       "Piscinas": "Piscinas",
@@ -880,14 +883,13 @@
       "Plomería": "Cero fugas, cero estrés",
       "Electricidad": "Energía segura",
       "Climatización": "Tu clima perfecto",
+      "Refrigeración": "Frío confiable, sin pausas",
       "Cerrajería": "Acceso y seguridad",
-      "Mantenimiento": "Siempre impecable",
+      "Garaje": "Tu garaje, listo y ordenado",
       "Control de Plagas": "100% protegido",
       "Limpieza": "Brillo total",
       "Pintura": "Acabados de lujo",
-      "Gabinetes": "Diseños a medida",
       "Pisos": "Pisadas con elegancia",
-      "Cocina": "Equipamiento y confort",
       "Remodelación": "Estrena tu casa",
       "Jardinería": "Jardines de revista",
       "Piscinas": "Oasis cristalino",
@@ -913,14 +915,13 @@
         "Plomería": "Cero fugas, cero estrés",
         "Electricidad": "Energía segura",
         "Climatización": "Tu clima perfecto",
+        "Refrigeración": "Frío confiable, sin pausas",
         "Cerrajería": "Acceso y seguridad",
-        "Mantenimiento": "Siempre impecable",
+        "Garaje": "Tu garaje, listo y ordenado",
         "Control de Plagas": "100% protegido",
         "Limpieza": "Brillo total",
         "Pintura": "Acabados de lujo",
-        "Gabinetes": "Diseños a medida",
         "Pisos": "Pisadas con elegancia",
-        "Cocina": "Equipamiento y confort",
         "Remodelación": "Estrena tu casa",
         "Jardinería": "Jardines de revista",
         "Piscinas": "Oasis cristalino",
@@ -1018,10 +1019,10 @@
         "active": "Activa",
         "archived": "Archivada"
       },
-      "selectProviderFirst": "Selecciona al menos un proveedor",
-      "providersInvited": "Proveedores invitados correctamente",
-      "noEligibleProviders": "No hay proveedores elegibles para esta solicitud",
-      "eligibleProvidersCount": "{{count}} proveedores elegibles",
+      "selectProviderFirst": "Selecciona al menos un profesional",
+      "providersInvited": "Profesionales invitados correctamente",
+      "noEligibleProviders": "No hay profesionales elegibles para esta solicitud",
+      "eligibleProvidersCount": "{{count}} profesionales elegibles",
       "eligibilityError": "Error al consultar elegibilidad",
       "eligibleTooltip": "Ver profesionales elegibles para esta solicitud",
       "attending": "Atendiendo",
@@ -1081,7 +1082,7 @@
       "accept": "Aceptar",
       "reject": "Rechazar",
       "negotiate": "Negociar",
-      "provider": "Proveedor",
+      "provider": "Profesional",
       "noPrice": "Sin precio",
       "priceRange": "Rango de precio",
       "tip": "💡 Compara propuestas antes de decidir",
@@ -1225,9 +1226,10 @@
     "inbox": {
       "title": "Mis Estimados",
       "subtitle": "Gestiona tus estimados y conversaciones",
-      "providerOnly": "Esta sección es solo para proveedores",
+      "providerOnly": "Esta sección es solo para profesionales",
       "errorLoading": "Error al cargar estimados",
       "errorLoadingChats": "Error al cargar conversaciones",
+      "proposalRejectedCanResubmit": "El cliente rechazó tu propuesta. Puedes enviarle una nueva a la misma solicitud.",
       "myProposals": "Mis estimados",
       "proposalsCount": "{{count}} estimado(s)",
       "noProposals": "Sin estimados enviados",
@@ -1283,14 +1285,14 @@
       "videosLabel": "Videos",
       "preferredDate": "Fecha preferida",
       "estimatedBudget": "Presupuesto estimado",
-      "eligibleProviders": "{{count}} proveedores elegibles",
+      "eligibleProviders": "{{count}} profesionales elegibles",
       "limitReached": "Límite alcanzado",
       "limitReachedDescription": "Has alcanzado el límite de solicitudes activas",
       "noPortfolio": "Sin portafolio",
       "publishRequest": "Publicar solicitud",
       "saveDraft": "Guardar borrador",
       "viewPortfolio": "Ver portafolio",
-      "noProvidersTooltip": "No hay proveedores disponibles para esta categoría/urgencia en tu zona",
+      "noProvidersTooltip": "No hay profesionales disponibles para esta categoría/urgencia en tu zona",
       "uploadingPhotos": "Subiendo fotos...",
       "uploadingVideos": "Subiendo videos...",
       "createError": "Error al crear la solicitud",
@@ -1309,7 +1311,7 @@
       "lastUpdate": "Última actualización",
       "loadingCategories": "Cargando categorías...",
       "noCategories": "No hay categorías disponibles",
-      "noProvidersEligibility": "No hay proveedores elegibles",
+      "noProvidersEligibility": "No hay profesionales elegibles",
       "photoUploadErrorMessage": "Error al subir las fotos",
       "photosUploadError": "Error al subir fotos",
       "photosUploaded": "Fotos subidas",
@@ -1317,11 +1319,11 @@
       "portfolio": "Portafolio",
       "processingPhotos": "Procesando fotos...",
       "processingVideos": "Procesando videos...",
-      "providersSortedByScore": "Proveedores ordenados por puntaje",
+      "providersSortedByScore": "Profesionales ordenados por puntaje",
       "selectAll": "Seleccionar todos",
-      "selectProviderError": "Error al seleccionar proveedor",
+      "selectProviderError": "Error al seleccionar profesional",
       "selectedCount": "{{count}} seleccionado(s)",
-      "sendToAllProviders": "Enviar a todos los proveedores",
+      "sendToAllProviders": "Enviar a todos los profesionales",
       "uploadingFiles": "Subiendo archivos...",
       "videoTooLarge": "El video es demasiado grande",
       "videoUploadErrorMessage": "Error al subir los videos",
@@ -1342,10 +1344,10 @@
       "createSuccess": "Solicitud creada exitosamente",
       "description": "Descripción",
       "draftSuccess": "Borrador guardado",
-      "noProviders": "No hay proveedores disponibles",
+      "noProviders": "No hay profesionales disponibles",
       "processingCloudinary": "Procesando en la nube...",
       "requestTitle": "Título de la solicitud",
-      "selectProviders": "Seleccionar proveedores",
+      "selectProviders": "Seleccionar profesionales",
       "sendToAll": "Enviar a todos",
       "sortedByScore": "Ordenado por puntuación",
       "update": "Actualizar",
@@ -1372,7 +1374,7 @@
     },
     "messages": {
       "title": "Mis Mensajes",
-      "subtitle": "Chatea con los proveedores de servicio",
+      "subtitle": "Chatea con los profesionales de servicio",
       "new": "nuevo",
       "conversations": "Conversaciones",
       "noMessages": "Sin mensajes",
@@ -1382,9 +1384,10 @@
       "selectConversationDescription": "Elige una conversación del panel izquierdo para ver los mensajes",
       "loadError": "Error al cargar conversaciones",
       "chat": "Chat",
-      "provider": "Proveedor",
+      "provider": "Profesional",
       "acceptError": "Error al aceptar la propuesta",
       "rejectError": "Error al rechazar la propuesta",
+      "rejectSuccessCanResubmit": "Propuesta rechazada. Puedes volver a solicitar un estimado al mismo profesional.",
       "filterAll": "Todos",
       "filterBookings": "Contratos",
       "filterEstimates": "Estimados",
@@ -1416,7 +1419,7 @@
       "identity": {
         "title": "Identidad",
         "fullTitle": "Tu identidad profesional",
-        "description": "Información básica para tu perfil de proveedor"
+        "description": "Información básica para tu perfil de profesional"
       },
       "offering": {
         "title": "Servicios",
@@ -1443,13 +1446,13 @@
       "goTo": "Ir a: {{step}}",
       "completeFirst": "Completa pasos previos para acceder a: {{step}}"
     },
-    "activateProviderProfile": "Activa tu perfil de proveedor",
+    "activateProviderProfile": "Activa tu perfil de profesional",
     "joinAsProfessional": "Únete como profesional",
     "completeInfoToReceiveRequests": "Completa tu información para empezar a recibir solicitudes de clientes",
     "createProfileAndConnect": "Crea tu perfil profesional y conecta con clientes que buscan tus servicios",
     "estimatedTimeRemaining": "~{{count}} min restantes",
     "badges": {
-      "providerOnboarding": "Registro de Proveedor",
+      "providerOnboarding": "Registro de Profesional",
       "multiRole": "Multi-Rol",
       "dataProtected": "Datos protegidos",
       "fastVerification": "Verificación rápida",
@@ -1463,7 +1466,7 @@
       "title": "¿Necesitas ayuda?",
       "description": "Contáctanos si tienes dudas sobre el registro"
     },
-    "multiRoleMessage": "Ya tienes una cuenta como cliente. Ahora configurarás tu perfil de proveedor.",
+    "multiRoleMessage": "Ya tienes una cuenta como cliente. Ahora configurarás tu perfil de profesional.",
     "navigation": {
       "back": "Atrás",
       "next": "Continuar",
@@ -1498,7 +1501,7 @@
       "emailDifferentService": "Este email ya está registrado con un servicio principal distinto. Usa otro email o inicia sesión para actualizar tu perfil",
       "multiRoleInfo": {
         "title": "¡Excelente! Te estás uniendo como profesional",
-        "description": "Tu cuenta se convertirá en multi-rol: podrás contratar servicios como cliente y ofrecer servicios como proveedor con el mismo email. Solo completa la información de tu negocio."
+        "description": "Tu cuenta se convertirá en multi-rol: podrás contratar servicios como cliente y ofrecer servicios como profesional con el mismo email. Solo completa la información de tu negocio."
       }
     },
     "offering": {
@@ -1690,6 +1693,9 @@
       "actions": {
         "changeStatus": "Cambiar estado",
         "uploadEvidence": "Subir resultados",
+        "uploadBeforeAfter": "Subir Antes y Después",
+        "uploadBeforeAfterHint": "Aparecerán en la galería del Home y atraerán más clientes",
+        "editBeforeAfter": "Editar Antes/Después",
         "leaveReview": "Dejar reseña",
         "showReview": "Ver reseña",
         "respondReview": "Responder reseña",
@@ -1725,6 +1731,7 @@
         "responsePublished": "Respuesta publicada",
         "responseDeleted": "Respuesta eliminada",
         "evidenceUploaded": "Resultados subidos correctamente",
+        "evidenceUploadedSummary": "{{before}} foto(s) de Antes y {{after}} de Después guardadas",
         "filesUploaded": "{{count}} archivo(s) subido(s)",
         "reviewThanks": "¡Gracias por tu reseña!",
         "clientReviewThanks": "¡Gracias por tu calificación!",
@@ -1760,6 +1767,15 @@
       },
       "modal": {
         "evidenceTitle": "Subir Resultados",
+        "close": "Cerrar",
+        "saveBoth": "Guardar todo",
+        "beforeAfterIntroTitle": "Sube fotos del Antes y el Después en un solo paso",
+        "beforeAfterIntroBody": "Cada par aparecerá en la galería del Home de NovoFix. Es la mejor prueba social para atraer nuevos clientes.",
+        "beforeSlotSubtitle": "Estado inicial del trabajo",
+        "afterSlotSubtitle": "Resultado final",
+        "filesSelectedShort": "{{count}} listos para subir",
+        "addMoreFiles": "Añadir más archivos",
+        "clickToAdd": "Haz clic o arrastra fotos/videos aquí",
         "documentWork": "Documenta tu trabajo",
         "evidenceSubtitle": "Sube fotos o videos del antes y después",
         "serviceStage": "Etapa del servicio",
@@ -2205,6 +2221,48 @@
           "desc": "Describir en detalles"
         }
       },
+      "Refrigeración": {
+        "fridgeRepair": {
+          "name": "Reparar refrigerador",
+          "desc": "Nevera con falla"
+        },
+        "freezerRepair": {
+          "name": "Reparar congelador",
+          "desc": "Freezer con falla"
+        },
+        "notCooling": {
+          "name": "No enfría",
+          "desc": "Pierde temperatura"
+        },
+        "noIce": {
+          "name": "No hace hielo",
+          "desc": "Falla del congelador"
+        },
+        "waterLeak": {
+          "name": "Gotea agua",
+          "desc": "Fuga interna o externa"
+        },
+        "strangeNoise": {
+          "name": "Ruido extraño",
+          "desc": "Sonidos inusuales"
+        },
+        "compressor": {
+          "name": "Compresor",
+          "desc": "Cambio o revisión"
+        },
+        "gasRecharge": {
+          "name": "Recarga de gas",
+          "desc": "Gas refrigerante"
+        },
+        "commercialCooler": {
+          "name": "Refrigeración comercial",
+          "desc": "Vitrinas o cuartos fríos"
+        },
+        "other": {
+          "name": "Otro problema",
+          "desc": "Describir en detalles"
+        }
+      },
       "Cerrajería": {
         "lockout": {
           "name": "Puerta cerrada",
@@ -2247,42 +2305,42 @@
           "desc": "Describir en detalles"
         }
       },
-      "Mantenimiento": {
-        "preventive": {
-          "name": "Preventivo",
-          "desc": "Evitar fallas"
+      "Garaje": {
+        "garageDoor": {
+          "name": "Puerta de garaje",
+          "desc": "Instalación o reparación"
         },
-        "repairs": {
-          "name": "Reparaciones",
-          "desc": "Arreglos generales"
+        "doorOpener": {
+          "name": "Motor abrepuertas",
+          "desc": "Motor o control remoto"
         },
-        "inspection": {
-          "name": "Inspección",
-          "desc": "Revisión del hogar"
+        "doorRepair": {
+          "name": "Reparar puerta",
+          "desc": "Resortes, cables o rieles"
         },
-        "gutterClean": {
-          "name": "Limpiar canaletas",
-          "desc": "Canaletas o bajantes"
+        "shelving": {
+          "name": "Estanterías",
+          "desc": "Estantes y soportes"
         },
-        "applianceCheck": {
-          "name": "Revisar equipos",
-          "desc": "Electrodomésticos o sistemas"
+        "organization": {
+          "name": "Organización",
+          "desc": "Orden y almacenamiento"
         },
-        "hvacFilter": {
-          "name": "Filtro HVAC",
-          "desc": "Cambio o limpieza"
+        "epoxyFloor": {
+          "name": "Piso epóxico",
+          "desc": "Recubrimiento de piso"
         },
-        "plumbingCheck": {
-          "name": "Revisión plomería",
-          "desc": "Chequeo de fugas"
+        "lighting": {
+          "name": "Iluminación",
+          "desc": "Luces y conexiones"
         },
-        "electricalCheck": {
-          "name": "Revisión eléctrica",
-          "desc": "Conexiones seguras"
+        "ventilation": {
+          "name": "Ventilación",
+          "desc": "Extractores y aireación"
         },
-        "seasonalPrep": {
-          "name": "Preparación estacional",
-          "desc": "Listo para temporada"
+        "generalRepairs": {
+          "name": "Reparaciones generales",
+          "desc": "Arreglos varios"
         },
         "other": {
           "name": "Otro problema",
@@ -2415,48 +2473,6 @@
           "desc": "Describir en detalles"
         }
       },
-      "Gabinetes": {
-        "cabinetInstall": {
-          "name": "Instalar gabinetes",
-          "desc": "Gabinetes nuevos"
-        },
-        "cabinetRepair": {
-          "name": "Reparar gabinetes",
-          "desc": "Gabinetes dañados"
-        },
-        "kitchenCabinets": {
-          "name": "Gabinetes cocina",
-          "desc": "Cocina completa"
-        },
-        "bathroomCabinets": {
-          "name": "Gabinetes baño",
-          "desc": "Baño completo"
-        },
-        "closetBuild": {
-          "name": "Construir clóset",
-          "desc": "Armario o vestidor"
-        },
-        "customDesign": {
-          "name": "Diseño a medida",
-          "desc": "Proyecto personalizado"
-        },
-        "doorReplacement": {
-          "name": "Cambiar puertas",
-          "desc": "Puertas de gabinete"
-        },
-        "hardwareUpdate": {
-          "name": "Actualizar herraje",
-          "desc": "Tiradores y bisagras"
-        },
-        "refinishing": {
-          "name": "Renovar acabado",
-          "desc": "Pintar o lacar"
-        },
-        "other": {
-          "name": "Otro problema",
-          "desc": "Describir en detalles"
-        }
-      },
       "Pisos": {
         "floorInstall": {
           "name": "Instalar piso",
@@ -2493,48 +2509,6 @@
         "groutRepair": {
           "name": "Reparar boquilla",
           "desc": "Juntas de azulejo"
-        },
-        "other": {
-          "name": "Otro problema",
-          "desc": "Describir en detalles"
-        }
-      },
-      "Cocina": {
-        "applianceInstall": {
-          "name": "Instalar electrodoméstico",
-          "desc": "Equipo nuevo de cocina"
-        },
-        "applianceRepair": {
-          "name": "Reparar electrodoméstico",
-          "desc": "Equipo con falla"
-        },
-        "countertops": {
-          "name": "Encimeras",
-          "desc": "Instalar o reemplazar"
-        },
-        "sinkFaucet": {
-          "name": "Fregadero y grifo",
-          "desc": "Instalar o reparar"
-        },
-        "backsplash": {
-          "name": "Salpicadero",
-          "desc": "Instalar o renovar"
-        },
-        "lighting": {
-          "name": "Iluminación",
-          "desc": "Luces de cocina"
-        },
-        "ventilation": {
-          "name": "Ventilación",
-          "desc": "Campana o extractor"
-        },
-        "gasLine": {
-          "name": "Línea de gas",
-          "desc": "Conexión o reparación"
-        },
-        "layout": {
-          "name": "Distribución",
-          "desc": "Reorganizar cocina"
         },
         "other": {
           "name": "Otro problema",
@@ -2984,7 +2958,7 @@
       "categoryNotDetermined": "No se pudo determinar la categoría",
       "requestMayBeCreated": "La solicitud puede haber sido creada. Verifica en tus solicitudes.",
       "createError": "Error al crear la solicitud",
-      "theProvider": "el proveedor",
+      "theProvider": "el profesional",
       "requestSent": "Solicitud enviada a {{provider}}",
       "couldNotCreate": "No se pudo crear la solicitud",
       "thisProfessional": "este profesional",
@@ -3050,7 +3024,7 @@
       "addressTooShort": "La dirección es muy corta",
       "requestComplete": "¡Solicitud completa!",
       "requestIncomplete": "Solicitud con información pendiente",
-      "incompleteHint": "El proveedor podrá solicitarte más detalles si los necesita.",
+      "incompleteHint": "El profesional podrá solicitarte más detalles si los necesita.",
       "whenNeeded": "¿Cuándo necesitas el servicio?",
       "orSelectQuickOption": "O selecciona una opción rápida",
       "dateOptions": {
@@ -3081,6 +3055,8 @@
     "providerProfile": {
       "professional": "Profesional",
       "onlyClientsCanRequest": "Solo los clientes pueden enviar solicitudes",
+      "selfHireBlocked": "No puedes contratarte a ti mismo. Este profesional eres tú.",
+      "selfBadge": "Eres tú",
       "inquiry": "Mensaje",
       "jobs": "trabajos",
       "sendRequest": "Solicitar Estimado",
@@ -3126,11 +3102,17 @@
     "providerCard": {
       "professional": "Profesional",
       "onlyClientsCanRequest": "Solo los clientes pueden enviar solicitudes",
+      "selfHireBlocked": "No puedes contratarte a ti mismo. Este profesional eres tú.",
+      "selfBadge": "Eres tú",
       "inquiry": "Mensaje",
       "viewReviews": "Ver reseñas",
       "enlargeImage": "Ampliar imagen",
       "reviewsCount": "{{count}} reseñas",
       "hires": "contrataciones",
+      "portfolioItems_one": "foto del portafolio",
+      "portfolioItems_other": "fotos del portafolio",
+      "portfolioItems": "elementos del portafolio",
+      "portfolioItemsTooltip": "Cantidad de fotos y videos en el portafolio (no equivale a contrataciones)",
       "response": "respuesta",
       "exploreWorksTooltip": "Ver galería de trabajos realizados",
       "exploreWorks": "Ver trabajos",
@@ -3149,6 +3131,7 @@
       "loading": "Iniciando conversación...",
       "errorTitle": "Error de conexión",
       "errorCreating": "No se pudo iniciar la conversación. Inténtalo de nuevo.",
+      "selfHireBlocked": "No puedes iniciar una conversación contigo mismo.",
       "requestEstimate": "Solicitar Estimado"
     },
     "starRating": {
@@ -3278,8 +3261,8 @@
       },
       "saving": "Guardando...",
       "saveChanges": "Guardar cambios",
-      "clientModeWarning": "Estás en modo cliente. Cambia a modo proveedor para editar esta información.",
-      "switchMode": "Cambiar a Proveedor",
+      "clientModeWarning": "Estás en modo cliente. Cambia a modo profesional para editar esta información.",
+      "switchMode": "Cambiar a Profesional",
       "subTabs": {
         "businessProfile": "Perfil de negocio",
         "portfolio": "Portafolio"
@@ -3309,8 +3292,8 @@
       "lngPlaceholder": "Ej: -58.3816",
       "phone": "Teléfono",
       "saving": "Guardando...",
-      "profileUpdated": "Perfil de proveedor actualizado",
-      "activateError": "No se pudo activar el modo proveedor",
+      "profileUpdated": "Perfil de profesional actualizado",
+      "activateError": "No se pudo activar el modo profesional",
       "saveError": "No se pudo guardar"
     },
     "portfolioManager": {
@@ -3363,6 +3346,40 @@
     }
   },
   "admin": {
+    "homeVideo": {
+      "title": "Video del Home",
+      "subtitle": "Gestiona el video destacado que se muestra en la portada del sitio.",
+      "enable": "Mostrar video en el Home",
+      "enableHelp": "Si lo desactivas, la sección quedará oculta hasta que la vuelvas a habilitar.",
+      "uploadTitle": "Subir video (Cloudinary)",
+      "uploadHelp": "MP4 / WebM / MOV — máximo 200MB.",
+      "chooseFile": "Elegir archivo",
+      "replaceFile": "Reemplazar archivo",
+      "uploading": "Subiendo... {{p}}%",
+      "uploadingHint": "Subiendo a Cloudinary, no cierres esta ventana...",
+      "uploadOk": "Video subido. No olvides guardar los cambios.",
+      "uploadError": "Error al subir el video",
+      "tooLarge": "El archivo supera los 200MB permitidos.",
+      "notVideo": "El archivo debe ser un video.",
+      "clear": "Quitar video",
+      "replace": "Reemplazar",
+      "delete": "Eliminar",
+      "emptyTitle": "Aún no hay video",
+      "emptyHint": "Haz clic aquí para subir un video o pega una URL externa arriba.",
+      "savingHint": "Aplicando cambios en el servidor...",
+      "savingIdle": "Los cambios se aplican al instante en la portada del sitio.",
+      "externalTitle": "URL externa",
+      "externalHelp": "YouTube, Vimeo o un MP4/WebM hospedado en otro sitio. Se detecta automáticamente.",
+      "detected": "Tipo detectado",
+      "posterTitle": "Imagen de portada (opcional)",
+      "posterHelp": "Solo se aplica a videos directos (Cloudinary/MP4). YouTube y Vimeo muestran su propio thumbnail.",
+      "titlesTitle": "Títulos (opcionales)",
+      "previewTitle": "Vista previa",
+      "urlRequired": "Debes indicar una URL de video o subir uno antes de habilitar.",
+      "saveOk": "Cambios guardados correctamente.",
+      "saveError": "Error al guardar",
+      "loadError": "Error al cargar el ajuste"
+    },
     "dashboard": {
       "title": "Panel de Administración",
       "subtitle": "Resumen general del sistema",
@@ -3372,7 +3389,7 @@
       "loading": "Cargando datos...",
       "stats": {
         "totalUsers": "Total usuarios",
-        "providers": "Proveedores",
+        "providers": "Profesionales",
         "clients": "Clientes",
         "requests": "Solicitudes",
         "bookings": "Contratos",
@@ -3411,10 +3428,11 @@
         "cmsContents": "Contenidos editoriales",
         "cmsFaq": "Preguntas frecuentes",
         "cmsServiceCategories": "Categorías de servicio",
+        "homeVideo": "Video del Home",
         "moderation": "Moderación",
         "alerts": "Alertas",
         "users": "Usuarios",
-        "providers": "Proveedores",
+        "providers": "Profesionales",
         "requests": "Solicitudes",
         "bookings": "Contratos"
       }
@@ -3436,7 +3454,7 @@
       },
       "roles": {
         "client": "Cliente",
-        "provider": "Proveedor",
+        "provider": "Profesional",
         "admin": "Admin"
       },
       "status": {
@@ -3518,7 +3536,7 @@
       "noTitle": "Sin título",
       "noComment": "Sin comentario",
       "client": "Cliente",
-      "provider": "Proveedor",
+      "provider": "Profesional",
       "actions": {
         "approve": "Aprobar",
         "remove": "Eliminar"
@@ -3576,12 +3594,12 @@
         "noDistributionData": "Sin datos de distribución"
       },
       "providerMetrics": {
-        "title": "Métricas de proveedores",
+        "title": "Métricas de profesionales",
         "subtitle": "Rendimiento por tipo de plan",
         "noPlan": "Sin plan",
-        "providers": "proveedores",
+        "providers": "profesionales",
         "avgRating": "promedio",
-        "noData": "Sin datos de proveedores"
+        "noData": "Sin datos de profesionales"
       },
       "noData": {
         "title": "Sin datos disponibles",
@@ -3749,7 +3767,7 @@
   },
   "portfolio": {
     "title": "Portafolio de {{name}}",
-    "provider": "Proveedor",
+    "provider": "Profesional",
     "itemCounter": "{{current}} de {{total}} {{label}}",
     "element": "elemento",
     "elements": "elementos",
@@ -3789,7 +3807,7 @@
       "negotiate": "Negociar",
       "proposalSent": "Estimado enviado",
       "serviceRequest": "Solicitud de servicio",
-      "providerOnly": "Esta sección es solo para proveedores",
+      "providerOnly": "Esta sección es solo para profesionales",
       "errorLoading": "Error al cargar trabajos",
       "loading": "Cargando trabajos...",
       "chatOpenError": "Error al abrir el chat",
@@ -3828,7 +3846,7 @@
       "subtitle": "Gestiona tu suscripción y límites",
       "currentPlan": "Plan actual",
       "yourCurrentPlan": "Tu plan actual",
-      "providerOnly": "Esta sección es solo para proveedores",
+      "providerOnly": "Esta sección es solo para profesionales",
       "loading": "Cargando información del plan...",
       "active": "Activo",
       "discountApplied": "Descuento aplicado",
@@ -3893,7 +3911,7 @@
     "services": {
       "title": "Mis Servicios",
       "subtitle": "Configura los servicios que ofreces",
-      "providerOnly": "Esta sección es solo para proveedores",
+      "providerOnly": "Esta sección es solo para profesionales",
       "errorLoading": "Error al cargar servicios",
       "errorSavingMain": "Error al guardar el servicio principal",
       "errorSavingAdditional": "Error al guardar servicios adicionales",
@@ -3931,7 +3949,7 @@
     "calendar": {
       "title": "Mi Calendario",
       "subtitle": "Gestiona tu disponibilidad y horarios",
-      "providerOnly": "Esta sección es solo para proveedores",
+      "providerOnly": "Esta sección es solo para profesionales",
       "errorLoading": "Error al cargar disponibilidad",
       "selectDate": "Seleccionar fecha",
       "date": "Fecha",
@@ -4022,7 +4040,7 @@
     "reviews": {
       "title": "Mis Reseñas",
       "subtitle": "Gestiona tu reputación y responde a tus clientes",
-      "providerOnly": "Esta sección es solo para proveedores",
+      "providerOnly": "Esta sección es solo para profesionales",
       "errorLoading": "Error al cargar reseñas",
       "loading": "Cargando reseñas...",
       "refresh": "Actualizar",
@@ -4038,7 +4056,7 @@
       "categoryScores": "Puntajes por categoría",
       "ratingDistribution": "Distribución de calificaciones",
       "allReviews": "Todas las reseñas",
-      "errorLoadingId": "Error al cargar ID del proveedor",
+      "errorLoadingId": "Error al cargar ID del profesional",
       "insightsTitle": "Estadísticas y recomendaciones",
       "reviewsWithoutResponse": "{{count}} reseña(s) sin respuesta",
       "respondToImprove": "Responder mejora tu reputación y confianza con los clientes",
@@ -4055,7 +4073,7 @@
       }
     },
     "requestDetail": {
-      "providerOnly": "Esta sección es solo para proveedores",
+      "providerOnly": "Esta sección es solo para profesionales",
       "errorLoading": "Error al cargar la solicitud",
       "loading": "Cargando solicitud...",
       "backToJobs": "Volver a trabajos",
@@ -4186,7 +4204,7 @@
     "referrals": {
       "title": "Programa de Referidos",
       "subtitle": "Invita profesionales o clientes y gana días de Plan Experto gratis",
-      "providerOnly": "Esta sección es solo para proveedores",
+      "providerOnly": "Esta sección es solo para profesionales",
       "errorLoading": "Error al cargar datos de referidos",
       "loading": "Cargando...",
       "referrals": "Referidos",
@@ -4235,9 +4253,10 @@
     "inbox": {
       "title": "Mis Estimados",
       "subtitle": "Gestiona tus estimados y conversaciones",
-      "providerOnly": "Esta sección es solo para proveedores",
+      "providerOnly": "Esta sección es solo para profesionales",
       "errorLoading": "Error al cargar estimados",
       "errorLoadingChats": "Error al cargar conversaciones",
+      "proposalRejectedCanResubmit": "El cliente rechazó tu propuesta. Puedes enviarle una nueva a la misma solicitud.",
       "myProposals": "Mis estimados",
       "proposalsCount": "{{count}} estimado(s)",
       "noProposals": "Sin estimados enviados",
@@ -4291,23 +4310,23 @@
     },
     "services": {
       "title": "Descripción del Servicio",
-      "content": "NovoFix es una plataforma tecnológica que conecta a clientes con profesionales de servicios del hogar y comercio. NovoFix actúa exclusivamente como intermediario facilitando la conexión entre usuarios, sin ser parte directa de los acuerdos de servicio entre clientes y proveedores."
+      "content": "NovoFix es una plataforma tecnológica que conecta a clientes con profesionales de servicios del hogar y comercio. NovoFix actúa exclusivamente como intermediario facilitando la conexión entre usuarios, sin ser parte directa de los acuerdos de servicio entre clientes y profesionales."
     },
     "accounts": {
       "title": "Cuentas de Usuario",
       "content": "Para utilizar ciertas funciones de NovoFix, debes crear una cuenta proporcionando información veraz, completa y actualizada. Eres responsable de mantener la confidencialidad de tu contraseña y de todas las actividades que ocurran bajo tu cuenta. Debes notificarnos inmediatamente sobre cualquier uso no autorizado."
     },
     "providers": {
-      "title": "Obligaciones de los Proveedores",
-      "content": "Los proveedores de servicios se comprometen a:\n• Proporcionar información precisa sobre sus habilidades y experiencia\n• Mantener sus perfiles actualizados con fotos y descripciones reales\n• Cumplir con los acuerdos de servicio pactados con los clientes\n• Respetar los horarios y presupuestos acordados\n• Mantener los estándares de calidad de la plataforma"
+      "title": "Obligaciones de los Profesionales",
+      "content": "Los profesionales de servicios se comprometen a:\n• Proporcionar información precisa sobre sus habilidades y experiencia\n• Mantener sus perfiles actualizados con fotos y descripciones reales\n• Cumplir con los acuerdos de servicio pactados con los clientes\n• Respetar los horarios y presupuestos acordados\n• Mantener los estándares de calidad de la plataforma"
     },
     "clients": {
       "title": "Obligaciones de los Clientes",
-      "content": "Los clientes se comprometen a:\n• Proporcionar descripciones claras y precisas de los servicios requeridos\n• Tratar a los proveedores con respeto y profesionalismo\n• Realizar los pagos acordados de manera oportuna\n• Proporcionar reseñas honestas y constructivas\n• No solicitar servicios con fines ilegales o inapropiados"
+      "content": "Los clientes se comprometen a:\n• Proporcionar descripciones claras y precisas de los servicios requeridos\n• Tratar a los profesionales con respeto y profesionalismo\n• Realizar los pagos acordados de manera oportuna\n• Proporcionar reseñas honestas y constructivas\n• No solicitar servicios con fines ilegales o inapropiados"
     },
     "payments": {
       "title": "Pagos y Facturación",
-      "content": "Los pagos se procesan de forma segura a través de nuestros proveedores de pago autorizados. NovoFix puede cobrar comisiones por sus servicios de intermediación. Los precios de los servicios son acordados directamente entre clientes y proveedores. NovoFix no se responsabiliza por disputas de pago entre usuarios."
+      "content": "Los pagos se procesan de forma segura a través de nuestros proveedores de pago autorizados. NovoFix puede cobrar comisiones por sus servicios de intermediación. Los precios de los servicios son acordados directamente entre clientes y profesionales. NovoFix no se responsabiliza por disputas de pago entre usuarios."
     },
     "intellectual": {
       "title": "Propiedad Intelectual",
@@ -4315,7 +4334,7 @@
     },
     "liability": {
       "title": "Limitación de Responsabilidad",
-      "content": "NovoFix no garantiza la calidad, seguridad o legalidad de los servicios ofrecidos por los proveedores. La plataforma se proporciona \"tal cual\" y \"según disponibilidad\". NovoFix no será responsable por daños indirectos, incidentales o consecuentes que surjan del uso de la plataforma."
+      "content": "NovoFix no garantiza la calidad, seguridad o legalidad de los servicios ofrecidos por los profesionales. La plataforma se proporciona \"tal cual\" y \"según disponibilidad\". NovoFix no será responsable por daños indirectos, incidentales o consecuentes que surjan del uso de la plataforma."
     },
     "termination": {
       "title": "Terminación",
@@ -4349,7 +4368,7 @@
     },
     "usage": {
       "title": "Uso de la Información",
-      "content": "Utilizamos tu información para:\n• Proporcionar y mejorar nuestros servicios\n• Conectar clientes con proveedores relevantes\n• Procesar pagos y transacciones\n• Enviar notificaciones importantes sobre tu cuenta\n• Personalizar tu experiencia en la plataforma\n• Prevenir fraudes y actividades no autorizadas\n• Cumplir con obligaciones legales"
+      "content": "Utilizamos tu información para:\n• Proporcionar y mejorar nuestros servicios\n• Conectar clientes con profesionales relevantes\n• Procesar pagos y transacciones\n• Enviar notificaciones importantes sobre tu cuenta\n• Personalizar tu experiencia en la plataforma\n• Prevenir fraudes y actividades no autorizadas\n• Cumplir con obligaciones legales"
     },
     "sharing": {
       "title": "Compartición de Datos",

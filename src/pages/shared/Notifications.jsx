@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '@/state/apiClient.js';
+import { useAuth } from '@/state/AuthContext.jsx';
 import { getNotificationActionUrl } from '@/utils/notificationLinks.js';
 import Spinner from '@/components/ui/Spinner.jsx';
 import { NotificationSkeleton } from '@/components/ui/SkeletonLoader.jsx';
@@ -72,6 +73,7 @@ const getRelativeTime = (date, t) => {
 
 export default function Notifications() {
   const { t } = useTranslation();
+  const { viewRole } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [items, setItems] = useState([]);
@@ -277,7 +279,7 @@ export default function Notifications() {
                       </button>
                     )}
                     {(() => {
-                      const to = getNotificationActionUrl(n);
+                      const to = getNotificationActionUrl(n, { viewRole });
                       if (!to) return null;
                       return (
                         <Link 

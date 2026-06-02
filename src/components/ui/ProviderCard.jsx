@@ -9,6 +9,7 @@ import InquiryChatModal from './InquiryChatModal.jsx';
 import PortfolioModal from './PortfolioModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { useToast } from './Toast.jsx';
+import { isSelfProvider } from '@/utils/selfHireGuard.js';
 
 // Star Rating Component
 const StarRating = ({ rating, size = 'sm', dataNavSection }) => {
@@ -88,6 +89,9 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
   const rawResponseRate = stats.responseRate || 0;
   const responseRate = Math.min(100, Math.round(rawResponseRate));
 
+  // Bloqueo de auto-contrato (multirol Cliente/Profesional)
+  const isSelf = isSelfProvider(user, provider);
+
   // Handler único que maneja TODOS los clicks usando onClickCapture
   const handleCardClickCapture = (e) => {
     if (blockCardClicks) {
@@ -114,6 +118,10 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
     const contactBtn = e.target.closest('[data-action="contact"]');
     if (contactBtn) {
       e.stopPropagation();
+      if (isSelf) {
+        toast.warning(t('ui.providerCard.selfHireBlocked'));
+        return;
+      }
       // Si no está autenticado, mostrar modal de conversión guest
       if (!isAuthenticated) {
         setShowGuestConversion(true);
@@ -131,6 +139,10 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
     const inquiryBtn = e.target.closest('[data-action="inquiry"]');
     if (inquiryBtn) {
       e.stopPropagation();
+      if (isSelf) {
+        toast.warning(t('ui.providerCard.selfHireBlocked'));
+        return;
+      }
       if (!isAuthenticated) {
         setShowGuestConversion(true);
         return;
@@ -271,16 +283,17 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
                   </span>
                 </div>
 
-                {/* Portfolio works count */}
+                {/* Portfolio items count (fotos/videos, NO contrataciones) */}
                 {portfolio.length > 0 && (
                   <div 
                     data-action="portfolio"
                     className="flex items-center gap-1.5 bg-purple-50 px-2.5 py-1.5 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer"
+                    title={t('ui.providerCard.portfolioItemsTooltip')}
                   >
                     <svg className="w-4 h-4 text-dark-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span className="text-xs sm:text-sm text-dark-700 font-medium">{portfolio.length} {t('home.featuredProviders.works')}</span>
+                    <span className="text-xs sm:text-sm text-dark-700 font-medium">{portfolio.length} {t('ui.providerCard.portfolioItems', { count: portfolio.length })}</span>
                   </div>
                 )}
 
@@ -360,29 +373,41 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
               {/* Action buttons - Modernized layout */}
               <div className="flex flex-col gap-2 mt-auto">
                 {/* Primary actions row - Unified button widths */}
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  {/* Inquiry - Chat CTA */}
-                  <button
-                    data-action="inquiry"
-                    className="inline-flex items-center justify-center gap-1.5 flex-1 border border-brand-400 text-brand-600 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-brand-50 transition-all"
+                {isSelf ? (
+                  <div
+                    className="flex items-center justify-center gap-2 flex-1 border border-amber-300 bg-amber-50 text-amber-800 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                    title={t('ui.providerCard.selfHireBlocked')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    {t('ui.providerCard.inquiry')}
-                  </button>
+                    {t('ui.providerCard.selfBadge')}
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    {/* Inquiry - Chat CTA */}
+                    <button
+                      data-action="inquiry"
+                      className="inline-flex items-center justify-center gap-1.5 flex-1 border border-brand-400 text-brand-600 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-brand-50 transition-all"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      {t('ui.providerCard.inquiry')}
+                    </button>
 
-                  {/* Request Estimate - Primary CTA */}
-                  <button
-                    data-action="contact"
-                    className="inline-flex items-center justify-center gap-1.5 flex-1 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    {t('ui.providerCard.sendRequest')}
-                  </button>
-                </div>
+                    {/* Request Estimate - Primary CTA */}
+                    <button
+                      data-action="contact"
+                      className="inline-flex items-center justify-center gap-1.5 flex-1 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      {t('ui.providerCard.sendRequest')}
+                    </button>
+                  </div>
+                )}
 
                 {/* View Profile - Secondary */}
                 <button

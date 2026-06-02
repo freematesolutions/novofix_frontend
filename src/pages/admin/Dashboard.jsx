@@ -5,7 +5,7 @@ import { useAuth } from '@/state/AuthContext.jsx';
 import api from '@/state/apiClient.js';
 import Alert from '@/components/ui/Alert.jsx';
 import { AdminSkeleton } from '@/components/ui/SkeletonLoader.jsx';
-import { HiChartBar, HiUsers, HiUserGroup, HiBriefcase, HiClipboardList, HiCalendar, HiShieldCheck, HiCurrencyDollar, HiTrendingUp, HiClock, HiCheckCircle, HiRefresh, HiDocumentText, HiQuestionMarkCircle, HiBell, HiCog, HiViewGrid } from 'react-icons/hi';
+import { HiChartBar, HiUsers, HiUserGroup, HiBriefcase, HiClipboardList, HiCalendar, HiShieldCheck, HiCurrencyDollar, HiTrendingUp, HiClock, HiCheckCircle, HiRefresh, HiDocumentText, HiQuestionMarkCircle, HiBell, HiCog, HiViewGrid, HiVideoCamera } from 'react-icons/hi';
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -140,6 +140,7 @@ export default function AdminDashboard() {
               <QuickAction to="/admin/contenidos" icon={<HiDocumentText className="w-5 h-5" />} label={t('admin.dashboard.quickActions.cmsContents')} gradient="from-brand-500 to-brand-600" />
               <QuickAction to="/admin/faq" icon={<HiQuestionMarkCircle className="w-5 h-5" />} label={t('admin.dashboard.quickActions.cmsFaq')} gradient="from-brand-500 to-brand-600" />
               <QuickAction to="/admin/categorias-servicio" icon={<HiViewGrid className="w-5 h-5" />} label={t('admin.dashboard.quickActions.cmsServiceCategories')} gradient="from-brand-500 to-brand-600" />
+              <QuickAction to="/admin/video-home" icon={<HiVideoCamera className="w-5 h-5" />} label={t('admin.dashboard.quickActions.homeVideo')} gradient="from-brand-500 to-brand-600" />
               <QuickAction to="/admin/moderacion" icon={<HiShieldCheck className="w-5 h-5" />} label={t('admin.dashboard.quickActions.moderation')} gradient="from-accent-500 to-accent-600" />
               <QuickAction to="/admin/alertas" icon={<HiBell className="w-5 h-5" />} label={t('admin.dashboard.quickActions.alerts')} gradient="from-accent-500 to-accent-600" />
               <QuickAction to="/admin/usuarios" icon={<HiUsers className="w-5 h-5" />} label={t('admin.dashboard.quickActions.users')} gradient="from-dark-500 to-dark-700" />

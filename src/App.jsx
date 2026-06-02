@@ -55,6 +55,7 @@ const CmsContents = lazy(() => import('./pages/admin/CmsContents.jsx'));
 const CmsContentEditor = lazy(() => import('./pages/admin/CmsContentEditor.jsx'));
 const CmsFaqManager = lazy(() => import('./pages/admin/CmsFaqManager.jsx'));
 const CmsServiceCategories = lazy(() => import('./pages/admin/CmsServiceCategories.jsx'));
+const HomeVideoManager = lazy(() => import('./pages/admin/HomeVideoManager.jsx'));
 // Public SEO landings (Phase 6) — additive, do not affect existing flows
 const CategoryLanding = lazy(() => import('./pages/shared/CategoryLanding.jsx'));
 const ProviderPublicProfile = lazy(() => import('./pages/shared/ProviderPublicProfile.jsx'));
@@ -142,6 +143,7 @@ function App() {
           <Route path="/admin/contenidos/:key" element={<CmsContentEditor />} />
           <Route path="/admin/faq" element={<CmsFaqManager />} />
           <Route path="/admin/categorias-servicio" element={<CmsServiceCategories />} />
+          <Route path="/admin/video-home" element={<HomeVideoManager />} />
         </Routes>
         </Suspense>
       </main>

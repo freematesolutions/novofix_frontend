@@ -187,7 +187,7 @@ function MobileBottomNav() {
       { to: '/portafolio', icon: IconPortfolio, label: t('header.portfolio') },
       { to: '/servicios', icon: IconServices, label: t('header.services') },
       { to: '/plan', icon: IconPlan, label: t('header.plan') },
-      { to: '/referidos', icon: IconReferrals, label: t('header.referrals') },
+      // { to: '/referidos', icon: IconReferrals, label: t('header.referrals') }, // Oculto Req 9
       { to: '/resenas', icon: IconReviews, label: t('header.myReviews') },
     ];
     // Multi-role: add "Modo Cliente" at the end

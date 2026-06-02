@@ -9,6 +9,7 @@ import ProviderCard from '@/components/ui/ProviderCard.jsx';
 import FeaturedProviderCard from '@/components/ui/FeaturedProviderCard.jsx';
 import TestimonialsSection from '@/components/ui/TestimonialsSection.jsx';
 import ReelsSection from '@/components/ui/ReelsSection.jsx';
+import HomeHeroVideo from '@/components/ui/HomeHeroVideo.jsx';
 import CategoryIconCarousel from '@/components/ui/CategoryIconCarousel.jsx';
 import { SearchResultSkeleton, FeaturedProviderSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 // Scroll automático para enfocar la primera tarjeta con proveedores al cargar la sección
@@ -915,6 +916,11 @@ useEffect(() => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Video destacado administrable por admin (Req 16). Si está deshabilitado o vacío, no renderiza nada. */}
+      {searchResults === null && !selectedCategory && (
+        <HomeHeroVideo />
       )}
 
       {/* Sección de Reels — videos de profesionales estilo TikTok */}
