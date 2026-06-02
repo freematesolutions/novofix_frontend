@@ -963,6 +963,7 @@ function Header() {
               );
             })()}
           />
+          {/* Referidos: oculto temporalmente (Req 9). Para reactivar, descomentar el bloque siguiente.
           <NavLinkWithTooltip
             to="/referidos"
             onClick={closeMenu}
@@ -970,6 +971,7 @@ function Header() {
             label={t('header.referrals')}
             showLabel={isMobile}
           />
+          */}
         </>
       )}
 
@@ -1334,7 +1336,7 @@ function Header() {
       try { window.dispatchEvent(new CustomEvent('notifications:updated')); } catch {/* ignore */}
       // Show a toast with action to navigate if the notification provides an actionUrl
       try {
-        const actionUrl = getNotificationActionUrl(payload);
+        const actionUrl = getNotificationActionUrl(payload, { viewRole: viewRoleRef.current });
         const { title: translatedTitle, message: translatedMessage } = getTranslatedNotification(payload, t, i18n);
         if (actionUrl) {
           toastRef.current?.info(
@@ -1736,7 +1738,7 @@ function Header() {
                     )}
                     {notifications.map((n, index) => {
                       const id = n._id || n.id;
-                      const actionUrl = getNotificationActionUrl(n);
+                      const actionUrl = getNotificationActionUrl(n, { viewRole });
                       const message = n.message || n.body || '—';
                       const isLongMessage = message.length > 60;
                       return (
@@ -1880,14 +1882,7 @@ function Header() {
                         {t('header.professional')}
                       </span>
                     </button>
-                    {isViewLocked && (
-                      <span className={`ml-1.5 inline-flex items-center gap-1 text-[10px] font-medium ${roleColorClass} bg-yellow-50 px-1.5 py-0.5 rounded-md ring-1 ring-yellow-200`} title={t('header.modeLocked')} aria-label={t('header.modeLocked')}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3 text-yellow-600">
-                          <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4z" clipRule="evenodd" />
-                        </svg>
-                        {t('header.locked')}
-                      </span>
-                    )}
+                    {/* Candado de "modo fijado" oculto (Req 13). La lógica de bloqueo (`isViewLocked`) sigue activa para la redirección automática, pero no se muestra al usuario. */}
                   </div>
                 )}
 
@@ -1973,7 +1968,7 @@ function Header() {
                         )}
                         {notifications.map((n, index) => {
                           const id = n._id || n.id;
-                          const actionUrl = getNotificationActionUrl(n);
+                          const actionUrl = getNotificationActionUrl(n, { viewRole });
                           const message = n.message || n.body || '—';
                           const isLongMessage = message.length > 80;
                           return (
@@ -2056,8 +2051,12 @@ function Header() {
                         <div className="absolute inset-0 bg-black/0 hover:bg-black/50 flex items-center justify-center transition-all duration-200 opacity-0 hover:opacity-100 rounded-xl">
                           <HiCamera className="w-4 h-4 text-white" />
                         </div>
+                        {/* Persistent camera badge (siempre visible — indica que es editable) */}
+                        <div className="absolute top-0 right-0 w-3.5 h-3.5 bg-white rounded-full shadow flex items-center justify-center ring-1 ring-gray-200 pointer-events-none">
+                          <HiCamera className="w-2 h-2 text-gray-700" />
+                        </div>
                         {/* Online indicator */}
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full ring-2 ring-white"></div>
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full ring-2 ring-white"></div>
                       </>
                     )}
                   </div>
@@ -2115,6 +2114,10 @@ function Header() {
                               {/* Camera overlay */}
                               <div className="absolute inset-0 bg-black/0 group-hover/avatar:bg-black/50 flex items-center justify-center transition-all duration-200 opacity-0 group-hover/avatar:opacity-100">
                                 <HiCamera className="w-5 h-5 text-white" />
+                              </div>
+                              {/* Persistent camera badge */}
+                              <div className="absolute bottom-0 right-0 w-4 h-4 bg-white rounded-full shadow flex items-center justify-center ring-1 ring-gray-200 pointer-events-none">
+                                <HiCamera className="w-2.5 h-2.5 text-gray-700" />
                               </div>
                             </>
                           )}
@@ -2272,8 +2275,12 @@ function Header() {
                       <div className="absolute inset-0 bg-black/0 group-hover/mavatar:bg-black/50 flex items-center justify-center transition-all duration-200 opacity-0 group-hover/mavatar:opacity-100 rounded-2xl">
                         <HiCamera className="w-6 h-6 text-white" />
                       </div>
+                      {/* Persistent camera badge */}
+                      <div className="absolute top-0 right-0 w-5 h-5 bg-white rounded-full shadow flex items-center justify-center ring-1 ring-gray-200 pointer-events-none">
+                        <HiCamera className="w-3 h-3 text-gray-700" />
+                      </div>
                       {/* Online indicator */}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full ring-2 ring-white"></div>
+                      <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full ring-2 ring-white"></div>
                     </>
                   )}
                 </div>
@@ -2335,13 +2342,7 @@ function Header() {
                 </svg>
                 <span className="truncate">{t('header.professional')}</span>
               </button>
-              {isViewLocked && (
-                <span className={`shrink-0 ml-1 inline-flex items-center gap-1 text-[10px] font-medium ${roleColorClass} bg-yellow-50 px-2 py-1 rounded-lg`} title={t('header.modeLocked')} aria-label={t('header.modeLocked')}>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3 text-yellow-600">
-                    <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4z" clipRule="evenodd" />
-                  </svg>
-                </span>
-              )}
+              {/* Candado de "modo fijado" oculto (Req 13). */}
             </div>
           )}
           

@@ -32,6 +32,11 @@ function InquiryChatModal({ isOpen, onClose, provider, currentUserId, selectedCa
   // Crear o obtener el chat de consulta al abrir el modal
   useEffect(() => {
     if (!isOpen || !providerId || !currentUserId) return;
+    // Bloqueo de auto-contrato: no abrir chat consigo mismo
+    if (String(currentUserId) === String(providerId)) {
+      setError(t('ui.inquiryChat.selfHireBlocked'));
+      return;
+    }
     let cancelled = false;
 
     const initChat = async () => {

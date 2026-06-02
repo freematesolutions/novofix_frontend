@@ -5,6 +5,7 @@ import Spinner from './Spinner.jsx';
 import api from '@/state/apiClient.js';
 import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketClient.js';
 import { compressImage } from '@/utils/fileCompression.js';
+import { getChatParticipantName } from '@/utils/chatParticipants.js';
 import { useTranslation } from 'react-i18next';
 import PdfCanvasViewer from '@/components/ui/PdfCanvasViewer.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
@@ -660,23 +661,17 @@ function ChatRoom({
   const lastMessageCountRef = useRef(0);
 
   // Get chat title and partner info
+  // Usa el helper compartido para garantizar consistencia con la lista de
+  // conversaciones y evitar fallbacks genéricos como "Chat" o "Proveedor".
   const chatTitle = useMemo(() => {
-    if (!chat) return 'Chat';
-    return chat?.booking?.basicInfo?.title || 
-           chat?.participants?.client?.profile?.firstName ||
-           chat?.participants?.provider?.providerProfile?.businessName ||
-           'Chat';
-  }, [chat]);
+    if (!chat) return t('chat.unnamedChat', { defaultValue: 'Conversación' });
+    return chat?.booking?.basicInfo?.title ||
+      getChatParticipantName(chat, { currentUserId, t });
+  }, [chat, currentUserId, t]);
 
   const partnerName = useMemo(() => {
     if (!chat || !currentUserId) return '';
-    const isClient = chat?.participants?.client?._id === currentUserId;
-    if (isClient) {
-      return chat?.participants?.provider?.providerProfile?.businessName || 
-             chat?.participants?.provider?.profile?.firstName || 
-             t('common.provider');
-    }
-    return chat?.participants?.client?.profile?.firstName || t('chat.user');
+    return getChatParticipantName(chat, { currentUserId, t });
   }, [chat, currentUserId, t]);
 
   // Load messages — uses consolidated endpoint when participantId is provided
@@ -1285,7 +1280,7 @@ function ChatRoom({
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">
-                  {t('chat.proposalPending', 'Propuesta pendiente de {{provider}}', { provider: proposalInfo.providerName || t('chat.provider', 'proveedor') })}
+                  {t('chat.proposalPending', 'Propuesta pendiente de {{provider}}', { provider: proposalInfo.providerName || t('chat.provider', 'profesional') })}
                 </p>
                 <p className="text-lg font-bold text-accent-600">
                   {proposalInfo.isRange 

@@ -119,7 +119,7 @@ function GuestConversionModal({
   const [errors, setErrors] = useState({});
   
   // Login form
-  const [loginForm, setLoginForm] = useState({ email: '', password: '', remember: false });
+  const [loginForm, setLoginForm] = useState({ email: '', password: '', remember: true });
   
   // Register form
   const [registerForm, setRegisterForm] = useState({ 
@@ -140,7 +140,7 @@ function GuestConversionModal({
   useEffect(() => {
     if (isOpen) {
       setMode('choice');
-      setLoginForm({ email: '', password: '', remember: false });
+      setLoginForm({ email: '', password: '', remember: true });
       setRegisterForm({ firstName: '', lastName: '', email: '', password: '' });
       setErrors({});
       setTouched({});

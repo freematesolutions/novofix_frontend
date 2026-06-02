@@ -9,6 +9,7 @@ import Spinner from '@/components/ui/Spinner.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
+import { getChatParticipantName } from '@/utils/chatParticipants.js';
 import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketClient.js';
 
 export default function Inbox() {
@@ -144,8 +145,19 @@ export default function Inbox() {
         return next;
       });
     });
+
+    // Notificaci\u00f3n al proveedor cuando el cliente rechaza su propuesta:
+    // se le informa que puede reenviar una nueva propuesta sobre la misma solicitud.
+    const offRejected = socketOn('PROPOSAL_REJECTED', (payload) => {
+      try {
+        toast.info(t('provider.inbox.proposalRejectedCanResubmit'));
+      } catch { /* ignore */ }
+      // Recargar la lista para reflejar el nuevo estado
+      try { loadChats?.(); } catch { /* ignore */ }
+    });
+
     return () => {
-      try { offNew(); offTyping(); offStopped(); } catch { /* ignore */ }
+      try { offNew(); offTyping(); offStopped(); offRejected(); } catch { /* ignore */ }
     };
   }, [viewRole]);
 
@@ -247,14 +259,14 @@ export default function Inbox() {
     setNegotiationProposal(null);
   };
 
-  // Get other participant name (for provider, the other participant is the client)
-  const getParticipantName = (chat) => {
-    if (!chat) return t('provider.inbox.chat');
-    const client = chat.participants?.client;
-    return client?.profile?.firstName
-      ? `${client.profile.firstName} ${client.profile.lastName || ''}`.trim()
-      : chat.booking?.basicInfo?.title || t('provider.inbox.chat');
-  };
+  // Nombre del otro participante (cliente, desde la óptica del profesional).
+  // Usa el helper compartido con cascada de fallbacks robusta para que NUNCA
+  // se vea simplemente "Chat" cuando hay múltiples conversaciones abiertas.
+  const getParticipantName = (chat) => getChatParticipantName(chat, {
+    viewRole: 'provider',
+    currentUserId: user?.id || user?._id,
+    t,
+  });
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 p-3 sm:p-6">

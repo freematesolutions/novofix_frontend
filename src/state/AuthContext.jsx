@@ -80,9 +80,39 @@ export function AuthProvider({ children }) {
         return;
       }
 
+      // Si no hay access_token en storage, intentar refrescar desde la cookie httpOnly `refresh_token`
+      // (que persiste 90 días). Esto restaura la sesión al reabrir el navegador aunque
+      // el usuario no haya marcado "Recordarme" (access_token en sessionStorage se borra al cerrar la pestaña).
+      let existingToken = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+      if (!existingToken) {
+        try {
+          const { data: refreshData } = await api.post('/auth/refresh', {}, { withCredentials: true });
+          const newAccess = refreshData?.data?.accessToken;
+          if (newAccess) {
+            // Si existía algún access_token previo en localStorage usamos ese storage;
+            // por defecto persistimos en localStorage para que la sesión sobreviva al cierre del navegador.
+            try {
+              if (localStorage.getItem('access_token') != null) {
+                localStorage.setItem('access_token', newAccess);
+              } else if (sessionStorage.getItem('access_token') != null) {
+                sessionStorage.setItem('access_token', newAccess);
+              } else {
+                // Primer arranque tras cerrar navegador: persistir para mantener sesión activa.
+                localStorage.setItem('access_token', newAccess);
+              }
+            } catch { /* intentionally empty */ }
+            existingToken = newAccess;
+          }
+        } catch (refreshErr) {
+          // 401/403 esperado cuando no hay cookie válida; solo log de otros errores
+          if (!(refreshErr?.response?.status === 401 || refreshErr?.response?.status === 403)) {
+            console.debug('Silent refresh failed on init:', refreshErr);
+          }
+        }
+      }
+
       try {
-        // Crear guest session sólo si no hay token
-        const existingToken = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+        // Crear guest session sólo si seguimos sin token después del intento de refresh
         if (!existingToken) {
           const res = await api.get('/guest/session');
           const sessionId = res?.data?.data?.session?.sessionId;

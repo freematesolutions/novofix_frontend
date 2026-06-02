@@ -18,14 +18,15 @@ export const CATEGORY_IMAGE_IDS = {
   'Plomería': 'photo-1607472586893-edb57bdc0e39',
   'Electricidad': 'photo-1621905251189-08b45d6a269e',
   'Climatización': 'photo-1762341123870-d706f257a12e',
+  // 'Refrigeración' — técnico de refrigeración / cuarto frío comercial (Unsplash).
+  'Refrigeración': 'photo-1584568694244-14fbdf83bd30',
   'Cerrajería': 'photo-1582139329536-e7284fece509',
-  'Mantenimiento': 'photo-1607400201515-c2c41c07d307',
+  // 'Garaje' (antes 'Mantenimiento') — interior de garaje con vehículo (Unsplash).
+  'Garaje': 'photo-1486006920555-c77dcf18193c',
   'Control de Plagas': 'photo-1674485135526-b5a686b33dfe',
   'Limpieza': 'photo-1581578731548-c64695cc6952',
   'Pintura': 'photo-1562259949-e8e7689d7828',
-  'Gabinetes': 'photo-1682888813734-b1b0a4f79385',
   'Pisos': 'photo-1722942117261-ec876f53cc5b',
-  'Cocina': 'photo-1772016608838-d8d467da27e8',
   'Remodelación': 'photo-1484154218962-a197022b5858',
   'Jardinería': 'photo-1585320806297-9794b3e4eeae',
   'Piscinas': 'photo-1576013551627-0cc20b96c2a7',

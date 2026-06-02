@@ -181,39 +181,39 @@ export const CATEGORY_KEYWORD_OVERRIDES = {
     },
   },
 
-  // ─── Mantenimiento ───────────────────────────────────────────────────────
-  Mantenimiento: {
+  // ─── Garaje ──────────────────────────────────────────────────────────────
+  Garaje: {
     es: {
-      title: `Mantenimiento preventivo residencial en ${C} · Servicios técnicos garantizados`,
-      description: `Programas de mantenimiento preventivo residencial en ${C}. Profesionales verificados, presupuesto gratis online y servicios técnicos garantizados para tu hogar.`,
-      heading: `Mantenimiento preventivo residencial en ${C}`,
-      intro: `El mantenimiento preventivo residencial alarga la vida útil de tu hogar y evita reparaciones costosas. En NovoFix encuentras profesionales verificados en ${C} con servicios técnicos garantizados y presupuesto gratis online.`,
-      keywords: `mantenimiento preventivo residencial, servicios técnicos garantizados, profesionales verificados, mantenimiento del hogar ${C}, presupuesto gratis online`,
+      title: `Servicios para garaje en ${C} · Puertas, motores y organización`,
+      description: `Profesionales para tu garaje en ${C}: instalación y reparación de puertas seccionales, motores y abrepuertas, estanterías, piso epóxico, iluminación y organización. Presupuesto gratis y técnicos verificados en Florida.`,
+      heading: `Servicios para garaje en ${C}`,
+      intro: `Tu garaje también merece estar en perfecto estado. En NovoFix conectas con profesionales verificados en ${C} para reparar e instalar puertas de garaje, motores y abrepuertas, además de proyectos de organización, estanterías, piso epóxico, iluminación y ventilación. Presupuesto gratis online y trabajo garantizado.`,
+      keywords: `servicios de garaje en ${C}, reparar puerta de garaje, instalar motor de garaje, organización de garaje, piso epóxico garaje, profesionales verificados, presupuesto gratis online`,
       faq: [
         {
-          q: `¿Qué incluye un plan de mantenimiento preventivo residencial?`,
-          a: `Habitualmente incluye revisión de instalaciones eléctricas, plomería, climatización y elementos exteriores. El alcance se acuerda con cada profesional según las necesidades de tu vivienda.`,
+          q: `¿Reparan puertas de garaje el mismo día en ${C}?`,
+          a: `Sí. Muchos profesionales en NovoFix ofrecen reparación de puerta de garaje el mismo día, incluyendo cambio de resortes, cables, rieles y motores abrepuertas.`,
         },
         {
-          q: `¿Con qué frecuencia debo programarlo?`,
-          a: `Recomendamos al menos una revisión anual, idealmente antes del verano por las exigencias del clima de ${R}.`,
+          q: `¿Puedo pedir presupuesto para organizar mi garaje?`,
+          a: `Por supuesto. Crea tu solicitud indicando el tipo de trabajo (estanterías, piso epóxico, iluminación, organización general) y recibirás propuestas gratis de profesionales locales en ${R}.`,
         },
       ],
     },
     en: {
-      title: `Preventive residential maintenance in ${C} · Guaranteed services`,
-      description: `Preventive residential maintenance plans in ${C}. Verified pros, free online quotes and guaranteed technical services for your home.`,
-      heading: `Preventive residential maintenance in ${C}`,
-      intro: `Preventive residential maintenance extends your home's lifespan and prevents costly repairs. On NovoFix you'll find verified pros in ${C} with guaranteed technical services and free online quotes.`,
-      keywords: `preventive residential maintenance, guaranteed technical services, verified professionals, home maintenance ${C}, free online quote`,
+      title: `Garage services in ${C} · Doors, openers and organization`,
+      description: `Pros for your garage in ${C}: install and repair sectional doors, openers and motors, shelving, epoxy floors, lighting and organization. Free quotes and verified technicians in Florida.`,
+      heading: `Garage services in ${C}`,
+      intro: `Your garage deserves to be in great shape too. On NovoFix you connect with verified pros in ${C} for garage door repair and installation, openers and motors, shelving, epoxy floors, lighting and ventilation projects. Free online quotes and guaranteed work.`,
+      keywords: `garage services ${C}, garage door repair, garage opener installation, garage organization, epoxy garage floor, verified professionals, free online quote`,
       faq: [
         {
-          q: `What's included in a preventive residential maintenance plan?`,
-          a: `It typically covers electrical, plumbing, HVAC and exterior reviews. The scope is agreed with each pro based on your home's needs.`,
+          q: `Do you offer same-day garage door repair in ${C}?`,
+          a: `Yes. Many NovoFix pros offer same-day garage door repair, including springs, cables, tracks and opener motor replacement.`,
         },
         {
-          q: `How often should I schedule it?`,
-          a: `We recommend at least one annual review, ideally before summer due to ${R}'s climate demands.`,
+          q: `Can I request a quote to organize my garage?`,
+          a: `Absolutely. Create a request describing the work (shelving, epoxy floor, lighting, general organization) and you'll receive free proposals from local pros in ${R}.`,
         },
       ],
     },

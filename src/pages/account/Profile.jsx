@@ -271,7 +271,7 @@ export default function Profile() {
                     <HiUserCircle className="w-20 h-20 text-white/70" />
                   </div>
                 )}
-                {/* Upload overlay */}
+                {/* Upload overlay (visible al hover en desktop) */}
                 <label className="absolute inset-0 bg-black/0 hover:bg-black/40 flex items-center justify-center cursor-pointer transition-all duration-300 opacity-0 hover:opacity-100">
                   <input
                     type="file"
@@ -307,6 +307,21 @@ export default function Profile() {
                   </div>
                 )}
               </div>
+              {/* Camera badge (siempre visible) — indica que el avatar es editable */}
+              <label
+                className="absolute -top-1 -right-1 w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-full shadow-lg flex items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200 ring-1 ring-gray-200"
+                title={t('header.clickToChangePhoto')}
+                aria-label={t('header.clickToChangePhoto')}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  disabled={uploadingAvatar}
+                  className="hidden"
+                />
+                <HiCamera className={`w-4 h-4 sm:w-5 sm:h-5 ${accent.text}`} />
+              </label>
               {/* Verified badge */}
               <div className="absolute -bottom-1 -right-1 w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-full shadow-lg flex items-center justify-center">
                 <HiBadgeCheck className={`w-6 h-6 ${accent.text}`} />

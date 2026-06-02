@@ -8,7 +8,9 @@ import { ChatListSkeleton } from '@/components/ui/SkeletonLoader.jsx';
 import RequestWizardModal from '@/components/ui/RequestWizardModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { getArray } from '@/utils/data.js';
+import { getChatParticipantName } from '@/utils/chatParticipants.js';
 import { getSocket, on as socketOn, emit as socketEmit } from '@/state/socketClient.js';
+import { useToast } from '@/components/ui/Toast.jsx';
 
 /**
  * Página de Mensajes para Clientes
@@ -20,6 +22,7 @@ export default function Messages() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { viewRole, clearError, user, isAuthenticated } = useAuth();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -230,11 +233,12 @@ export default function Messages() {
   const proposalInfo = useMemo(() => {
     if (!selectedChat?.proposal) return null;
     const proposal = selectedChat.proposal;
-    const provider = selectedChat.participants?.provider;
-    const providerName = provider?.providerProfile?.businessName || 
-                         provider?.profile?.firstName || 
-                         t('client.messages.provider');
-    
+    const providerName = getChatParticipantName(selectedChat, {
+      viewRole: 'client',
+      currentUserId: user?.id || user?._id,
+      t,
+    });
+
     return {
       proposalId: proposal._id || proposal.id || proposal,
       amount: proposal.pricing?.amount,
@@ -245,7 +249,7 @@ export default function Messages() {
       providerName,
       status: proposal.status || 'pending'
     };
-  }, [selectedChat, t]);
+  }, [selectedChat, t, user]);
 
   // Aceptar propuesta desde el chat
   const handleAcceptProposal = useCallback(async (proposalId) => {
@@ -307,25 +311,24 @@ export default function Messages() {
       
       // Recargar chats
       await loadChats();
-      
+
+      // Informar al cliente que puede volver a solicitar al mismo profesional
+      try { toast.success(t('client.messages.rejectSuccessCanResubmit')); } catch { /* ignore */ }
+
     } catch (err) {
       setError(err?.response?.data?.message || t('client.messages.rejectError', 'Error al rechazar propuesta'));
     } finally {
       setIsAcceptingProposal(false);
     }
-  }, [selectedConversationId, isAcceptingProposal, loadChats, t]);
+  }, [selectedConversationId, isAcceptingProposal, loadChats, t, toast]);
 
-  // Nombre del otro participante
-  const getParticipantName = (chat) => {
-    if (!chat) return t('client.messages.chat');
-    // Para cliente, mostrar el nombre del proveedor
-    // participants es un objeto { client, provider }, no un array
-    const provider = chat.participants?.provider;
-    return provider?.providerProfile?.businessName || 
-           provider?.profile?.firstName ||
-           chat.booking?.basicInfo?.title || 
-           t('client.messages.provider');
-  };
+  // Nombre del otro participante (profesional, desde la óptica del cliente).
+  // Usa el helper compartido con cascada de fallbacks robusta.
+  const getParticipantName = (chat) => getChatParticipantName(chat, {
+    viewRole: 'client',
+    currentUserId: user?.id || user?._id,
+    t,
+  });
 
   if (!isAuthenticated) return null;
 

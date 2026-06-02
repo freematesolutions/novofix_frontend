@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/Toast.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { compressImages, validateFiles } from '@/utils/fileCompression.js';
 import UploadProgress from '@/components/ui/UploadProgress.jsx';
+import { filterOutSelfProvider } from '@/utils/selfHireGuard.js';
 
 const URGENCY = [
   { value: 'immediate', label: 'client.createRequest.urgency.immediate' },
@@ -19,7 +20,7 @@ const URGENCY = [
 
 export default function CreateRequest() {
   const { t } = useTranslation();
-  const { role, roles, viewRole, clearError, isAuthenticated } = useAuth();
+  const { role, roles, viewRole, clearError, isAuthenticated, user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -109,17 +110,19 @@ export default function CreateRequest() {
       console.log('✅ Eligibility response:', data);
       
       const count = data?.data?.totalEligible ?? 0;
-      const providers = Array.isArray(data?.data?.providers) ? data.data.providers : [];
-      
+      const providersRaw = Array.isArray(data?.data?.providers) ? data.data.providers : [];
+      // Bloqueo de auto-contrato: no listar al propio usuario como proveedor elegible
+      const providers = filterOutSelfProvider(providersRaw, user);
+
       console.log(`📊 Found ${count} eligible providers, ${providers.length} with details`);
-      
+
       setEligibility({ loading: false, count, providers });
       setLastEligibilityAt(new Date());
     } catch (err) {
       console.error('❌ Eligibility fetch error:', err);
       setEligibility({ loading: false, count: null, providers: [] });
     }
-  }, [form.category, form.urgency, coords]);
+  }, [form.category, form.urgency, coords, user]);
 
   useEffect(() => {
     const t = setTimeout(fetchEligibility, 400); // debounce

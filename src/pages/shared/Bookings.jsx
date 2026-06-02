@@ -71,13 +71,14 @@ export default function Bookings() {
   const [dateFrom, setDateFrom] = useState(''); // yyyy-mm-dd
   const [dateTo, setDateTo] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  // Evidencia modal
+  // Evidencia modal — estructura dual (Antes/Después) para subir ambos en una misma sesión sin cerrar el modal.
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [evidenceBooking, setEvidenceBooking] = useState(null);
-  const [evidenceType, setEvidenceType] = useState('before'); // before|during|after
-  const [evidenceFiles, setEvidenceFiles] = useState([]); // Array of File objects
-  const [evidencePreviews, setEvidencePreviews] = useState([]); // Array of preview objects
-  const [evidenceCaptions, setEvidenceCaptions] = useState([]); // Array of captions
+  // Slots independientes por tipo: cada uno con sus propios files, previews y captions.
+  const [evidenceSlots, setEvidenceSlots] = useState({
+    before: { files: [], previews: [], captions: [] },
+    after:  { files: [], previews: [], captions: [] }
+  });
   const [evidenceLoading, setEvidenceLoading] = useState(false);
   const [evidenceProgress, setEvidenceProgress] = useState({
     show: false,
@@ -504,20 +505,30 @@ export default function Bookings() {
 
   const openEvidence = (booking) => {
     setEvidenceBooking(booking);
-    setEvidenceType('before');
-    setEvidenceFiles([]);
-    setEvidencePreviews([]);
-    setEvidenceCaptions([]);
+    setEvidenceSlots({
+      before: { files: [], previews: [], captions: [] },
+      after:  { files: [], previews: [], captions: [] }
+    });
     setEvidenceProgress({ show: false, progress: 0, fileName: '', message: '', totalFiles: 0, currentFile: 0, status: 'uploading' });
     setEvidenceOpen(true);
   };
 
-  // Manejar selección de archivos para evidencia
-  const handleEvidenceFileSelect = async (e) => {
-    const files = Array.from(e.target.files);
+  // Cierra el modal liberando los object-URLs creados con URL.createObjectURL.
+  const closeEvidenceModal = useCallback(() => {
+    if (evidenceLoading) return;
+    setEvidenceSlots((prev) => {
+      ['before', 'after'].forEach((k) => prev[k].previews.forEach((p) => URL.revokeObjectURL(p.url)));
+      return { before: { files: [], previews: [], captions: [] }, after: { files: [], previews: [], captions: [] } };
+    });
+    setEvidenceOpen(false);
+  }, [evidenceLoading]);
+
+  // Manejar selección de archivos para evidencia (kind = 'before' | 'after')
+  const handleEvidenceFileSelect = async (e, kind) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = ''; // permitir re-seleccionar el mismo archivo si se eliminó
     if (files.length === 0) return;
-    
-    // Validar archivos
+
     const validation = validateFiles(files, {
       maxFiles: 10,
       maxSizeMB: 200,
@@ -526,17 +537,12 @@ export default function Bookings() {
         'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/mpeg', 'video/webm'
       ]
     });
-
     if (!validation.valid) {
-      validation.errors.forEach(err => toast.error(err));
+      validation.errors.forEach((err) => toast.error(err));
       return;
     }
 
-    setEvidenceFiles(validation.validFiles);
-    setEvidenceCaptions(new Array(validation.validFiles.length).fill(''));
-
-    // Generar previews
-    const newPreviews = validation.validFiles.map(file => {
+    const newPreviews = validation.validFiles.map((file) => {
       const isVideo = file.type.startsWith('video/');
       const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
       return {
@@ -546,195 +552,203 @@ export default function Bookings() {
         size: `${sizeMB}MB`
       };
     });
-    setEvidencePreviews(newPreviews);
+
+    setEvidenceSlots((prev) => ({
+      ...prev,
+      [kind]: {
+        files: [...prev[kind].files, ...validation.validFiles],
+        previews: [...prev[kind].previews, ...newPreviews],
+        captions: [...prev[kind].captions, ...new Array(validation.validFiles.length).fill('')]
+      }
+    }));
   };
 
-  // Eliminar un archivo de la selección
-  const removeEvidenceFile = (index) => {
-    const newFiles = [...evidenceFiles];
-    const newPreviews = [...evidencePreviews];
-    const newCaptions = [...evidenceCaptions];
-    
-    // Revocar URL del preview
-    URL.revokeObjectURL(newPreviews[index].url);
-    
-    newFiles.splice(index, 1);
-    newPreviews.splice(index, 1);
-    newCaptions.splice(index, 1);
-    
-    setEvidenceFiles(newFiles);
-    setEvidencePreviews(newPreviews);
-    setEvidenceCaptions(newCaptions);
+  // Eliminar un archivo de la selección (de un slot específico)
+  const removeEvidenceFile = (kind, index) => {
+    setEvidenceSlots((prev) => {
+      const slot = prev[kind];
+      const preview = slot.previews[index];
+      if (preview) URL.revokeObjectURL(preview.url);
+      return {
+        ...prev,
+        [kind]: {
+          files: slot.files.filter((_, i) => i !== index),
+          previews: slot.previews.filter((_, i) => i !== index),
+          captions: slot.captions.filter((_, i) => i !== index)
+        }
+      };
+    });
   };
 
-  // Actualizar caption de un archivo
-  const updateEvidenceCaption = (index, value) => {
-    const newCaptions = [...evidenceCaptions];
-    newCaptions[index] = value;
-    setEvidenceCaptions(newCaptions);
+  // Actualizar caption de un archivo (de un slot específico)
+  const updateEvidenceCaption = (kind, index, value) => {
+    setEvidenceSlots((prev) => {
+      const newCaptions = [...prev[kind].captions];
+      newCaptions[index] = value;
+      return { ...prev, [kind]: { ...prev[kind], captions: newCaptions } };
+    });
   };
 
+  // Sube los archivos pendientes de un slot. Devuelve { count, urls } o lanza error.
+  // No modifica state global de progreso: el caller orquesta el progress combinado.
+  const uploadEvidenceSlot = async (kind, onProgress) => {
+    const slot = evidenceSlots[kind];
+    if (!slot.files.length) return { count: 0, urls: [], descriptions: [] };
+
+    let processedFiles = [...slot.files];
+    const imageFiles = slot.files.filter((f) => f.type.startsWith('image/'));
+
+    // 1. Comprimir imágenes si las hay (mantiene calidad alta para mostrar en galería Home)
+    if (imageFiles.length > 0) {
+      try {
+        const compressedImages = await compressImages(imageFiles, {
+          maxSizeMB: 2,
+          maxWidthOrHeight: 1920,
+          initialQuality: 0.85
+        });
+        processedFiles = slot.files.map((file) => {
+          if (file.type.startsWith('image/')) {
+            const idx = imageFiles.indexOf(file);
+            return compressedImages[idx] || file;
+          }
+          return file;
+        });
+      } catch (compressError) {
+        console.warn('Compression failed, using original files:', compressError);
+      }
+    }
+
+    // 2. Subir a Cloudinary
+    const form = new FormData();
+    processedFiles.forEach((f) => form.append('files', f));
+    form.append('context', 'booking_evidence');
+    form.append('captions', JSON.stringify(slot.captions));
+
+    const upRes = await api.post('/uploads/booking-evidence', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 600000,
+      onUploadProgress: (evt) => {
+        if (!evt.total || !onProgress) return;
+        onProgress(Math.round((evt.loaded * 100) / evt.total));
+      }
+    });
+    const uploaded = upRes?.data?.data?.files || upRes?.data?.files || [];
+    const urls = uploaded.map((u) => u.secureUrl || u.url).filter(Boolean);
+    if (urls.length === 0) throw new Error(t('shared.bookings.errors.noEvidenceUrls'));
+
+    // 3. Registrar evidencia en el booking (un POST por slot, semantica del backend)
+    const descriptions = slot.captions.filter((c) => c && c.trim());
+    await api.post(`/bookings/${evidenceBooking._id}/evidence`, { type: kind, urls, descriptions });
+
+    return { count: urls.length, urls, descriptions: slot.captions };
+  };
+
+  // Maneja la subida combinada de Antes + Después en una sola acción,
+  // sin cerrar el modal. Si una falla y la otra tiene éxito, persistimos la exitosa
+  // y reportamos error parcial al usuario.
   const handleUploadEvidence = async () => {
     if (!evidenceBooking) return;
-    if (!evidenceFiles || evidenceFiles.length === 0) {
+    const beforeCount = evidenceSlots.before.files.length;
+    const afterCount = evidenceSlots.after.files.length;
+    if (beforeCount === 0 && afterCount === 0) {
       toast.warning(t('shared.bookings.validation.selectFile'));
       return;
     }
-    
+
     setEvidenceLoading(true);
-    const totalFiles = evidenceFiles.length;
-    
-    try {
-      let processedFiles = [...evidenceFiles];
-      const hasVideos = evidenceFiles.some(f => f.type.startsWith('video/'));
-      const imageFiles = evidenceFiles.filter(f => f.type.startsWith('image/'));
+    setEvidenceProgress({
+      show: true,
+      progress: 5,
+      fileName: '',
+      message: t('shared.bookings.progress.uploading'),
+      totalFiles: beforeCount + afterCount,
+      currentFile: 0,
+      status: 'uploading'
+    });
 
-      // 1. Comprimir imágenes
-      if (imageFiles.length > 0) {
-        setEvidenceProgress({
-          show: true,
-          progress: 0,
-          fileName: '',
-          message: t('shared.bookings.progress.compressing'),
-          totalFiles,
-          currentFile: 0,
-          status: 'compressing'
-        });
+    // Progreso combinado: cada slot aporta a su mitad si ambos existen, full si es único.
+    const slotsToUpload = [];
+    if (beforeCount > 0) slotsToUpload.push('before');
+    if (afterCount > 0) slotsToUpload.push('after');
+    const slotWeight = 100 / slotsToUpload.length;
+    const slotProgress = { before: 0, after: 0 };
+    const updateCombinedProgress = () => {
+      const combined = slotsToUpload.reduce((acc, k) => acc + (slotProgress[k] * slotWeight) / 100, 0);
+      setEvidenceProgress((prev) => ({ ...prev, progress: Math.max(5, Math.min(95, Math.round(combined))) }));
+    };
 
+    const results = {};
+    const errors = {};
+    await Promise.all(
+      slotsToUpload.map(async (kind) => {
         try {
-          const compressedImages = await compressImages(imageFiles, {
-            maxSizeMB: 2,
-            maxWidthOrHeight: 1920,
-            initialQuality: 0.85
-          }, (progress) => {
-            setEvidenceProgress(prev => ({
-              ...prev,
-              progress: (progress.percentage * 0.2),
-              currentFile: progress.current
-            }));
+          results[kind] = await uploadEvidenceSlot(kind, (pct) => {
+            slotProgress[kind] = pct;
+            updateCombinedProgress();
           });
-
-          // Reemplazar imágenes originales con comprimidas
-          processedFiles = evidenceFiles.map(file => {
-            if (file.type.startsWith('image/')) {
-              const compressedIndex = imageFiles.indexOf(file);
-              return compressedImages[compressedIndex];
-            }
-            return file;
-          });
-        } catch (compressError) {
-          console.warn('Compression failed, using original files:', compressError);
+          slotProgress[kind] = 100;
+          updateCombinedProgress();
+        } catch (err) {
+          errors[kind] = err?.response?.data?.message || err?.message || t('shared.bookings.errors.evidenceUploadFailed');
         }
-      } else if (hasVideos) {
-        setEvidenceProgress({
-          show: true,
-          progress: 0,
-          fileName: processedFiles[0]?.name || '',
-          message: t('shared.bookings.progress.preparingVideos'),
-          totalFiles,
-          currentFile: 0,
-          status: 'uploading'
-        });
+      })
+    );
+
+    // Sincronización local: refleja en evidenceBooking lo que realmente persistió,
+    // limpia los slots subidos con éxito (libera object-URLs), mantiene los que fallaron.
+    setEvidenceBooking((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, serviceEvidence: { ...(prev.serviceEvidence || {}) } };
+      for (const kind of slotsToUpload) {
+        if (results[kind]) {
+          const newItems = results[kind].urls.map((url, i) => ({ url, description: results[kind].descriptions[i] || '' }));
+          next.serviceEvidence[kind] = [...(next.serviceEvidence[kind] || []), ...newItems];
+        }
       }
+      return next;
+    });
 
-      // 2. Subir archivos a Cloudinary
-      setEvidenceProgress(prev => ({
-        ...prev,
-        progress: 20,
-        message: hasVideos ? t('shared.bookings.progress.uploadingWithVideos') : t('shared.bookings.progress.uploading'),
-        status: 'uploading',
-        fileName: processedFiles[0]?.name || ''
-      }));
-
-      const form = new FormData();
-      processedFiles.forEach((f) => form.append('files', f));
-      form.append('context', 'booking_evidence');
-      form.append('captions', JSON.stringify(evidenceCaptions));
-
-      const upRes = await api.post('/uploads/booking-evidence', form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 600000, // 10 minutos
-        onUploadProgress: (progressEvent) => {
-          if (!progressEvent.total) return;
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          const baseProgress = imageFiles.length > 0 ? 20 : 0;
-          const progressRange = imageFiles.length > 0 ? 70 : 90;
-          const adjustedProgress = baseProgress + Math.round((percentCompleted * progressRange) / 100);
-          
-          setEvidenceProgress(prev => ({
-            ...prev,
-            progress: Math.min(adjustedProgress, 90),
-            message: hasVideos ? t('shared.bookings.progress.uploading') : t('shared.bookings.progress.uploadingImages')
-          }));
+    setEvidenceSlots((prev) => {
+      const cleaned = { ...prev };
+      for (const kind of slotsToUpload) {
+        if (results[kind]) {
+          prev[kind].previews.forEach((p) => URL.revokeObjectURL(p.url));
+          cleaned[kind] = { files: [], previews: [], captions: [] };
         }
+      }
+      return cleaned;
+    });
+
+    // Refresca la fila en el listado principal para que el indicador de evidencia se vea actualizado.
+    try { await load(); } catch { /* noop */ }
+
+    const okBefore = !!results.before;
+    const okAfter  = !!results.after;
+    const errBefore = errors.before;
+    const errAfter  = errors.after;
+
+    if (okBefore || okAfter) {
+      const summary = t('shared.bookings.success.evidenceUploadedSummary', {
+        before: results.before?.count || 0,
+        after:  results.after?.count || 0
       });
-
-      const uploaded = upRes?.data?.data?.files || upRes?.data?.files || [];
-      const urls = uploaded.map((u) => u.secureUrl || u.url).filter(Boolean);
-      if (urls.length === 0) throw new Error(t('shared.bookings.errors.noEvidenceUrls'));
-
-      // 3. Registrar evidencia en el booking
-      setEvidenceProgress(prev => ({
-        ...prev,
-        progress: 95,
-        message: t('shared.bookings.progress.saving'),
-        status: 'processing'
-      }));
-
-      const payload = { 
-        type: evidenceType, 
-        urls, 
-        descriptions: evidenceCaptions.filter(c => c.trim()) 
-      };
-      await api.post(`/bookings/${evidenceBooking._id}/evidence`, payload);
-
-      // Update local evidenceBooking so the balance indicator reflects the new upload
-      setEvidenceBooking(prev => {
-        if (!prev) return prev;
-        const newItems = urls.map((url, i) => ({ url, description: evidenceCaptions[i] || '' }));
-        return {
-          ...prev,
-          serviceEvidence: {
-            ...prev.serviceEvidence,
-            [evidenceType]: [...(prev.serviceEvidence?.[evidenceType] || []), ...newItems]
-          }
-        };
-      });
-      
       setEvidenceProgress({
         show: true,
         progress: 100,
         fileName: '',
-        message: t('shared.bookings.success.evidenceUploaded'),
-        totalFiles,
-        currentFile: totalFiles,
+        message: summary,
+        totalFiles: (results.before?.count || 0) + (results.after?.count || 0),
+        currentFile: (results.before?.count || 0) + (results.after?.count || 0),
         status: 'success'
       });
-
-      setTimeout(() => {
-        setEvidenceProgress(prev => ({ ...prev, show: false }));
-        setEvidenceOpen(false);
-        toast.success(t('shared.bookings.success.filesUploaded', { count: urls.length }));
-        load();
-      }, 1500);
-      
-    } catch (err) {
-      setEvidenceProgress({
-        show: true,
-        progress: 0,
-        fileName: '',
-        message: t('shared.bookings.errors.evidenceUploadFailed'),
-        totalFiles,
-        currentFile: 0,
-        status: 'error'
-      });
-      toast.error(err?.response?.data?.message || err?.message || t('shared.bookings.errors.evidenceUploadFailed'));
-      setTimeout(() => {
-        setEvidenceProgress(prev => ({ ...prev, show: false }));
-      }, 3000);
-    } finally {
-      setEvidenceLoading(false);
+      toast.success(summary);
     }
+    if (errBefore && !okBefore) toast.error(`${t('shared.bookings.evidence.before')}: ${errBefore}`);
+    if (errAfter  && !okAfter)  toast.error(`${t('shared.bookings.evidence.after')}: ${errAfter}`);
+
+    setTimeout(() => setEvidenceProgress((prev) => ({ ...prev, show: false })), 1800);
+    setEvidenceLoading(false);
+    // IMPORTANTE: NO cerramos el modal aquí. El profesional decide cuándo cerrar.
   };
 
   // Eliminar una evidencia individual (solo proveedor dueño)
@@ -1328,8 +1342,9 @@ export default function Bookings() {
                             <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-${sectionColor}-50 text-${sectionColor}-700 mb-2`}>
                               {label} · {items.length}
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                              {items.slice(0,6).map((ev, idx)=>{
+                            {/* Grid responsive: en móvil 4 col (mini ~22% del ancho, mucho más grande que w-14), tablet 6, desktop 8. Evita huecos a la derecha. */}
+                            <div className="grid grid-cols-4 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+                              {items.slice(0,8).map((ev, idx)=>{
                                 const url = ev.url;
                                 const itemId = ev._id;
                                 const deleteBtn = isProvider && itemId ? (
@@ -1350,7 +1365,7 @@ export default function Bookings() {
                                   const imageIndex = imageItems.findIndex(it=> it.url === url);
                                   return (
                                     <div key={idx} className="relative group/thumb">
-                                      <button type="button" onClick={()=> openLightbox(imageItems, imageIndex)} className="w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 bg-gray-50 transition-all hover:scale-105 hover:shadow-lg block">
+                                      <button type="button" onClick={()=> openLightbox(imageItems, imageIndex)} className="w-full aspect-square rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 bg-gray-50 transition-all hover:scale-105 hover:shadow-lg block">
                                         <img src={url} alt={ev.description || 'evidencia'} className="w-full h-full object-cover"/>
                                       </button>
                                       {deleteBtn}
@@ -1362,8 +1377,8 @@ export default function Bookings() {
                                   const videoIndex = videoItems.findIndex(it=> it.url === url);
                                   return (
                                     <div key={idx} className="relative group/thumb">
-                                      <button type="button" onClick={()=> openLightbox(videoItems, videoIndex)} className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-200 hover:border-brand-300 bg-linear-to-br from-gray-800 to-gray-900 text-white text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
-                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                      <button type="button" onClick={()=> openLightbox(videoItems, videoIndex)} className="flex w-full aspect-square rounded-xl overflow-hidden border-2 border-gray-200 hover:border-brand-300 bg-linear-to-br from-gray-800 to-gray-900 text-white text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
+                                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                       </button>
                                       {deleteBtn}
                                     </div>
@@ -1371,15 +1386,15 @@ export default function Bookings() {
                                 }
                                 return (
                                   <div key={idx} className="relative group/thumb">
-                                    <a href={url} target="_blank" rel="noopener noreferrer" className="flex w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 bg-gray-50 text-gray-500 text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
-                                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    <a href={url} target="_blank" rel="noopener noreferrer" className="flex w-full aspect-square rounded-xl overflow-hidden border-2 border-gray-100 hover:border-brand-300 bg-gray-50 text-gray-500 text-[10px] items-center justify-center transition-all hover:scale-105 hover:shadow-lg">
+                                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                     </a>
                                     {deleteBtn}
                                   </div>
                                 );
                               })}
-                              {items.length > 6 && (
-                                <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-gray-100 text-gray-500 text-xs font-medium">+{items.length - 6}</div>
+                              {items.length > 8 && (
+                                <div className="flex items-center justify-center w-full aspect-square rounded-xl bg-gray-100 text-gray-500 text-xs font-medium">+{items.length - 8}</div>
                               )}
                             </div>
                           </div>
@@ -1678,14 +1693,44 @@ export default function Bookings() {
                         )
                       )}
 
-                      {/* Subir Resultados — enlace compacto */}
-                      <button 
-                        onClick={()=> openEvidence(b)}
-                        className="w-full flex items-center justify-center gap-1.5 text-xs font-medium text-gray-500 hover:text-brand-600 transition-colors py-1"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        {t('shared.bookings.actions.uploadEvidence')}
-                      </button>
+                      {/* Subir Resultados — CTA destacado para Antes/Después.
+                          Se muestra prominente cuando aún no hay evidencia, compacto cuando ya hay algo subido. */}
+                      {(() => {
+                        const bc = b?.serviceEvidence?.before?.length || 0;
+                        const ac = b?.serviceEvidence?.after?.length || 0;
+                        const hasAny = bc + ac > 0;
+                        if (hasAny) {
+                          return (
+                            <button
+                              onClick={() => openEvidence(b)}
+                              className="w-full px-4 py-3 rounded-xl bg-linear-to-r from-brand-500 via-brand-600 to-brand-700 hover:from-brand-600 hover:via-brand-700 hover:to-brand-800 text-white shadow-lg shadow-brand-500/30 hover:shadow-brand-500/50 transition-all flex items-center justify-between gap-2 group"
+                            >
+                              <span className="flex items-center gap-2">
+                                <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <span className="text-sm font-bold">{t('shared.bookings.actions.editBeforeAfter', 'Editar Antes/Después')}</span>
+                              </span>
+                              <span className="flex items-center gap-1 text-[11px] font-bold">
+                                <span className="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-sm border border-white/30">🏠 {bc}</span>
+                                <span className="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-sm border border-white/30">✨ {ac}</span>
+                              </span>
+                            </button>
+                          );
+                        }
+                        return (
+                          <button
+                            onClick={() => openEvidence(b)}
+                            className="w-full px-4 py-3 rounded-xl bg-linear-to-r from-brand-500 via-brand-600 to-brand-700 hover:from-brand-600 hover:via-brand-700 hover:to-brand-800 text-white shadow-lg shadow-brand-500/30 hover:shadow-brand-500/50 transition-all flex flex-col items-center gap-1 group"
+                          >
+                            <div className="flex items-center gap-2">
+                              <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                              <span className="text-sm font-bold">{t('shared.bookings.actions.uploadBeforeAfter', 'Subir Antes y Después')}</span>
+                            </div>
+                            <span className="text-[11px] text-brand-100 font-medium leading-tight">
+                              {t('shared.bookings.actions.uploadBeforeAfterHint', 'Aparecerán en la galería del Home y atraerán más clientes')}
+                            </span>
+                          </button>
+                        );
+                      })()}
                     </>
                   )}
                   {isClient && (
@@ -1791,24 +1836,24 @@ export default function Bookings() {
         </div>
       )}
 
-      {/* Modal evidencia - Versión mejorada con previews y progreso */}
+      {/* Modal evidencia — versión dual: sube Antes y Después en una sola sesión sin cerrar el modal. */}
       <Modal
         open={evidenceOpen}
-        onClose={()=> !evidenceLoading && setEvidenceOpen(false)}
+        onClose={closeEvidenceModal}
         title={t('shared.bookings.modal.evidenceTitle')}
         size="lg"
         actions={(
           <>
             <button
-              onClick={()=> setEvidenceOpen(false)}
+              onClick={closeEvidenceModal}
               disabled={evidenceLoading}
               className="w-full xs:w-auto px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all disabled:opacity-50"
             >
-              {t('shared.bookings.modal.cancel')}
+              {t('shared.bookings.modal.close', 'Cerrar')}
             </button>
             <button
               onClick={handleUploadEvidence}
-              disabled={evidenceLoading || evidenceFiles.length === 0}
+              disabled={evidenceLoading || (evidenceSlots.before.files.length === 0 && evidenceSlots.after.files.length === 0)}
               className="w-full xs:w-auto px-5 py-2.5 rounded-xl bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white text-sm font-semibold shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
             >
               {evidenceLoading ? (
@@ -1819,7 +1864,7 @@ export default function Bookings() {
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                  {t('shared.bookings.modal.upload')}
+                  {t('shared.bookings.modal.saveBoth', 'Guardar todo')}
                 </>
               )}
             </button>
@@ -1827,41 +1872,23 @@ export default function Bookings() {
         )}
       >
         <div className="space-y-4">
-          {/* Indicador de progreso */}
+          {/* Indicador de progreso combinado (Antes + Después) */}
           <UploadProgress {...evidenceProgress} />
 
-          {/* Tipo de evidencia */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-              {t('shared.bookings.modal.serviceStage')}
-            </label>
-            <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              {[
-                { value: 'before', labelKey: 'shared.bookings.evidence.before', icon: '🏠', bgActive: 'bg-amber-50', borderActive: 'border-amber-400', textActive: 'text-amber-700', shadow: 'shadow-amber-500/10' },
-                { value: 'after', labelKey: 'shared.bookings.evidence.after', icon: '✨', bgActive: 'bg-green-50', borderActive: 'border-green-400', textActive: 'text-green-700', shadow: 'shadow-green-500/10' }
-              ].map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setEvidenceType(opt.value)}
-                  disabled={evidenceLoading}
-                  className={`p-2 sm:p-3 rounded-xl border-2 text-center transition-all ${
-                    evidenceType === opt.value
-                      ? `${opt.borderActive} ${opt.bgActive} shadow-lg ${opt.shadow}`
-                      : 'border-gray-200 hover:border-gray-300 bg-white'
-                  } disabled:opacity-50`}
-                >
-                  <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">{opt.icon}</div>
-                  <div className={`text-xs sm:text-sm font-medium ${evidenceType === opt.value ? opt.textActive : 'text-gray-700'}`}>{t(opt.labelKey)}</div>
-                </button>
-              ))}
+          {/* Banner explicativo sobre la finalidad del Antes/Después */}
+          <div className="flex items-start gap-3 p-3 rounded-xl bg-linear-to-r from-brand-50 via-brand-50/50 to-transparent border border-brand-100">
+            <div className="shrink-0 w-9 h-9 rounded-lg bg-brand-500 text-white flex items-center justify-center text-lg">📸</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-brand-800 leading-tight">
+                {t('shared.bookings.modal.beforeAfterIntroTitle', 'Sube fotos del Antes y el Después en un solo paso')}
+              </p>
+              <p className="text-xs text-brand-700/80 mt-0.5 leading-snug">
+                {t('shared.bookings.modal.beforeAfterIntroBody', 'Cada par aparecerá en la galería del Home de NovoFix. Es la mejor prueba social para atraer nuevos clientes.')}
+              </p>
             </div>
           </div>
 
-          {/* Balance indicator: show current before/after counts */}
+          {/* Balance indicator: muestra lo ya persistido en BD (no lo seleccionado) */}
           {evidenceBooking?.serviceEvidence && (
             (() => {
               const bCount = evidenceBooking.serviceEvidence.before?.length || 0;
@@ -1870,11 +1897,7 @@ export default function Bookings() {
               const hasAny = bCount > 0 || aCount > 0;
               if (!hasAny) return null;
               return (
-                <div className={`flex items-center gap-3 p-3 rounded-xl border text-sm ${
-                  isBalanced
-                    ? 'bg-green-50 border-green-200 text-green-700'
-                    : 'bg-amber-50 border-amber-200 text-amber-700'
-                }`}>
+                <div className={`flex items-center gap-3 p-3 rounded-xl border text-sm ${isBalanced ? 'bg-green-50 border-green-200 text-green-700' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
                   <div className="flex items-center gap-2 flex-1">
                     <span className="text-base">📷</span>
                     <div className="flex items-center gap-1.5">
@@ -1887,151 +1910,131 @@ export default function Bookings() {
                       <span className="font-bold text-base">{aCount}</span>
                     </div>
                   </div>
-                  {!isBalanced && (
-                    <div className="flex items-center gap-1 text-xs">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>{t('shared.bookings.modal.balanceHint')}</span>
-                    </div>
-                  )}
-                  {isBalanced && bCount > 0 && (
-                    <div className="flex items-center gap-1 text-xs">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>{t('shared.bookings.modal.balanceOk')}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1 text-xs">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isBalanced ? 'M5 13l4 4L19 7' : 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'} />
+                    </svg>
+                    <span>{isBalanced ? t('shared.bookings.modal.balanceOk') : t('shared.bookings.modal.balanceHint')}</span>
+                  </div>
                 </div>
               );
             })()
           )}
-          
-          {/* Zona de upload drag & drop — compacta */}
-          <div className="relative">
-            <input
-              id="evidence-file-input"
-              type="file"
-              multiple
-              accept="image/*,video/*"
-              onChange={handleEvidenceFileSelect}
-              disabled={evidenceLoading}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
-            />
-            <div className={`flex items-center gap-3 p-3 sm:p-4 rounded-xl border-2 border-dashed transition-all ${
-              evidencePreviews.length > 0
-                ? 'border-brand-300 bg-brand-50/40'
-                : 'border-gray-300 bg-gray-50 hover:border-brand-400 hover:bg-brand-50/30'
-            }`}>
-              {/* Icono compacto */}
-              <div className="shrink-0 flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-linear-to-br from-brand-400 to-brand-500 text-white shadow-md shadow-brand-500/20">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-              {/* Texto principal + hint en una sola columna */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-800 leading-tight">
-                  {evidencePreviews.length > 0
-                    ? t('shared.bookings.modal.filesSelected', { count: evidencePreviews.length })
-                    : t('shared.bookings.modal.dragDropFiles')}
-                </p>
-                <p className="text-[11px] text-gray-500 mt-0.5 leading-snug line-clamp-1" title={t('shared.bookings.modal.dropzoneInfo')}>
-                  {t('shared.bookings.modal.dropzoneInfo')}
-                </p>
-              </div>
-              {/* Badge de formatos */}
-              <span className="hidden sm:inline-flex shrink-0 text-[10px] font-medium text-brand-700 bg-brand-100/70 px-2 py-1 rounded-md">
-                JPG · PNG · MP4 · MOV
-              </span>
-            </div>
-          </div>
-          
-          {/* Previews de archivos seleccionados */}
-          {evidencePreviews.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">{t('shared.bookings.modal.preview')}</label>
-                <button 
-                  onClick={() => {
-                    evidencePreviews.forEach(p => URL.revokeObjectURL(p.url));
-                    setEvidenceFiles([]);
-                    setEvidencePreviews([]);
-                    setEvidenceCaptions([]);
-                    const input = document.getElementById('evidence-file-input');
-                    if (input) input.value = '';
-                  }}
-                  disabled={evidenceLoading}
-                  className="text-xs text-red-500 hover:text-red-600 font-medium disabled:opacity-50"
-                >
-                  {t('shared.bookings.modal.clearAll')}
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-h-80 overflow-y-auto p-1">
-                {evidencePreviews.map((preview, idx) => (
-                  <div key={idx} className="group relative">
-                    {/* Preview container */}
-                    <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 group-hover:border-brand-300 transition-all shadow-sm">
-                      {preview.type === 'video' ? (
-                        <video
-                          src={preview.url}
-                          className="w-full h-full object-cover"
-                          muted
-                          playsInline
-                        />
-                      ) : (
-                        <img
-                          src={preview.url}
-                          alt={`Preview ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                      
-                      {/* Overlay con info */}
-                      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="absolute bottom-2 left-2 right-2">
-                          <p className="text-white text-xs font-medium truncate">{preview.name}</p>
-                          <p className="text-white/70 text-xs">{preview.size}</p>
-                        </div>
-                      </div>
-                      
-                      {/* Badge de tipo */}
-                      <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-medium ${
-                        preview.type === 'video' 
-                          ? 'bg-dark-500 text-white' 
-                          : 'bg-brand-500 text-white'
-                      }`}>
-                        {preview.type === 'video' ? `🎬 ${t('shared.bookings.modal.video')}` : `📷 ${t('shared.bookings.modal.image')}`}
-                      </div>
-                      
-                      {/* Botón eliminar */}
+
+          {/* DOS SLOTS apilados: Antes (arriba) y Después (abajo). Cada uno con su propio dropzone, previews y captions. */}
+          {[
+            { key: 'before', labelKey: 'shared.bookings.evidence.before', icon: '🏠', accent: 'amber', subtitleKey: 'shared.bookings.modal.beforeSlotSubtitle' },
+            { key: 'after',  labelKey: 'shared.bookings.evidence.after',  icon: '✨', accent: 'green', subtitleKey: 'shared.bookings.modal.afterSlotSubtitle' }
+          ].map((slot) => {
+            const data = evidenceSlots[slot.key];
+            const accentBg = slot.accent === 'amber' ? 'bg-amber-50/40 border-amber-200' : 'bg-green-50/40 border-green-200';
+            const accentText = slot.accent === 'amber' ? 'text-amber-700' : 'text-green-700';
+            const accentBorder = slot.accent === 'amber' ? 'border-amber-300 bg-amber-50/60' : 'border-green-300 bg-green-50/60';
+            const inputId = `evidence-file-input-${slot.key}`;
+            return (
+              <div key={slot.key} className={`rounded-2xl border-2 ${accentBg} p-3 sm:p-4 space-y-3`}>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl" aria-hidden="true">{slot.icon}</span>
+                    <div>
+                      <p className={`text-sm font-bold ${accentText}`}>{t(slot.labelKey)}</p>
+                      <p className="text-[11px] text-gray-500 leading-tight">{t(slot.subtitleKey, slot.key === 'before' ? 'Estado inicial del trabajo' : 'Resultado final')}</p>
+                    </div>
+                  </div>
+                  {data.files.length > 0 && (
+                    <span className="text-xs font-semibold px-2 py-1 rounded-md bg-white border border-gray-200 text-gray-700">
+                      {t('shared.bookings.modal.filesSelectedShort', '{{count}} listos para subir', { count: data.files.length })}
+                    </span>
+                  )}
+                </div>
+
+                {/* Dropzone individual */}
+                <div className="relative">
+                  <input
+                    id={inputId}
+                    type="file"
+                    multiple
+                    accept="image/*,video/*"
+                    onChange={(e) => handleEvidenceFileSelect(e, slot.key)}
+                    disabled={evidenceLoading}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                  />
+                  <div className={`flex items-center gap-3 p-3 rounded-xl border-2 border-dashed transition-all ${data.previews.length > 0 ? accentBorder : 'border-gray-300 bg-white hover:border-gray-400'}`}>
+                    <div className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-200">
+                      <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs sm:text-sm font-semibold text-gray-800 leading-tight">
+                        {data.previews.length > 0
+                          ? t('shared.bookings.modal.addMoreFiles', 'Añadir más archivos')
+                          : t('shared.bookings.modal.clickToAdd', 'Haz clic o arrastra fotos/videos aquí')}
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-gray-500 mt-0.5 leading-snug">JPG · PNG · MP4 · MOV — máx. 200MB por archivo</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Previews del slot */}
+                {data.previews.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-medium text-gray-700">
+                        {t('shared.bookings.modal.preview')} ({data.previews.length})
+                      </label>
                       <button
-                        onClick={() => removeEvidenceFile(idx)}
+                        type="button"
+                        onClick={() => {
+                          data.previews.forEach((p) => URL.revokeObjectURL(p.url));
+                          setEvidenceSlots((prev) => ({ ...prev, [slot.key]: { files: [], previews: [], captions: [] } }));
+                        }}
                         disabled={evidenceLoading}
-                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
+                        className="text-[11px] text-red-500 hover:text-red-600 font-medium disabled:opacity-50"
                       >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        {t('shared.bookings.modal.clearAll')}
                       </button>
                     </div>
-                    
-                    {/* Input de descripción */}
-                    <input
-                      type="text"
-                      placeholder={t('shared.bookings.modal.descriptionPlaceholder')}
-                      value={evidenceCaptions[idx] || ''}
-                      onChange={(e) => updateEvidenceCaption(idx, e.target.value)}
-                      disabled={evidenceLoading}
-                      className="mt-2 w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 disabled:opacity-50 disabled:bg-gray-50"
-                    />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 max-h-64 overflow-y-auto p-1">
+                      {data.previews.map((preview, idx) => (
+                        <div key={`${slot.key}-${idx}`} className="group relative">
+                          <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200 shadow-sm">
+                            {preview.type === 'video' ? (
+                              <video src={preview.url} className="w-full h-full object-cover" muted playsInline />
+                            ) : (
+                              <img src={preview.url} alt={`${slot.key} ${idx + 1}`} className="w-full h-full object-cover" />
+                            )}
+                            <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-black/60 text-white">
+                              {preview.type === 'video' ? '🎬' : '📷'}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeEvidenceFile(slot.key, idx)}
+                              disabled={evidenceLoading}
+                              className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow disabled:opacity-50"
+                              aria-label={t('common.delete', 'Eliminar')}
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder={t('shared.bookings.modal.descriptionPlaceholder')}
+                            value={data.captions[idx] || ''}
+                            onChange={(e) => updateEvidenceCaption(slot.key, idx, e.target.value)}
+                            disabled={evidenceLoading}
+                            className="mt-1.5 w-full px-2 py-1 text-[11px] rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-300 disabled:opacity-50"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-          )}
+            );
+          })}
         </div>
       </Modal>
 

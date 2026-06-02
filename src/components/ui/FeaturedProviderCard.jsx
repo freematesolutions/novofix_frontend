@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import ProviderProfileModal from './ProviderProfileModal.jsx';
 import PortfolioModal from './PortfolioModal.jsx';
+import { useAuth } from '@/state/AuthContext.jsx';
+import { isSelfProvider } from '@/utils/selfHireGuard.js';
 
 // Star Rating Component
 const StarRating = ({ rating, size = 'sm' }) => {
@@ -25,8 +27,12 @@ const StarRating = ({ rating, size = 'sm' }) => {
 
 function FeaturedProviderCard({ provider, onViewProfile }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
   const [showPortfolioGallery, setShowPortfolioGallery] = useState(false);
+
+  // Bloqueo de auto-contrato (multirol Cliente/Profesional)
+  const isSelf = isSelfProvider(user, provider);
 
   // Función helper para generar thumbnail URL de videos de Cloudinary
   const getVideoThumbnailUrl = (videoUrl) => {
@@ -108,6 +114,11 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
             <div className="flex-1 min-w-0">
               <h3 className="text-base font-bold text-gray-900 truncate group-hover:text-brand-600 transition-colors">
                 {businessName}
+                {isSelf && (
+                  <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 align-middle">
+                    {t('home.featuredProviders.selfBadge')}
+                  </span>
+                )}
               </h3>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <StarRating rating={rating} size="xs" />
@@ -162,11 +173,12 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
               <button
                 onClick={handlePortfolioClick}
                 className="flex items-center gap-1.5 bg-purple-50 px-2.5 py-1.5 rounded-lg hover:bg-purple-100 transition-colors"
+                title={t('ui.providerCard.portfolioItemsTooltip')}
               >
                 <svg className="w-4 h-4 text-dark-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span className="text-xs text-dark-700 font-medium">{portfolio.length} {t('home.featuredProviders.works')}</span>
+                <span className="text-xs text-dark-700 font-medium">{portfolio.length} {t('ui.providerCard.portfolioItems', { count: portfolio.length })}</span>
               </button>
             )}
           </div>

@@ -8,6 +8,7 @@ import GuestConversionModal from './GuestConversionModal.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { useToast } from './Toast.jsx';
 import StarRating from './StarRating.jsx';
+import { isSelfProvider } from '@/utils/selfHireGuard.js';
 
 // Iconos SVG inline para mejor rendimiento
 const Icons = {
@@ -313,8 +314,15 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
     }
   };
 
+  // Bloqueo de auto-contrato (multirol Cliente/Profesional)
+  const isSelf = isSelfProvider(user, provider);
+
   // Handle contact/message
   const handleMessage = () => {
+    if (isSelf) {
+      toast.warning(t('ui.providerProfile.selfHireBlocked'));
+      return;
+    }
     // Si no está autenticado, mostrar modal de conversión guest
     if (!isAuthenticated) {
       setShowGuestConversion(true);
@@ -330,6 +338,10 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
   // Handle inquiry chat
   const handleInquiry = () => {
+    if (isSelf) {
+      toast.warning(t('ui.providerProfile.selfHireBlocked'));
+      return;
+    }
     // Si no está autenticado, mostrar modal de conversión guest
     if (!isAuthenticated) {
       setShowGuestConversion(true);
@@ -437,7 +449,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
             </div>
 
             {/* Action buttons - compact, hidden on mobile */}
-            {!readOnly && (
+            {!readOnly && !isSelf && (
               <div className="hidden md:flex items-center gap-2 shrink-0">
                 <button
                   onClick={handleInquiry}
@@ -537,7 +549,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                   </div>
 
                   {/* Action buttons (shown always on mobile, additional on desktop) */}
-                  {!readOnly && (
+                  {!readOnly && !isSelf && (
                     <div className="flex flex-col gap-2">
                       <button
                         onClick={handleInquiry}
@@ -915,7 +927,15 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
         </div>
 
         {/* Mobile Action Bar */}
-        {!readOnly && (
+        {!readOnly && isSelf && (
+          <div className="sm:hidden sticky bottom-0 bg-amber-50 border-t border-amber-200 p-3 flex items-center justify-center gap-2 text-amber-800 text-sm font-semibold">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {t('ui.providerProfile.selfHireBlocked')}
+          </div>
+        )}
+        {!readOnly && !isSelf && (
           <div className="sm:hidden sticky bottom-0 bg-white border-t p-3 flex gap-2">
             <button
               onClick={handleInquiry}
