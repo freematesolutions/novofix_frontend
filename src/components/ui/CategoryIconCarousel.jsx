@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { CATEGORY_IMAGES, FALLBACK_IMAGE } from '@/utils/categoryImages.js';
+import {
+  CATEGORY_IMAGES,
+  FALLBACK_IMAGE,
+  buildSrcSet,
+} from '@/utils/categoryImages.js';
 import { useTranslation } from 'react-i18next';
+
+// `sizes` ajustado al tamaño REAL de las tarjetas del carrusel 3D
+// (width: clamp(130px, 26vw, 280px)). El navegador multiplica por el DPR
+// para elegir el candidato del srcset, así que estos son px CSS renderizados.
+const CAROUSEL_CARD_SIZES =
+  '(max-width: 640px) 130px, (max-width: 1024px) 220px, 280px';
 
 /**
  * CategoryIconCarousel - Carrusel 3D con tarjetas de categoría
@@ -53,6 +63,10 @@ function CategoryIconCarousel({
         const url = CATEGORY_IMAGES[service.category] || FALLBACK_IMAGE;
         const img = new Image();
         img.decoding = 'async';
+        // srcset/sizes para que el navegador caliente el MISMO candidato
+        // responsivo que pedirá el <img> visible (evita doble descarga).
+        img.sizes = CAROUSEL_CARD_SIZES;
+        img.srcset = buildSrcSet(service.category);
         img.onload = () => { loadedImagesRef.current[service.category] = true; };
         img.onerror = () => { loadedImagesRef.current[service.category] = true; };
         img.src = url;
@@ -468,11 +482,12 @@ function CategoryIconCarousel({
                 {/* Imagen de fondo — <img> nativa, visible solo cuando todo está listo */}
                 <img
                   src={imageUrl}
+                  srcSet={buildSrcSet(service.category)}
                   alt={service.translatedName}
                   loading="eager"
                   fetchPriority={isPriorityImage ? 'high' : 'low'}
                   decoding="async"
-                  sizes="(max-width: 640px) 130px, (max-width: 1024px) 180px, 280px"
+                  sizes={CAROUSEL_CARD_SIZES}
                   onError={(e) => {
                     if (e.target.src !== FALLBACK_IMAGE) e.target.src = FALLBACK_IMAGE;
                   }}

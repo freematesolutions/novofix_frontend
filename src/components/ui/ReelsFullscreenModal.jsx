@@ -16,10 +16,13 @@ const getOptimizedFullscreenUrl = (url) => {
 };
 
 // ─── Thumbnail para poster ───
+// Usa las MISMAS dimensiones (480×854) que el thumbnail del carrusel
+// (ReelsSection) para reutilizar la imagen ya cacheada y mostrar el póster
+// al instante al abrir el fullscreen, sin parpadeo a negro.
 const getVideoThumbnail = (url) => {
   if (url?.includes('cloudinary.com') && url.includes('/video/')) {
     return url
-      .replace('/video/upload/', '/video/upload/so_0,f_jpg,w_720,h_1280,c_fill,g_center,q_auto/')
+      .replace('/video/upload/', '/video/upload/so_0,f_jpg,w_480,h_854,c_fill,g_center,q_auto/')
       .replace(/\.[^.]+$/, '.jpg');
   }
   return null;
