@@ -6,15 +6,10 @@ html, body, #root { height: 100%; }
 html { overflow-x: hidden; }
 body { margin: 0; color: #2D2D2D; }
 
-/* Req 14: evitar "flash" blanco al hacer pull-to-refresh / overscroll en móvil.
-   - `overscroll-behavior-y: contain` impide que el navegador dispare el pull-to-refresh nativo
-     (que en Chrome Android causa un breve flash blanco + recarga completa de la página).
-   - Fondo coherente en html/body para que el área de overscroll (rubber band en iOS) no
-     muestre un fondo blanco distinto del color de la app.
-   El `<header>` mantiene su propio backgroundColor `#F8F9FA`, por lo que esto solo cubre
-   las zonas que aparecen al "estirar" el scroll. */
+/* Req 14: fondo coherente en html/body para que el área de overscroll (rubber-band en iOS /
+   pull-to-refresh en Android) no muestre un color distinto al de la app.
+   NOTA: No se usa overscroll-behavior-y:contain porque bloquea el pull-to-refresh nativo. */
 html, body {
-	overscroll-behavior-y: contain;
 	background-color: #F8F9FA;
 }
 
