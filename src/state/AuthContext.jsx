@@ -416,6 +416,15 @@ export function AuthProvider({ children }) {
   }, [setAuthState, t]);
 
   const logout = useCallback(() => {
+    // 1) Invalidar la cookie httpOnly `refresh_token` en el backend.
+    //    Sin esto, al recargar la página el init dispara /auth/refresh con la
+    //    cookie aún viva (90 días) y RESTAURA la sesión del usuario que cerró
+    //    sesión. Es fire-and-forget: la limpieza local NO debe esperar a la red.
+    try {
+      api.post('/auth/logout', {}, { withCredentials: true }).catch(() => { /* ignore network errors */ });
+    } catch { /* intentionally empty */ }
+
+    // 2) Limpiar estado y storage locales (siempre, aunque falle la red).
     try { localStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
     try { sessionStorage.removeItem('access_token'); } catch { /* intentionally empty */ }
     setUser(null);
