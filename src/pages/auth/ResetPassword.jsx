@@ -78,7 +78,7 @@ export default function ResetPassword() {
               {t('resetPassword.invalidLinkDesc')}
             </p>
             <Link 
-              to="/forgot-password"
+              to="/olvide-contrasena"
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-linear-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white rounded-xl font-medium shadow-lg shadow-brand-500/25 transition-all duration-200"
             >
               <HiArrowLeft className="w-4 h-4" />
