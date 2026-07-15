@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/state/AuthContext.jsx';
@@ -69,6 +69,8 @@ function Home() {
   // Auto-open provider profile after email verification redirect
   const [autoOpenProviderId, setAutoOpenProviderId] = useState(null);
   const [deepLinkedProvider, setDeepLinkedProvider] = useState(null);
+  // Ref para saber si hay un deep-link activo, incluso después de limpiar la URL
+  const hasDeepLinkRef = useRef(!!new URLSearchParams(window.location.search).get('providerId'));
 
   // Efecto para detectar scroll y mostrar/ocultar navegación flotante
   useEffect(() => {
@@ -188,13 +190,12 @@ function Home() {
 
   useEffect(() => {
     if (isAuthenticated && viewRole === 'provider') {
-      // Si hay un deep-link de perfil en la URL, no redirigir — dejar que el modal se abra
-      const providerIdFromUrl = searchParams.get('providerId');
-      if (!providerIdFromUrl) {
+      // No redirigir si hay un deep-link activo (el ref persiste aunque la URL ya se limpió)
+      if (!hasDeepLinkRef.current) {
         navigate('/empleos', { replace: true });
       }
     }
-  }, [isAuthenticated, viewRole, navigate, searchParams]);
+  }, [isAuthenticated, viewRole, navigate]);
 
   // Detectar providerId en URL params o location.state (redirección post-verificación de email)
   useEffect(() => {
@@ -204,6 +205,7 @@ function Home() {
     const providerIdToOpen = providerIdFromUrl || location.state?.openProvider;
     
     if (providerIdToOpen) {
+      hasDeepLinkRef.current = true;
       setAutoOpenProviderId(providerIdToOpen);
       // Si no hay categoría, cargar el proveedor directamente por ID
       if (!categoryFromUrl) {
