@@ -7,6 +7,7 @@ import SearchBar from '@/components/ui/SearchBar.jsx';
 import ServiceCategoryCard from '@/components/ui/ServiceCategoryCard.jsx';
 import ProviderCard from '@/components/ui/ProviderCard.jsx';
 import FeaturedProviderCard from '@/components/ui/FeaturedProviderCard.jsx';
+import ProviderProfileModal from '@/components/ui/ProviderProfileModal.jsx';
 import TestimonialsSection from '@/components/ui/TestimonialsSection.jsx';
 import ReelsSection from '@/components/ui/ReelsSection.jsx';
 import HomeHeroVideo from '@/components/ui/HomeHeroVideo.jsx';
@@ -67,6 +68,7 @@ function Home() {
   const [activeSection, setActiveSection] = useState('hero-section');
   // Auto-open provider profile after email verification redirect
   const [autoOpenProviderId, setAutoOpenProviderId] = useState(null);
+  const [deepLinkedProvider, setDeepLinkedProvider] = useState(null);
 
   // Efecto para detectar scroll y mostrar/ocultar navegación flotante
   useEffect(() => {
@@ -204,8 +206,11 @@ function Home() {
         const loadProviderById = async () => {
           try {
             const { data } = await api.get(`/guest/providers/${providerIdToOpen}`);
-            if (data?.data) {
-              setSearchResults([data.data]);
+            const provider = data?.data?.provider || null;
+            if (provider) {
+              // Deep-link modal: abrir exactamente el mismo modal de "Ver Perfil"
+              // sin forzar la vista de resultados.
+              setDeepLinkedProvider(provider);
             }
           } catch { /* provider not found, ignore */ }
         };
@@ -1421,6 +1426,14 @@ useEffect(() => {
           </div>
         </div>
       )}
+
+      {/* Deep-link modal del perfil profesional (mismo modal de cards de Home) */}
+      <ProviderProfileModal
+        isOpen={!!deepLinkedProvider}
+        onClose={() => setDeepLinkedProvider(null)}
+        provider={deepLinkedProvider}
+        initialTab="about"
+      />
 
 
       </div>

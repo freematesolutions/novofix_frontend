@@ -197,6 +197,38 @@ export default function Profile() {
   }, [setAuthState]);
 
   const showProviderTab = hasProvider && (viewRole === 'provider' || activeTab === 'provider');
+  const providerId = user?._id || user?.id || '';
+  const providerPublicPath = providerId ? `/?providerId=${providerId}` : '';
+  const providerPublicUrl =
+    providerPublicPath && typeof window !== 'undefined'
+      ? `${window.location.origin}${providerPublicPath}`
+      : providerPublicPath;
+
+  const copyProviderPublicUrl = useCallback(async () => {
+    if (!providerPublicUrl) {
+      toast.warning(t('account.profile.publicLinkUnavailable', 'No se pudo generar tu enlace publico todavia.'));
+      return;
+    }
+
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(providerPublicUrl);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = providerPublicUrl;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      toast.success(t('account.profile.publicLinkCopied', 'Enlace copiado. Ya puedes usarlo en tu tarjeta NFC.'));
+    } catch {
+      toast.error(t('account.profile.publicLinkCopyError', 'No se pudo copiar el enlace. Intentalo de nuevo.'));
+    }
+  }, [providerPublicUrl, t, toast]);
 
   // Role-based accent colors
   const getRoleAccent = () => {
@@ -544,6 +576,43 @@ export default function Profile() {
                       </div>
                     </div>
                   </div>
+
+                  {providerPublicUrl && (
+                    <div className="rounded-2xl border border-brand-200 bg-brand-50/60 p-4 sm:p-5">
+                      <div className="flex flex-col gap-3">
+                        <div>
+                          <h4 className="text-sm sm:text-base font-semibold text-gray-900">
+                            {t('account.profile.publicLinkTitle', 'Enlace publico de tu perfil')}
+                          </h4>
+                          <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                            {t('account.profile.publicLinkHint', 'Este enlace abre directamente tu modal de perfil (Acerca de, Servicios, Portafolio y Resenas), igual que en Ver Perfil del Home.')}
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl border border-gray-200 bg-white px-3 py-2">
+                          <p className="text-xs sm:text-sm text-gray-700 break-all">{providerPublicUrl}</p>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <button
+                            type="button"
+                            onClick={copyProviderPublicUrl}
+                            className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
+                          >
+                            {t('account.profile.copyPublicLink', 'Copiar enlace')}
+                          </button>
+                          <a
+                            href={providerPublicPath}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            {t('account.profile.openPublicLink', 'Abrir perfil publico')}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   <ProviderSetupForm ref={providerRef} submitLabel="Guardar" />
                   
