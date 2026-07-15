@@ -188,9 +188,13 @@ function Home() {
 
   useEffect(() => {
     if (isAuthenticated && viewRole === 'provider') {
-      navigate('/empleos', { replace: true });
+      // Si hay un deep-link de perfil en la URL, no redirigir — dejar que el modal se abra
+      const providerIdFromUrl = searchParams.get('providerId');
+      if (!providerIdFromUrl) {
+        navigate('/empleos', { replace: true });
+      }
     }
-  }, [isAuthenticated, viewRole, navigate]);
+  }, [isAuthenticated, viewRole, navigate, searchParams]);
 
   // Detectar providerId en URL params o location.state (redirección post-verificación de email)
   useEffect(() => {
