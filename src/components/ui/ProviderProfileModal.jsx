@@ -5,10 +5,12 @@ import useModalHistory from '@/utils/useModalHistory.js';
 import RequestWizardModal from './RequestWizardModal.jsx';
 import InquiryChatModal from './InquiryChatModal.jsx';
 import GuestConversionModal from './GuestConversionModal.jsx';
+import BeforeAfterGallery from './BeforeAfterGallery.jsx';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { useToast } from './Toast.jsx';
 import StarRating from './StarRating.jsx';
 import { isSelfProvider } from '@/utils/selfHireGuard.js';
+import { CATEGORY_IMAGES, FALLBACK_IMAGE } from '@/utils/categoryImages.js';
 
 // Iconos SVG inline para mejor rendimiento
 const Icons = {
@@ -118,11 +120,12 @@ const planConfig = {
   }
 };
 
-// Tab configuration
+// Tab configuration — el orden refleja el flujo visual: portafolio (evidencia) primero,
+// luego información/servicios y por último reseñas.
 const TABS = [
+  { id: 'portfolio', labelKey: 'portfolio', icon: '📸' },
   { id: 'about', labelKey: 'about', icon: '👤' },
   { id: 'services', labelKey: 'services', icon: '🛠️' },
-  { id: 'portfolio', labelKey: 'portfolio', icon: '📸' },
   { id: 'reviews', labelKey: 'reviews', icon: '⭐' }
 ];
 
@@ -131,12 +134,14 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
   const { t } = useTranslation();
   const { isAuthenticated, viewRole, user } = useAuth();
   const toast = useToast();
-  const [activeTab, setActiveTab] = useState(initialTab || 'about');
+  const [activeTab, setActiveTab] = useState(initialTab || 'portfolio');
   const [showRequestWizard, setShowRequestWizard] = useState(false);
   const [showInquiryChat, setShowInquiryChat] = useState(false);
   const [showGuestConversion, setShowGuestConversion] = useState(false);
   const [selectedPortfolioItem, setSelectedPortfolioItem] = useState(null);
   const [portfolioIndex, setPortfolioIndex] = useState(0);
+  const [badgesScroll, setBadgesScroll] = useState({ canLeft: false, canRight: false });
+  const badgesScrollRef = useRef(null);
   const modalRef = useRef(null);
   const sectionRefs = {
     about: useRef(null),
@@ -180,6 +185,29 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialTab]);
 
+  // Actualiza las flechas de scroll de los badges de confianza (izquierda/derecha)
+  const updateBadgesScroll = () => {
+    const el = badgesScrollRef.current;
+    if (!el) return;
+    setBadgesScroll({
+      canLeft: el.scrollLeft > 4,
+      canRight: el.scrollLeft + el.clientWidth < el.scrollWidth - 4
+    });
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const el = badgesScrollRef.current;
+    if (!el) return;
+    updateBadgesScroll();
+    el.addEventListener('scroll', updateBadgesScroll, { passive: true });
+    window.addEventListener('resize', updateBadgesScroll);
+    return () => {
+      el.removeEventListener('scroll', updateBadgesScroll);
+      window.removeEventListener('resize', updateBadgesScroll);
+    };
+  }, [isOpen]);
+
   // Scroll spy: actualizar pestaña activa según la sección visible
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -193,7 +221,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
       const containerTop = containerRect.top;
       
       // Encontrar qué sección está más cerca del tope del contenedor
-      let closestSection = 'about';
+      let closestSection = 'portfolio';
       let closestDistance = Infinity;
 
       TABS.forEach(tab => {
@@ -238,6 +266,31 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
   const serviceArea = provider?.providerProfile?.serviceArea || {};
   const completedJobs = stats.completedJobs || 0;
   const responseRate = stats.responseRate || 0;
+  const primaryCategory = mainService?.category || selectedCategory || '';
+  const headerImage = CATEGORY_IMAGES[primaryCategory] || FALLBACK_IMAGE;
+  const portfolioItems = Array.isArray(portfolio)
+    ? portfolio.map((item, idx) => ({ ...item, __index: idx }))
+    : [];
+  const portfolioImages = portfolioItems.filter((item) => item.type === 'image');
+  // Solo videos marcados explícitamente como reel por el profesional (igual que en el Home)
+  const portfolioVideos = portfolioItems.filter((item) => item.type === 'video' && item.isReel === true);
+  const subtitle = mainService?.category
+    ? t('ui.providerProfile.premiumSubtitle', {
+        service: t(`home.categories.${mainService.category}`, mainService.category)
+      })
+    : t('ui.providerProfile.premiumSubtitleFallback');
+  const quickPoints = [
+    responseRate > 0
+      ? t('ui.providerProfile.quickResponseRate', { rate: responseRate })
+      : t('ui.providerProfile.quickResponseFallback'),
+    serviceArea.zones?.length
+      ? t('ui.providerProfile.quickCoverageArea', { zone: serviceArea.zones[0] })
+      : t('ui.providerProfile.quickCoverageFallback'),
+    mainService?.experience
+      ? t('ui.providerProfile.quickExperience', { years: mainService.experience })
+      : t('ui.providerProfile.quickExperienceFallback'),
+    t('ui.providerProfile.quickWarranty')
+  ];
   
   // Simulated reviews (in real app, fetch from API)
   const reviews = provider?.reviews || [];
@@ -394,106 +447,157 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
       {/* Modal */}
       <div 
         ref={modalRef}
-        className="fixed left-2 right-2 top-4 bottom-4 sm:left-4 sm:right-4 sm:top-8 sm:bottom-8 lg:left-8 lg:right-8 lg:top-12 lg:bottom-12 bg-white rounded-2xl shadow-2xl z-10000 flex flex-col overflow-hidden animate-modal-enter"
+        className="fixed left-2 right-2 top-3 bottom-3 sm:left-4 sm:right-4 sm:top-7 sm:bottom-7 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 lg:top-10 lg:bottom-10 lg:w-[calc(100%-5rem)] lg:max-w-6xl bg-slate-50 rounded-3xl shadow-2xl z-10000 flex flex-col overflow-hidden animate-modal-enter border border-white/60"
       >
-        {/* Compact Header with Provider Basic Info */}
-        <div className={`relative bg-linear-to-br ${planInfo.gradient} px-4 py-3 sm:px-6 sm:py-4`}>
-          {/* Close button */}
-          <button
-            onClick={closeModal}
-            className="absolute top-2 right-2 sm:top-3 sm:right-3 z-30 p-2 bg-white/90 hover:bg-white text-gray-700 hover:text-gray-900 rounded-full transition-all shadow-md"
-          >
-            <Icons.Close className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
+        {/* Premium Hero Header — avatar straddles the boundary between the photo zone and the badges zone */}
+        <div className="relative">
+          {/* Photo zone */}
+          <div className="relative min-h-28 sm:min-h-32 lg:min-h-24 overflow-hidden">
+            <div
+              className="absolute inset-0 bg-center bg-cover"
+              style={{ backgroundImage: `url(${headerImage})` }}
+            />
+            <div className="absolute inset-0 bg-linear-to-t from-slate-950/92 via-slate-900/78 to-brand-900/35" />
+            <div className="absolute inset-0 bg-linear-to-r from-brand-900/55 via-transparent to-slate-900/40" />
 
-          {/* Compact layout - horizontal on all screens */}
-          <div className="relative flex items-center gap-3 sm:gap-4 pr-10">
-            {/* Small Avatar */}
-            <div className="relative shrink-0">
-              {profileImage ? (
-                <img 
-                  src={profileImage} 
-                  alt={businessName}
-                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border-2 border-white shadow-lg"
-                />
-              ) : (
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-lg">
-                  {businessName.charAt(0).toUpperCase()}
+            <button
+              onClick={closeModal}
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 p-2.5 bg-white/90 hover:bg-white text-slate-700 hover:text-slate-900 rounded-full transition-all shadow-md"
+            >
+              <Icons.Close className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+
+            <div className="relative z-10 h-full pl-[136px] sm:pl-[164px] lg:pl-[132px] pr-12 sm:pr-16 pt-6 sm:pt-7 lg:pt-5 pb-3 flex items-start justify-between gap-3">
+              <div className="min-w-0 text-white">
+                <div className="flex items-start gap-1.5">
+                  <h1 className="text-lg sm:text-2xl font-black tracking-tight leading-tight wrap-break-word">{businessName}</h1>
+                  <Icons.Verified className="w-4 h-4 sm:w-5 sm:h-5 text-sky-200 shrink-0 mt-0.5" />
+                </div>
+
+                <p className="mt-0.5 text-xs sm:text-sm text-white/90 leading-snug line-clamp-2">{subtitle}</p>
+
+                <div className="mt-1.5 flex items-center gap-1.5 text-[11px] sm:text-xs text-white/85 font-semibold">
+                  <span className="inline-flex items-center gap-1">
+                    <Icons.Star filled className="w-3 h-3 text-yellow-300" />
+                    {rating.toFixed(1)} ({reviewCount})
+                  </span>
+                  <span className="text-white/40">•</span>
+                  <span className="inline-flex items-center gap-1">
+                    <Icons.Briefcase className="w-3 h-3" />
+                    {completedJobs} {t('ui.providerProfile.jobs')}
+                  </span>
+                </div>
+              </div>
+
+              {!readOnly && !isSelf && (
+                <div className="hidden md:flex items-center gap-2 shrink-0 mt-1">
+                  <button
+                    onClick={handleInquiry}
+                    className="flex items-center gap-1.5 bg-white/15 text-white border border-white/35 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-white/25 transition-all"
+                  >
+                    <Icons.Message className="w-4 h-4" />
+                    {t('ui.providerProfile.inquiry')}
+                  </button>
+                  <button
+                    onClick={handleMessage}
+                    className="flex items-center gap-1.5 bg-white text-slate-900 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-all shadow"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {t('ui.providerProfile.sendRequest')}
+                  </button>
                 </div>
               )}
-              {/* Plan badge */}
-              <div className={`absolute -bottom-1 -right-1 px-1.5 py-0.5 bg-white rounded-full shadow flex items-center gap-0.5`}>
+            </div>
+          </div>
+
+          {/* Avatar — grande, a la izquierda, la mitad inferior cae sobre la zona de badges */}
+          <div className="absolute left-4 sm:left-6 top-14 sm:top-16 lg:top-11 z-20 w-28 h-28 sm:w-32 sm:h-32 lg:w-20 lg:h-20">
+            <div className="absolute -inset-1.5 rounded-full bg-white/40 blur-sm" />
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt={businessName}
+                className="relative w-28 h-28 sm:w-32 sm:h-32 lg:w-20 lg:h-20 rounded-full object-cover border-4 border-white shadow-xl"
+              />
+            ) : (
+              <div className="relative w-28 h-28 sm:w-32 sm:h-32 lg:w-20 lg:h-20 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-3xl sm:text-4xl font-bold shadow-xl border-4 border-white">
+                {businessName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            {plan !== 'free' && (
+              <div className={`absolute -bottom-1 -right-1 px-2 py-1 bg-white rounded-full shadow flex items-center gap-1 ring-2 ring-white ${planInfo.ring}`}>
                 <span className="text-xs">{planInfo.icon}</span>
                 <span className={`text-[10px] font-bold ${planInfo.textColor}`}>{planInfo.label}</span>
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Info - compact */}
-            <div className="flex-1 min-w-0 text-white">
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-lg sm:text-xl font-bold truncate">{businessName}</h1>
-                <Icons.Verified className="w-4 h-4 sm:w-5 sm:h-5 text-accent-300 shrink-0" />
-              </div>
-              
-              {/* Rating inline */}
-              <div className="flex items-center gap-2 text-sm overflow-hidden">
-                <div className="flex items-center gap-1 shrink-0">
-                  <StarRating value={rating} size="xs" />
-                  <span className="font-medium">{rating.toFixed(1)}</span>
-                  <span className="text-white/70">({reviewCount})</span>
+          {/* Badges zone — inicia justo bajo la línea de la cabecera, al lado del avatar (no debajo) */}
+          <div className="bg-white pl-[136px] sm:pl-[164px] lg:pl-[132px] pt-2.5 sm:pt-3 lg:pt-1.5 pb-3 lg:pb-2 border-b border-slate-100 min-h-[68px] sm:min-h-[76px] lg:min-h-[52px] flex items-center relative">
+            <div
+              ref={badgesScrollRef}
+              className="flex items-center gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory pl-8 sm:pl-10 pr-8 sm:pr-10"
+              style={{
+                WebkitMaskImage: 'linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)',
+                maskImage: 'linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)'
+              }}
+            >
+              {[
+                { key: 'verified', label: t('ui.providerProfile.trustVerified') },
+                { key: 'licensed', label: t('ui.providerProfile.trustLicensed') },
+                { key: 'insured', label: t('ui.providerProfile.trustInsured') },
+                { key: 'certified', label: t('ui.providerProfile.trustCertified') }
+              ].map((badge) => (
+                <div key={badge.key} className="flex items-center gap-1.5 shrink-0 snap-start bg-slate-50 border border-slate-100 rounded-full pl-1 pr-3 py-1">
+                  <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0">
+                    <Icons.Verified className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide text-slate-700 whitespace-nowrap">{badge.label}</span>
                 </div>
-                
-                <span className="hidden sm:inline text-white/70">•</span>
-                <span className="hidden sm:inline"><b>{completedJobs}</b> {t('ui.providerProfile.jobs')}</span>
-              </div>
+              ))}
             </div>
-
-            {/* Action buttons - compact, hidden on mobile */}
-            {!readOnly && !isSelf && (
-              <div className="hidden md:flex items-center gap-2 shrink-0">
-                <button
-                  onClick={handleInquiry}
-                  className="flex items-center gap-1.5 bg-white/20 text-white border border-white/40 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-white/30 transition-all"
-                >
-                  <Icons.Message className="w-4 h-4" />
-                  {t('ui.providerProfile.inquiry')}
-                </button>
-                <button
-                  onClick={handleMessage}
-                  className="flex items-center gap-1.5 bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-all shadow"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  {t('ui.providerProfile.sendRequest')}
-                </button>
+            {/* Scroll hints — indican que hay más badges deslizando a la izquierda/derecha, sutiles y sin tapar contenido */}
+            {badgesScroll.canLeft && (
+              <div className="pointer-events-none absolute left-[136px] sm:left-[164px] lg:left-[132px] top-0 bottom-0 w-8 sm:w-10 flex items-center justify-start">
+                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/80 shadow-sm ring-1 ring-slate-200 flex items-center justify-center">
+                  <Icons.ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400" />
+                </span>
+              </div>
+            )}
+            {badgesScroll.canRight && (
+              <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-10 flex items-center justify-end">
+                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/80 shadow-sm ring-1 ring-slate-200 flex items-center justify-center">
+                  <Icons.ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400" />
+                </span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Tabs Navigation - more compact */}
-        <div className="sticky top-0 bg-white border-b z-10 px-3 sm:px-4">
+        {/* Tabs Navigation */}
+        <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-slate-200 z-10 px-3 sm:px-4">
           <div className="flex gap-0.5 overflow-x-auto scrollbar-hide">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-2.5 font-medium text-sm whitespace-nowrap border-b-2 transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-2.5 lg:py-1.5 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
                   activeTab === tab.id
-                    ? 'border-brand-500 text-brand-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-brand-500 text-brand-700'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                 }`}
               >
                 <span>{tab.icon}</span>
                 <span>{t(`ui.providerProfile.tabs.${tab.labelKey}`)}</span>
                 {tab.id === 'reviews' && reviewCount > 0 && (
-                  <span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
+                  <span className="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full">
                     {reviewCount}
                   </span>
                 )}
                 {tab.id === 'portfolio' && portfolio.length > 0 && (
-                  <span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
+                  <span className="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full">
                     {portfolio.length}
                   </span>
                 )}
@@ -504,20 +608,76 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
         {/* Scrollable Content */}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
-          <div className="p-3 sm:p-5 space-y-6 sm:space-y-8 max-w-full overflow-hidden">
-            
-            {/* ========== ABOUT SECTION ========== */}
+          <div className="p-3 sm:p-5 lg:px-8 lg:py-5 space-y-6 sm:space-y-7 lg:space-y-6 max-w-full overflow-hidden">
+
+            {/* PORTFOLIO — se muestra primero: es la evidencia visual (Antes/Después + Reels) */}
+            <section ref={sectionRefs.portfolio} id="portfolio" className="pt-1">
+              <h2 className="flex items-center gap-2 text-lg sm:text-xl font-black text-slate-900 mb-3 lg:mb-2">
+                <span className="w-8 h-8 lg:w-7 lg:h-7 bg-brand-100 rounded-lg flex items-center justify-center text-sm">📸</span>
+                {t('ui.providerProfile.portfolio')}
+              </h2>
+
+              <div className="grid gap-3 lg:grid-cols-5 lg:gap-4 lg:items-stretch">
+                <div className="bg-white rounded-2xl border border-slate-200 p-4 lg:p-3 shadow-sm lg:col-span-3 lg:flex lg:flex-col">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1 lg:mb-0.5">{t('ui.providerProfile.beforeAfterTitle')}</h3>
+                  <div className="lg:flex-1 lg:flex lg:flex-col lg:justify-center">
+                    <BeforeAfterGallery
+                      providerId={provider._id}
+                      showHeader={false}
+                      emptyMessage={t('ui.providerProfile.noPortfolioWorks')}
+                      size="lg"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-200 p-4 lg:p-3 shadow-sm lg:col-span-2 lg:flex lg:flex-col">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-3 lg:mb-2">{t('ui.providerProfile.reelsInAction')}</h3>
+                  {portfolioVideos.length > 0 ? (
+                    <div className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0 lg:gap-3 lg:flex-1 lg:content-start">
+                      {portfolioVideos.slice(0, 8).map((item, idx) => (
+                        <button
+                          key={`video-${item.__index}-${idx}`}
+                          type="button"
+                          onClick={() => {
+                            setSelectedPortfolioItem(item);
+                            setPortfolioIndex(item.__index || 0);
+                          }}
+                          className="relative shrink-0 w-34 sm:w-40 lg:w-full aspect-9/16 lg:aspect-auto lg:h-24 rounded-xl overflow-hidden bg-slate-900 group"
+                        >
+                          <video src={item.url} className="w-full h-full object-cover opacity-80 group-hover:opacity-95 transition-opacity" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-white/85 flex items-center justify-center">
+                              <Icons.Play className="w-5 h-5 text-slate-800 ml-0.5" />
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 lg:grid-cols-4 gap-2 lg:flex-1 lg:content-start">
+                      {[0, 1, 2].map((p) => (
+                        <div key={`placeholder-video-${p}`} className="aspect-9/16 lg:aspect-auto lg:h-24 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center p-2">
+                          <Icons.Play className="w-6 h-6 text-slate-300" />
+                          <span className="text-[11px] text-slate-400 mt-1 text-center">{t('ui.providerProfile.reelPlaceholder')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* ABOUT */}
             <section ref={sectionRefs.about} id="about" className="pt-1">
-              <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-gray-900 mb-4">
+              <h2 className="flex items-center gap-2 text-lg sm:text-xl font-black text-slate-900 mb-3">
                 <span className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">👤</span>
                 {t('ui.providerProfile.tabs.about')}
               </h2>
-              
-              <div className="grid lg:grid-cols-3 gap-4">
-                {/* Description */}
-                <div className="lg:col-span-2 bg-gray-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2 text-sm">{t('ui.providerProfile.description')}</h3>
-                  <p className="text-gray-600 leading-relaxed text-sm">
+
+              <div className="grid lg:grid-cols-3 gap-3">
+                <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                  <h3 className="font-semibold text-slate-900 mb-2 text-sm">{t('ui.providerProfile.microBiography')}</h3>
+                  <p className="text-slate-600 leading-relaxed text-sm">
                     {description
                       || (mainService?.category
                         ? t('ui.providerProfile.specializingIn', {
@@ -526,387 +686,170 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                           })
                         : t('ui.providerProfile.noDescription'))}
                   </p>
+
+                  <div className="mt-4 grid sm:grid-cols-2 gap-2">
+                    {quickPoints.map((point, idx) => (
+                      <div key={`quick-${idx}`} className="flex items-start gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
+                        <span className="text-base">{idx === 0 ? '⚡' : idx === 1 ? '📍' : idx === 2 ? '🛠️' : '✅'}</span>
+                        <span className="text-sm text-slate-700 leading-snug">{point}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Location & Contact */}
                 <div className="space-y-3">
-                  {/* Location card */}
-                  <div className="bg-linear-to-br from-brand-50 to-brand-100 rounded-xl p-4">
+                  <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center">
-                        <Icons.Location className="w-4 h-4 text-brand-600" />
+                        <Icons.Location className="w-4 h-4 text-brand-700" />
                       </div>
-                      <h3 className="font-semibold text-gray-900 text-sm">{t('ui.providerProfile.location')}</h3>
+                      <h3 className="font-semibold text-slate-900 text-sm">{t('ui.providerProfile.location')}</h3>
                     </div>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-slate-700 text-sm">
                       {serviceArea.zones?.join(', ') || t('ui.providerProfile.serviceAreaNotSpecified')}
                     </p>
                     {serviceArea.radius && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-slate-500 mt-1">
                         {t('ui.providerProfile.coverageRadius', { radius: serviceArea.radius })}
                       </p>
                     )}
                   </div>
 
-                  {/* Action buttons (shown always on mobile, additional on desktop) */}
-                  {!readOnly && !isSelf && (
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={handleInquiry}
-                        className="flex items-center justify-center gap-2 border border-brand-300 text-brand-600 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-brand-50 transition-all"
-                      >
-                        <Icons.Message className="w-4 h-4" />
-                        {t('ui.providerProfile.inquiry')}
-                      </button>
-                      <button
-                        onClick={handleMessage}
-                        className="flex items-center justify-center gap-2 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        {t('ui.providerProfile.sendRequest')}
-                      </button>
-                    </div>
-                  )}
+                  <div className="bg-brand-50 rounded-2xl border border-brand-100 p-4 shadow-sm">
+                    <h3 className="font-semibold text-brand-800 text-sm mb-2">{t('ui.providerProfile.contactReadiness')}</h3>
+                    <p className="text-xs text-brand-700 leading-relaxed">{t('ui.providerProfile.contactReadinessHint')}</p>
+                  </div>
                 </div>
               </div>
             </section>
 
-            {/* ========== SERVICES SECTION ========== */}
+            {/* SERVICES */}
             <section ref={sectionRefs.services} id="services" className="pt-1">
-              <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-gray-900 mb-4">
+              <h2 className="flex items-center gap-2 text-lg sm:text-xl font-black text-slate-900 mb-3">
                 <span className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">🛠️</span>
                 {t('ui.providerProfile.servicesOffered')}
               </h2>
 
               {mainService ? (
-                <div className="space-y-4">
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div className="group relative bg-white rounded-xl border border-gray-100 p-4 hover:border-brand-200 hover:shadow-md transition-all duration-300">
-                      {/* Category badge */}
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-10 h-10 bg-linear-to-br from-brand-400 to-brand-600 rounded-lg flex items-center justify-center text-white text-base">
-                          {mainService.category?.charAt(0) || '🔧'}
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-gray-900 text-sm">{t(`home.categories.${mainService.category}`, mainService.category)}</h3>
-                          {mainService.experience && (
-                            <p className="text-xs text-gray-500">{t('ui.providerProfile.yearsExp', { years: mainService.experience })}</p>
-                          )}
-                        </div>
+                <div className="space-y-3 lg:space-y-4">
+                  <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold mb-1">{t('ui.providerProfile.mainService')}</p>
+                        <h3 className="font-bold text-slate-900 text-base">
+                          {t(`home.categories.${mainService.category}`, mainService.category)}
+                        </h3>
+                        {mainService.name && (
+                          <p className="text-sm text-slate-600 mt-1">{mainService.name}</p>
+                        )}
+                        {mainService.experience && (
+                          <p className="text-xs text-slate-500 mt-1">{t('ui.providerProfile.yearsExp', { years: mainService.experience })}</p>
+                        )}
                       </div>
-
-                      {/* Service name */}
-                      {mainService.name && (
-                        <p className="font-medium text-gray-700 text-sm mb-1">{mainService.name}</p>
-                      )}
-
-                      {/* Description */}
-                      {mainService.description && (
-                        <p className="text-xs text-gray-500 line-clamp-2 mb-2">
-                          {mainService.description}
-                        </p>
-                      )}
-
-                      {/* Subcategories */}
-                      {mainService.subcategories?.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {mainService.subcategories.slice(0, 2).map((sub, subIdx) => (
-                            <span 
-                              key={subIdx}
-                              className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
-                            >
-                              {sub}
-                            </span>
-                          ))}
-                          {mainService.subcategories.length > 2 && (
-                            <span className="text-xs text-gray-500">
-                              +{mainService.subcategories.length - 2}
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Hover effect checkmark */}
-                      <div className="absolute top-3 right-3 w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Icons.Check className="w-3 h-3 text-white" />
-                      </div>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-semibold">
+                        <Icons.Check className="w-3.5 h-3.5" />
+                        {t('ui.providerProfile.availableNow')}
+                      </span>
                     </div>
                   </div>
 
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('ui.providerProfile.additionalServices')}</h4>
-                    {additionalServices.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {additionalServices.map((svc) => (
-                          <span key={svc} className="px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-medium border border-brand-100">
-                            {t(`home.categories.${svc}`, svc)}
-                          </span>
-                        ))}
+                  <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+                    <div className={`bg-white rounded-2xl border border-slate-200 p-4 shadow-sm ${serviceArea.zones?.length > 0 ? '' : 'lg:col-span-2'}`}>
+                      <h4 className="text-sm font-semibold text-slate-800 mb-2">{t('ui.providerProfile.additionalServices')}</h4>
+                      {additionalServices.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {additionalServices.map((svc) => (
+                            <span key={svc} className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
+                              {t(`home.categories.${svc}`, svc)}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-500">{t('ui.providerProfile.noAdditionalServices')}</p>
+                      )}
+                    </div>
+
+                    {serviceArea.zones?.length > 0 && (
+                      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                        <h4 className="text-sm font-semibold text-slate-800 mb-2">{t('ui.providerProfile.coverageAreaTitle')}</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {serviceArea.zones.slice(0, 8).map((zone) => (
+                            <span key={zone} className="px-2.5 py-1 rounded-full bg-brand-50 text-brand-700 border border-brand-100 text-xs font-semibold">
+                              {zone}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    ) : (
-                      <p className="text-xs text-gray-500">{t('ui.providerProfile.noAdditionalServices')}</p>
                     )}
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-xl">
-                  <Icons.Briefcase className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500 text-sm">{t('ui.providerProfile.noServicesListed')}</p>
+                <div className="text-center py-8 bg-white border border-slate-200 rounded-2xl">
+                  <Icons.Briefcase className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                  <p className="text-slate-500 text-sm">{t('ui.providerProfile.noServicesListed')}</p>
                 </div>
               )}
             </section>
 
-            {/* ========== PORTFOLIO SECTION ========== */}
-            <section ref={sectionRefs.portfolio} id="portfolio" className="pt-2">
-              <h2 className="flex items-center gap-3 text-xl sm:text-2xl font-bold text-gray-900 mb-6">
-                <span className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">📸</span>
-                {t('ui.providerProfile.portfolio')}
-                {portfolio.length > 0 && (
-                  <span className="text-sm font-normal text-gray-500">
-                    ({t('ui.providerProfile.works', { count: portfolio.length })})
-                  </span>
-                )}
-              </h2>
-
-              {portfolio.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {portfolio.map((item, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => {
-                        setSelectedPortfolioItem(item);
-                        setPortfolioIndex(idx);
-                      }}
-                      className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer"
-                    >
-                      {item.type === 'image' ? (
-                        <img 
-                          src={item.url} 
-                          alt={item.caption || t('ui.providerProfile.portfolioWork')}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-900 flex items-center justify-center">
-                          <video 
-                            src={item.url}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                            <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center">
-                              <Icons.Play className="w-6 h-6 text-gray-800 ml-1" />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Overlay */}
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                        {item.caption && (
-                          <p className="text-white text-sm line-clamp-2">{item.caption}</p>
-                        )}
-                      </div>
-
-                      {/* Type badge */}
-                      <div className="absolute top-2 right-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          item.type === 'video' 
-                            ? 'bg-red-500 text-white' 
-                            : 'bg-white/90 text-gray-700'
-                        }`}>
-                          {item.type === 'video' ? t('ui.providerProfile.videoType') : t('ui.providerProfile.imageType')}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-xl">
-                  <Icons.Image className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500">{t('ui.providerProfile.noPortfolioWorks')}</p>
-                </div>
-              )}
-            </section>
-
-            {/* ========== REVIEWS SECTION ========== */}
-            <section 
-              ref={sectionRefs.reviews} 
-              id="reviews" 
-              style={{ 
-                overflow: 'hidden',
-                position: 'relative',
-                zIndex: 1
-              }}
-            >
-              <h2 className="flex items-center gap-2 text-base sm:text-lg font-bold text-gray-900 mb-3">
-                <span className="w-7 h-7 sm:w-8 sm:h-8 bg-amber-100 rounded-lg flex items-center justify-center text-xs sm:text-sm">⭐</span>
+            {/* REVIEWS */}
+            <section ref={sectionRefs.reviews} id="reviews" className="pt-1">
+              <h2 className="flex items-center gap-2 text-lg sm:text-xl font-black text-slate-900 mb-3">
+                <span className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-sm">⭐</span>
                 <span>{t('ui.providerProfile.reviewsAndRatings')}</span>
               </h2>
 
-              {/* Rating Summary - BLOQUE 1: Calificación general - SIN GRID */}
-              <div 
-                style={{ 
-                  display: 'block',
-                  width: '100%',
-                  background: 'linear-gradient(to bottom right, #fffbeb, #fef3c7)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  textAlign: 'center',
-                  marginBottom: '12px',
-                  boxSizing: 'border-box',
-                  position: 'relative',
-                  zIndex: 1,
-                  overflow: 'hidden'
-                }}
-              >
-                <div style={{ fontSize: '30px', fontWeight: 'bold', color: '#111827', marginBottom: '4px' }}>
-                  {rating.toFixed(1)}
-                </div>
-                {/* StarRating contenido en un div con overflow hidden */}
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  marginBottom: '4px',
-                  overflow: 'hidden',
-                  maxWidth: '100%'
-                }}>
-                  <div style={{ overflow: 'hidden', maxWidth: '150px' }}>
-                    <StarRating value={rating} size="sm" readonly />
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 mb-3 shadow-sm">
+                <div className="grid sm:grid-cols-2 gap-4 items-center">
+                  <div>
+                    <p className="text-4xl font-black text-slate-900 leading-none">{rating.toFixed(1)}</p>
+                    <div className="mt-2"><StarRating value={rating} size="sm" readonly /></div>
+                    <p className="text-sm text-slate-500 mt-1">{t('ui.providerProfile.basedOnReviews', { count: reviewCount })}</p>
+                  </div>
+                  <div className="space-y-2">
+                    {[ 
+                      { label: t('ui.providerProfile.quality'), value: ratingBreakdown.quality || 0, icon: '🎯' },
+                      { label: t('ui.providerProfile.professionalism'), value: ratingBreakdown.professionalism || 0, icon: '💼' },
+                      { label: t('ui.providerProfile.communication'), value: ratingBreakdown.communication || 0, icon: '💬' },
+                      { label: t('ui.providerProfile.punctuality'), value: ratingBreakdown.punctuality || 0, icon: '⏰' }
+                    ].map((item, idx) => (
+                      <RatingBar key={`rating-${idx}`} label={item.label} value={item.value} icon={item.icon} />
+                    ))}
                   </div>
                 </div>
-                <p style={{ color: '#4b5563', fontSize: '12px' }}>
-                  {t('ui.providerProfile.basedOnReviews', { count: reviewCount })}
-                </p>
               </div>
 
-              {/* Rating Summary - BLOQUE 2: Desglose - COMPLETAMENTE SEPARADO */}
-              <div 
-                style={{ 
-                  display: 'block',
-                  width: '100%',
-                  background: '#f9fafb',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  marginBottom: '16px',
-                  boxSizing: 'border-box',
-                  overflow: 'hidden',
-                  position: 'relative',
-                  zIndex: 1
-                }}
-              >
-                <h3 style={{ fontWeight: 600, color: '#111827', marginBottom: '8px', fontSize: '12px' }}>
-                  {t('ui.providerProfile.ratingsBreakdown')}
-                </h3>
-                {/* Rating bars con estilos inline */}
-                {[
-                  { label: t('ui.providerProfile.quality'), value: ratingBreakdown.quality || 0, icon: '🎯' },
-                  { label: t('ui.providerProfile.professionalism'), value: ratingBreakdown.professionalism || 0, icon: '💼' },
-                  { label: t('ui.providerProfile.communication'), value: ratingBreakdown.communication || 0, icon: '💬' },
-                  { label: t('ui.providerProfile.punctuality'), value: ratingBreakdown.punctuality || 0, icon: '⏰' }
-                ].map((item, idx) => (
-                  <div 
-                    key={idx}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      width: '100%',
-                      marginBottom: idx < 3 ? '8px' : '0',
-                      fontSize: '11px',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <span style={{ width: '18px', flexShrink: 0, fontSize: '12px' }}>{item.icon}</span>
-                    <span style={{ 
-                      width: '70px', 
-                      flexShrink: 0, 
-                      color: '#6b7280',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {item.label}
-                    </span>
-                    <div style={{ 
-                      flex: 1, 
-                      height: '6px', 
-                      backgroundColor: '#e5e7eb',
-                      borderRadius: '9999px',
-                      marginLeft: '6px',
-                      marginRight: '6px',
-                      overflow: 'hidden',
-                      minWidth: '30px'
-                    }}>
-                      <div style={{ 
-                        height: '100%', 
-                        width: `${(item.value / 5) * 100}%`,
-                        background: 'linear-gradient(to right, #facc15, #f59e0b)',
-                        borderRadius: '9999px'
-                      }} />
-                    </div>
-                    <span style={{ 
-                      width: '24px', 
-                      textAlign: 'right', 
-                      fontWeight: 600,
-                      color: '#374151',
-                      flexShrink: 0,
-                      fontSize: '11px'
-                    }}>
-                      {item.value.toFixed(1)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Reviews list - responsive mejorado */}
               {reviews.length > 0 ? (
-                <div className="space-y-2 sm:space-y-3" style={{ overflow: 'hidden' }}>
+                <div className="space-y-2 sm:space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
                   {reviews.map((review, idx) => (
-                    <div key={idx} className="bg-white rounded-xl border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-shadow" style={{ overflow: 'hidden' }}>
-                      <div className="flex flex-col xs:flex-row xs:items-start gap-2 xs:gap-3 sm:gap-4">
-                        {/* Reviewer avatar - más pequeño en móviles */}
-                        <div className="flex items-center gap-2 xs:block" style={{ overflow: 'hidden' }}>
-                          <div className="shrink-0 w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                            <Icons.User className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 text-gray-500" />
-                          </div>
-                          {/* Nombre visible solo en móviles muy pequeños junto al avatar */}
-                          <div className="xs:hidden" style={{ overflow: 'hidden', maxWidth: '200px' }}>
-                            <h4 className="font-semibold text-gray-900 text-sm truncate">
-                              {review.clientName || t('ui.providerProfile.verifiedClient')}
-                            </h4>
-                            <div style={{ overflow: 'hidden', maxWidth: '100px' }}>
-                              <StarRating value={review.rating?.overall || 5} size="xs" readonly />
-                            </div>
-                          </div>
+                    <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 hover:shadow-sm transition-shadow">
+                      <div className="flex items-start gap-3">
+                        <div className="shrink-0 w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center">
+                          <Icons.User className="w-5 h-5 text-slate-500" />
                         </div>
-                        
-                        <div className="flex-1 min-w-0" style={{ overflow: 'hidden' }}>
-                          <div className="hidden xs:flex items-start justify-between gap-2 mb-1 sm:mb-2">
-                            <div style={{ overflow: 'hidden' }}>
-                              <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <div>
+                              <h4 className="font-semibold text-slate-900 text-sm sm:text-base truncate">
                                 {review.clientName || t('ui.providerProfile.verifiedClient')}
                               </h4>
-                              <div style={{ overflow: 'hidden', maxWidth: '120px' }}>
-                                <StarRating value={review.rating?.overall || 5} size="sm" readonly />
-                              </div>
+                              <StarRating value={review.rating?.overall || 5} size="xs" readonly />
                             </div>
-                            <span className="text-xs sm:text-sm text-gray-500 shrink-0">
+                            <span className="text-xs text-slate-500 shrink-0">
                               {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : t('ui.providerProfile.recent')}
                             </span>
                           </div>
-                          
-                          {/* Fecha en móviles muy pequeños */}
-                          <span className="xs:hidden text-xs text-gray-500 block mb-1">
-                            {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : t('ui.providerProfile.recent')}
-                          </span>
-                          
-                          <p className="text-gray-600 text-xs sm:text-sm">{review.comment || review.review?.comment}</p>
-                          
-                          {/* Helpful buttons - más compacto */}
-                          <div className="flex items-center gap-3 mt-2 sm:mt-3">
-                            <button className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 hover:text-brand-600 transition-colors">
-                              <Icons.ThumbUp className="w-3 h-3 sm:w-4 sm:h-4" />
-                              <span className="hidden xs:inline">{t('ui.providerProfile.helpful')}</span>
+
+                          <p className="text-slate-600 text-sm leading-relaxed">{review.comment || review.review?.comment}</p>
+
+                          <div className="mt-3 flex items-center justify-between gap-2">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                              <Icons.Verified className="w-3.5 h-3.5" />
+                              {t('ui.providerProfile.verifiedWork')}
+                            </span>
+                            <button className="flex items-center gap-1 text-xs text-slate-500 hover:text-brand-700 transition-colors">
+                              <Icons.ThumbUp className="w-3.5 h-3.5" />
+                              {t('ui.providerProfile.helpful')}
                             </button>
                           </div>
                         </div>
@@ -915,10 +858,10 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-xl">
+                <div className="text-center py-8 bg-white border border-slate-200 rounded-2xl">
                   <span className="text-3xl mb-2 block">💬</span>
-                  <p className="text-gray-500">{t('ui.providerProfile.noReviews')}</p>
-                  <p className="text-sm text-gray-400 mt-1">{t('ui.providerProfile.beFirstToReview')}</p>
+                  <p className="text-slate-500">{t('ui.providerProfile.noReviews')}</p>
+                  <p className="text-sm text-slate-400 mt-1">{t('ui.providerProfile.beFirstToReview')}</p>
                 </div>
               )}
             </section>
@@ -926,9 +869,9 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
           </div>
         </div>
 
-        {/* Mobile Action Bar */}
+        {/* Sticky Contact Bar */}
         {!readOnly && isSelf && (
-          <div className="sm:hidden sticky bottom-0 bg-amber-50 border-t border-amber-200 p-3 flex items-center justify-center gap-2 text-amber-800 text-sm font-semibold">
+          <div className="sticky bottom-0 bg-amber-50 border-t border-amber-200 p-2.5 flex items-center justify-center gap-2 text-amber-800 text-sm font-semibold">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -936,17 +879,17 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
           </div>
         )}
         {!readOnly && !isSelf && (
-          <div className="sm:hidden sticky bottom-0 bg-white border-t p-3 flex gap-2">
+          <div className="sticky bottom-0 bg-white border-t border-slate-200 p-2.5 sm:p-3 flex gap-2">
             <button
               onClick={handleInquiry}
-              className="flex-1 flex items-center justify-center gap-2 border border-brand-400 text-brand-600 px-3 py-3 rounded-xl font-semibold text-sm"
+              className="flex-1 flex items-center justify-center gap-2 border border-brand-400 text-brand-700 px-3 py-2 rounded-xl font-semibold text-sm hover:bg-brand-50 transition-colors"
             >
               <Icons.Message className="w-4 h-4" />
               {t('ui.providerProfile.inquiry')}
             </button>
             <button
               onClick={handleMessage}
-              className="flex-1 flex items-center justify-center gap-2 bg-brand-600 text-white px-3 py-3 rounded-xl font-semibold text-sm"
+              className="flex-1 flex items-center justify-center gap-2 bg-brand-600 text-white px-3 py-2 rounded-xl font-semibold text-sm hover:bg-brand-700 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

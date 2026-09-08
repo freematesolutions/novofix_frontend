@@ -53,7 +53,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
   useEffect(() => {
     if (autoOpenProfile) {
       // Small delay to let rendering settle
-      const timer = setTimeout(() => setShowProfile('about'), 300);
+      const timer = setTimeout(() => setShowProfile('portfolio'), 300);
       return () => clearTimeout(timer);
     }
   }, [autoOpenProfile]);
@@ -161,8 +161,8 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
       setShowPortfolioGallery(true);
       return;
     }
-    // Click en área general - ir a about
-    setShowProfile('about');
+    // Click en área general - ir a portafolio
+    setShowProfile('portfolio');
     onSelect?.(provider);
   };
 
@@ -411,7 +411,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
 
                 {/* View Profile - Secondary */}
                 <button
-                  data-nav-section="about"
+                  data-nav-section="portfolio"
                   className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors px-4 py-2 rounded-xl border border-gray-200 hover:border-brand-300 hover:bg-gray-50"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -449,7 +449,7 @@ function ProviderCard({ provider, onSelect, onViewPortfolio, selectedCategory = 
         isOpen={!!showProfile}
         onClose={() => setShowProfile(false)}
         provider={provider}
-        initialTab={typeof showProfile === 'string' ? showProfile : 'about'}
+        initialTab={typeof showProfile === 'string' ? showProfile : 'portfolio'}
         selectedCategory={selectedCategory}
       />
 

@@ -1438,7 +1438,7 @@ useEffect(() => {
         isOpen={!!deepLinkedProvider}
         onClose={() => setDeepLinkedProvider(null)}
         provider={deepLinkedProvider}
-        initialTab="about"
+        initialTab="portfolio"
       />
 
 
