@@ -8,8 +8,15 @@ import api from '@/state/apiClient.js';
  * Muestra pares de fotos (antes y después) de bookings completados.
  * Carrusel horizontal con tarjetas de comparación side-by-side.
  */
-function BeforeAfterGallery({ onViewProfile }) {
+function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, emptyMessage = null, size = 'default' }) {
   const { t } = useTranslation();
+  // Tamaño de tarjeta: 'default' (usado en Home, sin cambios) o 'lg' (más grande en pantallas lg+, solo cuando se embebe en el modal de perfil)
+  const cardWidthClass = size === 'lg' ? 'w-[340px] sm:w-[400px] lg:w-[440px]' : 'w-[340px] sm:w-[400px]';
+  const imageHeightClass = 'h-56 sm:h-64';
+  const wrapperMarginClass = size === 'lg' ? 'mb-10 lg:mb-0' : 'mb-10';
+  // En el modal de perfil (size='lg') el pie con avatar/nombre/rating es redundante (es el mismo proveedor del perfil)
+  // y ocupa altura innecesaria: se oculta solo en lg+ para que ambas tarjetas del Portfolio quepan sin deslizar.
+  const footerVisibilityClass = size === 'lg' ? 'lg:hidden' : '';
   const [pairs, setPairs] = useState([]);
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef(null);
@@ -25,7 +32,9 @@ function BeforeAfterGallery({ onViewProfile }) {
   useEffect(() => {
     const fetchPairs = async () => {
       try {
-        const { data } = await api.get('/guest/before-after', { params: { limit: 20 } });
+        const params = { limit: 20 };
+        if (providerId) params.providerId = providerId;
+        const { data } = await api.get('/guest/before-after', { params });
         if (data?.data?.pairs) {
           setPairs(data.data.pairs);
           // Inicializar sliders en 50% y image index en 0
@@ -41,8 +50,9 @@ function BeforeAfterGallery({ onViewProfile }) {
         setLoading(false);
       }
     };
+    setLoading(true);
     fetchPairs();
-  }, []);
+  }, [providerId]);
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -125,10 +135,12 @@ function BeforeAfterGallery({ onViewProfile }) {
 
   if (loading) {
     return (
-      <div className="mb-10">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-40 h-6 bg-gray-200 rounded animate-pulse" />
-        </div>
+      <div className={wrapperMarginClass}>
+        {showHeader && (
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-40 h-6 bg-gray-200 rounded animate-pulse" />
+          </div>
+        )}
         <div className="flex gap-6 overflow-hidden">
           {[1, 2, 3].map(i => (
             <div key={i} className="shrink-0 w-[340px] sm:w-[400px] h-64 bg-gray-200 rounded-2xl animate-pulse" />
@@ -138,20 +150,31 @@ function BeforeAfterGallery({ onViewProfile }) {
     );
   }
 
-  if (pairs.length === 0) return null;
+  if (pairs.length === 0) {
+    if (!emptyMessage) return null;
+    return (
+      <div className={wrapperMarginClass}>
+        <div className="text-center py-8 rounded-xl bg-slate-50 border border-dashed border-slate-300">
+          <p className="text-slate-500 text-sm">{emptyMessage}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="mb-10">
+    <div className={wrapperMarginClass}>
       {/* Header */}
-      <div className="mb-5">
-        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-          <svg className="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-          </svg>
-          {t('testimonials.beforeAfter.title')}
-        </h3>
-        <p className="text-sm text-gray-500 mt-1">{t('testimonials.beforeAfter.subtitle')}</p>
-      </div>
+      {showHeader && (
+        <div className="mb-5">
+          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <svg className="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            {t('testimonials.beforeAfter.title')}
+          </h3>
+          <p className="text-sm text-gray-500 mt-1">{t('testimonials.beforeAfter.subtitle')}</p>
+        </div>
+      )}
 
       {/* Carousel container */}
       <div className="relative group/carousel">
@@ -188,7 +211,7 @@ function BeforeAfterGallery({ onViewProfile }) {
               return (
                 <div
                   key={pair.id}
-                  className="ba-card shrink-0 w-[340px] sm:w-[400px] bg-white rounded-2xl transition-shadow duration-300 relative"
+                  className={`ba-card shrink-0 ${cardWidthClass} bg-white rounded-2xl transition-shadow duration-300 relative`}
                   style={{ scrollSnapAlign: 'start' }}
                 >
                   {/* Labels Antes / Después — protruding ribbon style */}
@@ -209,7 +232,7 @@ function BeforeAfterGallery({ onViewProfile }) {
 
                   {/* Comparación de imágenes con slider */}
                   <div
-                    className="relative h-56 sm:h-64 overflow-hidden rounded-t-2xl cursor-col-resize select-none"
+                    className={`relative ${imageHeightClass} overflow-hidden rounded-t-2xl cursor-col-resize select-none`}
                     onMouseDown={(e) => {
                       e.preventDefault();
                       const container = e.currentTarget;
@@ -321,7 +344,7 @@ function BeforeAfterGallery({ onViewProfile }) {
                   </div>
 
                   {/* Info del proveedor */}
-                  <div className="p-4">
+                  <div className={`p-4 ${footerVisibilityClass}`}>
                     <div className="flex items-center gap-3">
                       {/* Avatar */}
                       {pair.providerAvatar ? (
@@ -405,7 +428,11 @@ function BeforeAfterGallery({ onViewProfile }) {
 }
 
 BeforeAfterGallery.propTypes = {
-  onViewProfile: PropTypes.func
+  onViewProfile: PropTypes.func,
+  providerId: PropTypes.string,
+  showHeader: PropTypes.bool,
+  emptyMessage: PropTypes.string,
+  size: PropTypes.oneOf(['default', 'lg'])
 };
 
 export default BeforeAfterGallery;

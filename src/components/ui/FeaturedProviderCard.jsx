@@ -70,7 +70,7 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
 
   // Handle card click
   const handleCardClick = () => {
-    setShowProfile('about');
+    setShowProfile('portfolio');
     onViewProfile?.(provider);
   };
 
@@ -245,7 +245,7 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setShowProfile('about');
+              setShowProfile('portfolio');
             }}
             className="w-full inline-flex items-center justify-center gap-1.5 bg-linear-to-r from-brand-500 to-brand-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow-md hover:shadow-lg"
           >
@@ -269,7 +269,7 @@ function FeaturedProviderCard({ provider, onViewProfile }) {
         isOpen={!!showProfile}
         onClose={() => setShowProfile(false)}
         provider={provider}
-        initialTab={typeof showProfile === 'string' ? showProfile : 'about'}
+        initialTab={typeof showProfile === 'string' ? showProfile : 'portfolio'}
       />
 
       {showPortfolioGallery && portfolio.length > 0 && (

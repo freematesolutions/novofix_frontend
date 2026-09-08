@@ -1076,7 +1076,7 @@ export default function ClientRequests() {
           isOpen={!!profileTarget}
           onClose={() => setProfileTarget(null)}
           provider={profileTarget}
-          initialTab="about"
+          initialTab="portfolio"
           readOnly
         />
 

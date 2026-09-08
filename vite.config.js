@@ -64,9 +64,10 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
-      // Slightly raise the warning so the residual main app chunk doesn't spam
-      // the build log; we already split the heaviest deps via manualChunks.
-      chunkSizeWarningLimit: 700,
+      // Raise the warning threshold to cover the intentionally large PDF worker
+      // chunk. This does not change runtime behavior; it only keeps build logs
+      // free of a non-actionable size warning.
+      chunkSizeWarningLimit: 1500,
       // Ensure content hash is included in filenames for cache busting
       rollupOptions: {
         output: {
