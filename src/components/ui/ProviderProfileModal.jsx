@@ -11,6 +11,8 @@ import { useToast } from './Toast.jsx';
 import StarRating from './StarRating.jsx';
 import { isSelfProvider } from '@/utils/selfHireGuard.js';
 import { CATEGORY_IMAGES, FALLBACK_IMAGE } from '@/utils/categoryImages.js';
+import api from '@/state/apiClient.js';
+
 
 // Iconos SVG inline para mejor rendimiento
 const Icons = {
@@ -87,7 +89,19 @@ const Icons = {
   ),
   Award: ({ className = "w-5 h-5" }) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.5 13.5L6 22l6-3.5L18 22l-2.5-8.5" />
+      <circle cx="12" cy="8" r="6" strokeWidth={2} />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 5.3l.99 2 2.21.32-1.6 1.56.38 2.2-1.98-1.04-1.98 1.04.38-2.2-1.6-1.56 2.21-.32z" fill="currentColor" stroke="none" />
+    </svg>
+  ),
+  License: ({ className = "w-5 h-5" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+    </svg>
+  ),
+  Shield: ({ className = "w-5 h-5" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
     </svg>
   )
 };
@@ -120,33 +134,25 @@ const planConfig = {
   }
 };
 
-// Tab configuration — el orden refleja el flujo visual: portafolio (evidencia) primero,
-// luego información/servicios y por último reseñas.
-const TABS = [
-  { id: 'portfolio', labelKey: 'portfolio', icon: '📸' },
-  { id: 'about', labelKey: 'about', icon: '👤' },
-  { id: 'services', labelKey: 'services', icon: '🛠️' },
-  { id: 'reviews', labelKey: 'reviews', icon: '⭐' }
-];
-
 function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedCategory = null, readOnly = false }) {
   const closeModal = useModalHistory(isOpen, onClose, 'provider-profile');
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isAuthenticated, viewRole, user } = useAuth();
   const toast = useToast();
-  const [activeTab, setActiveTab] = useState(initialTab || 'portfolio');
   const [showRequestWizard, setShowRequestWizard] = useState(false);
   const [showInquiryChat, setShowInquiryChat] = useState(false);
   const [showGuestConversion, setShowGuestConversion] = useState(false);
   const [selectedPortfolioItem, setSelectedPortfolioItem] = useState(null);
   const [portfolioIndex, setPortfolioIndex] = useState(0);
-  const [badgesScroll, setBadgesScroll] = useState({ canLeft: false, canRight: false });
-  const badgesScrollRef = useRef(null);
+  const [providerReviews, setProviderReviews] = useState(null);
   const modalRef = useRef(null);
+  const nameRowRef = useRef(null);
+  const nameTextRef = useRef(null);
   const sectionRefs = {
     about: useRef(null),
     services: useRef(null),
     portfolio: useRef(null),
+    reels: useRef(null),
     reviews: useRef(null)
   };
 
@@ -156,10 +162,11 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
   // Flag para evitar actualizar tab durante scroll programático
   const isScrollingProgrammatically = useRef(false);
 
-  // Scroll automático a la sección correspondiente según initialTab
+  // Scroll automático a la sección correspondiente según initialTab (por defecto, al abrir
+  // el modal sin initialTab explícito, el foco natural ya recae en la primera sección
+  // — Trabajos realizados — al estar arriba del todo del contenido scrollable).
   useEffect(() => {
     if (isOpen && initialTab) {
-      setActiveTab(initialTab);
       setTimeout(() => {
         const sectionEl = sectionRefs[initialTab]?.current;
         const scrollContainer = scrollContainerRef.current;
@@ -185,71 +192,8 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialTab]);
 
-  // Actualiza las flechas de scroll de los badges de confianza (izquierda/derecha)
-  const updateBadgesScroll = () => {
-    const el = badgesScrollRef.current;
-    if (!el) return;
-    setBadgesScroll({
-      canLeft: el.scrollLeft > 4,
-      canRight: el.scrollLeft + el.clientWidth < el.scrollWidth - 4
-    });
-  };
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const el = badgesScrollRef.current;
-    if (!el) return;
-    updateBadgesScroll();
-    el.addEventListener('scroll', updateBadgesScroll, { passive: true });
-    window.addEventListener('resize', updateBadgesScroll);
-    return () => {
-      el.removeEventListener('scroll', updateBadgesScroll);
-      window.removeEventListener('resize', updateBadgesScroll);
-    };
-  }, [isOpen]);
-
-  // Scroll spy: actualizar pestaña activa según la sección visible
-  useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    if (!isOpen || !scrollContainer) return;
-
-    const handleScroll = () => {
-      // No actualizar si el scroll es programático (click en tab)
-      if (isScrollingProgrammatically.current) return;
-
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const containerTop = containerRect.top;
-      
-      // Encontrar qué sección está más cerca del tope del contenedor
-      let closestSection = 'portfolio';
-      let closestDistance = Infinity;
-
-      TABS.forEach(tab => {
-        const sectionEl = sectionRefs[tab.id]?.current;
-        if (sectionEl) {
-          const sectionRect = sectionEl.getBoundingClientRect();
-          // Distancia desde el tope de la sección al tope del contenedor
-          const distance = Math.abs(sectionRect.top - containerTop - 50);
-          
-          // Si la sección está visible y es la más cercana al tope
-          if (sectionRect.top <= containerTop + 150 && distance < closestDistance) {
-            closestDistance = distance;
-            closestSection = tab.id;
-          }
-        }
-      });
-
-      setActiveTab(closestSection);
-    };
-
-    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
-    return () => scrollContainer.removeEventListener('scroll', handleScroll);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
-
   // Extract provider data
   const businessName = provider?.providerProfile?.businessName || provider?.profile?.firstName || t('ui.providerProfile.professional');
-  const description = provider?.providerProfile?.description || provider?.providerProfile?.businessDescription || '';
   const rating = provider?.providerProfile?.rating?.average || 0;
   const reviewCount = provider?.providerProfile?.rating?.count || 0;
   const ratingBreakdown = provider?.providerProfile?.rating?.breakdown || {};
@@ -292,8 +236,11 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
     t('ui.providerProfile.quickWarranty')
   ];
   
-  // Simulated reviews (in real app, fetch from API)
-  const reviews = provider?.reviews || [];
+  // Reseñas reales del proveedor — antes se leía provider.reviews, un campo que la
+  // búsqueda/listado de proveedores nunca incluye (solo trae el promedio/():count agregado),
+  // por lo que la sección de reseñas siempre aparecía vacía aunque existieran reseñas reales.
+  const reviews = providerReviews || [];
+  const reviewsLoading = providerReviews === null;
 
   // Lock body scroll when modal is open — preserving scroll position on mobile
   useEffect(() => {
@@ -325,13 +272,22 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
     };
   }, [isOpen]);
 
-  // Handle escape key
+  // Cargar las reseñas reales del proveedor desde el backend al abrir el modal
   useEffect(() => {
-    if (isOpen && initialTab && initialTab !== activeTab) {
-      setActiveTab(initialTab);
-    }
-  }, [isOpen, initialTab]);
+    if (!isOpen || !provider?._id) return;
+    let cancelled = false;
+    setProviderReviews(null);
+    api.get(`/reviews/provider/${provider._id}`, { params: { limit: 20 } })
+      .then(({ data }) => {
+        if (!cancelled) setProviderReviews(data?.data?.reviews || []);
+      })
+      .catch(() => {
+        if (!cancelled) setProviderReviews([]);
+      });
+    return () => { cancelled = true; };
+  }, [isOpen, provider?._id]);
 
+  // Handle escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') closeModal();
@@ -340,32 +296,35 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, closeModal]);
 
-  // Scroll to section when tab changes
-  const handleTabClick = (tabId) => {
-    setActiveTab(tabId);
-    isScrollingProgrammatically.current = true;
-    
-    const sectionEl = sectionRefs[tabId]?.current;
-    const scrollContainer = scrollContainerRef.current;
-    if (sectionEl && scrollContainer) {
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const sectionRect = sectionEl.getBoundingClientRect();
-      const currentScroll = scrollContainer.scrollTop;
-      const targetScroll = currentScroll + sectionRect.top - containerRect.top - 16;
-      
-      scrollContainer.scrollTo({
-        top: Math.max(0, targetScroll),
-        behavior: 'smooth'
-      });
-      
-      // Resetear el flag después de que termine el scroll
-      setTimeout(() => {
-        isScrollingProgrammatically.current = false;
-      }, 500);
-    } else {
-      isScrollingProgrammatically.current = false;
-    }
-  };
+
+  // Auto-ajuste del nombre del profesional: reduce el tamaño de fuente solo lo necesario
+  // para que el nombre completo quepa siempre en una sola línea, sin cortarse, en cualquier
+  // ancho de pantalla (especialmente móviles pequeños). Si hay espacio suficiente no se toca.
+  useEffect(() => {
+    if (!isOpen) return;
+    const el = nameTextRef.current;
+    const row = nameRowRef.current;
+    if (!el || !row) return;
+
+    const fitName = () => {
+      el.style.fontSize = '';
+      const icon = row.querySelector('svg');
+      const iconSpace = icon ? icon.getBoundingClientRect().width + 6 : 0;
+      const availableWidth = row.clientWidth - iconSpace;
+      if (availableWidth <= 0) return;
+      if (el.scrollWidth > availableWidth) {
+        const baseSize = parseFloat(getComputedStyle(el).fontSize);
+        const ratio = availableWidth / el.scrollWidth;
+        const nextSize = Math.max(11, Math.floor(baseSize * ratio * 0.96));
+        el.style.fontSize = `${nextSize}px`;
+      }
+    };
+
+    // Doble rAF para asegurar que el layout del modal (animación de entrada) ya se aplicó
+    requestAnimationFrame(() => requestAnimationFrame(fitName));
+    window.addEventListener('resize', fitName);
+    return () => window.removeEventListener('resize', fitName);
+  }, [isOpen, businessName]);
 
   // Bloqueo de auto-contrato (multirol Cliente/Profesional)
   const isSelf = isSelfProvider(user, provider);
@@ -452,7 +411,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
         {/* Premium Hero Header — avatar straddles the boundary between the photo zone and the badges zone */}
         <div className="relative">
           {/* Photo zone */}
-          <div className="relative min-h-28 sm:min-h-32 lg:min-h-24 overflow-hidden">
+          <div className="relative min-h-20 sm:min-h-32 lg:min-h-24 overflow-hidden">
             <div
               className="absolute inset-0 bg-center bg-cover"
               style={{ backgroundImage: `url(${headerImage})` }}
@@ -467,22 +426,22 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
               <Icons.Close className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
-            <div className="relative z-10 h-full pl-[136px] sm:pl-[164px] lg:pl-[132px] pr-12 sm:pr-16 pt-6 sm:pt-7 lg:pt-5 pb-3 flex items-start justify-between gap-3">
+            <div className="relative z-10 h-full pl-[152px] sm:pl-[164px] lg:pl-[132px] pr-12 sm:pr-16 pt-2.5 sm:pt-7 lg:pt-5 pb-2 sm:pb-3 flex items-start justify-between gap-3">
               <div className="min-w-0 text-white">
-                <div className="flex items-start gap-1.5">
-                  <h1 className="text-lg sm:text-2xl font-black tracking-tight leading-tight wrap-break-word">{businessName}</h1>
-                  <Icons.Verified className="w-4 h-4 sm:w-5 sm:h-5 text-sky-200 shrink-0 mt-0.5" />
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <h1 className="text-base sm:text-2xl font-black tracking-tight leading-tight truncate">{businessName}</h1>
+                  <Icons.Verified className="w-4 h-4 sm:w-5 sm:h-5 text-sky-200 shrink-0" />
                 </div>
 
-                <p className="mt-0.5 text-xs sm:text-sm text-white/90 leading-snug line-clamp-2">{subtitle}</p>
+                <p className="mt-0.5 text-xs sm:text-sm text-white/90 leading-snug line-clamp-1 sm:line-clamp-2">{subtitle}</p>
 
-                <div className="mt-1.5 flex items-center gap-1.5 text-[11px] sm:text-xs text-white/85 font-semibold">
-                  <span className="inline-flex items-center gap-1">
-                    <Icons.Star filled className="w-3 h-3 text-yellow-300" />
-                    {rating.toFixed(1)} ({reviewCount})
-                  </span>
+                <div className="mt-1 sm:mt-1.5 flex items-center gap-1.5 text-white/85">
+                  <StarRating value={rating} size="xs" readonly />
+                  {reviewCount > 0 && (
+                    <span className="text-[11px] sm:text-xs font-semibold">({reviewCount})</span>
+                  )}
                   <span className="text-white/40">•</span>
-                  <span className="inline-flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold">
                     <Icons.Briefcase className="w-3 h-3" />
                     {completedJobs} {t('ui.providerProfile.jobs')}
                   </span>
@@ -512,17 +471,17 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
             </div>
           </div>
 
-          {/* Avatar — grande, a la izquierda, la mitad inferior cae sobre la zona de badges */}
-          <div className="absolute left-4 sm:left-6 top-14 sm:top-16 lg:top-11 z-20 w-28 h-28 sm:w-32 sm:h-32 lg:w-20 lg:h-20">
+          {/* Avatar — compacto, abarca desde el nombre hasta los sellos de confianza, sin espacios arriba/abajo en mobile */}
+          <div className="absolute left-3 top-1.5 sm:left-6 sm:top-16 lg:top-11 z-20 w-20 h-20 sm:w-32 sm:h-32 lg:w-20 lg:h-20">
             <div className="absolute -inset-1.5 rounded-full bg-white/40 blur-sm" />
             {profileImage ? (
               <img
                 src={profileImage}
                 alt={businessName}
-                className="relative w-28 h-28 sm:w-32 sm:h-32 lg:w-20 lg:h-20 rounded-full object-cover border-4 border-white shadow-xl"
+                className="relative w-20 h-20 sm:w-32 sm:h-32 lg:w-20 lg:h-20 rounded-full object-cover border-4 border-white shadow-xl"
               />
             ) : (
-              <div className="relative w-28 h-28 sm:w-32 sm:h-32 lg:w-20 lg:h-20 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-3xl sm:text-4xl font-bold shadow-xl border-4 border-white">
+              <div className="relative w-20 h-20 sm:w-32 sm:h-32 lg:w-20 lg:h-20 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-2xl sm:text-4xl font-bold shadow-xl border-4 border-white">
                 {businessName.charAt(0).toUpperCase()}
               </div>
             )}
@@ -534,191 +493,125 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
             )}
           </div>
 
-          {/* Badges zone — inicia justo bajo la línea de la cabecera, al lado del avatar (no debajo) */}
-          <div className="bg-white pl-[136px] sm:pl-[164px] lg:pl-[132px] pt-2.5 sm:pt-3 lg:pt-1.5 pb-3 lg:pb-2 border-b border-slate-100 min-h-[68px] sm:min-h-[76px] lg:min-h-[52px] flex items-center relative">
-            <div
-              ref={badgesScrollRef}
-              className="flex items-center gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory pl-8 sm:pl-10 pr-8 sm:pr-10"
-              style={{
-                WebkitMaskImage: 'linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)',
-                maskImage: 'linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)'
-              }}
-            >
+          {/* Badges zone — 4 columnas de ancho IGUAL (no basadas en el contenido) para garantizar simetría real
+              en cualquier resolución: si el ancho dependiera del texto (que varía en largo por sello), el grupo
+              se ve desplazado en móviles angostos aunque el bloque completo esté centrado. */}
+          <div className="bg-white pl-[116px] sm:pl-[164px] lg:pl-[132px] pr-3 sm:pr-4 pt-1.5 sm:pt-3 lg:pt-1.5 pb-1.5 sm:pb-3 lg:pb-2 border-b border-slate-100 flex items-center">
+            <div className="grid grid-cols-4 w-full">
               {[
-                { key: 'verified', label: t('ui.providerProfile.trustVerified') },
-                { key: 'licensed', label: t('ui.providerProfile.trustLicensed') },
-                { key: 'insured', label: t('ui.providerProfile.trustInsured') },
-                { key: 'certified', label: t('ui.providerProfile.trustCertified') }
-              ].map((badge) => (
-                <div key={badge.key} className="flex items-center gap-1.5 shrink-0 snap-start bg-slate-50 border border-slate-100 rounded-full pl-1 pr-3 py-1">
-                  <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0">
-                    <Icons.Verified className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  </span>
-                  <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide text-slate-700 whitespace-nowrap">{badge.label}</span>
-                </div>
-              ))}
+                { key: 'verified', label: t('ui.providerProfile.trustVerified'), icon: Icons.Verified },
+                { key: 'licensed', label: t('ui.providerProfile.trustLicensed'), icon: Icons.License },
+                { key: 'insured', label: t('ui.providerProfile.trustInsured'), icon: Icons.Shield },
+                { key: 'certified', label: t('ui.providerProfile.trustCertified'), icon: Icons.Award }
+              ].map((badge) => {
+                const BadgeIcon = badge.icon;
+                return (
+                  <div key={badge.key} className="flex flex-col items-center gap-0.5 text-center min-w-0 px-1">
+                    <span className="w-7 h-7 sm:w-9 sm:h-9 lg:w-7 lg:h-7 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0">
+                      <BadgeIcon className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] lg:w-4 lg:h-4" />
+                    </span>
+                    <span className="text-[9px] sm:text-[10.5px] font-bold text-slate-700 leading-[1.15] whitespace-nowrap overflow-hidden text-ellipsis max-w-full">{badge.label}</span>
+                  </div>
+                );
+              })}
             </div>
-            {/* Scroll hints — indican que hay más badges deslizando a la izquierda/derecha, sutiles y sin tapar contenido */}
-            {badgesScroll.canLeft && (
-              <div className="pointer-events-none absolute left-[136px] sm:left-[164px] lg:left-[132px] top-0 bottom-0 w-8 sm:w-10 flex items-center justify-start">
-                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/80 shadow-sm ring-1 ring-slate-200 flex items-center justify-center">
-                  <Icons.ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400" />
-                </span>
-              </div>
-            )}
-            {badgesScroll.canRight && (
-              <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-10 flex items-center justify-end">
-                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/80 shadow-sm ring-1 ring-slate-200 flex items-center justify-center">
-                  <Icons.ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400" />
-                </span>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Tabs Navigation */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-slate-200 z-10 px-3 sm:px-4">
-          <div className="flex gap-0.5 overflow-x-auto scrollbar-hide">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => handleTabClick(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-2.5 lg:py-1.5 font-semibold text-sm whitespace-nowrap border-b-2 transition-all ${
-                  activeTab === tab.id
-                    ? 'border-brand-500 text-brand-700'
-                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span>{t(`ui.providerProfile.tabs.${tab.labelKey}`)}</span>
-                {tab.id === 'reviews' && reviewCount > 0 && (
-                  <span className="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full">
-                    {reviewCount}
-                  </span>
-                )}
-                {tab.id === 'portfolio' && portfolio.length > 0 && (
-                  <span className="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full">
-                    {portfolio.length}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Scrollable Content */}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
-          <div className="p-3 sm:p-5 lg:px-8 lg:py-5 space-y-6 sm:space-y-7 lg:space-y-6 max-w-full overflow-hidden">
+          <div className="p-2.5 sm:p-4 lg:px-8 lg:py-4 space-y-2.5 sm:space-y-4 lg:space-y-5 max-w-full overflow-hidden">
 
-            {/* PORTFOLIO — se muestra primero: es la evidencia visual (Antes/Después + Reels) */}
+            {/* TRABAJOS REALIZADOS — se muestra primero: es la evidencia visual (Antes/Después) */}
             <section ref={sectionRefs.portfolio} id="portfolio" className="pt-1">
-              <h2 className="flex items-center gap-2 text-lg sm:text-xl font-black text-slate-900 mb-3 lg:mb-2">
-                <span className="w-8 h-8 lg:w-7 lg:h-7 bg-brand-100 rounded-lg flex items-center justify-center text-sm">📸</span>
+              <h2 className="flex items-center gap-2 text-base sm:text-xl font-black text-slate-900 mb-1.5 sm:mb-3">
+                <span className="w-6 h-6 sm:w-8 sm:h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">📸</span>
                 {t('ui.providerProfile.portfolio')}
               </h2>
 
-              <div className="grid gap-3 lg:grid-cols-5 lg:gap-4 lg:items-stretch">
-                <div className="bg-white rounded-2xl border border-slate-200 p-4 lg:p-3 shadow-sm lg:col-span-3 lg:flex lg:flex-col">
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1 lg:mb-0.5">{t('ui.providerProfile.beforeAfterTitle')}</h3>
-                  <div className="lg:flex-1 lg:flex lg:flex-col lg:justify-center">
-                    <BeforeAfterGallery
-                      providerId={provider._id}
-                      showHeader={false}
-                      emptyMessage={t('ui.providerProfile.noPortfolioWorks')}
-                      size="lg"
-                    />
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-slate-200 p-4 lg:p-3 shadow-sm lg:col-span-2 lg:flex lg:flex-col">
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-3 lg:mb-2">{t('ui.providerProfile.reelsInAction')}</h3>
-                  {portfolioVideos.length > 0 ? (
-                    <div className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0 lg:gap-3 lg:flex-1 lg:content-start">
-                      {portfolioVideos.slice(0, 8).map((item, idx) => (
-                        <button
-                          key={`video-${item.__index}-${idx}`}
-                          type="button"
-                          onClick={() => {
-                            setSelectedPortfolioItem(item);
-                            setPortfolioIndex(item.__index || 0);
-                          }}
-                          className="relative shrink-0 w-34 sm:w-40 lg:w-full aspect-9/16 lg:aspect-auto lg:h-24 rounded-xl overflow-hidden bg-slate-900 group"
-                        >
-                          <video src={item.url} className="w-full h-full object-cover opacity-80 group-hover:opacity-95 transition-opacity" />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-10 h-10 rounded-full bg-white/85 flex items-center justify-center">
-                              <Icons.Play className="w-5 h-5 text-slate-800 ml-0.5" />
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 lg:grid-cols-4 gap-2 lg:flex-1 lg:content-start">
-                      {[0, 1, 2].map((p) => (
-                        <div key={`placeholder-video-${p}`} className="aspect-9/16 lg:aspect-auto lg:h-24 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center p-2">
-                          <Icons.Play className="w-6 h-6 text-slate-300" />
-                          <span className="text-[11px] text-slate-400 mt-1 text-center">{t('ui.providerProfile.reelPlaceholder')}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <div className="bg-white rounded-2xl border border-slate-200 p-2 sm:p-4 shadow-sm">
+                <BeforeAfterGallery
+                  providerId={provider._id}
+                  showHeader={false}
+                  emptyMessage={t('ui.providerProfile.noPortfolioWorks')}
+                  size="lg"
+                />
               </div>
             </section>
 
-            {/* ABOUT */}
-            <section ref={sectionRefs.about} id="about" className="pt-1">
-              <h2 className="flex items-center gap-2 text-lg sm:text-xl font-black text-slate-900 mb-3">
-                <span className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">👤</span>
-                {t('ui.providerProfile.tabs.about')}
+            {/* VIDEOS EN ACCIÓN (REELS) — misma jerarquía visual que el resto de las secciones */}
+            <section ref={sectionRefs.reels} id="reels" className="pt-1">
+              <h2 className="flex items-center gap-2 text-base sm:text-xl font-black text-slate-900 mb-1.5 sm:mb-3">
+                <span className="w-6 h-6 sm:w-8 sm:h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">🎬</span>
+                {t('ui.providerProfile.reelsInAction')}
               </h2>
 
-              <div className="grid lg:grid-cols-3 gap-3">
-                <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-                  <h3 className="font-semibold text-slate-900 mb-2 text-sm">{t('ui.providerProfile.microBiography')}</h3>
-                  <p className="text-slate-600 leading-relaxed text-sm">
-                    {description
-                      || (mainService?.category
-                        ? t('ui.providerProfile.specializingIn', {
-                            name: businessName,
-                            service: t(`home.categories.${mainService.category}`, mainService.category)
-                          })
-                        : t('ui.providerProfile.noDescription'))}
-                  </p>
-
-                  <div className="mt-4 grid sm:grid-cols-2 gap-2">
-                    {quickPoints.map((point, idx) => (
-                      <div key={`quick-${idx}`} className="flex items-start gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
-                        <span className="text-base">{idx === 0 ? '⚡' : idx === 1 ? '📍' : idx === 2 ? '🛠️' : '✅'}</span>
-                        <span className="text-sm text-slate-700 leading-snug">{point}</span>
+              <div className="bg-white rounded-2xl border border-slate-200 p-2 sm:p-4 shadow-sm">
+                {portfolioVideos.length > 0 ? (
+                  <div className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:grid-cols-6 lg:overflow-visible lg:pb-0 lg:gap-3">
+                    {portfolioVideos.slice(0, 8).map((item, idx) => (
+                      <button
+                        key={`video-${item.__index}-${idx}`}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPortfolioItem(item);
+                          setPortfolioIndex(item.__index || 0);
+                        }}
+                        className="relative shrink-0 w-16 sm:w-24 lg:w-full aspect-9/16 rounded-xl overflow-hidden bg-slate-900 group"
+                      >
+                        <video src={item.url} className="w-full h-full object-cover opacity-80 group-hover:opacity-95 transition-opacity" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-white/85 flex items-center justify-center">
+                            <Icons.Play className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-slate-800 ml-0.5" />
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
+                    {[0, 1, 2].map((p) => (
+                      <div key={`placeholder-video-${p}`} className="aspect-9/16 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center p-2">
+                        <Icons.Play className="w-6 h-6 text-slate-300" />
+                        <span className="text-[11px] text-slate-400 mt-1 text-center">{t('ui.providerProfile.reelPlaceholder')}</span>
                       </div>
                     ))}
                   </div>
-                </div>
+                )}
+              </div>
+            </section>
 
-                <div className="space-y-3">
-                  <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center">
-                        <Icons.Location className="w-4 h-4 text-brand-700" />
+
+            {/* ABOUT */}
+            <section ref={sectionRefs.about} id="about" className="pt-1">
+              <h2 className="flex items-center gap-2 text-base sm:text-xl font-black text-slate-900 mb-1.5 sm:mb-3">
+                <span className="w-6 h-6 sm:w-8 sm:h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">👤</span>
+                {t('ui.providerProfile.tabs.about')}
+              </h2>
+
+              <div className="bg-white rounded-2xl border border-slate-200 p-2.5 sm:p-4 shadow-sm">
+                <div className="grid sm:grid-cols-2 gap-2 sm:gap-2.5">
+                  {quickPoints.map((point, idx) => {
+                    const PointIcon = [Icons.Clock, Icons.Location, Icons.Briefcase, Icons.Check][idx];
+                    return (
+                      <div key={`quick-${idx}`} className="flex items-center gap-2">
+                        <PointIcon className="w-4 h-4 text-brand-600 shrink-0" />
+                        <span className="text-sm font-bold text-slate-800 leading-snug">{point}</span>
                       </div>
-                      <h3 className="font-semibold text-slate-900 text-sm">{t('ui.providerProfile.location')}</h3>
-                    </div>
-                    <p className="text-slate-700 text-sm">
+                    );
+                  })}
+                  <div className="flex items-center gap-2">
+                    <Icons.Location className="w-4 h-4 text-brand-600 shrink-0" />
+                    <span className="text-sm font-bold text-slate-800 leading-snug">
                       {serviceArea.zones?.join(', ') || t('ui.providerProfile.serviceAreaNotSpecified')}
-                    </p>
-                    {serviceArea.radius && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        {t('ui.providerProfile.coverageRadius', { radius: serviceArea.radius })}
-                      </p>
-                    )}
+                      {serviceArea.radius && ` · ${t('ui.providerProfile.coverageRadius', { radius: serviceArea.radius })}`}
+                    </span>
                   </div>
-
-                  <div className="bg-brand-50 rounded-2xl border border-brand-100 p-4 shadow-sm">
-                    <h3 className="font-semibold text-brand-800 text-sm mb-2">{t('ui.providerProfile.contactReadiness')}</h3>
-                    <p className="text-xs text-brand-700 leading-relaxed">{t('ui.providerProfile.contactReadinessHint')}</p>
-                  </div>
+                </div>
+                <div className="mt-2 pt-2 border-t border-slate-100 flex items-center gap-2">
+                  <Icons.Message className="w-4 h-4 text-brand-600 shrink-0" />
+                  <span className="text-xs font-bold text-brand-700 leading-snug">{t('ui.providerProfile.contactReadinessHint')}</span>
                 </div>
               </div>
             </section>
@@ -818,44 +711,61 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                 </div>
               </div>
 
-              {reviews.length > 0 ? (
+              {reviewsLoading ? (
+                <div className="text-center py-8 bg-white border border-slate-200 rounded-2xl">
+                  <div className="w-6 h-6 border-2 border-brand-300 border-t-brand-600 rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-slate-400 text-sm">{t('ui.providerProfile.loadingReviews')}</p>
+                </div>
+              ) : reviews.length > 0 ? (
                 <div className="space-y-2 sm:space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
-                  {reviews.map((review, idx) => (
-                    <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 hover:shadow-sm transition-shadow">
-                      <div className="flex items-start gap-3">
-                        <div className="shrink-0 w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center">
-                          <Icons.User className="w-5 h-5 text-slate-500" />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <div>
-                              <h4 className="font-semibold text-slate-900 text-sm sm:text-base truncate">
-                                {review.clientName || t('ui.providerProfile.verifiedClient')}
-                              </h4>
-                              <StarRating value={review.rating?.overall || 5} size="xs" readonly />
+                  {reviews.map((review, idx) => {
+                    const currentLang = i18n.language?.split('-')[0] || 'es';
+                    const reviewerName = [review.client?.profile?.firstName, review.client?.profile?.lastName]
+                      .filter(Boolean)
+                      .join(' ') || t('ui.providerProfile.verifiedClient');
+                    const reviewerAvatar = review.client?.profile?.avatar || null;
+                    const comment = review.translations?.[currentLang]?.comment || review.review?.comment || '';
+                    return (
+                      <div key={review._id || idx} className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 hover:shadow-sm transition-shadow">
+                        <div className="flex items-start gap-3">
+                          {reviewerAvatar ? (
+                            <img src={reviewerAvatar} alt={reviewerName} className="shrink-0 w-10 h-10 rounded-full object-cover ring-1 ring-slate-100" />
+                          ) : (
+                            <div className="shrink-0 w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center">
+                              <Icons.User className="w-5 h-5 text-slate-500" />
                             </div>
-                            <span className="text-xs text-slate-500 shrink-0">
-                              {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : t('ui.providerProfile.recent')}
-                            </span>
-                          </div>
+                          )}
 
-                          <p className="text-slate-600 text-sm leading-relaxed">{review.comment || review.review?.comment}</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <div>
+                                <h4 className="font-semibold text-slate-900 text-sm sm:text-base truncate">
+                                  {reviewerName}
+                                </h4>
+                                <StarRating value={review.rating?.overall || 5} size="xs" readonly />
+                              </div>
+                              <span className="text-xs text-slate-500 shrink-0">
+                                {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : t('ui.providerProfile.recent')}
+                              </span>
+                            </div>
 
-                          <div className="mt-3 flex items-center justify-between gap-2">
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                              <Icons.Verified className="w-3.5 h-3.5" />
-                              {t('ui.providerProfile.verifiedWork')}
-                            </span>
-                            <button className="flex items-center gap-1 text-xs text-slate-500 hover:text-brand-700 transition-colors">
-                              <Icons.ThumbUp className="w-3.5 h-3.5" />
-                              {t('ui.providerProfile.helpful')}
-                            </button>
+                            <p className="text-slate-600 text-sm leading-relaxed">{comment}</p>
+
+                            <div className="mt-3 flex items-center justify-between gap-2">
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                <Icons.Verified className="w-3.5 h-3.5" />
+                                {t('ui.providerProfile.verifiedWork')}
+                              </span>
+                              <button className="flex items-center gap-1 text-xs text-slate-500 hover:text-brand-700 transition-colors">
+                                <Icons.ThumbUp className="w-3.5 h-3.5" />
+                                {t('ui.providerProfile.helpful')}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8 bg-white border border-slate-200 rounded-2xl">
