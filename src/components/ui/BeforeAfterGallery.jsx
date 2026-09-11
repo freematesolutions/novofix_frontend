@@ -12,11 +12,14 @@ function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, empt
   const { t } = useTranslation();
   // Tamaño de tarjeta: 'default' (usado en Home, sin cambios) o 'lg' (más grande en pantallas lg+, solo cuando se embebe en el modal de perfil)
   const cardWidthClass = size === 'lg' ? 'w-[340px] sm:w-[400px] lg:w-[440px]' : 'w-[340px] sm:w-[400px]';
-  const imageHeightClass = 'h-56 sm:h-64';
+  // En el modal de perfil (size='lg') se reduce la altura de la imagen para que la sección
+  // quepa junto al header y a "Videos en acción (Reels)" sin necesidad de hacer scroll.
+  const imageHeightClass = size === 'lg' ? 'h-28 sm:h-40 lg:h-56' : 'h-56 sm:h-64';
+  const carouselPaddingClass = size === 'lg' ? 'pt-2 pb-1' : 'pt-4 pb-2';
   const wrapperMarginClass = size === 'lg' ? 'mb-10 lg:mb-0' : 'mb-10';
   // En el modal de perfil (size='lg') el pie con avatar/nombre/rating es redundante (es el mismo proveedor del perfil)
-  // y ocupa altura innecesaria: se oculta solo en lg+ para que ambas tarjetas del Portfolio quepan sin deslizar.
-  const footerVisibilityClass = size === 'lg' ? 'lg:hidden' : '';
+  // y ocupa altura innecesaria: se oculta por completo en todos los tamaños de pantalla.
+  const footerVisibilityClass = size === 'lg' ? 'hidden' : '';
   const [pairs, setPairs] = useState([]);
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef(null);
@@ -194,7 +197,7 @@ function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, empt
         {/* Scroll container */}
         <div
           ref={scrollRef}
-          className="overflow-x-auto scrollbar-hide pb-2 pt-4 -mx-1 px-1"
+          className={`overflow-x-auto scrollbar-hide -mx-1 px-1 ${carouselPaddingClass}`}
           style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           <div className="flex gap-6 min-w-max">
@@ -289,7 +292,7 @@ function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, empt
                       {/* Handle circular */}
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 bg-white rounded-full shadow-xl flex items-center justify-center border-2 border-brand-400">
                         <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 8l-4 4 4 4m6-8l4 4-4 4" />
                         </svg>
                       </div>
                     </div>
