@@ -12,11 +12,12 @@ function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, empt
   const { t } = useTranslation();
   // Tamaño de tarjeta: 'default' (usado en Home, sin cambios) o 'lg' (más grande en pantallas lg+, solo cuando se embebe en el modal de perfil)
   const cardWidthClass = size === 'lg' ? 'w-[340px] sm:w-[400px] lg:w-[440px]' : 'w-[340px] sm:w-[400px]';
-  // En el modal de perfil (size='lg') se reduce la altura de la imagen para que la sección
-  // quepa junto al header y a "Videos en acción (Reels)" sin necesidad de hacer scroll.
-  // En el modal de perfil (size='lg') se sube un poco la altura para que el par de imágenes se
-  // aprecie completo sin recortarse, manteniendo que quepan cabecera + trabajos + reels sin scroll.
-  const imageHeightClass = size === 'lg' ? 'h-32 sm:h-44 lg:h-60' : 'h-56 sm:h-64';
+  // La causa de que el par se viera "cortado" en el modal era usar una altura MENOR que en Home
+  // (h-32/h-44) con object-cover: a menor alto, mayor recorte vertical. La solución definitiva es
+  // igualar la altura de Home (h-56 sm:h-64) para que el encuadre sea idéntico al de Inicio, y
+  // ampliarla aún más en lg. El resto de la sección se mantiene compacta (pie y pista ocultos,
+  // sin margen inferior) para que cabecera + trabajos + reels sigan visibles sin scroll.
+  const imageHeightClass = size === 'lg' ? 'h-56 sm:h-64 lg:h-72' : 'h-56 sm:h-64';
   // En el modal las cintas "Antes/Después" quedan con su CENTRO sobre la línea superior de la imagen
   // (mitad afuera, mitad adentro): así no tapan la foto y se aprecian como un sello superior.
   const labelPosClass = size === 'lg' ? 'top-0 -translate-y-1/2' : '-top-3';

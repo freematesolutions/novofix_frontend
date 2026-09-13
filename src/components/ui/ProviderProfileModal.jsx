@@ -522,11 +522,11 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
         {/* Scrollable Content */}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
-          <div className="p-2.5 sm:p-4 lg:px-8 lg:py-4 space-y-2.5 sm:space-y-4 lg:space-y-5 max-w-full overflow-hidden">
+          <div className="p-2.5 sm:p-4 lg:px-8 lg:py-4 space-y-2 sm:space-y-4 lg:space-y-5 max-w-full overflow-hidden">
 
             {/* TRABAJOS REALIZADOS — se muestra primero: es la evidencia visual (Antes/Después) */}
             <section ref={sectionRefs.portfolio} id="portfolio" className="pt-1">
-              <h2 className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-3">
+              <h2 className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-1 sm:mb-3">
                 <span className="w-6 h-6 sm:w-8 sm:h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">📸</span>
                 {t('ui.providerProfile.portfolio')}
               </h2>
@@ -543,14 +543,14 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
             {/* VIDEOS EN ACCIÓN (REELS) — misma jerarquía visual que el resto de las secciones */}
             <section ref={sectionRefs.reels} id="reels" className="pt-1">
-              <h2 className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-3">
+              <h2 className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-1 sm:mb-3">
                 <span className="w-6 h-6 sm:w-8 sm:h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">🎬</span>
                 {t('ui.providerProfile.reelsInAction')}
               </h2>
 
               <div className="bg-white rounded-2xl border border-slate-200 p-2 sm:p-4 shadow-sm">
                 {portfolioVideos.length > 0 ? (
-                  <div className="flex gap-2.5 overflow-x-auto pb-1 lg:grid lg:grid-cols-5 lg:overflow-visible lg:pb-0 lg:gap-3">
+                  <div className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:grid-cols-5 lg:overflow-visible lg:pb-0 lg:gap-3">
                     {portfolioVideos.slice(0, 8).map((item, idx) => (
                       <button
                         key={`video-${item.__index}-${idx}`}
@@ -559,23 +559,23 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                           setSelectedPortfolioItem(item);
                           setPortfolioIndex(item.__index || 0);
                         }}
-                        className="relative shrink-0 w-24 sm:w-32 lg:w-full aspect-9/16 rounded-xl overflow-hidden bg-slate-900 group shadow-sm"
+                        className="relative shrink-0 w-[72px] sm:w-32 lg:w-full aspect-9/16 rounded-xl overflow-hidden bg-slate-900 group shadow-sm"
                       >
                         <video src={item.url} className="w-full h-full object-cover opacity-80 group-hover:opacity-95 transition-opacity" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/85 flex items-center justify-center">
-                            <Icons.Play className="w-4 h-4 sm:w-6 sm:h-6 text-slate-800 ml-0.5" />
+                          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-white/85 flex items-center justify-center">
+                            <Icons.Play className="w-3.5 h-3.5 sm:w-6 sm:h-6 text-slate-800 ml-0.5" />
                           </div>
                         </div>
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 lg:grid-cols-5 gap-2.5">
+                  <div className="grid grid-cols-3 lg:grid-cols-5 gap-2">
                     {[0, 1, 2].map((p) => (
                       <div key={`placeholder-video-${p}`} className="aspect-9/16 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center p-2">
-                        <Icons.Play className="w-7 h-7 text-slate-300" />
-                        <span className="text-[11px] text-slate-400 mt-1 text-center">{t('ui.providerProfile.reelPlaceholder')}</span>
+                        <Icons.Play className="w-6 h-6 sm:w-7 sm:h-7 text-slate-300" />
+                        <span className="text-[10px] sm:text-[11px] text-slate-400 mt-1 text-center">{t('ui.providerProfile.reelPlaceholder')}</span>
                       </div>
                     ))}
                   </div>
