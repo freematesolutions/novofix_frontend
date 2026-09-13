@@ -17,7 +17,7 @@ function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, empt
   // igualar la altura de Home (h-56 sm:h-64) para que el encuadre sea idéntico al de Inicio, y
   // ampliarla aún más en lg. El resto de la sección se mantiene compacta (pie y pista ocultos,
   // sin margen inferior) para que cabecera + trabajos + reels sigan visibles sin scroll.
-  const imageHeightClass = size === 'lg' ? 'h-56 sm:h-64 lg:h-72' : 'h-56 sm:h-64';
+  const imageHeightClass = size === 'lg' ? 'h-52 sm:h-64 lg:h-72' : 'h-56 sm:h-64';
   // En el modal las cintas "Antes/Después" quedan con su CENTRO sobre la línea superior de la imagen
   // (mitad afuera, mitad adentro): así no tapan la foto y se aprecian como un sello superior.
   const labelPosClass = size === 'lg' ? 'top-0 -translate-y-1/2' : '-top-3';
