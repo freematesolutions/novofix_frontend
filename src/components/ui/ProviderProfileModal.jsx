@@ -526,7 +526,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
             {/* TRABAJOS REALIZADOS — se muestra primero: es la evidencia visual (Antes/Después) */}
             <section ref={sectionRefs.portfolio} id="portfolio" className="pt-1">
-              <h2 className="flex items-center gap-2 text-base sm:text-xl font-black text-slate-900 mb-1.5 sm:mb-3">
+              <h2 className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-3">
                 <span className="w-6 h-6 sm:w-8 sm:h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">📸</span>
                 {t('ui.providerProfile.portfolio')}
               </h2>
@@ -543,7 +543,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
             {/* VIDEOS EN ACCIÓN (REELS) — misma jerarquía visual que el resto de las secciones */}
             <section ref={sectionRefs.reels} id="reels" className="pt-1">
-              <h2 className="flex items-center gap-2 text-base sm:text-xl font-black text-slate-900 mb-1.5 sm:mb-3">
+              <h2 className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-3">
                 <span className="w-6 h-6 sm:w-8 sm:h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">🎬</span>
                 {t('ui.providerProfile.reelsInAction')}
               </h2>
@@ -586,7 +586,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
             {/* ABOUT */}
             <section ref={sectionRefs.about} id="about" className="pt-1">
-              <h2 className="flex items-center gap-2 text-base sm:text-xl font-black text-slate-900 mb-1.5 sm:mb-3">
+              <h2 className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-3">
                 <span className="w-6 h-6 sm:w-8 sm:h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">👤</span>
                 {t('ui.providerProfile.information')}
               </h2>
@@ -619,7 +619,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
             {/* SERVICES */}
             <section ref={sectionRefs.services} id="services" className="pt-1">
-              <h2 className="flex items-center gap-2 text-lg sm:text-xl font-black text-slate-900 mb-3">
+              <h2 className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-3">
                 <span className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">🛠️</span>
                 {t('ui.providerProfile.servicesOffered')}
               </h2>
@@ -687,7 +687,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
             {/* REVIEWS */}
             <section ref={sectionRefs.reviews} id="reviews" className="pt-1">
-              <h2 className="flex items-center gap-2 text-lg sm:text-xl font-black text-slate-900 mb-3">
+              <h2 className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-3">
                 <span className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-sm">⭐</span>
                 <span>{t('ui.providerProfile.reviewsAndRatings')}</span>
               </h2>
