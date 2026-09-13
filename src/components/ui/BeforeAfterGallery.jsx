@@ -20,9 +20,10 @@ function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, empt
   // En el modal las cintas "Antes/Después" quedan con su CENTRO sobre la línea superior de la imagen
   // (mitad afuera, mitad adentro): así no tapan la foto y se aprecian como un sello superior.
   const labelPosClass = size === 'lg' ? 'top-0 -translate-y-1/2' : '-top-3';
-  // Padding superior suficiente para que la mitad de la cinta que sobresale no se recorte por el
-  // recorte vertical del carrusel horizontal (overflow-x-auto), sin dejar hueco excesivo.
-  const carouselPaddingClass = size === 'lg' ? 'pt-3 pb-1' : 'pt-4 pb-2';
+  // Padding superior suficiente para que la mitad de la cinta que sobresale NO se recorte por el
+  // recorte vertical del carrusel horizontal (overflow-x-auto). La cinta mide ~32px de alto, por lo
+  // que su mitad (~16px) necesita al menos pt-5 (20px) de holgura.
+  const carouselPaddingClass = size === 'lg' ? 'pt-5 pb-1' : 'pt-4 pb-2';
   // En el modal de perfil (size='lg') se elimina el margen inferior para evitar el espacio en
   // blanco debajo del texto "Desliza para ver más transformaciones"; el espaciado entre secciones
   // ya lo aporta el contenedor del modal.
