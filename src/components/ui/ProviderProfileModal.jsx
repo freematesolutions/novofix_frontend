@@ -426,10 +426,10 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
               <Icons.Close className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
-            <div className="relative z-10 h-full pl-[152px] sm:pl-[164px] lg:pl-[132px] pr-12 sm:pr-16 pt-2.5 sm:pt-7 lg:pt-5 pb-2 sm:pb-3 flex items-start justify-between gap-3">
-              <div className="min-w-0 text-white">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <h1 className="text-base sm:text-2xl font-black tracking-tight leading-tight truncate">{businessName}</h1>
+            <div className="relative z-10 h-full pl-[116px] sm:pl-[164px] lg:pl-32 pr-12 sm:pr-16 pt-2.5 sm:pt-7 lg:pt-5 pb-2 sm:pb-3 flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1 text-white">
+                <div ref={nameRowRef} className="flex items-center gap-1.5 min-w-0">
+                  <h1 ref={nameTextRef} className="text-base sm:text-2xl font-black tracking-tight leading-tight whitespace-nowrap">{businessName}</h1>
                   <Icons.Verified className="w-4 h-4 sm:w-5 sm:h-5 text-sky-200 shrink-0" />
                 </div>
 
@@ -471,17 +471,18 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
             </div>
           </div>
 
-          {/* Avatar — compacto, abarca desde el nombre hasta los sellos de confianza, sin espacios arriba/abajo en mobile */}
-          <div className="absolute left-3 top-1.5 sm:left-6 sm:top-16 lg:top-11 z-20 w-20 h-20 sm:w-32 sm:h-32 lg:w-20 lg:h-20">
+          {/* Avatar — elemento predominante: más grande, a la izquierda, con su centro sobre la línea que
+              divide la zona de la foto y la zona blanca de los sellos (misma proporción arriba/abajo). */}
+          <div className="absolute left-3 top-8 sm:left-6 sm:top-16 lg:top-12 z-20 w-24 h-24 sm:w-32 sm:h-32 lg:w-24 lg:h-24">
             <div className="absolute -inset-1.5 rounded-full bg-white/40 blur-sm" />
             {profileImage ? (
               <img
                 src={profileImage}
                 alt={businessName}
-                className="relative w-20 h-20 sm:w-32 sm:h-32 lg:w-20 lg:h-20 rounded-full object-cover border-4 border-white shadow-xl"
+                className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-24 lg:h-24 rounded-full object-cover border-4 border-white shadow-xl"
               />
             ) : (
-              <div className="relative w-20 h-20 sm:w-32 sm:h-32 lg:w-20 lg:h-20 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-2xl sm:text-4xl font-bold shadow-xl border-4 border-white">
+              <div className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-24 lg:h-24 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-3xl sm:text-4xl font-bold shadow-xl border-4 border-white">
                 {businessName.charAt(0).toUpperCase()}
               </div>
             )}
@@ -493,11 +494,11 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
             )}
           </div>
 
-          {/* Badges zone — 4 columnas de ancho IGUAL (no basadas en el contenido) para garantizar simetría real
-              en cualquier resolución: si el ancho dependiera del texto (que varía en largo por sello), el grupo
-              se ve desplazado en móviles angostos aunque el bloque completo esté centrado. */}
-          <div className="bg-white pl-[116px] sm:pl-[164px] lg:pl-[132px] pr-3 sm:pr-4 pt-1.5 sm:pt-3 lg:pt-1.5 pb-1.5 sm:pb-3 lg:pb-2 border-b border-slate-100 flex items-center">
-            <div className="grid grid-cols-4 w-full">
+          {/* Badges zone — 4 sellos de ancho IGUAL (grid-cols-4) con icono arriba y nombre debajo.
+              El texto puede envolver en 2 líneas (sin recortarse con "...") para que se lea completo
+              en cualquier ancho de móvil, sin flechas de desplazamiento. */}
+          <div className="bg-white pl-28 sm:pl-40 lg:pl-32 pr-3 sm:pr-4 pt-2 sm:pt-3 lg:pt-2 pb-2 sm:pb-3 lg:pb-2.5 border-b border-slate-100 flex items-center">
+            <div className="grid grid-cols-4 gap-x-1 w-full">
               {[
                 { key: 'verified', label: t('ui.providerProfile.trustVerified'), icon: Icons.Verified },
                 { key: 'licensed', label: t('ui.providerProfile.trustLicensed'), icon: Icons.License },
@@ -506,11 +507,11 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
               ].map((badge) => {
                 const BadgeIcon = badge.icon;
                 return (
-                  <div key={badge.key} className="flex flex-col items-center gap-0.5 text-center min-w-0 px-1">
-                    <span className="w-7 h-7 sm:w-9 sm:h-9 lg:w-7 lg:h-7 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0">
-                      <BadgeIcon className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] lg:w-4 lg:h-4" />
+                  <div key={badge.key} className="flex flex-col items-center gap-1 text-center min-w-0">
+                    <span className="w-8 h-8 sm:w-9 sm:h-9 lg:w-8 lg:h-8 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-brand-600/30">
+                      <BadgeIcon className="w-4 h-4 sm:w-[18px] sm:h-[18px] lg:w-4 lg:h-4" />
                     </span>
-                    <span className="text-[9px] sm:text-[10.5px] font-bold text-slate-700 leading-[1.15] whitespace-nowrap overflow-hidden text-ellipsis max-w-full">{badge.label}</span>
+                    <span className="text-[9px] sm:text-[11px] lg:text-[10px] font-bold text-slate-700 leading-[1.1] text-balance">{badge.label}</span>
                   </div>
                 );
               })}
@@ -549,7 +550,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
 
               <div className="bg-white rounded-2xl border border-slate-200 p-2 sm:p-4 shadow-sm">
                 {portfolioVideos.length > 0 ? (
-                  <div className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:grid-cols-6 lg:overflow-visible lg:pb-0 lg:gap-3">
+                  <div className="flex gap-2.5 overflow-x-auto pb-1 lg:grid lg:grid-cols-5 lg:overflow-visible lg:pb-0 lg:gap-3">
                     {portfolioVideos.slice(0, 8).map((item, idx) => (
                       <button
                         key={`video-${item.__index}-${idx}`}
@@ -558,22 +559,22 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                           setSelectedPortfolioItem(item);
                           setPortfolioIndex(item.__index || 0);
                         }}
-                        className="relative shrink-0 w-16 sm:w-24 lg:w-full aspect-9/16 rounded-xl overflow-hidden bg-slate-900 group"
+                        className="relative shrink-0 w-24 sm:w-32 lg:w-full aspect-9/16 rounded-xl overflow-hidden bg-slate-900 group shadow-sm"
                       >
                         <video src={item.url} className="w-full h-full object-cover opacity-80 group-hover:opacity-95 transition-opacity" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-white/85 flex items-center justify-center">
-                            <Icons.Play className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-slate-800 ml-0.5" />
+                          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/85 flex items-center justify-center">
+                            <Icons.Play className="w-4 h-4 sm:w-6 sm:h-6 text-slate-800 ml-0.5" />
                           </div>
                         </div>
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
+                  <div className="grid grid-cols-3 lg:grid-cols-5 gap-2.5">
                     {[0, 1, 2].map((p) => (
                       <div key={`placeholder-video-${p}`} className="aspect-9/16 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center p-2">
-                        <Icons.Play className="w-6 h-6 text-slate-300" />
+                        <Icons.Play className="w-7 h-7 text-slate-300" />
                         <span className="text-[11px] text-slate-400 mt-1 text-center">{t('ui.providerProfile.reelPlaceholder')}</span>
                       </div>
                     ))}
@@ -587,7 +588,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
             <section ref={sectionRefs.about} id="about" className="pt-1">
               <h2 className="flex items-center gap-2 text-base sm:text-xl font-black text-slate-900 mb-1.5 sm:mb-3">
                 <span className="w-6 h-6 sm:w-8 sm:h-8 bg-brand-100 rounded-lg flex items-center justify-center text-sm">👤</span>
-                {t('ui.providerProfile.tabs.about')}
+                {t('ui.providerProfile.information')}
               </h2>
 
               <div className="bg-white rounded-2xl border border-slate-200 p-2.5 sm:p-4 shadow-sm">

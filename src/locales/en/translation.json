@@ -3015,6 +3015,7 @@
         "portfolio": "Portfolio",
         "reviews": "Reviews"
       },
+      "information": "Information",
       "premiumSubtitle": "Specialist in {{service}}",
       "premiumSubtitleFallback": "Verified professional on NovoFix",
       "trustVerified": "Verified",

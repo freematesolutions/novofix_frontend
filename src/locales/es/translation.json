@@ -3067,6 +3067,7 @@
         "portfolio": "Portafolio",
         "reviews": "Reseñas"
       },
+      "information": "Información",
       "premiumSubtitle": "Especialista en {{service}}",
       "premiumSubtitleFallback": "Profesional verificado en NovoFix",
       "trustVerified": "Verificado",
