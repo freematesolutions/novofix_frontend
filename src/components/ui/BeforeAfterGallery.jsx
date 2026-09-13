@@ -14,9 +14,22 @@ function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, empt
   const cardWidthClass = size === 'lg' ? 'w-[340px] sm:w-[400px] lg:w-[440px]' : 'w-[340px] sm:w-[400px]';
   // En el modal de perfil (size='lg') se reduce la altura de la imagen para que la sección
   // quepa junto al header y a "Videos en acción (Reels)" sin necesidad de hacer scroll.
-  const imageHeightClass = size === 'lg' ? 'h-28 sm:h-40 lg:h-56' : 'h-56 sm:h-64';
-  const carouselPaddingClass = size === 'lg' ? 'pt-2 pb-1' : 'pt-4 pb-2';
-  const wrapperMarginClass = size === 'lg' ? 'mb-10 lg:mb-0' : 'mb-10';
+  // En el modal de perfil (size='lg') se sube un poco la altura para que el par de imágenes se
+  // aprecie completo sin recortarse, manteniendo que quepan cabecera + trabajos + reels sin scroll.
+  const imageHeightClass = size === 'lg' ? 'h-32 sm:h-44 lg:h-60' : 'h-56 sm:h-64';
+  // En el modal las cintas "Antes/Después" quedan con su CENTRO sobre la línea superior de la imagen
+  // (mitad afuera, mitad adentro): así no tapan la foto y se aprecian como un sello superior.
+  const labelPosClass = size === 'lg' ? 'top-0 -translate-y-1/2' : '-top-3';
+  // Padding superior suficiente para que la mitad de la cinta que sobresale no se recorte por el
+  // recorte vertical del carrusel horizontal (overflow-x-auto), sin dejar hueco excesivo.
+  const carouselPaddingClass = size === 'lg' ? 'pt-3 pb-1' : 'pt-4 pb-2';
+  // En el modal de perfil (size='lg') se elimina el margen inferior para evitar el espacio en
+  // blanco debajo del texto "Desliza para ver más transformaciones"; el espaciado entre secciones
+  // ya lo aporta el contenedor del modal.
+  const wrapperMarginClass = size === 'lg' ? 'mb-0' : 'mb-10';
+  // La pista "Desliza para ver más transformaciones" se oculta en el modal para eliminar el espacio
+  // en blanco inferior y garantizar que cabecera + trabajos + reels quepan sin scroll.
+  const hintVisibilityClass = size === 'lg' ? 'hidden' : '';
   // En el modal de perfil (size='lg') el pie con avatar/nombre/rating es redundante (es el mismo proveedor del perfil)
   // y ocupa altura innecesaria: se oculta por completo en todos los tamaños de pantalla.
   const footerVisibilityClass = size === 'lg' ? 'hidden' : '';
@@ -218,14 +231,14 @@ function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, empt
                   style={{ scrollSnapAlign: 'start' }}
                 >
                   {/* Labels Antes / Después — protruding ribbon style */}
-                  <div className="absolute -top-3 left-3 z-20 pointer-events-none">
+                  <div className={`absolute ${labelPosClass} left-3 z-20 pointer-events-none`}>
                     <div className="bg-linear-to-r from-gray-900 to-gray-700 text-white px-4 py-1.5 rounded-xl shadow-lg shadow-gray-900/30">
                       <span className="text-sm sm:text-base font-extrabold uppercase tracking-wider drop-shadow-md">
                         {t('testimonials.beforeAfter.before')}
                       </span>
                     </div>
                   </div>
-                  <div className="absolute -top-3 right-3 z-20 pointer-events-none">
+                  <div className={`absolute ${labelPosClass} right-3 z-20 pointer-events-none`}>
                     <div className="bg-linear-to-l from-brand-600 to-brand-500 text-white px-4 py-1.5 rounded-xl shadow-lg shadow-brand-600/40">
                       <span className="text-sm sm:text-base font-extrabold uppercase tracking-wider drop-shadow-md">
                         {t('testimonials.beforeAfter.after')}
@@ -423,7 +436,7 @@ function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, empt
       </div>
 
       {/* Scroll hint */}
-      <p className="text-center text-xs text-gray-400 mt-2">
+      <p className={`text-center text-xs text-gray-400 mt-2 ${hintVisibilityClass}`}>
         {t('testimonials.beforeAfter.scrollHint')}
       </p>
     </div>
