@@ -8,7 +8,7 @@ import api from '@/state/apiClient.js';
  * Muestra pares de fotos (antes y después) de bookings completados.
  * Carrusel horizontal con tarjetas de comparación side-by-side.
  */
-function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, emptyMessage = null, size = 'default' }) {
+function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, emptyMessage = null, size = 'default', onPairsLoaded }) {
   const { t } = useTranslation();
   // Tamaño de tarjeta: 'default' (usado en Home, sin cambios) o 'lg' (más grande en pantallas lg+, solo cuando se embebe en el modal de perfil)
   const cardWidthClass = size === 'lg' ? 'w-[340px] sm:w-[400px] lg:w-[440px]' : 'w-[340px] sm:w-[400px]';
@@ -53,6 +53,7 @@ function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, empt
         const params = { limit: 20 };
         if (providerId) params.providerId = providerId;
         const { data } = await api.get('/guest/before-after', { params });
+        const loadedPairs = data?.data?.pairs || [];
         if (data?.data?.pairs) {
           setPairs(data.data.pairs);
           // Inicializar sliders en 50% y image index en 0
@@ -62,15 +63,19 @@ function BeforeAfterGallery({ onViewProfile, providerId, showHeader = true, empt
           setSliderPositions(positions);
           setActiveImageIndex(imageIndices);
         }
+        // Informar al contenedor cuántos pares Antes/Después existen, para decidir si mostrar
+        // una galería alternativa (fotos del portafolio) cuando no hay pares.
+        onPairsLoaded?.(loadedPairs.length);
       } catch (error) {
         console.error('Error fetching before/after pairs:', error);
+        onPairsLoaded?.(0);
       } finally {
         setLoading(false);
       }
     };
     setLoading(true);
     fetchPairs();
-  }, [providerId]);
+  }, [providerId, onPairsLoaded]);
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -450,7 +455,8 @@ BeforeAfterGallery.propTypes = {
   providerId: PropTypes.string,
   showHeader: PropTypes.bool,
   emptyMessage: PropTypes.string,
-  size: PropTypes.oneOf(['default', 'lg'])
+  size: PropTypes.oneOf(['default', 'lg']),
+  onPairsLoaded: PropTypes.func
 };
 
 export default BeforeAfterGallery;

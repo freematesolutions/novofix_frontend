@@ -3055,6 +3055,8 @@
       "afterLabel": "AFTER",
       "reelsInAction": "Action videos (Reels)",
       "reelPlaceholder": "Reel coming soon",
+      "viewAllPhotos": "View all photos ({{count}})",
+      "viewAllVideos": "View all videos ({{count}})",
       "portfolioWork": "Portfolio work",
       "videoType": "Video",
       "imageType": "Image",

@@ -145,6 +145,9 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
   const [selectedPortfolioItem, setSelectedPortfolioItem] = useState(null);
   const [portfolioIndex, setPortfolioIndex] = useState(0);
   const [providerReviews, setProviderReviews] = useState(null);
+  // Cantidad de pares Antes/Después del proveedor (null = aún cargando). Se usa para mostrar una
+  // galería alternativa de fotos del portafolio cuando no existen pares Antes/Después.
+  const [beforeAfterCount, setBeforeAfterCount] = useState(null);
   const modalRef = useRef(null);
   const nameRowRef = useRef(null);
   const nameTextRef = useRef(null);
@@ -218,6 +221,14 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
   const portfolioImages = portfolioItems.filter((item) => item.type === 'image');
   // Solo videos marcados explícitamente como reel por el profesional (igual que en el Home)
   const portfolioVideos = portfolioItems.filter((item) => item.type === 'video' && item.isReel === true);
+  // Videos NO marcados como reel: se usan como galería alternativa cuando no hay reels, para que la
+  // sección "Videos en acción" nunca quede vacía si el profesional subió videos.
+  const otherVideos = portfolioItems.filter((item) => item.type === 'video' && item.isReel !== true);
+  const allVideos = portfolioItems.filter((item) => item.type === 'video');
+  // Se priorizan los reels; si no hay, se muestran el resto de los videos.
+  const reelsToShow = portfolioVideos.length > 0 ? portfolioVideos : otherVideos;
+  // Hay más videos que los mostrados como reel → ofrecer enlace para ver todos.
+  const hasMoreVideos = portfolioVideos.length > 0 && otherVideos.length > 0;
   const subtitle = mainService?.category
     ? t('ui.providerProfile.premiumSubtitle', {
         service: t(`home.categories.${mainService.category}`, mainService.category)
@@ -277,6 +288,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
     if (!isOpen || !provider?._id) return;
     let cancelled = false;
     setProviderReviews(null);
+    setBeforeAfterCount(null);
     api.get(`/reviews/provider/${provider._id}`, { params: { limit: 20 } })
       .then(({ data }) => {
         if (!cancelled) setProviderReviews(data?.data?.reviews || []);
@@ -532,12 +544,63 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
               </h2>
 
               <div className="bg-white rounded-2xl border border-slate-200 p-2 sm:p-4 shadow-sm">
+                {/* Se prioriza la evidencia Antes/Después */}
                 <BeforeAfterGallery
                   providerId={provider._id}
                   showHeader={false}
-                  emptyMessage={t('ui.providerProfile.noPortfolioWorks')}
+                  emptyMessage={null}
                   size="lg"
+                  onPairsLoaded={setBeforeAfterCount}
                 />
+
+                {/* Fallback: sin pares Antes/Después, mostrar la galería de fotos del portafolio
+                    para que la sección no quede vacía (igual que en el Home). */}
+                {beforeAfterCount === 0 && portfolioImages.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0 lg:gap-3">
+                    {portfolioImages.slice(0, 8).map((item, idx) => (
+                      <button
+                        key={`portfolio-img-${item.__index}-${idx}`}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPortfolioItem(item);
+                          setPortfolioIndex(item.__index || 0);
+                        }}
+                        className="relative shrink-0 w-40 sm:w-56 lg:w-full aspect-4/3 rounded-xl overflow-hidden bg-slate-100 group shadow-sm"
+                      >
+                        <img
+                          src={item.url}
+                          alt={item.caption || t('ui.providerProfile.portfolioWork')}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Enlace moderno: cuando hay Antes/Después Y además fotos de portafolio,
+                    permite ver el resto de las imágenes. */}
+                {beforeAfterCount > 0 && portfolioImages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const first = portfolioImages[0];
+                      setSelectedPortfolioItem(first);
+                      setPortfolioIndex(first.__index || 0);
+                    }}
+                    className="mt-2 sm:mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-50 text-brand-700 font-semibold text-sm border border-brand-100 hover:bg-brand-100 hover:border-brand-200 transition-colors"
+                  >
+                    <Icons.Image className="w-4 h-4" />
+                    {t('ui.providerProfile.viewAllPhotos', { count: portfolioImages.length })}
+                    <Icons.ChevronRight className="w-4 h-4" />
+                  </button>
+                )}
+
+                {/* Vacío total: ni Antes/Después ni fotos de portafolio */}
+                {beforeAfterCount === 0 && portfolioImages.length === 0 && (
+                  <div className="text-center py-8 rounded-xl bg-slate-50 border border-dashed border-slate-300">
+                    <p className="text-slate-500 text-sm">{t('ui.providerProfile.noPortfolioWorks')}</p>
+                  </div>
+                )}
               </div>
             </section>
 
@@ -549,27 +612,46 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
               </h2>
 
               <div className="bg-white rounded-2xl border border-slate-200 p-2 sm:p-4 shadow-sm">
-                {portfolioVideos.length > 0 ? (
-                  <div className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:grid-cols-5 lg:overflow-visible lg:pb-0 lg:gap-3">
-                    {portfolioVideos.slice(0, 8).map((item, idx) => (
+                {reelsToShow.length > 0 ? (
+                  <>
+                    <div className="flex gap-2 overflow-x-auto pb-1 lg:grid lg:grid-cols-5 lg:overflow-visible lg:pb-0 lg:gap-3">
+                      {reelsToShow.slice(0, 8).map((item, idx) => (
+                        <button
+                          key={`video-${item.__index}-${idx}`}
+                          type="button"
+                          onClick={() => {
+                            setSelectedPortfolioItem(item);
+                            setPortfolioIndex(item.__index || 0);
+                          }}
+                          className="relative shrink-0 w-[72px] sm:w-32 lg:w-full aspect-9/16 rounded-xl overflow-hidden bg-slate-900 group shadow-sm"
+                        >
+                          <video src={item.url} className="w-full h-full object-cover opacity-80 group-hover:opacity-95 transition-opacity" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-white/85 flex items-center justify-center">
+                              <Icons.Play className="w-3.5 h-3.5 sm:w-6 sm:h-6 text-slate-800 ml-0.5" />
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Enlace moderno: cuando hay reels Y además otros videos, permite verlos todos. */}
+                    {hasMoreVideos && (
                       <button
-                        key={`video-${item.__index}-${idx}`}
                         type="button"
                         onClick={() => {
-                          setSelectedPortfolioItem(item);
-                          setPortfolioIndex(item.__index || 0);
+                          const first = otherVideos[0];
+                          setSelectedPortfolioItem(first);
+                          setPortfolioIndex(first.__index || 0);
                         }}
-                        className="relative shrink-0 w-[72px] sm:w-32 lg:w-full aspect-9/16 rounded-xl overflow-hidden bg-slate-900 group shadow-sm"
+                        className="mt-2 sm:mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-50 text-brand-700 font-semibold text-sm border border-brand-100 hover:bg-brand-100 hover:border-brand-200 transition-colors"
                       >
-                        <video src={item.url} className="w-full h-full object-cover opacity-80 group-hover:opacity-95 transition-opacity" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-white/85 flex items-center justify-center">
-                            <Icons.Play className="w-3.5 h-3.5 sm:w-6 sm:h-6 text-slate-800 ml-0.5" />
-                          </div>
-                        </div>
+                        <Icons.Play className="w-4 h-4" />
+                        {t('ui.providerProfile.viewAllVideos', { count: allVideos.length })}
+                        <Icons.ChevronRight className="w-4 h-4" />
                       </button>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 ) : (
                   <div className="grid grid-cols-3 lg:grid-cols-5 gap-2">
                     {[0, 1, 2].map((p) => (
