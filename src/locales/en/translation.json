@@ -3075,6 +3075,8 @@
       "helpful": "Helpful",
       "noReviews": "No reviews yet",
       "beFirstToReview": "Be the first to leave a review",
+      "swipeReviewsHint": "Swipe to see more reviews",
+      "viewAllReviews": "View all reviews ({{count}})",
       "quote": "Quote"
     },
     "providerCard": {

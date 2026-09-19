@@ -3127,6 +3127,8 @@
       "helpful": "Útil",
       "noReviews": "No hay reseñas aún",
       "beFirstToReview": "Sé el primero en dejar una reseña",
+      "swipeReviewsHint": "Desliza para ver más opiniones",
+      "viewAllReviews": "Ver todas las reseñas ({{count}})",
       "quote": "Cotizar"
     },
     "providerCard": {
