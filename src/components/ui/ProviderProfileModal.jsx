@@ -148,6 +148,9 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
   // Cantidad de pares Antes/Después del proveedor (null = aún cargando). Se usa para mostrar una
   // galería alternativa de fotos del portafolio cuando no existen pares Antes/Después.
   const [beforeAfterCount, setBeforeAfterCount] = useState(null);
+  // Cuando hay muchas reseñas, por defecto se muestran en carrusel horizontal; este flag permite
+  // expandir a la lista vertical completa al pulsar el enlace "Ver todas las reseñas".
+  const [showAllReviews, setShowAllReviews] = useState(false);
   const modalRef = useRef(null);
   const nameRowRef = useRef(null);
   const nameTextRef = useRef(null);
@@ -289,6 +292,7 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
     let cancelled = false;
     setProviderReviews(null);
     setBeforeAfterCount(null);
+    setShowAllReviews(false);
     api.get(`/reviews/provider/${provider._id}`, { params: { limit: 20 } })
       .then(({ data }) => {
         if (!cancelled) setProviderReviews(data?.data?.reviews || []);
@@ -406,6 +410,57 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
       <span className="w-7 text-right font-semibold text-gray-700">{value.toFixed(1)}</span>
     </div>
   );
+
+  // Tarjeta de reseña reutilizable — se usa tanto en el carrusel horizontal (una junto a otra)
+  // como en la lista vertical completa al pulsar "Ver todas las reseñas".
+  const renderReviewCard = (review, idx) => {
+    const currentLang = i18n.language?.split('-')[0] || 'es';
+    const reviewerName = [review.client?.profile?.firstName, review.client?.profile?.lastName]
+      .filter(Boolean)
+      .join(' ') || t('ui.providerProfile.verifiedClient');
+    const reviewerAvatar = review.client?.profile?.avatar || null;
+    const comment = review.translations?.[currentLang]?.comment || review.review?.comment || '';
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 hover:shadow-sm transition-shadow h-full">
+        <div className="flex items-start gap-3">
+          {reviewerAvatar ? (
+            <img src={reviewerAvatar} alt={reviewerName} className="shrink-0 w-10 h-10 rounded-full object-cover ring-1 ring-slate-100" />
+          ) : (
+            <div className="shrink-0 w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center">
+              <Icons.User className="w-5 h-5 text-slate-500" />
+            </div>
+          )}
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <div className="min-w-0">
+                <h4 className="font-semibold text-slate-900 text-sm sm:text-base truncate">
+                  {reviewerName}
+                </h4>
+                <StarRating value={review.rating?.overall || 5} size="xs" readonly />
+              </div>
+              <span className="text-xs text-slate-500 shrink-0">
+                {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : t('ui.providerProfile.recent')}
+              </span>
+            </div>
+
+            <p className="text-slate-600 text-sm leading-relaxed line-clamp-4">{comment}</p>
+
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                <Icons.Verified className="w-3.5 h-3.5" />
+                {t('ui.providerProfile.verifiedWork')}
+              </span>
+              <button className="flex items-center gap-1 text-xs text-slate-500 hover:text-brand-700 transition-colors">
+                <Icons.ThumbUp className="w-3.5 h-3.5" />
+                {t('ui.providerProfile.helpful')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -800,56 +855,51 @@ function ProviderProfileModal({ isOpen, onClose, provider, initialTab, selectedC
                   <p className="text-slate-400 text-sm">{t('ui.providerProfile.loadingReviews')}</p>
                 </div>
               ) : reviews.length > 0 ? (
-                <div className="space-y-2 sm:space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
-                  {reviews.map((review, idx) => {
-                    const currentLang = i18n.language?.split('-')[0] || 'es';
-                    const reviewerName = [review.client?.profile?.firstName, review.client?.profile?.lastName]
-                      .filter(Boolean)
-                      .join(' ') || t('ui.providerProfile.verifiedClient');
-                    const reviewerAvatar = review.client?.profile?.avatar || null;
-                    const comment = review.translations?.[currentLang]?.comment || review.review?.comment || '';
-                    return (
-                      <div key={review._id || idx} className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 hover:shadow-sm transition-shadow">
-                        <div className="flex items-start gap-3">
-                          {reviewerAvatar ? (
-                            <img src={reviewerAvatar} alt={reviewerName} className="shrink-0 w-10 h-10 rounded-full object-cover ring-1 ring-slate-100" />
-                          ) : (
-                            <div className="shrink-0 w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center">
-                              <Icons.User className="w-5 h-5 text-slate-500" />
-                            </div>
-                          )}
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2 mb-1">
-                              <div>
-                                <h4 className="font-semibold text-slate-900 text-sm sm:text-base truncate">
-                                  {reviewerName}
-                                </h4>
-                                <StarRating value={review.rating?.overall || 5} size="xs" readonly />
-                              </div>
-                              <span className="text-xs text-slate-500 shrink-0">
-                                {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : t('ui.providerProfile.recent')}
-                              </span>
-                            </div>
-
-                            <p className="text-slate-600 text-sm leading-relaxed">{comment}</p>
-
-                            <div className="mt-3 flex items-center justify-between gap-2">
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                <Icons.Verified className="w-3.5 h-3.5" />
-                                {t('ui.providerProfile.verifiedWork')}
-                              </span>
-                              <button className="flex items-center gap-1 text-xs text-slate-500 hover:text-brand-700 transition-colors">
-                                <Icons.ThumbUp className="w-3.5 h-3.5" />
-                                {t('ui.providerProfile.helpful')}
-                              </button>
-                            </div>
+                showAllReviews ? (
+                  /* Lista vertical completa (tras pulsar "Ver todas las reseñas") */
+                  <div className="space-y-2 sm:space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-stretch">
+                    {reviews.map((review, idx) => (
+                      <div key={review._id || idx}>{renderReviewCard(review, idx)}</div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Carrusel horizontal deslizable (por defecto cuando hay más de una reseña) */
+                  <>
+                    {reviews.length > 1 ? (
+                      <div className="flex gap-3 overflow-x-auto pb-2 -mx-0.5 px-0.5 snap-x snap-mandatory scrollbar-hide">
+                        {reviews.map((review, idx) => (
+                          <div
+                            key={review._id || idx}
+                            className="shrink-0 w-[85%] sm:w-[360px] lg:w-[calc(50%-0.375rem)] snap-start"
+                          >
+                            {renderReviewCard(review, idx)}
                           </div>
-                        </div>
+                        ))}
                       </div>
-                    );
-                  })}
-                </div>
+                    ) : (
+                      renderReviewCard(reviews[0], 0)
+                    )}
+
+                    {/* Indicador de deslizamiento + enlace moderno para leer todas */}
+                    {reviews.length > 1 && (
+                      <div className="mt-2 flex items-center justify-between gap-3">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                          <Icons.ChevronLeft className="w-3.5 h-3.5" />
+                          {t('ui.providerProfile.swipeReviewsHint')}
+                          <Icons.ChevronRight className="w-3.5 h-3.5" />
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowAllReviews(true)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-50 text-brand-700 font-semibold text-sm border border-brand-100 hover:bg-brand-100 hover:border-brand-200 transition-colors shrink-0"
+                        >
+                          {t('ui.providerProfile.viewAllReviews', { count: reviewCount || reviews.length })}
+                          <Icons.ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )
               ) : (
                 <div className="text-center py-8 bg-white border border-slate-200 rounded-2xl">
                   <span className="text-3xl mb-2 block">💬</span>
