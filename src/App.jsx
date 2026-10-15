@@ -30,6 +30,8 @@ const Referrals = lazy(() => import('./pages/provider/Referrals.jsx'));
 const Portfolio = lazy(() => import('./pages/provider/Portfolio.jsx'));
 const ProviderReviews = lazy(() => import('./pages/provider/Reviews.jsx'));
 const RequestDetail = lazy(() => import('./pages/provider/RequestDetail.jsx'));
+const QuickDocs = lazy(() => import('./pages/provider/QuickDocs.jsx'));
+const QuickDocPublic = lazy(() => import('./pages/shared/QuickDocPublic.jsx'));
 const ClientRequests = lazy(() => import('./pages/client/Requests.jsx'));
 const ClientRequestProposals = lazy(() => import('./pages/client/RequestProposals.jsx'));
 const CreateRequest = lazy(() => import('./pages/client/CreateRequest.jsx'));
@@ -112,6 +114,8 @@ function App() {
           <Route path="/calendario" element={<Calendar />} />
           <Route path="/referidos" element={<Referrals />} />
           <Route path="/plan" element={<Plan />} />
+          <Route path="/documentos-rapidos" element={<QuickDocs />} />
+          <Route path="/documentos-rapidos/:id" element={<QuickDocs />} />
           <Route path="/perfil" element={<Profile />} />
           <Route path="/mis-solicitudes" element={<ClientRequests />} />
           <Route path="/mis-solicitudes/nueva" element={<CreateRequest />} />
@@ -130,6 +134,8 @@ function App() {
           {/* Public SEO landings (Phase 6) */}
           <Route path="/categorias/:slug" element={<CategoryLanding />} />
           <Route path="/profesional/:id" element={<ProviderPublicProfile />} />
+          {/* Flujo 2 — documento rápido público (cliente invitado, sin registro) */}
+          <Route path="/d/:token" element={<QuickDocPublic />} />
           {/* Admin */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/usuarios" element={<AdminUsers />} />

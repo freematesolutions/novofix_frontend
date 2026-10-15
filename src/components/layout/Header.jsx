@@ -963,6 +963,14 @@ function Header() {
               );
             })()}
           />
+          {/* Flujo 2 — Documentos rápidos (estimados/facturas con link/QR) */}
+          <NavLinkWithTooltip
+            to="/documentos-rapidos"
+            onClick={closeMenu}
+            icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+            label={t('header.quickDocs')}
+            showLabel={isMobile}
+          />
           {/* Referidos: oculto temporalmente (Req 9). Para reactivar, descomentar el bloque siguiente.
           <NavLinkWithTooltip
             to="/referidos"
@@ -1059,7 +1067,7 @@ function Header() {
     const p = location.pathname || '';
     // Mapear rutas fuertes a roles específicos
     const providerPaths = [
-      '/empleos', '/mensajes', '/servicios', '/calendario', '/referidos', '/plan', '/empleos/'
+      '/empleos', '/mensajes', '/servicios', '/calendario', '/referidos', '/plan', '/empleos/', '/documentos-rapidos'
     ];
     // Nota: '/reservas' es compartida entre cliente y proveedor, tratar como neutral (sin auto-switch)
     const clientPaths = [

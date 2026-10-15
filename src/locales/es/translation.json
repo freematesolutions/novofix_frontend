@@ -476,6 +476,154 @@
     "pageOf": "{{current}} / {{total}}",
     "estimatedRange": "Rango estimado: {{min}} – {{max}}"
   },
+  "quickDoc": {
+    "cta": {
+      "title": "Crear estimado o factura al instante",
+      "subtitle": "Genera un documento y compártelo por link o QR con tu cliente"
+    },
+    "list": {
+      "title": "Documentos rápidos",
+      "subtitle": "Crea estimados y facturas, y compártelos por link o QR",
+      "createBtn": "Nuevo documento",
+      "emptyTitle": "Aún no tienes documentos",
+      "emptyHint": "Crea tu primer estimado o factura y compártelo en segundos",
+      "sentTo": "Cliente: {{client}}",
+      "noClientYet": "Sin cliente asignado todavía"
+    },
+    "detail": {
+      "backToList": "Volver a la lista",
+      "noNumber": "Sin número",
+      "views": "Veces abierto",
+      "firstViewed": "Primera apertura",
+      "clientEmail": "Correo del cliente",
+      "acceptedAt": "Aceptado el",
+      "downloadPdf": "Descargar PDF",
+      "convertBtn": "Convertir a factura",
+      "cancelBtn": "Cancelar documento",
+      "linkOnlyOnce": "El enlace para compartir se muestra solo al crear o convertir el documento. Crea uno nuevo si necesitas volver a compartirlo.",
+      "linkInactive": "El enlace de este documento ya no está activo porque fue cancelado o expiró.",
+      "noLinkYet": "Este documento aún no tiene un enlace para compartir.",
+      "generateLinkBtn": "Generar enlace para compartir"
+    },
+    "status": {
+      "draft": "Borrador",
+      "sent": "Enviado",
+      "viewed": "Visto",
+      "accepted": "Aceptado",
+      "rejected": "Rechazado",
+      "expired": "Expirado",
+      "cancelled": "Cancelado",
+      "converted": "Convertido"
+    },
+    "modal": {
+      "title": "Nuevo documento rápido",
+      "stepForm": "Completa los datos del documento",
+      "stepPreview": "Vista previa del documento",
+      "previewBtn": "Vista previa",
+      "createBtn": "Crear y compartir"
+    },
+    "form": {
+      "docType": "Tipo de documento",
+      "typeEstimate": "Estimado",
+      "typeInvoice": "Factura",
+      "businessSection": "Datos del profesional",
+      "businessName": "Nombre del negocio",
+      "phone": "Teléfono",
+      "address": "Dirección",
+      "clientSection": "Datos del cliente",
+      "clientHint": "Opcional. Puedes dejarlo en blanco si aún no conoces al cliente.",
+      "clientName": "Nombre del cliente",
+      "clientCity": "Ciudad",
+      "clientState": "Estado",
+      "clientZip": "Código postal",
+      "itemsSection": "Detalle",
+      "addItem": "Agregar línea",
+      "removeItem": "Eliminar línea",
+      "itemDescription": "Descripción del servicio o item...",
+      "expiresInDays": "Caducidad del enlace (días)",
+      "expiresHint": "El enlace dejará de funcionar después de este número de días.",
+      "defaultNote": "Precio no incluye materiales salvo indicación expresa."
+    },
+    "pdf": {
+      "estimateLabel": "ESTIMADO",
+      "invoiceLabel": "FACTURA",
+      "docNo": "Nº Documento",
+      "issueDate": "Fecha de emisión",
+      "validUntil": "Válido hasta",
+      "estimatedTotal": "Total estimado"
+    },
+    "share": {
+      "title": "Compartir con tu cliente",
+      "linkLabel": "Enlace público",
+      "copyBtn": "Copiar",
+      "copiedShort": "Copiado",
+      "copied": "Enlace copiado al portapapeles",
+      "copyError": "No se pudo copiar el enlace",
+      "openLink": "Abrir enlace",
+      "hint": "Comparte este enlace o el código QR. Tu cliente podrá verlo sin registrarse."
+    },
+    "public": {
+      "loading": "Cargando documento...",
+      "estimateTitle": "Estimado",
+      "invoiceTitle": "Factura",
+      "defaultBusiness": "Profesional",
+      "viewPdf": "Ver / descargar PDF",
+      "invoiceClaimed": "Puedes descargar tu factura arriba. ¡Gracias!",
+      "poweredBy": "Documento generado con NovoFix",
+      "goHome": "Ir al inicio",
+      "claim": {
+        "title": "Confirma tu correo para continuar",
+        "desc": "Ingresa tu correo para ver y guardar este documento. Crearemos una cuenta para que puedas acceder cuando quieras.",
+        "emailLabel": "Correo electrónico",
+        "emailPh": "tucorreo@ejemplo.com",
+        "nameLabel": "Nombre (opcional)",
+        "namePh": "Tu nombre",
+        "termsPre": "Acepto los",
+        "termsLink": "Términos de servicio",
+        "termsAnd": "y la",
+        "privacyLink": "Política de privacidad",
+        "submit": "Continuar",
+        "success": "¡Listo! Ya puedes revisar el documento."
+      },
+      "accept": {
+        "button": "Aceptar estimado",
+        "success": "¡Estimado aceptado! El profesional ha sido notificado.",
+        "acceptedBadge": "Has aceptado este estimado",
+        "unavailable": "Este estimado ya no puede aceptarse.",
+        "convertedBadge": "Este estimado fue convertido en factura."
+      },
+      "errors": {
+        "invalidEmail": "Ingresa un correo válido",
+        "mustAccept": "Debes aceptar los términos para continuar",
+        "claimError": "No se pudo procesar tu correo. Inténtalo de nuevo.",
+        "acceptError": "No se pudo aceptar el estimado. Inténtalo de nuevo.",
+        "pdfError": "No se pudo abrir el PDF",
+        "expiredTitle": "Enlace no disponible",
+        "expiredDesc": "Este enlace ha expirado o fue cancelado por el profesional. Pídele uno nuevo.",
+        "notFoundTitle": "Documento no encontrado",
+        "notFoundDesc": "No pudimos encontrar este documento. Verifica el enlace.",
+        "genericTitle": "Algo salió mal",
+        "genericDesc": "No pudimos cargar el documento. Inténtalo de nuevo más tarde."
+      }
+    },
+    "success": {
+      "created": "Documento creado y listo para compartir",
+      "converted": "Estimado convertido a factura",
+      "cancelled": "Documento cancelado",
+      "linkGenerated": "Enlace generado correctamente"
+    },
+    "errors": {
+      "loadError": "No se pudieron cargar los documentos",
+      "notFound": "Documento no encontrado",
+      "createError": "No se pudo crear el documento",
+      "previewError": "No se pudo generar la vista previa",
+      "convertError": "No se pudo convertir el estimado",
+      "cancelError": "No se pudo cancelar el documento",
+      "pdfError": "No se pudo abrir el PDF",
+      "linkError": "No se pudo generar el enlace",
+      "providersOnly": "Esta sección es solo para profesionales"
+    }
+  },
   "upload": {
     "defaultMessage": "Subiendo archivo...",
     "compressing": "Comprimiendo...",
@@ -680,6 +828,7 @@
     "portfolio": "Portafolio",
     "plan": "Plan",
     "services": "Servicios",
+    "quickDocs": "Documentos rápidos",
     "calendar": "Calendario",
     "referrals": "Referidos",
     "system": "Sistema",

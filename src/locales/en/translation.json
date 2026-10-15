@@ -116,6 +116,7 @@
     "portfolio": "Portfolio",
     "plan": "Plan",
     "services": "Services",
+    "quickDocs": "Quick documents",
     "calendar": "Calendar",
     "referrals": "Referrals",
     "system": "System",
@@ -4161,6 +4162,154 @@
     "nextPage": "Next page",
     "pageOf": "{{current}} / {{total}}",
     "estimatedRange": "Estimated range: {{min}} – {{max}}"
+  },
+  "quickDoc": {
+    "cta": {
+      "title": "Create an estimate or invoice instantly",
+      "subtitle": "Generate a document and share it by link or QR with your client"
+    },
+    "list": {
+      "title": "Quick documents",
+      "subtitle": "Create estimates and invoices, and share them by link or QR",
+      "createBtn": "New document",
+      "emptyTitle": "You have no documents yet",
+      "emptyHint": "Create your first estimate or invoice and share it in seconds",
+      "sentTo": "Client: {{client}}",
+      "noClientYet": "No client assigned yet"
+    },
+    "detail": {
+      "backToList": "Back to list",
+      "noNumber": "No number",
+      "views": "Times opened",
+      "firstViewed": "First opened",
+      "clientEmail": "Client email",
+      "acceptedAt": "Accepted on",
+      "downloadPdf": "Download PDF",
+      "convertBtn": "Convert to invoice",
+      "cancelBtn": "Cancel document",
+      "linkOnlyOnce": "The share link is shown only when creating or converting the document. Create a new one if you need to share it again.",
+      "linkInactive": "This document's link is no longer active because it was cancelled or expired.",
+      "noLinkYet": "This document doesn't have a share link yet.",
+      "generateLinkBtn": "Generate share link"
+    },
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "viewed": "Viewed",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "expired": "Expired",
+      "cancelled": "Cancelled",
+      "converted": "Converted"
+    },
+    "modal": {
+      "title": "New quick document",
+      "stepForm": "Fill in the document details",
+      "stepPreview": "Document preview",
+      "previewBtn": "Preview",
+      "createBtn": "Create and share"
+    },
+    "form": {
+      "docType": "Document type",
+      "typeEstimate": "Estimate",
+      "typeInvoice": "Invoice",
+      "businessSection": "Professional details",
+      "businessName": "Business name",
+      "phone": "Phone",
+      "address": "Address",
+      "clientSection": "Client details",
+      "clientHint": "Optional. You can leave it blank if you don't know the client yet.",
+      "clientName": "Client name",
+      "clientCity": "City",
+      "clientState": "State",
+      "clientZip": "ZIP code",
+      "itemsSection": "Details",
+      "addItem": "Add line",
+      "removeItem": "Remove line",
+      "itemDescription": "Service or item description...",
+      "expiresInDays": "Link expiry (days)",
+      "expiresHint": "The link will stop working after this number of days.",
+      "defaultNote": "Price does not include materials unless otherwise stated."
+    },
+    "pdf": {
+      "estimateLabel": "ESTIMATE",
+      "invoiceLabel": "INVOICE",
+      "docNo": "Document No.",
+      "issueDate": "Issue date",
+      "validUntil": "Valid until",
+      "estimatedTotal": "Estimated total"
+    },
+    "share": {
+      "title": "Share with your client",
+      "linkLabel": "Public link",
+      "copyBtn": "Copy",
+      "copiedShort": "Copied",
+      "copied": "Link copied to clipboard",
+      "copyError": "Could not copy the link",
+      "openLink": "Open link",
+      "hint": "Share this link or the QR code. Your client can view it without signing up."
+    },
+    "public": {
+      "loading": "Loading document...",
+      "estimateTitle": "Estimate",
+      "invoiceTitle": "Invoice",
+      "defaultBusiness": "Professional",
+      "viewPdf": "View / download PDF",
+      "invoiceClaimed": "You can download your invoice above. Thank you!",
+      "poweredBy": "Document generated with NovoFix",
+      "goHome": "Go to home",
+      "claim": {
+        "title": "Confirm your email to continue",
+        "desc": "Enter your email to view and save this document. We'll create an account so you can access it anytime.",
+        "emailLabel": "Email address",
+        "emailPh": "you@example.com",
+        "nameLabel": "Name (optional)",
+        "namePh": "Your name",
+        "termsPre": "I accept the",
+        "termsLink": "Terms of Service",
+        "termsAnd": "and the",
+        "privacyLink": "Privacy Policy",
+        "submit": "Continue",
+        "success": "Done! You can now review the document."
+      },
+      "accept": {
+        "button": "Accept estimate",
+        "success": "Estimate accepted! The professional has been notified.",
+        "acceptedBadge": "You have accepted this estimate",
+        "unavailable": "This estimate can no longer be accepted.",
+        "convertedBadge": "This estimate was converted into an invoice."
+      },
+      "errors": {
+        "invalidEmail": "Enter a valid email",
+        "mustAccept": "You must accept the terms to continue",
+        "claimError": "We couldn't process your email. Please try again.",
+        "acceptError": "We couldn't accept the estimate. Please try again.",
+        "pdfError": "Could not open the PDF",
+        "expiredTitle": "Link unavailable",
+        "expiredDesc": "This link has expired or was cancelled by the professional. Please ask for a new one.",
+        "notFoundTitle": "Document not found",
+        "notFoundDesc": "We couldn't find this document. Please check the link.",
+        "genericTitle": "Something went wrong",
+        "genericDesc": "We couldn't load the document. Please try again later."
+      }
+    },
+    "success": {
+      "created": "Document created and ready to share",
+      "converted": "Estimate converted to invoice",
+      "cancelled": "Document cancelled",
+      "linkGenerated": "Share link generated successfully"
+    },
+    "errors": {
+      "loadError": "Could not load the documents",
+      "notFound": "Document not found",
+      "createError": "Could not create the document",
+      "previewError": "Could not generate the preview",
+      "convertError": "Could not convert the estimate",
+      "cancelError": "Could not cancel the document",
+      "pdfError": "Could not open the PDF",
+      "linkError": "Could not generate the link",
+      "providersOnly": "This section is for professionals only"
+    }
   },
   "upload": {
     "defaultMessage": "Uploading file...",
