@@ -1088,6 +1088,30 @@ export default function Bookings() {
           </div>
         </div>
 
+        {/* Flujo 2 — CTA destacado: crear estimado/factura rápida (solo profesional) */}
+        {isProvider && (
+          <button
+            type="button"
+            onClick={() => navigate('/documentos-rapidos')}
+            className="group w-full flex items-center justify-between gap-4 rounded-2xl bg-linear-to-r from-brand-600 to-brand-700 px-5 sm:px-6 py-4 text-left text-white shadow-lg shadow-brand-600/20 hover:shadow-xl hover:shadow-brand-600/30 transition-all"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-base sm:text-lg leading-tight">{t('quickDoc.cta.title')}</p>
+                <p className="text-xs sm:text-sm text-brand-100 truncate">{t('quickDoc.cta.subtitle')}</p>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-white shrink-0 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
+
         {/* Filtros Premium */}
         <div className="relative overflow-hidden bg-white/70 backdrop-blur-xl rounded-2xl border border-gray-100 shadow-lg shadow-gray-900/5">
           {/* Toggle header */}
