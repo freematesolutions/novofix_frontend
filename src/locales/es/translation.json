@@ -578,6 +578,7 @@
         "emailPh": "tucorreo@ejemplo.com",
         "nameLabel": "Nombre (opcional)",
         "namePh": "Tu nombre",
+        "rememberedHint": "Usamos el correo que ya registraste en este dispositivo. Puedes cambiarlo si lo necesitas.",
         "termsPre": "Acepto los",
         "termsLink": "Términos de servicio",
         "termsAnd": "y la",

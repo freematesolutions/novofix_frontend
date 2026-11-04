@@ -4265,6 +4265,7 @@
         "emailPh": "you@example.com",
         "nameLabel": "Name (optional)",
         "namePh": "Your name",
+        "rememberedHint": "We used the email you already registered on this device. You can change it if needed.",
         "termsPre": "I accept the",
         "termsLink": "Terms of Service",
         "termsAnd": "and the",

@@ -8,6 +8,7 @@ import api from '@/state/apiClient.js';
 import { useAuth } from '@/state/AuthContext.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 import Button from '@/components/ui/Button.jsx';
+import PdfCanvasViewer from '@/components/ui/PdfCanvasViewer.jsx';
 
 /* ───────────────────────────────────────
    Constantes de diseño (alineadas a la marca)
@@ -263,7 +264,7 @@ export default function QuickDocModal({ open, onClose, onCreated }) {
   const [clientState, setClientState] = useState('');
   const [clientZip, setClientZip] = useState('');
 
-  const [items, setItems] = useState([{ description: '', qty: 1, unitPrice: 0, total: 0 }]);
+  const [items, setItems] = useState([{ description: '', qty: '', unitPrice: '', total: 0 }]);
   const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(0);
   const [shipping, setShipping] = useState(0);
@@ -285,7 +286,7 @@ export default function QuickDocModal({ open, onClose, onCreated }) {
     setDueDate(addDays(today(), 30));
     setValidUntil(addDays(today(), 30));
     setExpiresInDays(30);
-    setItems([{ description: '', qty: 1, unitPrice: 0, total: 0 }]);
+    setItems([{ description: '', qty: '', unitPrice: '', total: 0 }]);
     setDiscount(0);
     setTaxRate(0);
     setShipping(0);
@@ -301,7 +302,12 @@ export default function QuickDocModal({ open, onClose, onCreated }) {
       `${user?.profile?.firstName || ''} ${user?.profile?.lastName || ''}`.trim() ||
       ''
     );
-    setBusinessAddress(user?.contact?.address || '');
+    setBusinessAddress(
+      user?.contact?.address ||
+      user?.providerProfile?.serviceArea?.address ||
+      user?.providerProfile?.serviceArea?.zones?.[0] ||
+      ''
+    );
     setBusinessPhone(user?.profile?.phone || user?.contact?.phone || '');
     setBusinessEmail(user?.email || '');
   }, [open, user, t]);
@@ -324,7 +330,7 @@ export default function QuickDocModal({ open, onClose, onCreated }) {
   }, []);
 
   const addItem = useCallback(() => {
-    setItems((prev) => [...prev, { description: '', qty: 1, unitPrice: 0, total: 0 }]);
+    setItems((prev) => [...prev, { description: '', qty: '', unitPrice: '', total: 0 }]);
   }, []);
 
   const removeItem = useCallback((index) => {
@@ -700,7 +706,12 @@ export default function QuickDocModal({ open, onClose, onCreated }) {
             ) : (
               <div className="px-5 sm:px-6 py-5">
                 {previewUrl && (
-                  <iframe title={t('quickDoc.modal.stepPreview')} src={previewUrl} className="w-full h-[60vh] rounded-xl border border-gray-200" />
+                  <PdfCanvasViewer
+                    title={t('quickDoc.modal.stepPreview')}
+                    src={previewUrl}
+                    accentColor={type === 'invoice' ? 'red' : 'teal'}
+                    className="w-full h-[60vh] rounded-xl border border-gray-200 bg-gray-800 overflow-hidden"
+                  />
                 )}
               </div>
             )}
