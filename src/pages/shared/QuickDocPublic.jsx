@@ -36,6 +36,32 @@ const fmtDate = (d, locale) => {
 
 const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim());
 
+// Recuerda la identidad del cliente en ESTE dispositivo para que, al recibir
+// otro documento del profesional, no tenga que volver a escribir su correo.
+const CLIENT_MEMORY_KEY = 'novofix_quickdoc_client';
+
+const readRememberedClient = () => {
+  try {
+    const raw = localStorage.getItem(CLIENT_MEMORY_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && isValidEmail(parsed.email) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveRememberedClient = (email, name) => {
+  try {
+    localStorage.setItem(
+      CLIENT_MEMORY_KEY,
+      JSON.stringify({ email: String(email || '').trim(), name: String(name || '').trim() })
+    );
+  } catch {
+    /* localStorage no disponible (modo privado) — ignorar */
+  }
+};
+
 export default function QuickDocPublic() {
   const { token } = useParams();
   const { t, i18n } = useTranslation();
@@ -54,6 +80,8 @@ export default function QuickDocPublic() {
 
   const [accepting, setAccepting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  // true cuando el correo se autocompletó desde la memoria del dispositivo
+  const [rememberedPrefill, setRememberedPrefill] = useState(false);
 
   const loadDoc = useCallback(async () => {
     setState('loading');
@@ -71,6 +99,16 @@ export default function QuickDocPublic() {
   }, [token]);
 
   useEffect(() => { loadDoc(); }, [loadDoc]);
+
+  // Autocompletar correo/nombre recordados en este dispositivo (si aún no reclamó)
+  useEffect(() => {
+    if (state !== 'ready' || doc?.hasClaimed) return;
+    const remembered = readRememberedClient();
+    if (!remembered) return;
+    setEmail((prev) => prev || remembered.email);
+    setName((prev) => prev || remembered.name || '');
+    setRememberedPrefill(true);
+  }, [state, doc?.hasClaimed]);
 
   const isEstimate = doc?.type === 'estimate';
   const hasClaimed = !!doc?.hasClaimed;
@@ -100,6 +138,7 @@ export default function QuickDocPublic() {
         locale
       });
       setDoc(data?.data?.doc || doc);
+      saveRememberedClient(email.trim(), name.trim());
       toast.success(t('quickDoc.public.claim.success'));
     } catch (err) {
       const status = err?.response?.status;
@@ -309,6 +348,13 @@ export default function QuickDocPublic() {
                 <h2 className="text-sm font-bold">{t('quickDoc.public.claim.title')}</h2>
               </div>
               <p className="mb-4 text-sm text-gray-600">{t('quickDoc.public.claim.desc')}</p>
+
+              {rememberedPrefill && (
+                <div className="mb-4 flex items-start gap-2 rounded-xl bg-brand/10 px-3 py-2 text-xs text-brand-700">
+                  <HiCheckCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{t('quickDoc.public.claim.rememberedHint')}</span>
+                </div>
+              )}
 
               <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">
                 {t('quickDoc.public.claim.emailLabel')}
