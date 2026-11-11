@@ -2,6 +2,7 @@
 /* Tailwind v4 theme tokens for custom brand color */
 @theme {
   /* Brand — Teal (#008080) */
+  --color-brand: #008080;
   --color-brand-50: #f0fdfa;
   --color-brand-100: #ccfbf1;
   --color-brand-200: #99f0e4;

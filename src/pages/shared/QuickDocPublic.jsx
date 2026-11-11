@@ -14,10 +14,13 @@ import {
   HiCheckCircle,
   HiDownload,
   HiShieldCheck,
-  HiExclamationCircle
+  HiExclamationCircle,
+  HiOutlineUserCircle,
+  HiLockClosed
 } from 'react-icons/hi';
 import api from '@/state/apiClient.js';
 import Button from '@/components/ui/Button.jsx';
+import ProviderProfileModal from '@/components/ui/ProviderProfileModal.jsx';
 import { useToast } from '@/components/ui/Toast.jsx';
 
 const fmtCurrency = (val, currency = 'USD') =>
@@ -82,6 +85,11 @@ export default function QuickDocPublic() {
   const [pdfLoading, setPdfLoading] = useState(false);
   // true cuando el correo se autocompletó desde la memoria del dispositivo
   const [rememberedPrefill, setRememberedPrefill] = useState(false);
+
+  // Perfil del profesional (solo lectura) abierto desde el documento público
+  const [providerModalOpen, setProviderModalOpen] = useState(false);
+  const [providerData, setProviderData] = useState(null);
+  const [providerLoading, setProviderLoading] = useState(false);
 
   const loadDoc = useCallback(async () => {
     setState('loading');
@@ -179,6 +187,24 @@ export default function QuickDocPublic() {
     }
   }, [token, t, toast]);
 
+  const openProviderProfile = useCallback(async () => {
+    const providerId = doc?.providerId;
+    if (!providerId) return;
+    if (providerData) { setProviderModalOpen(true); return; }
+    setProviderLoading(true);
+    try {
+      const { data } = await api.get(`/guest/providers/${providerId}`);
+      const provider = data?.data?.provider;
+      if (!provider?._id) throw new Error('missing provider');
+      setProviderData(provider);
+      setProviderModalOpen(true);
+    } catch {
+      toast.error(t('quickDoc.public.errors.providerError'));
+    } finally {
+      setProviderLoading(false);
+    }
+  }, [doc?.providerId, providerData, t, toast]);
+
   const businessName = doc?.businessInfo?.name || t('quickDoc.public.defaultBusiness');
 
   const docTitle = useMemo(() => (
@@ -250,6 +276,18 @@ export default function QuickDocPublic() {
               <span>{t('quickDoc.pdf.validUntil')}: {fmtDate(doc.validUntil, locale)}</span>
             )}
           </div>
+
+          {doc?.providerId && (
+            <button
+              type="button"
+              onClick={openProviderProfile}
+              disabled={providerLoading}
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/25 disabled:opacity-60"
+            >
+              <HiOutlineUserCircle className="h-5 w-5" />
+              {providerLoading ? t('quickDoc.public.loading') : t('quickDoc.public.viewProviderProfile')}
+            </button>
+          )}
         </div>
 
         {/* Cuerpo */}
@@ -264,27 +302,40 @@ export default function QuickDocPublic() {
 
           {/* Detalle de líneas */}
           {Array.isArray(fin.items) && fin.items.length > 0 && (
-            <div className="mb-5 overflow-x-auto rounded-2xl border border-gray-100">
-              <table className="w-full min-w-88 text-sm">
-                <thead className="bg-gray-50 text-left text-xs uppercase tracking-wider text-gray-500">
-                  <tr>
-                    <th className="px-3 py-2 font-semibold">{t('invoice.description')}</th>
-                    <th className="px-3 py-2 text-center font-semibold">{t('invoice.qty')}</th>
-                    <th className="whitespace-nowrap px-3 py-2 text-right font-semibold">{t('invoice.unitPrice')}</th>
-                    <th className="whitespace-nowrap px-3 py-2 text-right font-semibold">{t('invoice.total')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {fin.items.map((it, idx) => (
-                    <tr key={idx}>
-                      <td className="px-3 py-2 text-gray-800">{it.description || '—'}</td>
-                      <td className="px-3 py-2 text-center text-gray-600">{it.qty ?? 0}</td>
-                      <td className="whitespace-nowrap px-3 py-2 text-right text-gray-600">{fmtCurrency(it.unitPrice, fin.currency)}</td>
-                      <td className="whitespace-nowrap px-3 py-2 text-right font-medium text-gray-900">{fmtCurrency(it.total, fin.currency)}</td>
+            <div className="relative mb-5">
+              <div
+                className={`overflow-x-auto rounded-2xl border border-gray-100 ${!hasClaimed ? 'pointer-events-none select-none blur-sm' : ''}`}
+                aria-hidden={!hasClaimed}
+              >
+                <table className="w-full min-w-88 text-sm">
+                  <thead className="bg-gray-50 text-left text-xs uppercase tracking-wider text-gray-500">
+                    <tr>
+                      <th className="px-3 py-2 font-semibold">{t('invoice.description')}</th>
+                      <th className="px-3 py-2 text-center font-semibold">{t('invoice.qty')}</th>
+                      <th className="whitespace-nowrap px-3 py-2 text-right font-semibold">{t('invoice.unitPrice')}</th>
+                      <th className="whitespace-nowrap px-3 py-2 text-right font-semibold">{t('invoice.total')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {fin.items.map((it, idx) => (
+                      <tr key={idx}>
+                        <td className="px-3 py-2 text-gray-800">{it.description || '—'}</td>
+                        <td className="px-3 py-2 text-center text-gray-600">{it.qty ?? 0}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right text-gray-600">{fmtCurrency(it.unitPrice, fin.currency)}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right font-medium text-gray-900">{fmtCurrency(it.total, fin.currency)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {!hasClaimed && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white/40">
+                  <div className="mx-4 flex items-center gap-2 rounded-xl bg-white/90 px-4 py-2 text-center text-xs font-semibold text-brand shadow-sm ring-1 ring-brand/15">
+                    <HiLockClosed className="h-4 w-4 shrink-0" />
+                    <span>{t('quickDoc.public.previewLocked')}</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -299,17 +350,21 @@ export default function QuickDocPublic() {
               </div>
             ) : (
               <>
-                {Number(fin.subtotal) > 0 && (
-                  <Row label={t('invoice.subtotal')} value={fmtCurrency(fin.subtotal, fin.currency)} />
-                )}
-                {Number(fin.discount) > 0 && (
-                  <Row label={t('invoice.discount')} value={`– ${fmtCurrency(fin.discount, fin.currency)}`} />
-                )}
-                {Number(fin.tax) > 0 && (
-                  <Row label={t('invoice.tax')} value={fmtCurrency(fin.tax, fin.currency)} />
-                )}
-                {Number(fin.shipping) > 0 && (
-                  <Row label={t('invoice.shipping')} value={fmtCurrency(fin.shipping, fin.currency)} />
+                {(Number(fin.subtotal) > 0 || Number(fin.discount) > 0 || Number(fin.tax) > 0 || Number(fin.shipping) > 0) && (
+                  <div className={!hasClaimed ? 'pointer-events-none select-none space-y-1.5 blur-sm' : 'space-y-1.5'} aria-hidden={!hasClaimed}>
+                    {Number(fin.subtotal) > 0 && (
+                      <Row label={t('invoice.subtotal')} value={fmtCurrency(fin.subtotal, fin.currency)} />
+                    )}
+                    {Number(fin.discount) > 0 && (
+                      <Row label={t('invoice.discount')} value={`– ${fmtCurrency(fin.discount, fin.currency)}`} />
+                    )}
+                    {Number(fin.tax) > 0 && (
+                      <Row label={t('invoice.tax')} value={fmtCurrency(fin.tax, fin.currency)} />
+                    )}
+                    {Number(fin.shipping) > 0 && (
+                      <Row label={t('invoice.shipping')} value={fmtCurrency(fin.shipping, fin.currency)} />
+                    )}
+                  </div>
                 )}
                 <div className="flex items-center justify-between rounded-2xl bg-brand/5 px-4 py-3">
                   <span className="font-semibold text-gray-700">{t('invoice.total')}</span>
@@ -442,6 +497,15 @@ export default function QuickDocPublic() {
           </p>
         </div>
       </div>
+
+      {providerData && (
+        <ProviderProfileModal
+          isOpen={providerModalOpen}
+          onClose={() => setProviderModalOpen(false)}
+          provider={providerData}
+          readOnly
+        />
+      )}
     </div>
   );
 }
