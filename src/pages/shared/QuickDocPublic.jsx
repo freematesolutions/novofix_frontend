@@ -304,7 +304,7 @@ export default function QuickDocPublic() {
           {Array.isArray(fin.items) && fin.items.length > 0 && (
             <div className="relative mb-5">
               <div
-                className={`overflow-x-auto rounded-2xl border border-gray-100 ${!hasClaimed ? 'pointer-events-none select-none blur-sm' : ''}`}
+                className={`overflow-x-auto rounded-2xl border border-gray-100 ${!hasClaimed ? 'pointer-events-none select-none blur-[2px]' : ''}`}
                 aria-hidden={!hasClaimed}
               >
                 <table className="w-full min-w-88 text-sm">
@@ -329,7 +329,7 @@ export default function QuickDocPublic() {
                 </table>
               </div>
               {!hasClaimed && (
-                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white/40">
+                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white/15">
                   <div className="mx-4 flex items-center gap-2 rounded-xl bg-white/90 px-4 py-2 text-center text-xs font-semibold text-brand shadow-sm ring-1 ring-brand/15">
                     <HiLockClosed className="h-4 w-4 shrink-0" />
                     <span>{t('quickDoc.public.previewLocked')}</span>
@@ -351,7 +351,7 @@ export default function QuickDocPublic() {
             ) : (
               <>
                 {(Number(fin.subtotal) > 0 || Number(fin.discount) > 0 || Number(fin.tax) > 0 || Number(fin.shipping) > 0) && (
-                  <div className={!hasClaimed ? 'pointer-events-none select-none space-y-1.5 blur-sm' : 'space-y-1.5'} aria-hidden={!hasClaimed}>
+                  <div className={!hasClaimed ? 'pointer-events-none select-none space-y-1.5 blur-[2px]' : 'space-y-1.5'} aria-hidden={!hasClaimed}>
                     {Number(fin.subtotal) > 0 && (
                       <Row label={t('invoice.subtotal')} value={fmtCurrency(fin.subtotal, fin.currency)} />
                     )}

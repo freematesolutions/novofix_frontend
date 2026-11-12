@@ -64,52 +64,59 @@ export function buildQuickDocPDF(data, t) {
   const marginL = 15;
   const marginR = 15;
   const contentW = pageW - marginL - marginR;
-  let y = 15;
 
-  // ── Header bar ──
+  // ── Header bar (más alta para dar aire a tipografías legibles) ──
+  const headerH = 48;
   doc.setFillColor(...BRAND_DARK);
-  doc.rect(0, 0, pageW, 38, 'F');
+  doc.rect(0, 0, pageW, headerH, 'F');
 
+  // Nombre del negocio
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
+  doc.setFontSize(21);
   doc.setTextColor(...WHITE);
-  doc.text(data.businessName || 'Business Name', marginL, 18);
+  doc.text(data.businessName || 'Business Name', marginL, 20);
 
+  // Dirección + contacto (apilados con separación cómoda)
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
+  doc.setFontSize(10.5);
   doc.setTextColor(200, 210, 220);
-  if (data.businessAddress) doc.text(data.businessAddress, marginL, 25);
-  const contactLine = [data.businessPhone, data.businessEmail].filter(Boolean).join('  •  ');
-  if (contactLine) doc.text(contactLine, marginL, 31);
+  let hy = 30;
+  if (data.businessAddress) { doc.text(data.businessAddress, marginL, hy); hy += 6.5; }
+  const contactLine = [data.businessPhone, data.businessEmail].filter(Boolean).join('   •   ');
+  if (contactLine) { doc.text(contactLine, marginL, hy); hy += 6.5; }
 
+  // Etiqueta del documento (derecha)
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(26);
+  doc.setFontSize(25);
   doc.setTextColor(...BRAND_GOLD);
-  doc.text(docLabel, pageW - marginR, 22, { align: 'right' });
+  doc.text(docLabel, pageW - marginR, 23, { align: 'right' });
 
   doc.setFillColor(...BRAND_TEAL);
-  doc.rect(0, 38, pageW, 2, 'F');
+  doc.rect(0, headerH, pageW, 2, 'F');
 
-  y = 48;
+  let y = headerH + 16;
 
   // ── Bill To ──
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
+  doc.setFontSize(10.5);
   doc.setTextColor(...BRAND_TEAL);
   doc.text(t('invoice.billTo').toUpperCase(), marginL, y);
-  y += 6;
+  y += 7.5;
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12.5);
   doc.setTextColor(...GRAY_900);
-  if (data.clientName) { doc.text(data.clientName, marginL, y); y += 5.5; }
-  if (data.clientAddress) { doc.text(data.clientAddress, marginL, y); y += 5.5; }
+  if (data.clientName) { doc.text(data.clientName, marginL, y); y += 7; }
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(...GRAY_700);
+  if (data.clientAddress) { doc.text(data.clientAddress, marginL, y); y += 6.5; }
   const clientCityState = [data.clientCity, data.clientState, data.clientZip].filter(Boolean).join(', ');
-  if (clientCityState) { doc.text(clientCityState, marginL, y); y += 5.5; }
+  if (clientCityState) { doc.text(clientCityState, marginL, y); y += 6.5; }
 
   // ── Meta (right) ──
   const rightX = pageW - marginR;
-  let ry = 48;
+  let ry = headerH + 16;
   const metaRows = [
     [t('quickDoc.pdf.docNo'), data.documentNumber],
     [t('quickDoc.pdf.issueDate'), formatDate(data.issueDate)],
@@ -119,15 +126,15 @@ export function buildQuickDocPDF(data, t) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(...GRAY_500);
-    doc.text(label, rightX - 60, ry);
+    doc.text(label, rightX - 62, ry);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     doc.setTextColor(...GRAY_900);
     doc.text(value || '', rightX, ry, { align: 'right' });
-    ry += 6.5;
+    ry += 7.5;
   });
 
-  y = Math.max(y, ry) + 8;
+  y = Math.max(y, ry) + 12;
 
   // ── Items table ──
   const tableHeaders = [[t('invoice.description'), t('invoice.qty'), t('invoice.unitPrice'), t('invoice.total')]];
@@ -148,14 +155,14 @@ export function buildQuickDocPDF(data, t) {
     body: tableBody,
     margin: { left: marginL, right: marginR },
     theme: 'plain',
-    headStyles: { fillColor: BRAND_DARK, textColor: WHITE, fontStyle: 'bold', fontSize: 11, cellPadding: { top: 4.5, bottom: 4.5, left: 5, right: 5 }, halign: 'left' },
+    headStyles: { fillColor: BRAND_DARK, textColor: WHITE, fontStyle: 'bold', fontSize: 11, cellPadding: { top: 5, bottom: 5, left: 5, right: 5 }, halign: 'left' },
     columnStyles: {
       0: { cellWidth: contentW * 0.5 },
       1: { cellWidth: contentW * 0.1, halign: 'center' },
       2: { cellWidth: contentW * 0.2, halign: 'right' },
       3: { cellWidth: contentW * 0.2, halign: 'right' }
     },
-    bodyStyles: { fontSize: 11, textColor: GRAY_700, cellPadding: { top: 4, bottom: 4, left: 5, right: 5 } },
+    bodyStyles: { fontSize: 11, textColor: GRAY_700, cellPadding: { top: 4.5, bottom: 4.5, left: 5, right: 5 } },
     alternateRowStyles: { fillColor: [248, 250, 252] },
     didParseCell: (cell) => {
       if (cell.section === 'head') {
@@ -165,7 +172,7 @@ export function buildQuickDocPDF(data, t) {
     }
   });
 
-  y = doc.lastAutoTable.finalY + 8;
+  y = doc.lastAutoTable.finalY + 12;
 
   // ── Totals ──
   const totalsX = pageW - marginR - 85;
@@ -174,10 +181,10 @@ export function buildQuickDocPDF(data, t) {
   const drawTotalRow = (label, value, bold = false, highlight = false) => {
     if (highlight) {
       doc.setFillColor(...BRAND_TEAL);
-      doc.roundedRect(totalsX - 5, y - 5, 90, 12, 2, 2, 'F');
+      doc.roundedRect(totalsX - 5, y - 6, 90, 14, 2, 2, 'F');
       doc.setTextColor(...WHITE);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(13);
+      doc.setFontSize(13.5);
     } else {
       doc.setTextColor(...(bold ? GRAY_900 : GRAY_700));
       doc.setFont('helvetica', bold ? 'bold' : 'normal');
@@ -185,7 +192,7 @@ export function buildQuickDocPDF(data, t) {
     }
     doc.text(label, totalsX, y);
     doc.text(value, totalsValX, y, { align: 'right' });
-    y += highlight ? 13 : 6.5;
+    y += highlight ? 15 : 7.5;
   };
 
   const subtotal = data.items.reduce((s, it) => s + (Number(it.total) || (Number(it.qty) || 0) * (Number(it.unitPrice) || 0)), 0);
@@ -199,35 +206,35 @@ export function buildQuickDocPDF(data, t) {
   doc.setDrawColor(...GRAY_100);
   doc.setLineWidth(0.5);
   doc.line(totalsX - 5, y - 2, totalsValX + 5, y - 2);
-  y += 3;
+  y += 4;
 
   drawTotalRow(t('invoice.subtotal'), fmtCurrency(subtotal, data.currency));
   if (discount > 0) drawTotalRow(t('invoice.discount'), `- ${fmtCurrency(discount, data.currency)}`);
   if (taxRate > 0) drawTotalRow(`${t('invoice.tax')} (${taxRate}%)`, fmtCurrency(tax, data.currency));
   if (shipping > 0) drawTotalRow(t('invoice.shipping'), fmtCurrency(shipping, data.currency));
 
-  y += 2;
+  y += 3;
   drawTotalRow(isInvoice ? t('invoice.balanceDue') : t('quickDoc.pdf.estimatedTotal'), fmtCurrency(total, data.currency), true, true);
 
   // ── Notes ──
   if (data.notes) {
-    y += 6;
+    y += 8;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
+    doc.setFontSize(10.5);
     doc.setTextColor(...BRAND_TEAL);
     doc.text(t('invoice.notes').toUpperCase(), marginL, y);
-    y += 5.5;
+    y += 6.5;
     doc.setFont('helvetica', 'italic');
-    doc.setFontSize(10);
+    doc.setFontSize(10.5);
     doc.setTextColor(...GRAY_500);
-    const noteLines = doc.splitTextToSize(data.notes, contentW * 0.6);
+    const noteLines = doc.splitTextToSize(data.notes, contentW * 0.62);
     doc.text(noteLines, marginL, y);
-    y += noteLines.length * 4.5;
+    y += noteLines.length * 5.5;
   }
 
   // ── Footer ──
   doc.setFillColor(...BRAND_DARK);
-  doc.rect(0, pageH - 12, pageW, 12, 'F');
+  doc.rect(0, pageH - 13, pageW, 13, 'F');
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(180, 190, 200);
