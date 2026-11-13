@@ -3644,7 +3644,9 @@
       },
       "status": {
         "active": "Activo",
-        "inactive": "Inactivo"
+        "inactive": "Inactivo",
+        "unverified": "Sin verificar",
+        "unverifiedHint": "Este usuario no ha verificado su correo y no puede iniciar sesión. Al activarlo se marcará el correo como verificado."
       },
       "bulk": {
         "selected": "seleccionados",
@@ -3654,7 +3656,26 @@
       "selectAll": "Seleccionar todos",
       "actions": {
         "activate": "Activar",
-        "deactivate": "Desactivar"
+        "deactivate": "Desactivar",
+        "changePassword": "Cambiar contraseña",
+        "refresh": "Actualizar lista",
+        "changeRole": "Cambiar tipo de usuario",
+        "selectUser": "Seleccionar usuario"
+      },
+      "changePassword": {
+        "title": "Cambiar contraseña",
+        "description": "Establece una nueva contraseña para {{name}}. Se cerrarán sus sesiones activas.",
+        "newPassword": "Nueva contraseña",
+        "confirmPassword": "Confirmar nueva contraseña",
+        "adminPassword": "Tu contraseña de administrador",
+        "adminPasswordHint": "Confirma tu identidad para aplicar el cambio.",
+        "submit": "Cambiar contraseña",
+        "cancel": "Cancelar",
+        "success": "Contraseña actualizada para {{email}}",
+        "error": "No se pudo cambiar la contraseña",
+        "mismatch": "Las contraseñas no coinciden",
+        "tooShort": "La contraseña debe tener al menos 8 caracteres",
+        "adminRequired": "Debes ingresar tu contraseña de administrador"
       },
       "empty": {
         "title": "Sin usuarios",
