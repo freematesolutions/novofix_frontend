@@ -607,7 +607,7 @@ function Header() {
         : 'hover:bg-brand-50 hover:text-brand-700 hover:shadow-md hover:scale-[1.02] hover:ring-1 hover:ring-brand-200';
     
     // En resoluciones intermedias (md a lg) solo mostrar iconos más grandes, en lg+ mostrar texto
-    return `nav-link-tooltip group relative px-3 py-2 md:px-4 md:py-2.5 lg:px-3.5 lg:py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${isActive ? `${activeByRole}` : `${neutralByRole} ${hoverByRole}`}`;
+    return `nav-link-tooltip group relative px-3 py-2 md:px-4 md:py-2.5 lg:px-3.5 lg:py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${isActive ? `${activeByRole}` : `${neutralByRole} ${hoverByRole}`}`;
   };
   
   // Componente para link con tooltip (showLabel fuerza mostrar texto siempre, ej. en menú móvil)
@@ -642,7 +642,7 @@ function Header() {
         onClick && onClick(e);
       }}
       className={({isActive}) => showLabel 
-        ? `flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 ease-out ${isActive 
+        ? `flex items-center gap-3.5 px-4 py-3 min-h-12 rounded-2xl text-sm font-semibold transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isActive 
             ? (viewRole === 'provider' 
                 ? 'bg-brand-50 text-brand-700 ring-2 ring-brand-200 shadow-sm' 
               : viewRole === 'client' 
@@ -674,10 +674,10 @@ function Header() {
               <span className={`text-[10px] font-medium uppercase tracking-wide ${
                 viewRole === 'provider' ? 'text-brand-600' 
                 : viewRole === 'client' ? 'text-brand-600' 
-                : viewRole === 'admin' ? 'text-gray-500' 
+                : viewRole === 'admin' ? 'text-gray-600' 
                 : 'text-gray-500'
               }`}>
-                Activo
+                {t('header.active')}
               </span>
             )}
           </div>
@@ -985,78 +985,37 @@ function Header() {
 
       {(isAuthenticated && viewRole === 'admin') && (
         <>
-          <NavLink
+          <NavLinkWithTooltip
             to="/admin"
             end
             onClick={closeMenu}
-            className={({ isActive }) =>
-              `group relative flex items-center gap-2 px-3.5 py-2 rounded-xl font-medium text-sm transition-all duration-300 ${
-                isActive
-                  ? 'bg-linear-to-r from-dark-500 to-dark-700 text-white shadow-lg shadow-dark-500/25'
-                  : 'text-dark-300 hover:text-white hover:bg-white/10'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <span className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
-                  <svg className={`w-4 h-4 ${isActive ? 'text-white' : 'text-dark-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </span>
-                <span className={isMobile ? '' : 'hidden lg:inline'}>{t('header.system')}</span>
-              </>
-            )}
-          </NavLink>
-          <NavLink
+            icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
+            label={t('header.system')}
+            showLabel={isMobile}
+          />
+          <NavLinkWithTooltip
             to="/admin/alertas"
             onClick={closeMenu}
-            className={({ isActive }) =>
-              `group relative flex items-center gap-2 px-3.5 py-2 rounded-xl font-medium text-sm transition-all duration-300 ${
-                isActive
-                  ? 'bg-linear-to-r from-dark-500 to-dark-700 text-white shadow-lg shadow-dark-500/25'
-                  : 'text-dark-300 hover:text-white hover:bg-white/10'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <span className={`relative flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
-                  <svg className={`w-4 h-4 ${isActive ? 'text-white' : 'text-dark-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                  {unreadAdmin > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-5 h-5 px-1 text-[10px] font-bold bg-linear-to-r from-brand-500 to-brand-600 text-white rounded-full shadow-lg shadow-brand-500/40 ring-2 ring-white/30 animate-pulse-badge">
-                      {unreadAdmin > 99 ? '99+' : unreadAdmin}
-                    </span>
-                  )}
-                </span>
-                <span className={isMobile ? '' : 'hidden lg:inline'}>{t('header.alerts')}</span>
-              </>
+            icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>}
+            label={t('header.alerts')}
+            showLabel={isMobile}
+            badge={unreadAdmin > 0 && (
+              <span
+                role="status"
+                aria-label={`${t('header.alerts')}: ${unreadAdmin}`}
+                className="inline-flex items-center justify-center text-[10px] leading-none font-bold px-1.5 py-0.5 rounded-full bg-brand-600 text-white min-w-4.5 shadow-sm"
+              >
+                {unreadAdmin > 99 ? '99+' : unreadAdmin}
+              </span>
             )}
-          </NavLink>
-          <NavLink
+          />
+          <NavLinkWithTooltip
             to="/admin/moderacion"
             onClick={closeMenu}
-            className={({ isActive }) =>
-              `group relative flex items-center gap-2 px-3.5 py-2 rounded-xl font-medium text-sm transition-all duration-300 ${
-                isActive
-                  ? 'bg-linear-to-r from-dark-500 to-dark-700 text-white shadow-lg shadow-dark-500/25'
-                  : 'text-dark-300 hover:text-white hover:bg-white/10'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <span className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
-                  <svg className={`w-4 h-4 ${isActive ? 'text-white' : 'text-dark-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </span>
-                <span className={isMobile ? '' : 'hidden lg:inline'}>{t('header.moderation')}</span>
-              </>
-            )}
-          </NavLink>
+            icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>}
+            label={t('header.moderation')}
+            showLabel={isMobile}
+          />
         </>
       )}
     </>

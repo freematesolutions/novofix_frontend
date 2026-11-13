@@ -3440,7 +3440,9 @@
       },
       "status": {
         "active": "Active",
-        "inactive": "Inactive"
+        "inactive": "Inactive",
+        "unverified": "Unverified",
+        "unverifiedHint": "This user has not verified their email and cannot sign in. Activating them will mark the email as verified."
       },
       "bulk": {
         "selected": "selected",
@@ -3450,7 +3452,26 @@
       "selectAll": "Select all",
       "actions": {
         "activate": "Activate",
-        "deactivate": "Deactivate"
+        "deactivate": "Deactivate",
+        "changePassword": "Change password",
+        "refresh": "Refresh list",
+        "changeRole": "Change user type",
+        "selectUser": "Select user"
+      },
+      "changePassword": {
+        "title": "Change password",
+        "description": "Set a new password for {{name}}. Their active sessions will be signed out.",
+        "newPassword": "New password",
+        "confirmPassword": "Confirm new password",
+        "adminPassword": "Your administrator password",
+        "adminPasswordHint": "Confirm your identity to apply the change.",
+        "submit": "Change password",
+        "cancel": "Cancel",
+        "success": "Password updated for {{email}}",
+        "error": "Could not change the password",
+        "mismatch": "Passwords do not match",
+        "tooShort": "Password must be at least 8 characters",
+        "adminRequired": "You must enter your administrator password"
       },
       "empty": {
         "title": "No users",
