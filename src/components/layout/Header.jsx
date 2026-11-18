@@ -1541,7 +1541,7 @@ function Header() {
             className={`flex items-center gap-2 sm:gap-3 group transition-all duration-300 ${role === 'guest' ? 'text-brand-600 hover:text-brand-700' : `${accent.text600} ${accent.hoverText700}`}`}
           >
             {/* Brand name NovoFix — solo texto, sin icono */}
-            <span className={`text-xl sm:text-2xl font-bold tracking-tight transition-all duration-300 ${searchBarState.show ? 'hidden sm:inline' : ''}`}>
+            <span translate="no" className={`text-xl sm:text-2xl font-bold tracking-tight transition-all duration-300 ${searchBarState.show ? 'hidden sm:inline' : ''}`}>
               <span className="text-brand-800 group-hover:text-brand-700 transition-colors duration-300">Novo</span>
               <span className="text-gray-800 group-hover:text-gray-700 transition-colors duration-300">Fix</span>
             </span>
