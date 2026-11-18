@@ -76,7 +76,7 @@ export default function Seo({
     <>
       <Helmet>
         {/* Sync <html lang> so screen readers and crawlers see the active locale */}
-        <html lang={lang} />
+        <html lang={lang} translate="no" />
         <title>{fullTitle}</title>
         {resolvedDescription && (
           <meta name="description" content={resolvedDescription} />
